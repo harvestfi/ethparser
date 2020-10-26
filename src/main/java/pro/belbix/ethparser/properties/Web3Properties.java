@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "egv.web3")
+@ConfigurationProperties(prefix = "web3")
 @Getter
 @Setter
 @ToString

@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.web3;
 
-
 import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -26,6 +25,7 @@ import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.UniswapTx;
 
 public class UniswapEventDecoder {
+
     private final static Address WETH_ADDRESS = new Address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
     private Map<String, List<TypeReference<Type>>> parametersByMethodId;
     private Map<String, String> methodNamesByMethodId;
@@ -36,11 +36,14 @@ public class UniswapEventDecoder {
 
     public UniswapTx decodeInputData(Transaction transaction) {
         String data = transaction.getInput();
+        if (data.length() < 74) {
+            return null;
+        }
         String methodID = data.substring(0, 10);
         String input = data.substring(10);
         List<TypeReference<Type>> parameters = parametersByMethodId.get(methodID);
         if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for " + data);
+            throw new IllegalStateException("Not found parameters for " + transaction.getHash());
         }
         List<Type> types = FunctionReturnDecoder.decode(input, parameters);
         return mapTypesToModel(types, methodID, transaction);
@@ -103,7 +106,7 @@ public class UniswapEventDecoder {
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
                 tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), 1));
+                tx.setCoinOut(parseAddress(types.get(2), -1));
                 return tx;
             case "swapExactETHForTokens":
             case "swapETHForExactTokens":
@@ -112,14 +115,14 @@ public class UniswapEventDecoder {
 //                tx.setAmountIn((BigInteger) types.get(0).getValue()); //TODO!
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setCoinOut(parseAddress(types.get(1), 0));
-                tx.setCoinIn(parseAddress(types.get(1), 1));
+                tx.setCoinIn(parseAddress(types.get(1), -1));
                 return tx;
             case "swapExactTokensForTokens":
             case "swapExactTokensForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), -2));
+                tx.setCoinIn(parseAddress(types.get(2), 0));
                 tx.setCoinOut(parseAddress(types.get(2), -1));
                 return tx;
             case "swapTokensForExactETH":
@@ -127,13 +130,13 @@ public class UniswapEventDecoder {
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
                 tx.setCoinOut(parseAddress(types.get(2), 0));
-                tx.setCoinIn(parseAddress(types.get(2), 1));
+                tx.setCoinIn(parseAddress(types.get(2), -1));
                 return tx;
             case "swapTokensForExactTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), 1));
+                tx.setCoinIn(parseAddress(types.get(2), -1));
                 tx.setCoinOut(parseAddress(types.get(2), 0));
                 return tx;
         }
@@ -237,7 +240,6 @@ public class UniswapEventDecoder {
         String parameterizedTypeName = typeArguments[0].getTypeName();
         return (Class<T>) Class.forName(parameterizedTypeName);
     }
-
 
     Map<String, List<TypeReference<Type>>> initParameters() {
         if (parametersByMethodId == null) {
@@ -391,7 +393,6 @@ public class UniswapEventDecoder {
                     ));
                 parameters.put("swapExactETHForTokensSupportingFeeOnTransferTokens",
                     Arrays.asList(
-                        TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("address[]"),
                         TypeReference.makeTypeReference("address"),

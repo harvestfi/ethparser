@@ -1,0 +1,60 @@
+spring:
+  jpa:
+#    open-in-view: false
+    database: mysql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties.hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+      jdbc.lob.non_contextual_creation: true
+
+  datasource:
+    platform: mysql
+    url: jdbc:mysql://localhost:3306/egv?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: belbix
+    password: 111111
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8080
+  servlet:
+    session.timeout: 1m
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 2MB
+      max-request-size: 2MB
+  tomcat:
+    accept-count: 100 # Maximum queue length for incoming connection requests when all possible request processing threads are in use.
+    max-connections: 10 # Maximum number of connections that the server accepts and processes at any given time.
+    max-threads: 10 # Maximum amount of worker threads.
+    min-spare-threads: 10 # Minimum amount of worker threads.
+    uri-encoding: UTF-8 # Character encoding to use to decode the URI.
+
+web3:
+  apiKey:
+
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -36,16 +36,20 @@ public class TransactionsParser {
         }
 //            log.info("Gotcha " + tx.getHash() + " " + tx.getInput());
 //                    if(tx.get) //todo skip fails
-        UniswapTx uniswapTx = uniswapEventDecoder.decodeInputData(tx);
+        UniswapTx uniswapTx;
+        try {
+            uniswapTx = uniswapEventDecoder.decodeInputData(tx);
+        } catch (Exception e) {
+            log.error("" + e.getMessage());
+            return;
+        }
         if (uniswapTx == null) {
-            log.error("tx not parsed " + tx.getInput());
+            log.error("tx not parsed " + tx.getHash());
             return;
         }
 
-//        log.info(uniswapTx.toString());
-
         if (uniswapTx.isContainsAddress(FARM_TOKEN_CONTRACT)) {
-            log.info("Gotcha FARM " + uniswapTx.toString());
+            log.info(uniswapTx.print(FARM_TOKEN_CONTRACT).print());
         }
 
     }
