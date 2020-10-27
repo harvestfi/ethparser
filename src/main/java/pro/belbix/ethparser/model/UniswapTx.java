@@ -19,9 +19,9 @@ public class UniswapTx {
     private String owner;
     private String timestamp;
     private String block;
-    private BigInteger amountIn;
+    private BigInteger amountIn = new BigInteger("0");
     private Address coinIn;
-    private BigInteger amountOut;
+    private BigInteger amountOut = new BigInteger("0");
     private Address coinOut;
     private BigInteger liquidity;
     private String status;
@@ -36,38 +36,33 @@ public class UniswapTx {
         printable.setCoin(ContractMapper.findName(contract));
 
         if (contract.equals(coinIn.getValue())) {
+            printable.setAmount(amountToStr(amountIn, coinIn));
+            printable.setOtherCoin(addrToStr(coinOut));
+            printable.setOtherAmount(amountToStr(amountOut, coinOut));
             if (type.equals(SWAP)) {
                 printable.setType("SELL");
-                printable.setOtherCoin(ContractMapper.findName(coinOut.getValue()));
-                printable.setOtherAmount(
-                    amountOut.divide(new BigInteger(ContractMapper.findDivider(coinOut.getValue()))).toString());
-                printable
-                    .setAmount(amountIn.divide(new BigInteger(ContractMapper.findDivider(contract))).toString());
             } else {
-                printable.setCoin(ContractMapper.findName(coinIn.getValue()));
-                printable.setAmount(
-                    amountIn.divide(new BigInteger(ContractMapper.findDivider(coinIn.getValue()))).toString());
-                printable.setOtherCoin(ContractMapper.findName(coinOut.getValue()));
-                printable.setOtherAmount(
-                    amountOut.divide(new BigInteger(ContractMapper.findDivider(coinOut.getValue()))).toString());
+                printable.setType(type);
             }
         } else if (contract.equals(coinOut.getValue())) {
+            printable.setAmount(amountToStr(amountOut, coinOut));
+            printable.setOtherCoin(addrToStr(coinIn));
+            printable.setOtherAmount(amountToStr(amountIn, coinIn));
             if (type.equals(SWAP)) {
                 printable.setType("BUY");
-                printable.setOtherCoin(ContractMapper.findName(coinIn.getValue()));
-                printable.setOtherAmount(
-                    amountIn.divide(new BigInteger(ContractMapper.findDivider(coinIn.getValue()))).toString());
-                printable
-                    .setAmount(amountOut.divide(new BigInteger(ContractMapper.findDivider(contract))).toString());
             } else {
-                printable.setCoin(ContractMapper.findName(coinOut.getValue()));
-                printable.setAmount(
-                    amountOut.divide(new BigInteger(ContractMapper.findDivider(coinOut.getValue()))).toString());
-                printable.setOtherCoin(ContractMapper.findName(coinIn.getValue()));
-                printable.setOtherAmount(
-                    amountIn.divide(new BigInteger(ContractMapper.findDivider(coinIn.getValue()))).toString());
+                printable.setType(type);
             }
         }
         return printable;
+    }
+
+    private static String addrToStr(Address adr) {
+        return ContractMapper.findName(adr.getValue());
+    }
+
+    private static double amountToStr(BigInteger amount, Address coin) {
+        return amount.doubleValue() / new BigInteger(ContractMapper.findDivider(coin.getValue())).doubleValue();
+//        return String.format("%.2f", value);
     }
 }

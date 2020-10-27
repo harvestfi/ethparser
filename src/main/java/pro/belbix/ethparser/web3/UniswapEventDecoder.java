@@ -136,8 +136,8 @@ public class UniswapEventDecoder {
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), -1));
-                tx.setCoinOut(parseAddress(types.get(2), 0));
+                tx.setCoinIn(parseAddress(types.get(2), 0));
+                tx.setCoinOut(parseAddress(types.get(2), -1));
                 return tx;
         }
         throw new IllegalStateException("Unknown method");

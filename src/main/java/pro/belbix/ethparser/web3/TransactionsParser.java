@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
+import pro.belbix.ethparser.model.Printable;
 import pro.belbix.ethparser.model.UniswapTx;
 
 @Service
@@ -16,6 +17,8 @@ public class TransactionsParser {
     public static final String FARM_SUSHI_TOKEN_CONTRACT = "0x53df6664b3ddE086DCe6315c317d1002b14B87E3";
     private final UniswapEventDecoder uniswapEventDecoder = new UniswapEventDecoder();
     private final Web3Service web3Service;
+    private double lastFarmPrice = 0.0; //todo shortcut
+    private double lastEthPrice = 390.0; //todo shortcut
 
     public TransactionsParser(Web3Service web3Service) {
         this.web3Service = web3Service;
@@ -49,7 +52,21 @@ public class TransactionsParser {
         }
 
         if (uniswapTx.isContainsAddress(FARM_TOKEN_CONTRACT)) {
-            log.info(uniswapTx.print(FARM_TOKEN_CONTRACT).print());
+            Printable printable = uniswapTx.print(FARM_TOKEN_CONTRACT);
+            if (printable.getAmount() == 0.0 && lastFarmPrice != 0.0) {
+                if ("WETH".equals(printable.getOtherCoin())) {
+                    double farmAmount = (printable.getOtherAmount() * lastEthPrice) / lastFarmPrice;
+                    printable.setAmount(farmAmount);
+                } else {
+                    log.warn("not eth!");
+                }
+            } else {
+                if ("USDC".equals(printable.getOtherCoin())) {
+                    lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
+                    log.info("lastFarmPrice: " + lastFarmPrice);
+                }
+            }
+            log.info(printable.print());
         }
 
     }
