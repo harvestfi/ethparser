@@ -25,7 +25,7 @@ public class UniswapTransactionsParser {
     private double lastFarmPrice = 0.0;
     private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
-    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
 
     public UniswapTransactionsParser(Web3Service web3Service) {
@@ -48,7 +48,7 @@ public class UniswapTransactionsParser {
     }
 
     void parseUniswapTransaction(Transaction tx) {
-        incrementAndPrintCount();
+        incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
             return;
         }
@@ -64,10 +64,10 @@ public class UniswapTransactionsParser {
         print(printable);
     }
 
-    private void incrementAndPrintCount() {
+    private void incrementAndPrintCount(Transaction tx) {
         parsedTxCount++;
         if (parsedTxCount % 10_000 == 0) {
-            log.info("Parsed " + parsedTxCount);
+            log.info("Parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
         }
     }
 

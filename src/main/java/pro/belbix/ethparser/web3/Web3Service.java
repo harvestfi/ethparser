@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -22,7 +24,8 @@ import pro.belbix.ethparser.properties.Web3Properties;
 
 @Service
 public class Web3Service {
-
+    public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter.valueOf(new BigInteger("10765094"));
+    public static final DefaultBlockParameter BLOCK_NUMBER_27_OCT_2020 = DefaultBlockParameter.valueOf(new BigInteger("11137613"));
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();

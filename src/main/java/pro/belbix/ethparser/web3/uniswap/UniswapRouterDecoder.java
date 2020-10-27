@@ -115,7 +115,7 @@ public class UniswapRouterDecoder {
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
                 tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), -1));
+                tx.setCoinOut(parseAddress(types.get(2), 1));
                 return tx;
             case "swapExactETHForTokens": //0xb28bfbcc048fca2193b4c56518f42a7a1c1951720b07e86fe171c9db19cda71b
             case "swapETHForExactTokens":
@@ -130,14 +130,14 @@ public class UniswapRouterDecoder {
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
                 tx.setCoinOut(parseAddress(types.get(2), 0));
-                tx.setCoinIn(parseAddress(types.get(2), -1));
+                tx.setCoinIn(parseAddress(types.get(2), 1));
                 return tx;
             case "swapTokensForExactTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
                 tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), -1));
+                tx.setCoinOut(parseAddress(types.get(2), 1));
                 return tx;
         }
         throw new IllegalStateException("Unknown method");
