@@ -2,12 +2,10 @@ package pro.belbix.ethparser.web3;
 
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -25,8 +22,6 @@ import pro.belbix.ethparser.properties.Web3Properties;
 
 @Service
 public class Web3Service {
-
-    public static final DefaultBlockParameter BLOCK_NUMBER = DefaultBlockParameter.valueOf(new BigInteger("11044276"));
 
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
@@ -53,7 +48,8 @@ public class Web3Service {
             .subscribe(tx -> consumers.forEach(b -> {
                 try {
                     b.put(tx);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException ignored) {
+                }
             }));
         subscriptions.add(subscription);
 
@@ -92,8 +88,9 @@ public class Web3Service {
         while (!init) {
             log.info("Wait initialization...");
             try {
+                //noinspection BusyWait
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
         }
     }

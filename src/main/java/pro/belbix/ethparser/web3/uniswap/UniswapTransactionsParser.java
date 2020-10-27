@@ -19,13 +19,11 @@ public class UniswapTransactionsParser {
     private static final Logger log = LoggerFactory.getLogger(UniswapTransactionsParser.class);
     public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
     public static final String FARM_TOKEN_CONTRACT = "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase();
-    public static final String FARM_SUSHI_TOKEN_CONTRACT = "0x53df6664b3ddE086DCe6315c317d1002b14B87E3".toLowerCase();
-    public static final String FARM_USDC_UNI_CONTRACT = "0x514906FC121c7878424a5C928cad1852CC545892".toLowerCase();
     public static final String FARM_WETH_UNI_CONTRACT = "0x56feAccb7f750B997B36A68625C7C596F0B41A58".toLowerCase();
     private final UniswapRouterDecoder uniswapRouterDecoder = new UniswapRouterDecoder();
     private final Web3Service web3Service;
-    private double lastFarmPrice = 0.0; //todo shortcut
-    private final static double LAST_ETH_PRICE = 390.0; //todo shortcut
+    private double lastFarmPrice = 0.0;
+    private final static double LAST_ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
@@ -42,7 +40,7 @@ public class UniswapTransactionsParser {
                 Transaction transaction = null;
                 try {
                     transaction = transactions.take();
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ignored) {
                 }
                 parseUniswapTransaction(transaction);
             }
@@ -50,22 +48,41 @@ public class UniswapTransactionsParser {
     }
 
     void parseUniswapTransaction(Transaction tx) {
+        incrementAndPrintCount();
+        if (!isValidTransaction(tx)) {
+            return;
+        }
+
+        UniswapTx uniswapTx = decodeTransaction(tx);
+        if (uniswapTx == null) {
+            return;
+        }
+
+        Printable printable = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
+        calculateNotClearData(printable);
+        print(printable);
+    }
+
+    private void incrementAndPrintCount() {
         parsedTxCount++;
         if (parsedTxCount % 10_000 == 0) {
             log.info("Parsed " + parsedTxCount);
         }
+    }
+
+    private boolean isValidTransaction(Transaction tx) {
         if (tx == null) {
             log.error("Null clear tx!");
-            return;
+            return false;
         }
         if (tx.getTo() == null) {
-            log.error("Null tx.To " + tx.getHash());
-            return;
+            //it is contract deploy
+            return false;
         }
-        if (!UNI_ROUTER.equals(tx.getTo().toLowerCase())) {
-            return;
-        }
+        return UNI_ROUTER.equals(tx.getTo().toLowerCase());
+    }
 
+    private UniswapTx decodeTransaction(Transaction tx) {
         UniswapTx uniswapTx;
         try {
             uniswapTx = uniswapRouterDecoder.decodeInputData(tx);
@@ -74,11 +91,11 @@ public class UniswapTransactionsParser {
                 if (tx.getInput().length() > 70) {
                     log.error("tx not parsed " + tx.getHash());
                 }
-                return;
+                return null;
             }
 
             if (!uniswapTx.isContainsAddress(FARM_TOKEN_CONTRACT)) {
-                return;
+                return null;
             }
             TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
             String status = transactionReceipt.getStatus();
@@ -91,10 +108,23 @@ public class UniswapTransactionsParser {
 
         } catch (Exception e) {
             log.error("Error tx " + tx.getHash(), e);
+            return null;
+        }
+        return uniswapTx;
+    }
+
+    private void print(Printable printable) {
+        if (printable.isConfirmed()) {
+            log.info(printable.print() + " " + lastFarmPrice);
+        } else {
+            log.debug(printable.print() + " " + lastFarmPrice);
+        }
+    }
+
+    private void calculateNotClearData(Printable printable) {
+        if (printable.isConfirmed()) {
             return;
         }
-
-        Printable printable = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
         if (printable.getAmount() == 0.0 && lastFarmPrice != 0.0) {
             if ("WETH".equals(printable.getOtherCoin())) {
                 double farmAmount = (printable.getOtherAmount() * LAST_ETH_PRICE) / lastFarmPrice;
@@ -107,12 +137,6 @@ public class UniswapTransactionsParser {
                 lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
             }
         }
-        if (printable.isConfirmed()) {
-            log.info(printable.print() + " " + lastFarmPrice);
-        } else {
-            log.debug(printable.print() + " " + lastFarmPrice);
-        }
-
     }
 
 }

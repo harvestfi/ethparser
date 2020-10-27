@@ -8,10 +8,15 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "web3")
-@Getter
-@Setter
-@ToString
 public class Web3Properties {
 
     private String apiKey = "apiKeyStub";
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
 }

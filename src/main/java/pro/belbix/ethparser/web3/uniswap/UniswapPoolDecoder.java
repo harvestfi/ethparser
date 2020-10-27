@@ -11,6 +11,7 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.model.UniswapTx;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class UniswapPoolDecoder {
 
     private final static BigInteger ZERO = new BigInteger("0");

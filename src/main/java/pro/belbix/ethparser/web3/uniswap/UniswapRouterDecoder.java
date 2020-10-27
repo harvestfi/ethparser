@@ -24,6 +24,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.UniswapTx;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class UniswapRouterDecoder {
 
     private final static Address WETH_ADDRESS = new Address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
@@ -102,6 +103,8 @@ public class UniswapRouterDecoder {
                 return tx;
             case "swapExactTokensForETH":
             case "swapExactTokensForETHSupportingFeeOnTransferTokens":
+            case "swapExactTokensForTokens":
+            case "swapExactTokensForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
@@ -112,18 +115,9 @@ public class UniswapRouterDecoder {
             case "swapETHForExactTokens":
             case "swapExactETHForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
-//                tx.setAmountIn((BigInteger) types.get(0).getValue()); //TODO!
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setCoinOut(parseAddress(types.get(1), 0));
                 tx.setCoinIn(parseAddress(types.get(1), -1));
-                return tx;
-            case "swapExactTokensForTokens":
-            case "swapExactTokensForTokensSupportingFeeOnTransferTokens":
-                tx.setType(UniswapTx.SWAP);
-                tx.setAmountIn((BigInteger) types.get(0).getValue());
-                tx.setAmountOut((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), -1));
                 return tx;
             case "swapTokensForExactETH":
                 tx.setType(UniswapTx.SWAP);
@@ -160,7 +154,7 @@ public class UniswapRouterDecoder {
         result.append(name);
         result.append("(");
         String params =
-            parameters.stream().map(p -> getTypeName(p)).collect(Collectors.joining(","));
+            parameters.stream().map(this::getTypeName).collect(Collectors.joining(","));
         result.append(params);
         result.append(")");
         return result.toString();
