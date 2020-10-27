@@ -1,11 +1,9 @@
 package pro.belbix.ethparser.web3;
 
-import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,9 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.methods.request.EthFilter;
-import org.web3j.protocol.core.methods.response.EthLog.LogResult;
+import org.web3j.protocol.core.Response.Error;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.Web3Properties;
 
@@ -32,9 +31,9 @@ public class Web3Service {
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
-    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final Web3Properties web3Properties;
     private boolean init = false;
+    private final List<BlockingQueue<Transaction>> consumers = new ArrayList<>();
 
     public Web3Service(Web3Properties web3Properties) {
         this.web3Properties = web3Properties;
@@ -51,26 +50,35 @@ public class Web3Service {
     public void subscribeTransactionFlowable() {
         checkInit();
         Disposable subscription = web3.transactionFlowable()
-            .subscribe(transactions::put);
+            .subscribe(tx -> consumers.forEach(b -> {
+                try {
+                    b.put(tx);
+                } catch (InterruptedException ignored) {}
+            }));
         subscriptions.add(subscription);
 
         log.info("Subscribe to Transaction Flowable");
     }
 
-    public void fetchEvents(String hash) {
+    public TransactionReceipt fetchTransactionReceipt(String hash) {
         checkInit();
-        EthFilter filter = new EthFilter(EARLIEST, LATEST, hash);
-        List<LogResult> logResults;
         try {
-            logResults = web3.ethGetLogs(filter).send().getLogs();
+            EthGetTransactionReceipt ethGetTransactionReceipt = web3.ethGetTransactionReceipt(hash).send();
+            Error error = ethGetTransactionReceipt.getError();
+            if (error != null) {
+                log.error("Got " + error.getCode() + " " + error.getMessage() + " " + error.getData());
+            } else {
+                return ethGetTransactionReceipt.getTransactionReceipt().orElse(null);
+            }
         } catch (IOException e) {
             log.error("", e);
         }
 
+        return null;
     }
 
-    public BlockingQueue<Transaction> getTransactions() {
-        return transactions;
+    public void subscribeOn(BlockingQueue<Transaction> queue) {
+        consumers.add(queue);
     }
 
     @PreDestroy
@@ -85,7 +93,8 @@ public class Web3Service {
             log.info("Wait initialization...");
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         }
     }
 

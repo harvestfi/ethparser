@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.uniswap;
 
 import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
@@ -24,13 +24,13 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.UniswapTx;
 
-public class UniswapEventDecoder {
+public class UniswapRouterDecoder {
 
     private final static Address WETH_ADDRESS = new Address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
     private Map<String, List<TypeReference<Type>>> parametersByMethodId;
     private Map<String, String> methodNamesByMethodId;
 
-    public UniswapEventDecoder() {
+    public UniswapRouterDecoder() {
         initParameters();
     }
 
@@ -241,7 +241,7 @@ public class UniswapEventDecoder {
         return (Class<T>) Class.forName(parameterizedTypeName);
     }
 
-    Map<String, List<TypeReference<Type>>> initParameters() {
+    void initParameters() {
         if (parametersByMethodId == null) {
             Map<String, List<TypeReference<Type>>> parameters = new HashMap<>();
             try {
@@ -417,6 +417,5 @@ public class UniswapEventDecoder {
                 methodNamesByMethodId.put(methodID, entry.getKey());
             }
         }
-        return parametersByMethodId;
     }
 }
