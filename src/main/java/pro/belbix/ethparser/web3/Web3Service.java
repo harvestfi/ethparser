@@ -73,6 +73,10 @@ public class Web3Service {
         return null;
     }
 
+    public Transaction findTransaction(String hash) throws IOException {
+        return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
+    }
+
     public void subscribeOn(BlockingQueue<Transaction> queue) {
         consumers.add(queue);
     }

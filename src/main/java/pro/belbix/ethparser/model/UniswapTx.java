@@ -177,7 +177,11 @@ public class UniswapTx {
     }
 
     private static double amountToStr(BigInteger amount, Address coin) {
-        return amount.doubleValue() / new BigInteger(ContractMapper.findDivider(coin.getValue())).doubleValue();
-//        return String.format("%.2f", value);
+        //really, it is totally unclear for me how it's work
+        String divider = "1000000000000000000";
+        if(amount.toString().length() < 18) {
+            divider = "1000000";
+        }
+        return amount.doubleValue() / new BigInteger(divider).doubleValue();
     }
 }

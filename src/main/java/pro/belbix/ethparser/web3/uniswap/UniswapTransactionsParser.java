@@ -122,10 +122,7 @@ public class UniswapTransactionsParser {
     }
 
     private void calculateNotClearData(Printable printable) {
-        if (printable.isConfirmed()) {
-            return;
-        }
-        if (printable.getAmount() == 0.0 && lastFarmPrice != 0.0) {
+        if (!printable.isConfirmed() && printable.getAmount() == 0.0 && lastFarmPrice != 0.0) {
             if ("WETH".equals(printable.getOtherCoin())) {
                 double farmAmount = (printable.getOtherAmount() * LAST_ETH_PRICE) / lastFarmPrice;
                 printable.setAmount(farmAmount);
@@ -133,7 +130,7 @@ public class UniswapTransactionsParser {
                 log.warn("not eth!");
             }
         } else {
-            if ("USDC".equals(printable.getOtherCoin())) {
+            if (printable.isConfirmed() && "USDC".equals(printable.getOtherCoin())) {
                 lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
             }
         }
