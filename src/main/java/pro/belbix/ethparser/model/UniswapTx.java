@@ -179,7 +179,7 @@ public class UniswapTx {
     private static double amountToStr(BigInteger amount, Address coin) {
         //really, it is totally unclear for me how it's work
         String divider = "1000000000000000000";
-        if(amount.toString().length() < 18) {
+        if(amount.toString().length() < 16) {
             divider = "1000000";
         }
         return amount.doubleValue() / new BigInteger(divider).doubleValue();
