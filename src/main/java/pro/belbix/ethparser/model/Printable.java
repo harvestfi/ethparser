@@ -7,6 +7,7 @@ public class Printable {
     private double amount;
     private String otherCoin;
     private double otherAmount;
+    private double ethAmount;
     private String hash;
     private boolean confirmed = false;
 
@@ -66,6 +67,14 @@ public class Printable {
         this.confirmed = confirmed;
     }
 
+    public double getEthAmount() {
+        return ethAmount;
+    }
+
+    public void setEthAmount(double ethAmount) {
+        this.ethAmount = ethAmount;
+    }
+
     public String print() {
         String result = type + " "
             + String.format("%.2f", amount) + " "
@@ -80,4 +89,17 @@ public class Printable {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Printable{" +
+            "type='" + type + '\'' +
+            ", coin='" + coin + '\'' +
+            ", amount=" + amount +
+            ", otherCoin='" + otherCoin + '\'' +
+            ", otherAmount=" + otherAmount +
+            ", ethAmount=" + ethAmount +
+            ", hash='" + hash + '\'' +
+            ", confirmed=" + confirmed +
+            '}';
+    }
 }

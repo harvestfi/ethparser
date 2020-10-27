@@ -1,8 +1,6 @@
 package pro.belbix.ethparser.model;
 
 import java.math.BigInteger;
-import lombok.Data;
-import lombok.ToString;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.web3.ContractMapper;
 
@@ -21,6 +19,7 @@ public class UniswapTx {
     private BigInteger amountIn = new BigInteger("0");
     private Address coinIn;
     private BigInteger amountOut = new BigInteger("0");
+    private BigInteger amountEth = new BigInteger("0");
     private Address coinOut;
     private BigInteger liquidity;
     private boolean success = false;
@@ -90,6 +89,14 @@ public class UniswapTx {
         this.amountOut = amountOut;
     }
 
+    public BigInteger getAmountEth() {
+        return amountEth;
+    }
+
+    public void setAmountEth(BigInteger amountEth) {
+        this.amountEth = amountEth;
+    }
+
     public Address getCoinOut() {
         return coinOut;
     }
@@ -149,20 +156,22 @@ public class UniswapTx {
         printable.setHash(hash);
         printable.setCoin(ContractMapper.findName(contract));
         printable.setConfirmed(success);
+        printable.setEthAmount(amountToDouble(amountEth, coinIn));
+
 
         if (contract.equals(coinIn.getValue().toLowerCase())) {
-            printable.setAmount(amountToStr(amountIn, coinIn));
+            printable.setAmount(amountToDouble(amountIn, coinIn));
             printable.setOtherCoin(addrToStr(coinOut));
-            printable.setOtherAmount(amountToStr(amountOut, coinOut));
+            printable.setOtherAmount(amountToDouble(amountOut, coinOut));
             if (type.equals(SWAP)) {
                 printable.setType("SELL");
             } else {
                 printable.setType(type);
             }
         } else if (contract.equals(coinOut.getValue().toLowerCase())) {
-            printable.setAmount(amountToStr(amountOut, coinOut));
+            printable.setAmount(amountToDouble(amountOut, coinOut));
             printable.setOtherCoin(addrToStr(coinIn));
-            printable.setOtherAmount(amountToStr(amountIn, coinIn));
+            printable.setOtherAmount(amountToDouble(amountIn, coinIn));
             if (type.equals(SWAP)) {
                 printable.setType("BUY");
             } else {
@@ -176,7 +185,7 @@ public class UniswapTx {
         return ContractMapper.findName(adr.getValue());
     }
 
-    private static double amountToStr(BigInteger amount, Address coin) {
+    private static double amountToDouble(BigInteger amount, Address coin) {
         //really, it is totally unclear for me how it's work
         String divider = "1000000000000000000";
         if(amount.toString().length() < 16) {

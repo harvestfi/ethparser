@@ -42,7 +42,7 @@ public class Web3ServiceTest {
         Log lastLog = logs.get(logs.size() - 1);
         assertEquals(FARM_WETH_UNI_CONTRACT, lastLog.getAddress().toLowerCase());
         String data = lastLog.getData();
-        assertEquals(decoder.findLastSwapLogData(logs), data);
+        assertEquals(decoder.findLastSwapLog(logs), data);
 
         List<Type> types = FunctionReturnDecoder.decode(data,
             Arrays.asList(

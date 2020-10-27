@@ -101,8 +101,14 @@ public class UniswapRouterDecoder {
                 tx.setAmountOut((BigInteger) types.get(3).getValue());
                 tx.setAmountIn((BigInteger) types.get(4).getValue());
                 return tx;
-            case "swapExactTokensForETH":
+            case "swapExactTokensForETH": //0x75e17566b36eb7fc9bc1be4c95d2e36cd30b09faa803fd1e06732c504ecee1a9
             case "swapExactTokensForETHSupportingFeeOnTransferTokens":
+                tx.setType(UniswapTx.SWAP);
+                tx.setAmountIn((BigInteger) types.get(0).getValue());
+                tx.setAmountEth((BigInteger) types.get(1).getValue());
+                tx.setCoinIn(parseAddress(types.get(2), 0));
+                tx.setCoinOut(parseAddress(types.get(2), 1));
+                return tx;
             case "swapExactTokensForTokens":
             case "swapExactTokensForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
@@ -111,13 +117,13 @@ public class UniswapRouterDecoder {
                 tx.setCoinIn(parseAddress(types.get(2), 0));
                 tx.setCoinOut(parseAddress(types.get(2), -1));
                 return tx;
-            case "swapExactETHForTokens":
+            case "swapExactETHForTokens": //0xb28bfbcc048fca2193b4c56518f42a7a1c1951720b07e86fe171c9db19cda71b
             case "swapETHForExactTokens":
             case "swapExactETHForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
-                tx.setAmountOut((BigInteger) types.get(0).getValue());
-                tx.setCoinOut(parseAddress(types.get(1), 0));
-                tx.setCoinIn(parseAddress(types.get(1), -1));
+                tx.setAmountEth((BigInteger) types.get(0).getValue());
+                tx.setCoinIn(parseAddress(types.get(1), -2));
+                tx.setCoinOut(parseAddress(types.get(1), -1));
                 return tx;
             case "swapTokensForExactETH":
                 tx.setType(UniswapTx.SWAP);

@@ -23,7 +23,7 @@ public class UniswapTransactionsParser {
     private final UniswapRouterDecoder uniswapRouterDecoder = new UniswapRouterDecoder();
     private final Web3Service web3Service;
     private double lastFarmPrice = 0.0;
-    private final static double LAST_ETH_PRICE = 390.0; //shortcut for pending transactions
+    private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
@@ -60,6 +60,7 @@ public class UniswapTransactionsParser {
 
         Printable printable = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
         calculateNotClearData(printable);
+        saveLastPrice(printable);
         print(printable);
     }
 
@@ -122,17 +123,26 @@ public class UniswapTransactionsParser {
     }
 
     private void calculateNotClearData(Printable printable) {
-        if (!printable.isConfirmed() && printable.getAmount() == 0.0 && lastFarmPrice != 0.0) {
-            if ("WETH".equals(printable.getOtherCoin())) {
-                double farmAmount = (printable.getOtherAmount() * LAST_ETH_PRICE) / lastFarmPrice;
-                printable.setAmount(farmAmount);
-            } else {
-                log.warn("not eth!");
+        if (!printable.isConfirmed() && lastFarmPrice != 0.0) {
+            if (printable.getAmount() == 0.0) {
+                if (printable.getEthAmount() != 0.0) {
+                    printable.setAmount((printable.getEthAmount() * ETH_PRICE) / lastFarmPrice);
+                } else {
+                    printable.setOtherAmount(printable.getAmount() * lastFarmPrice);
+                }
+            } else if (printable.getOtherAmount() == 0.0) {
+                if (printable.getEthAmount() != 0.0) {
+                    printable.setOtherAmount(printable.getEthAmount() * ETH_PRICE);
+                } else {
+                    printable.setAmount(printable.getOtherAmount() / lastFarmPrice);
+                }
             }
-        } else {
-            if (printable.isConfirmed() && "USDC".equals(printable.getOtherCoin())) {
-                lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
-            }
+        }
+    }
+
+    private void saveLastPrice(Printable printable) {
+        if (printable.isConfirmed() && "USDC".equals(printable.getOtherCoin())) {
+            lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
         }
     }
 
