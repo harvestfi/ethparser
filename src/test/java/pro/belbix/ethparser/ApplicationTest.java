@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import pro.belbix.ethparser.model.Printable;
 import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.ws.WsService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -18,13 +20,17 @@ public class ApplicationTest {
     private Web3Service web3Service;
     @Autowired
     private UniswapTransactionsParser uniswapTransactionsParser;
+    @Autowired
+    private WsService wsService;
 
     @Test
     public void startSubscription() throws InterruptedException {
         web3Service.subscribeTransactionFlowable();
         uniswapTransactionsParser.startParse();
+
         while (true) {
-            Thread.sleep(1000);
+            Printable printable = uniswapTransactionsParser.getOutput().take();
+            wsService.send("/transactions", printable.print());
         }
     }
 }
