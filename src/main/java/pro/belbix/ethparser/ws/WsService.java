@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class WsService {
-    public final static String TOPIC_NAME = "/topic/transactions/last";
+    public final static String TOPIC_NAME = "/topic/transactions";
 
     private final SimpMessagingTemplate messagingTemplate;
 

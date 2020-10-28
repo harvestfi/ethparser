@@ -84,7 +84,7 @@ public class WsServiceTest {
             }
         };
 
-        this.stompClient.connect("ws://localhost:{port}/ws", this.headers, handler, this.port);
+        this.stompClient.connect("ws://localhost:{port}/stomp", this.headers, handler, this.port);
 
         if (latchSubscribe.await(3, TimeUnit.SECONDS)) {
             Printable printable = new Printable();
