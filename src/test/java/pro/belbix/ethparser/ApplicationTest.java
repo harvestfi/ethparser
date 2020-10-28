@@ -1,5 +1,6 @@
 package pro.belbix.ethparser;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ public class ApplicationTest {
     private WsService wsService;
 
     @Test
+    @Ignore
     public void startSubscription() throws InterruptedException {
         Application.startParse(web3Service, uniswapTransactionsParser, wsService);
     }
