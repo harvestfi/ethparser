@@ -61,9 +61,27 @@ public class UniswapTransactionsParserTest {
         assertEquals(new BigInteger("228923998549691490"), tx.getAmountOut());
     }
 
+
+
     @Test
     public void parseUniswapTransactionTest() throws IOException {
         Transaction tx = web3Service.findTransaction("0xd0c2a327772fcb4894688b4528909d98095ea77123719718d639dbd00cc11b41");
+        uniswapTransactionsParser.parseUniswapTransaction(tx);
+    }
+
+    /**
+     amount0In :
+     55440214001258915253
+     amount1In :
+     0
+     amount0Out :
+     0
+     amount1Out :
+     5851100961
+     */
+    @Test
+    public void parseUniswapTransactionTest2() throws IOException {
+        Transaction tx = web3Service.findTransaction("0x5026a67dd0577b0370f483a48d0869d6adca68e5a0339443fcadd3644a9a9e32");
         uniswapTransactionsParser.parseUniswapTransaction(tx);
     }
 }

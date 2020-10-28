@@ -125,14 +125,8 @@ public class UniswapRouterDecoder {
                 tx.setCoinIn(parseAddress(types.get(1), -2));
                 tx.setCoinOut(parseAddress(types.get(1), -1));
                 return tx;
-            case "swapTokensForExactETH":
-                tx.setType(UniswapTx.SWAP);
-                tx.setAmountOut((BigInteger) types.get(0).getValue());
-                tx.setAmountIn((BigInteger) types.get(1).getValue());
-                tx.setCoinOut(parseAddress(types.get(2), 0));
-                tx.setCoinIn(parseAddress(types.get(2), 1));
-                return tx;
             case "swapTokensForExactTokens":
+            case "swapTokensForExactETH":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
