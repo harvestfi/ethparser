@@ -22,7 +22,7 @@ public class UniswapTransactionsParser {
     public static final String FARM_WETH_UNI_CONTRACT = "0x56feAccb7f750B997B36A68625C7C596F0B41A58".toLowerCase();
     private final UniswapRouterDecoder uniswapRouterDecoder = new UniswapRouterDecoder();
     private final Web3Service web3Service;
-    private double lastFarmPrice = 0.0;
+    private double lastPrice = 0.0;
     private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
@@ -117,25 +117,25 @@ public class UniswapTransactionsParser {
 
     private void print(Printable printable) {
         if (printable.isConfirmed()) {
-            log.info(printable.print() + " " + lastFarmPrice);
+            log.info(printable.print() + " " + lastPrice);
         } else {
-            log.debug(printable.print() + " " + lastFarmPrice);
+            log.debug(printable.print() + " " + lastPrice);
         }
     }
 
     private void calculateNotClearData(Printable printable) {
-        if (!printable.isConfirmed() && lastFarmPrice != 0.0) {
+        if (!printable.isConfirmed() && lastPrice != 0.0) {
             if (printable.getAmount() == 0.0) {
                 if (printable.getEthAmount() != 0.0) {
-                    printable.setAmount((printable.getEthAmount() * ETH_PRICE) / lastFarmPrice);
+                    printable.setAmount((printable.getEthAmount() * ETH_PRICE) / lastPrice);
                 } else {
-                    printable.setOtherAmount(printable.getAmount() * lastFarmPrice);
+                    printable.setOtherAmount(printable.getAmount() * lastPrice);
                 }
             } else if (printable.getOtherAmount() == 0.0) {
                 if (printable.getEthAmount() != 0.0) {
                     printable.setOtherAmount(printable.getEthAmount() * ETH_PRICE);
                 } else {
-                    printable.setAmount(printable.getOtherAmount() / lastFarmPrice);
+                    printable.setAmount(printable.getOtherAmount() / lastPrice);
                 }
             }
         }
@@ -143,7 +143,8 @@ public class UniswapTransactionsParser {
 
     private void saveLastPrice(Printable printable) {
         if (printable.isConfirmed() && "USDC".equals(printable.getOtherCoin())) {
-            lastFarmPrice = printable.getOtherAmount() / printable.getAmount();
+            lastPrice = printable.getOtherAmount() / printable.getAmount();
+            printable.setLastPrice(lastPrice);
         }
     }
 

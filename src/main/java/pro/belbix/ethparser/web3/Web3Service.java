@@ -38,7 +38,7 @@ public class Web3Service {
     }
 
     @PostConstruct
-    public void init() {
+    private void init() {
         log.info("Connecting to Ethereum ...");
         web3 = Web3j.build(new HttpService("https://mainnet.infura.io/v3/" + web3Properties.getApiKey()));
         log.info("Successfully connected to Ethereum");

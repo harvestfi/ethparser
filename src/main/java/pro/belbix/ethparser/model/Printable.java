@@ -10,6 +10,7 @@ public class Printable {
     private double ethAmount;
     private String hash;
     private boolean confirmed = false;
+    private double lastPrice;
 
     public String getType() {
         return type;
@@ -73,6 +74,14 @@ public class Printable {
 
     public void setEthAmount(double ethAmount) {
         this.ethAmount = ethAmount;
+    }
+
+    public double getLastPrice() {
+        return lastPrice;
+    }
+
+    public void setLastPrice(double lastPrice) {
+        this.lastPrice = lastPrice;
     }
 
     public String print() {
