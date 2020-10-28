@@ -28,7 +28,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
-import pro.belbix.ethparser.model.Printable;
+import pro.belbix.ethparser.model.TransactionDTO;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class WsServiceTest {
@@ -64,13 +64,13 @@ public class WsServiceTest {
                 session.subscribe(TOPIC_NAME, new StompFrameHandler() {
                     @Override
                     public Type getPayloadType(StompHeaders headers) {
-                        return Printable.class;
+                        return TransactionDTO.class;
                     }
 
                     @Override
                     public void handleFrame(StompHeaders headers, Object payload) {
                         try {
-                            assertEquals("test", ((Printable) payload).getType());
+                            assertEquals("test", ((TransactionDTO) payload).getType());
                         } catch (Throwable t) {
                             failure.set(t);
                         } finally {
@@ -87,9 +87,9 @@ public class WsServiceTest {
         this.stompClient.connect("ws://localhost:{port}/stomp", this.headers, handler, this.port);
 
         if (latchSubscribe.await(3, TimeUnit.SECONDS)) {
-            Printable printable = new Printable();
-            printable.setType("test");
-            wsService.send(TOPIC_NAME, printable);
+            TransactionDTO transactionDTO = new TransactionDTO();
+            transactionDTO.setType("test");
+            wsService.send(TOPIC_NAME, transactionDTO);
             System.out.println("Sent test message");
         }
         if (latchReceive.await(3, TimeUnit.SECONDS)) {

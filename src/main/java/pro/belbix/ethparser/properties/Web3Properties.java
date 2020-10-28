@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 public class Web3Properties {
 
     private String apiKey = "apiKeyStub";
+    private String startBlock = "";
 
     public String getApiKey() {
         return apiKey;
@@ -18,5 +19,13 @@ public class Web3Properties {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    public String getStartBlock() {
+        return startBlock;
+    }
+
+    public void setStartBlock(String startBlock) {
+        this.startBlock = startBlock;
     }
 }

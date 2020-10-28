@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import pro.belbix.ethparser.model.Printable;
+import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.Web3Service;
 
@@ -26,7 +26,7 @@ public class UniswapTransactionsParser {
     private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<Printable> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<TransactionDTO> output = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
 
     public UniswapTransactionsParser(Web3Service web3Service) {
@@ -43,12 +43,18 @@ public class UniswapTransactionsParser {
                     transaction = transactions.take();
                 } catch (InterruptedException ignored) {
                 }
-                parseUniswapTransaction(transaction);
+                TransactionDTO dto = parseUniswapTransaction(transaction);
+                if(dto != null) {
+                    try {
+                        output.put(dto);
+                    } catch (InterruptedException e) {
+                    }
+                }
             }
         }).start();
     }
 
-    Printable parseUniswapTransaction(Transaction tx) {
+    TransactionDTO parseUniswapTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
             return null;
@@ -59,11 +65,11 @@ public class UniswapTransactionsParser {
             return null;
         }
 
-        Printable printable = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
-        calculateNotClearData(printable);
-        saveLastPrice(printable);
-        print(printable);
-        return printable;
+        TransactionDTO transactionDTO = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
+        calculateNotClearData(transactionDTO);
+        saveLastPrice(transactionDTO);
+        print(transactionDTO);
+        return transactionDTO;
     }
 
     private void incrementAndPrintCount(Transaction tx) {
@@ -101,8 +107,7 @@ public class UniswapTransactionsParser {
                 return null;
             }
             TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
-            String status = transactionReceipt.getStatus();
-            if (status.equals("0x1")) {
+            if ("0x1".equals(transactionReceipt.getStatus())) {
                 uniswapTx.setSuccess(true);
                 if (SWAP.equals(uniswapTx.getType())) {
                     uniswapPoolDecoder.enrichUniTx(uniswapTx, transactionReceipt.getLogs());
@@ -116,40 +121,40 @@ public class UniswapTransactionsParser {
         return uniswapTx;
     }
 
-    private void print(Printable printable) {
-        if (printable.isConfirmed()) {
-            log.info(printable.print() + " " + lastPrice);
+    private void print(TransactionDTO transactionDTO) {
+        if (transactionDTO.isConfirmed()) {
+            log.info(transactionDTO.print() + " " + lastPrice);
         } else {
-            log.debug(printable.print() + " " + lastPrice);
+            log.debug(transactionDTO.print() + " " + lastPrice);
         }
     }
 
-    private void calculateNotClearData(Printable printable) {
-        if (!printable.isConfirmed() && lastPrice != 0.0) {
-            if (printable.getAmount() == 0.0) {
-                if (printable.getEthAmount() != 0.0) {
-                    printable.setAmount((printable.getEthAmount() * ETH_PRICE) / lastPrice);
+    private void calculateNotClearData(TransactionDTO transactionDTO) {
+        if (!transactionDTO.isConfirmed() && lastPrice != 0.0) {
+            if (transactionDTO.getAmount() == 0.0) {
+                if (transactionDTO.getEthAmount() != 0.0) {
+                    transactionDTO.setAmount((transactionDTO.getEthAmount() * ETH_PRICE) / lastPrice);
                 } else {
-                    printable.setOtherAmount(printable.getAmount() * lastPrice);
+                    transactionDTO.setOtherAmount(transactionDTO.getAmount() * lastPrice);
                 }
-            } else if (printable.getOtherAmount() == 0.0) {
-                if (printable.getEthAmount() != 0.0) {
-                    printable.setOtherAmount(printable.getEthAmount() * ETH_PRICE);
+            } else if (transactionDTO.getOtherAmount() == 0.0) {
+                if (transactionDTO.getEthAmount() != 0.0) {
+                    transactionDTO.setOtherAmount(transactionDTO.getEthAmount() * ETH_PRICE);
                 } else {
-                    printable.setAmount(printable.getOtherAmount() / lastPrice);
+                    transactionDTO.setAmount(transactionDTO.getOtherAmount() / lastPrice);
                 }
             }
         }
     }
 
-    private void saveLastPrice(Printable printable) {
-        if (printable.isConfirmed() && "USDC".equals(printable.getOtherCoin())) {
-            lastPrice = printable.getOtherAmount() / printable.getAmount();
-            printable.setLastPrice(lastPrice);
+    private void saveLastPrice(TransactionDTO transactionDTO) {
+        if (transactionDTO.isConfirmed() && "USDC".equals(transactionDTO.getOtherCoin())) {
+            lastPrice = transactionDTO.getOtherAmount() / transactionDTO.getAmount();
+            transactionDTO.setLastPrice(lastPrice);
         }
     }
 
-    public BlockingQueue<Printable> getOutput() {
+    public BlockingQueue<TransactionDTO> getOutput() {
         return output;
     }
 }

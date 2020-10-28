@@ -151,34 +151,34 @@ public class UniswapTx {
         return address.equals(coinIn.getValue().toLowerCase()) || address.equals(coinOut.getValue().toLowerCase());
     }
 
-    public Printable toPrintable(String contract) {
-        Printable printable = new Printable();
-        printable.setHash(hash);
-        printable.setCoin(ContractMapper.findName(contract));
-        printable.setConfirmed(success);
-        printable.setEthAmount(amountToDouble(amountEth, coinIn));
+    public TransactionDTO toPrintable(String contract) {
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setHash(hash);
+        transactionDTO.setCoin(ContractMapper.findName(contract));
+        transactionDTO.setConfirmed(success);
+        transactionDTO.setEthAmount(amountToDouble(amountEth, coinIn));
 
 
         if (contract.equals(coinIn.getValue().toLowerCase())) {
-            printable.setAmount(amountToDouble(amountIn, coinIn));
-            printable.setOtherCoin(addrToStr(coinOut));
-            printable.setOtherAmount(amountToDouble(amountOut, coinOut));
+            transactionDTO.setAmount(amountToDouble(amountIn, coinIn));
+            transactionDTO.setOtherCoin(addrToStr(coinOut));
+            transactionDTO.setOtherAmount(amountToDouble(amountOut, coinOut));
             if (type.equals(SWAP)) {
-                printable.setType("SELL");
+                transactionDTO.setType("SELL");
             } else {
-                printable.setType(type);
+                transactionDTO.setType(type);
             }
         } else if (contract.equals(coinOut.getValue().toLowerCase())) {
-            printable.setAmount(amountToDouble(amountOut, coinOut));
-            printable.setOtherCoin(addrToStr(coinIn));
-            printable.setOtherAmount(amountToDouble(amountIn, coinIn));
+            transactionDTO.setAmount(amountToDouble(amountOut, coinOut));
+            transactionDTO.setOtherCoin(addrToStr(coinIn));
+            transactionDTO.setOtherAmount(amountToDouble(amountIn, coinIn));
             if (type.equals(SWAP)) {
-                printable.setType("BUY");
+                transactionDTO.setType("BUY");
             } else {
-                printable.setType(type);
+                transactionDTO.setType(type);
             }
         }
-        return printable;
+        return transactionDTO;
     }
 
     private static String addrToStr(Address adr) {

@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.model;
 
-public class Printable {
+public class TransactionDTO {
 
     private String type;
     private String coin;

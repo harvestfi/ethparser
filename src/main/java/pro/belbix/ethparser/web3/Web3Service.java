@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3;
 
+import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -47,10 +48,17 @@ public class Web3Service {
 
     public void subscribeTransactionFlowable() {
         checkInit();
-        Disposable subscription = web3.transactionFlowable()
-            .subscribe(tx -> consumers.forEach(b -> {
+        Flowable<Transaction> flowable;
+        if(web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isBlank()) {
+            flowable = web3.transactionFlowable();
+        } else {
+            flowable = web3.replayPastAndFutureTransactionsFlowable(
+                DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
+        }
+        Disposable subscription = flowable
+            .subscribe(tx -> consumers.forEach(queue -> {
                 try {
-                    b.put(tx);
+                    queue.put(tx);
                 } catch (InterruptedException ignored) {
                 }
             }));

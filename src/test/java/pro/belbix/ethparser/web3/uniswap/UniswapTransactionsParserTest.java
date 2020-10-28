@@ -16,7 +16,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.model.Printable;
+import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.Web3Service;
 
@@ -80,21 +80,21 @@ public class UniswapTransactionsParserTest {
     @Test
     public void parseUniswapTransactionTest_swapTokensForExactETH() throws IOException, InterruptedException {
         Transaction tx = web3Service.findTransaction("0x5026a67dd0577b0370f483a48d0869d6adca68e5a0339443fcadd3644a9a9e32");
-        Printable printable = uniswapTransactionsParser.parseUniswapTransaction(tx);
-        assertEquals("FARM", printable.getCoin());
-        assertEquals("USDC", printable.getOtherCoin());
-        assertEquals(55.440214001258916, printable.getAmount(), 0.0);
-        assertEquals(5851.100961, printable.getOtherAmount(), 0.0);
+        TransactionDTO transactionDTO = uniswapTransactionsParser.parseUniswapTransaction(tx);
+        assertEquals("FARM", transactionDTO.getCoin());
+        assertEquals("USDC", transactionDTO.getOtherCoin());
+        assertEquals(55.440214001258916, transactionDTO.getAmount(), 0.0);
+        assertEquals(5851.100961, transactionDTO.getOtherAmount(), 0.0);
     }
 
     @Test
     public void parseUniswapTransaction_swapTokensForExactTokens() throws IOException {
         Transaction tx = web3Service.findTransaction("0x5a9d8fa3fb5097ba4a75aad475497fab49b67efb31f3dc248e66fdab578b6208");
-        Printable printable = uniswapTransactionsParser.parseUniswapTransaction(tx);
-        assertFalse(printable.isConfirmed());
-        assertEquals("FARM", printable.getCoin());
-        assertEquals("USDC", printable.getOtherCoin());
-        assertEquals(1.0121780834180945, printable.getAmount(), 0.0);
-        assertEquals(1.0, printable.getOtherAmount(), 0.0);
+        TransactionDTO transactionDTO = uniswapTransactionsParser.parseUniswapTransaction(tx);
+        assertFalse(transactionDTO.isConfirmed());
+        assertEquals("FARM", transactionDTO.getCoin());
+        assertEquals("USDC", transactionDTO.getOtherCoin());
+        assertEquals(1.0121780834180945, transactionDTO.getAmount(), 0.0);
+        assertEquals(1.0, transactionDTO.getOtherAmount(), 0.0);
     }
 }
