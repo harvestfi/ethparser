@@ -48,18 +48,18 @@ public class UniswapPoolDecoder {
 
     private void mapAddresses(UniswapTx tx, Log log) {
         if (log.getTopics().size() == 3) {
-            String firstTopicAddress = log.getTopics().get(1).toLowerCase();
-            String lastTopicAddress = log.getTopics().get(2).toLowerCase();
-            if (USDC_TOPIC_ADDRESS.equals(lastTopicAddress)) {
+            String topicAddress1 = log.getTopics().get(1).toLowerCase();
+            String topicAddress2 = log.getTopics().get(2).toLowerCase();
+            if (USDC_TOPIC_ADDRESS.equals(topicAddress2)) {
                 tx.setCoinOut(new Address(USDC_ADDRESS));
             }
-            if (USDC_TOPIC_ADDRESS.equals(firstTopicAddress)) {
+            if (USDC_TOPIC_ADDRESS.equals(topicAddress1)) {
                 tx.setCoinIn(new Address(USDC_ADDRESS));
             }
-            if (WETH_TOPIC_ADDRESS.equals(lastTopicAddress)) {
+            if (WETH_TOPIC_ADDRESS.equals(topicAddress2)) {
                 tx.setCoinOut(new Address(WETH_ADDRESS));
             }
-            if (WETH_TOPIC_ADDRESS.equals(firstTopicAddress)) {
+            if (WETH_TOPIC_ADDRESS.equals(topicAddress1)) {
                 tx.setCoinIn(new Address(WETH_ADDRESS));
             }
         }

@@ -48,21 +48,22 @@ public class UniswapTransactionsParser {
         }).start();
     }
 
-    void parseUniswapTransaction(Transaction tx) {
+    Printable parseUniswapTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
-            return;
+            return null;
         }
 
         UniswapTx uniswapTx = decodeTransaction(tx);
         if (uniswapTx == null) {
-            return;
+            return null;
         }
 
         Printable printable = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
         calculateNotClearData(printable);
         saveLastPrice(printable);
         print(printable);
+        return printable;
     }
 
     private void incrementAndPrintCount(Transaction tx) {
