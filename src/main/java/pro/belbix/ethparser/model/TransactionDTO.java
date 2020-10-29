@@ -1,5 +1,17 @@
 package pro.belbix.ethparser.model;
 
+import java.math.BigInteger;
+import javax.persistence.Cacheable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "uni_tx", indexes = {
+    @Index(name = "idx_uni_tx", columnList = "block")
+})
+@Cacheable(false)
 public class TransactionDTO {
 
     private String type;
@@ -8,7 +20,9 @@ public class TransactionDTO {
     private String otherCoin;
     private double otherAmount;
     private double ethAmount;
+    @Id
     private String hash;
+    private BigInteger block;
     private boolean confirmed = false;
     private double lastPrice;
     private double lastGas;
@@ -59,6 +73,14 @@ public class TransactionDTO {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public BigInteger getBlock() {
+        return block;
+    }
+
+    public void setBlock(BigInteger block) {
+        this.block = block;
     }
 
     public boolean isConfirmed() {

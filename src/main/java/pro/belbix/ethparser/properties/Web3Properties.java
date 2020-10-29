@@ -1,8 +1,5 @@
 package pro.belbix.ethparser.properties;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -10,17 +7,17 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "web3")
 public class Web3Properties {
 
-    private String apiKey = "apiKeyStub";
+    private String web3Url = "";
     private String startBlock = "";
     private boolean testWs = false;
     private int testWsRate = 1000;
 
-    public String getApiKey() {
-        return apiKey;
+    public String getWeb3Url() {
+        return web3Url;
     }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
+    public void setWeb3Url(String web3Url) {
+        this.web3Url = web3Url;
     }
 
     public String getStartBlock() {

@@ -97,4 +97,26 @@ public class UniswapTransactionsParserTest {
         assertEquals(1.0121780834180945, transactionDTO.getAmount(), 0.0);
         assertEquals(1.0, transactionDTO.getOtherAmount(), 0.0);
     }
+
+    /*
+    * #	Name	Type	Data
+0	amountIn	uint256	21035327592326788614
+1	amountOutMin	uint256	5417082990098192810
+2	path	address[]	0xa0246c9032bC3A600820415aE600c6388619A14D
+0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+0x1cEB5cB57C4D4E2b2433641b95Dd330A33185A44
+3	to	address	0x5ce259AEDcD14038aD2c35Ecaa7B6b2974d339AC
+4	deadline	uint256	1603965993
+    * */
+    @Test
+    public void parseUniswapTransaction_swapExactTokensForTokens() throws IOException {
+        Transaction tx = web3Service.findTransaction("0x51dc7e543bcd6246da52d260a1cf1713acd995543eff19ea121ff27752446b65");
+        TransactionDTO transactionDTO = uniswapTransactionsParser.parseUniswapTransaction(tx);
+        assertFalse(transactionDTO.isConfirmed());
+        assertEquals("FARM", transactionDTO.getCoin());
+        assertEquals("USDC", transactionDTO.getOtherCoin());
+        assertEquals(1.0121780834180945, transactionDTO.getAmount(), 0.0);
+        assertEquals(1.0, transactionDTO.getOtherAmount(), 0.0);
+    }
 }

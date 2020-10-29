@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,17 @@ public class Web3Service {
     @PostConstruct
     private void init() {
         log.info("Connecting to Ethereum ...");
-        web3 = Web3j.build(new HttpService("https://mainnet.infura.io/v3/" + web3Properties.getApiKey()));
+        String url;
+        if (Strings.isBlank(web3Properties.getWeb3Url())) {
+            url = System.getProperty("ethjava.web3.url");
+        } else {
+            url = web3Properties.getWeb3Url();
+        }
+        if (url == null) {
+            throw new IllegalStateException("Web3 url not defined");
+        }
+
+        web3 = Web3j.build(new HttpService(url));
         log.info("Successfully connected to Ethereum");
         init = true;
     }
@@ -56,8 +67,9 @@ public class Web3Service {
         if (web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isEmpty()) {
             flowable = web3.transactionFlowable();
         } else {
+            log.info("Start flow from block " + web3Properties.getStartBlock());
             flowable = web3.replayPastAndFutureTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
+            DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
         }
         Disposable subscription = flowable
             .subscribe(tx -> consumers.forEach(queue -> {

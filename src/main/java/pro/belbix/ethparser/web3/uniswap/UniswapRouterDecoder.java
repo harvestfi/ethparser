@@ -55,7 +55,7 @@ public class UniswapRouterDecoder {
         UniswapTx tx = new UniswapTx();
         tx.setHash(transaction.getHash());
         tx.setOwner(transaction.getFrom());
-        tx.setBlock(transaction.getBlockHash());
+        tx.setBlock(transaction.getBlockNumber());
         switch (methodName) {
             case "addLiquidityETH":
                 tx.setType(UniswapTx.ADD_LIQ);

@@ -36,7 +36,8 @@ server:
 
 web3:
   apiKey:
-  testWs: true
+  startBlock: 11138664
+  testWs: false
   testWsRate: 1000
 
 logging:

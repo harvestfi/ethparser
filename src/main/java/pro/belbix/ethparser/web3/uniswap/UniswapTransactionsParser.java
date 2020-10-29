@@ -6,11 +6,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.repositories.TransactionsRepository;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @Service
@@ -28,9 +30,11 @@ public class UniswapTransactionsParser {
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final BlockingQueue<TransactionDTO> output = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
+    private final TransactionsRepository transactionsRepository;
 
-    public UniswapTransactionsParser(Web3Service web3Service) {
+    public UniswapTransactionsParser(Web3Service web3Service, TransactionsRepository transactionsRepository) {
         this.web3Service = web3Service;
+        this.transactionsRepository = transactionsRepository;
     }
 
     public void startParse() {
@@ -48,6 +52,11 @@ public class UniswapTransactionsParser {
                     try {
                         output.put(dto);
                     } catch (InterruptedException e) {
+                    }
+                    try {
+                        transactionsRepository.save(dto);
+                    } catch (Exception e){
+                        log.error("Can't save " + dto.toString(), e);
                     }
                 }
             }

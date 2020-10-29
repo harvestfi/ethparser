@@ -1,5 +1,7 @@
 package pro.belbix.ethparser;
 
+import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.TOPIC_NAME;
 
 import java.util.Random;
@@ -66,7 +68,9 @@ public class Application {
             dto.setCoin("FARM");
             dto.setOtherCoin("USDC");
             dto.setHash("0x123123123asda2343121231sdad");
-            dto.setType(new Random().nextBoolean() ? "BUY" : "SELL");
+            dto.setType(new Random().nextBoolean() ?
+                new Random().nextBoolean()? "BUY" : "SELL" :
+                new Random().nextBoolean()? ADD_LIQ : REMOVE_LIQ);
             dto.setLastPrice(currentCount);
             dto.setConfirmed(new Random().nextBoolean());
             dto.setLastGas(currentCount / 6);

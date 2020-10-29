@@ -15,7 +15,7 @@ public class UniswapTx {
     private String type;
     private String owner;
     private String timestamp;
-    private String block;
+    private BigInteger block;
     private BigInteger amountIn = new BigInteger("0");
     private Address coinIn;
     private BigInteger amountOut = new BigInteger("0");
@@ -57,11 +57,11 @@ public class UniswapTx {
         this.timestamp = timestamp;
     }
 
-    public String getBlock() {
+    public BigInteger getBlock() {
         return block;
     }
 
-    public void setBlock(String block) {
+    public void setBlock(BigInteger block) {
         this.block = block;
     }
 
@@ -154,6 +154,7 @@ public class UniswapTx {
     public TransactionDTO toPrintable(String contract) {
         TransactionDTO transactionDTO = new TransactionDTO();
         transactionDTO.setHash(hash);
+        transactionDTO.setBlock(block);
         transactionDTO.setCoin(ContractMapper.findName(contract));
         transactionDTO.setConfirmed(success);
         transactionDTO.setEthAmount(amountToDouble(amountEth, coinIn));
