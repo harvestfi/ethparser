@@ -44,7 +44,7 @@ public class UniswapTransactionsParser {
                 } catch (InterruptedException ignored) {
                 }
                 TransactionDTO dto = parseUniswapTransaction(transaction);
-                if(dto != null) {
+                if (dto != null) {
                     try {
                         output.put(dto);
                     } catch (InterruptedException e) {
@@ -66,6 +66,7 @@ public class UniswapTransactionsParser {
         }
 
         TransactionDTO transactionDTO = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
+        transactionDTO.setLastGas(web3Service.fetchAverageGasPrice());
         calculateNotClearData(transactionDTO);
         saveLastPrice(transactionDTO);
         print(transactionDTO);

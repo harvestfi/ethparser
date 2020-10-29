@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Response.Error;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -25,8 +26,11 @@ import pro.belbix.ethparser.properties.Web3Properties;
 
 @Service
 public class Web3Service {
-    public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter.valueOf(new BigInteger("10765094"));
-    public static final DefaultBlockParameter BLOCK_NUMBER_27_OCT_2020 = DefaultBlockParameter.valueOf(new BigInteger("11137613"));
+
+    public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
+        .valueOf(new BigInteger("10765094"));
+    public static final DefaultBlockParameter BLOCK_NUMBER_27_OCT_2020 = DefaultBlockParameter
+        .valueOf(new BigInteger("11137613"));
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
@@ -49,7 +53,7 @@ public class Web3Service {
     public void subscribeTransactionFlowable() {
         checkInit();
         Flowable<Transaction> flowable;
-        if(web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isBlank()) {
+        if (web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isEmpty()) {
             flowable = web3.transactionFlowable();
         } else {
             flowable = web3.replayPastAndFutureTransactionsFlowable(
@@ -86,6 +90,24 @@ public class Web3Service {
 
     public Transaction findTransaction(String hash) throws IOException {
         return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
+    }
+
+    public double fetchAverageGasPrice() {
+        EthGasPrice gasPrice;
+        try {
+            gasPrice = web3.ethGasPrice().send();
+        } catch (IOException e) {
+            log.error("Error fetch gas", e);
+            return 0.0;
+        }
+        if (gasPrice != null && gasPrice.getError() != null) {
+            log.error("Error gas fetching " + gasPrice.getError().getMessage());
+            return 0.0;
+        }
+        if (gasPrice != null) {
+            return gasPrice.getGasPrice().doubleValue() / 1000_000_000;
+        }
+        return 0.0;
     }
 
     public void subscribeOn(BlockingQueue<Transaction> queue) {

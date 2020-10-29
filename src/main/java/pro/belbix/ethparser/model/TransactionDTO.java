@@ -11,6 +11,7 @@ public class TransactionDTO {
     private String hash;
     private boolean confirmed = false;
     private double lastPrice;
+    private double lastGas;
 
     public String getType() {
         return type;
@@ -82,6 +83,14 @@ public class TransactionDTO {
 
     public void setLastPrice(double lastPrice) {
         this.lastPrice = lastPrice;
+    }
+
+    public double getLastGas() {
+        return lastGas;
+    }
+
+    public void setLastGas(double lastGas) {
+        this.lastGas = lastGas;
     }
 
     public String print() {

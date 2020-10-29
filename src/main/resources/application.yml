@@ -36,6 +36,8 @@ server:
 
 web3:
   apiKey:
+  testWs: true
+  testWsRate: 1000
 
 logging:
   level:

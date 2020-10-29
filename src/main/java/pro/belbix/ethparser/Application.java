@@ -30,9 +30,13 @@ public class Application {
         Web3Service web3Service = context.getBean(Web3Service.class);
         UniswapTransactionsParser parser = context.getBean(UniswapTransactionsParser.class);
         WsService ws = context.getBean(WsService.class);
+        Web3Properties conf = context.getBean(Web3Properties.class);
 
-        startParse(web3Service, parser, ws);
-//        startFakeDataForWebSocket(ws);
+        if (conf.isTestWs()) {
+            startFakeDataForWebSocket(ws, conf.getTestWsRate());
+        } else {
+            startParse(web3Service, parser, ws);
+        }
     }
 
     public static void startParse(Web3Service web3Service, UniswapTransactionsParser parser, WsService ws) {
@@ -52,7 +56,7 @@ public class Application {
         }
     }
 
-    private static void startFakeDataForWebSocket(WsService ws) {
+    private static void startFakeDataForWebSocket(WsService ws, int rate) {
         int count = 0;
         while (true) {
             double currentCount = count * new Random().nextDouble();
@@ -62,13 +66,15 @@ public class Application {
             dto.setCoin("FARM");
             dto.setOtherCoin("USDC");
             dto.setHash("0x123123123asda2343121231sdad");
-            dto.setType("BUY");
+            dto.setType(new Random().nextBoolean() ? "BUY" : "SELL");
             dto.setLastPrice(currentCount);
+            dto.setConfirmed(new Random().nextBoolean());
+            dto.setLastGas(currentCount / 6);
             ws.send(TOPIC_NAME, dto);
             log.info("Msg sent " + currentCount);
             count++;
             try {
-                Thread.sleep(100);
+                Thread.sleep(rate);
             } catch (InterruptedException ignored) {
             }
         }
