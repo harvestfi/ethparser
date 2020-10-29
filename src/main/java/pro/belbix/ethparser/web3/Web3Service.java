@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Response.Error;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -69,7 +71,7 @@ public class Web3Service {
         } else {
             log.info("Start flow from block " + web3Properties.getStartBlock());
             flowable = web3.replayPastAndFutureTransactionsFlowable(
-            DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
+                DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
         }
         Disposable subscription = flowable
             .subscribe(tx -> consumers.forEach(queue -> {
@@ -102,6 +104,25 @@ public class Web3Service {
 
     public Transaction findTransaction(String hash) throws IOException {
         return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
+    }
+
+    public Block findBlock(String blockHash) {
+        EthBlock ethBlock;
+        try {
+            ethBlock = web3.ethGetBlockByHash(blockHash, false).send();
+        } catch (IOException e) {
+            log.error("Error get block " + blockHash, e);
+            return null;
+        }
+        if (ethBlock != null && ethBlock.getError() != null) {
+            log.error("Error fetching block " + ethBlock.getError().getMessage());
+            return null;
+        }
+
+        if (ethBlock != null) {
+            return ethBlock.getBlock();
+        }
+        return null;
     }
 
     public double fetchAverageGasPrice() {

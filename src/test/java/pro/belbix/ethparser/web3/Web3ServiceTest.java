@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
@@ -57,7 +59,13 @@ public class Web3ServiceTest {
         assertEquals(new BigInteger("3369976790396557"), types.get(1).getValue());
         assertEquals(new BigInteger("11966348304870486"), types.get(2).getValue());
         assertEquals(new BigInteger("0"), types.get(3).getValue());
+    }
 
-
+    @Test
+    public void testFetchBlock() {
+        Block block = web3Service.findBlock("0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832");
+        assertNotNull(block);
+        Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
+        assertEquals(Instant.ofEpochSecond(1603810501L), date);
     }
 }
