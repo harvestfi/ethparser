@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.TOPIC_NAME;
 
+import java.time.Instant;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,7 @@ public class Application {
             dto.setLastPrice(currentCount);
             dto.setConfirmed(new Random().nextBoolean());
             dto.setLastGas(currentCount / 6);
+            dto.setBlockDate(Instant.now().getEpochSecond());
             ws.send(TOPIC_NAME, dto);
             log.info("Msg sent " + currentCount);
             count++;
