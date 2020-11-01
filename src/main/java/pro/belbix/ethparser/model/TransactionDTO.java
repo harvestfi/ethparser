@@ -9,7 +9,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "uni_tx", indexes = {
-    @Index(name = "idx_uni_tx", columnList = "block")
+    @Index(name = "idx_uni_tx", columnList = "blockDate")
 })
 @Cacheable(false)
 public class TransactionDTO {
@@ -126,21 +126,17 @@ public class TransactionDTO {
 
     public String print() {
         String result = type + " "
-            + String.format("%.2f", amount) + " "
+            + String.format("%.18f", amount) + " "
             + coin + " for "
             + otherCoin + " "
             + String.format("%.2f", otherAmount)
             + " " + hash;
-
-        if (amount > 1000.0) {
-            result = "WARN " + result;
-        }
         return result;
     }
 
     @Override
     public String toString() {
-        return "Printable{" +
+        return "TransactionDTO{" +
             "type='" + type + '\'' +
             ", coin='" + coin + '\'' +
             ", amount=" + amount +
@@ -148,7 +144,11 @@ public class TransactionDTO {
             ", otherAmount=" + otherAmount +
             ", ethAmount=" + ethAmount +
             ", hash='" + hash + '\'' +
+            ", block=" + block +
             ", confirmed=" + confirmed +
+            ", lastPrice=" + lastPrice +
+            ", lastGas=" + lastGas +
+            ", blockDate=" + blockDate +
             '}';
     }
 }

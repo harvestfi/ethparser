@@ -5,7 +5,7 @@ import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.web3.ContractMapper;
 
 
-public class UniswapTx {
+public class UniswapTx implements EthTransactionI{
 
     public static final String SWAP = "swap";
     public static final String ADD_LIQ = "add_liq";
@@ -151,7 +151,7 @@ public class UniswapTx {
         return address.equals(coinIn.getValue().toLowerCase()) || address.equals(coinOut.getValue().toLowerCase());
     }
 
-    public TransactionDTO toPrintable(String contract) {
+    public TransactionDTO toDto(String contract) {
         TransactionDTO transactionDTO = new TransactionDTO();
         transactionDTO.setHash(hash);
         transactionDTO.setBlock(block);

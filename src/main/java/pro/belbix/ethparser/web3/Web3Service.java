@@ -1,5 +1,8 @@
 package pro.belbix.ethparser.web3;
 
+import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
@@ -17,16 +20,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response.Error;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
+import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthLog;
+import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.Web3Properties;
 
+@SuppressWarnings("rawtypes")
 @Service
 public class Web3Service {
 
@@ -141,6 +150,44 @@ public class Web3Service {
             return gasPrice.getGasPrice().doubleValue() / 1000_000_000;
         }
         return 0.0;
+    }
+
+    public List<LogResult> fetchContractLogs(String hash, DefaultBlockParameter from ) {
+        EthFilter filter = new EthFilter(from,
+            LATEST, hash);
+        EthLog ethLog;
+        try {
+            ethLog = web3.ethGetLogs(filter).send();
+        } catch (IOException e) {
+            log.error("Error ethLog", e);
+            return new ArrayList<>();
+        }
+        if (ethLog == null) {
+            return new ArrayList<>();
+        }
+        if (ethLog.getError() != null) {
+            log.error("Can't get et log. " + ethLog.getError().getMessage());
+            return new ArrayList<>();
+        }
+        return ethLog.getLogs();
+    }
+
+    public double fetchBalance(String hash) {
+        EthGetBalance ethGetBalance;
+        try {
+            ethGetBalance = web3.ethGetBalance(hash, LATEST).send();
+        } catch (IOException e) {
+            log.error("Get balance error", e);
+            return 0.0;
+        }
+        if(ethGetBalance == null) {
+            return 0.0;
+        }
+        if(ethGetBalance.getError() != null) {
+            log.error("Get balance error callback " + ethGetBalance.getError().getMessage());
+            return 0.0;
+        }
+        return ethGetBalance.getBalance().doubleValue();
     }
 
     public void subscribeOn(BlockingQueue<Transaction> queue) {

@@ -2,12 +2,15 @@ package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +20,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder;
 
 @RunWith(SpringRunner.class)
@@ -38,7 +44,7 @@ public class Web3ServiceTest {
             .fetchTransactionReceipt("0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
         assertNotNull(transactionReceipt);
         List<Log> logs = transactionReceipt.getLogs();
-        for(Log log: logs) {
+        for (Log log : logs) {
             System.out.println(log.toString());
         }
         Log lastLog = logs.get(logs.size() - 1);
@@ -67,5 +73,21 @@ public class Web3ServiceTest {
         assertNotNull(block);
         Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
         assertEquals(Instant.ofEpochSecond(1603810501L), date);
+    }
+
+    @Test
+    @Ignore
+    public void checkLogsForAllVaults() {
+        for (String hash : Vaults.vaultNames.keySet()) {
+            List<LogResult> logs = web3Service.fetchContractLogs(hash, DefaultBlockParameterName.EARLIEST);
+            assertNotNull(logs);
+            System.out.println(hash + " " + logs.size());
+        }
+    }
+
+    @Test
+    public void getBalanceTest() {
+        double balance = web3Service.fetchBalance(WBTC);
+        assertTrue(balance > 0);
     }
 }

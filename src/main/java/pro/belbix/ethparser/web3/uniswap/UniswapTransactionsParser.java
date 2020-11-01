@@ -13,10 +13,11 @@ import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.repositories.TransactionsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @Service
-public class UniswapTransactionsParser {
+public class UniswapTransactionsParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(UniswapTransactionsParser.class);
     public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
@@ -77,7 +78,7 @@ public class UniswapTransactionsParser {
             return null;
         }
 
-        TransactionDTO transactionDTO = uniswapTx.toPrintable(FARM_TOKEN_CONTRACT);
+        TransactionDTO transactionDTO = uniswapTx.toDto(FARM_TOKEN_CONTRACT);
         transactionDTO.setLastGas(web3Service.fetchAverageGasPrice());
         transactionDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
         calculateNotClearData(transactionDTO);
@@ -89,7 +90,7 @@ public class UniswapTransactionsParser {
     private void incrementAndPrintCount(Transaction tx) {
         parsedTxCount++;
         if (parsedTxCount % 10_000 == 0) {
-            log.info("Parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
+            log.info("Uniswap parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
         }
     }
 
@@ -108,7 +109,7 @@ public class UniswapTransactionsParser {
     private UniswapTx decodeTransaction(Transaction tx) {
         UniswapTx uniswapTx;
         try {
-            uniswapTx = uniswapRouterDecoder.decodeInputData(tx);
+            uniswapTx = (UniswapTx) uniswapRouterDecoder.decodeInputData(tx);
 
             if (uniswapTx == null) {
                 if (tx.getInput().length() > 70) {
