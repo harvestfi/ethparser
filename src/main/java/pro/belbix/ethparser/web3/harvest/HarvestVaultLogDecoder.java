@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -24,7 +23,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             return;
         }
         String topic0 = log.getTopics().get(0);
-        String methodId = HarvestTopics.topicToMethodId.get(topic0);
+        String methodId = methodIdByFullHex.get(topic0);
 
         if (methodId == null) {
             throw new IllegalStateException("Unknown topic " + topic0);
@@ -35,23 +34,41 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
         }
 
-        List<Type> types = FunctionReturnDecoder.decode(log.getData(), parameters);
+        List<Type> types = extractLogIndexedValues(log, parameters);
         tx.setHash(log.getTransactionHash());
         tx.setBlock(log.getBlockNumber());
-        enrich(types, methodId, tx);
+        String methodName = methodNamesByMethodId.get(methodId);
+        tx.setMethodName(methodName);
+        enrich(types, methodName, tx);
     }
 
-    private void enrich(List<Type> types, String methodID, HarvestTx tx) {
-        String methodName = methodNamesByMethodId.get(methodID);
-        tx.setMethodName(methodName);
+    private void enrich(List<Type> types, String methodName, HarvestTx tx) {
         switch (methodName) {
+            case "Deposit":
+            case "Withdraw":
+            case "Staked":
+            case "Withdrawn":
+            case "RewardPaid":
+            case "StrategyAnnounced":
+                tx.setOwner((String) types.get(0).getValue());
+                tx.setAmount((BigInteger) types.get(1).getValue());
+                return;
+            case "Invest":
+            case "RewardAdded":
+            case "withdraw":
+            case "stake":
+                tx.setAmount((BigInteger) types.get(0).getValue());
+                return;
+            case "StrategyChanged":
             case "addVaultAndStrategy":
                 tx.setAddressFromArgs1(new Address((String) types.get(0).getValue()));
                 tx.setAddressFromArgs2(new Address((String) types.get(1).getValue()));
                 return;
-            case "withdraw":
-            case "stake":
-                tx.setAmount((BigInteger) types.get(0).getValue());
+            case "Transfer":
+            case "Approval":
+                tx.setAddressFromArgs1(new Address((String) types.get(0).getValue()));
+                tx.setAddressFromArgs2(new Address((String) types.get(1).getValue()));
+                tx.setAmount((BigInteger) types.get(2).getValue());
                 return;
             case "depositAll":
                 tx.setIntFromArgs(parseInts(types.get(0)));
@@ -65,8 +82,10 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                 addresses[3] = (Address) types.get(3).getValue();
                 tx.setAddressFromArgs(addresses);
                 return;
+            case "exit":
+                return;
         }
-        throw new IllegalStateException("Unknown method");
+        throw new IllegalStateException("Unknown method " + methodName);
     }
 
     private static BigInteger[] parseInts(Type type) {
@@ -121,6 +140,62 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                     Collections.singletonList(
                         TypeReference.makeTypeReference("uint256")
 
+                    ));
+                //EVENTS--------------------**************************
+                parameters.put("Withdraw",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Deposit",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Invest",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("StrategyAnnounced",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("StrategyChanged",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put("Transfer",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Approval",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Staked",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Withdrawn",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("RewardPaid",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("RewardAdded",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
                     ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();

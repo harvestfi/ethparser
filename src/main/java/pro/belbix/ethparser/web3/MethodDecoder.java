@@ -1,10 +1,14 @@
 package pro.belbix.ethparser.web3;
 
+import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
+
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -167,7 +171,32 @@ public abstract class MethodDecoder {
             parametersByMethodId.put(methodID, entry.getValue());
             methodNamesByMethodId.put(methodID, entry.getKey());
             methodIdByFullHex.put(methodFullHex, methodID);
+//            System.out.println(this.getClass().getSimpleName() + " " + entry.getKey() + " " + methodID + " " + methodFullHex);
         }
+    }
+
+    public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
+        final List<String> topics = log.getTopics();
+
+        List<Type> nonIndexedValues =
+            FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
+        List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
+        List<Type> indexedValues = new ArrayList<>();
+        for (int i = 0; i < indexedParameters.size(); i++) {
+            String topic = topics.get(i + 1);
+            Type value = decodeIndexedValue(topic, indexedParameters.get(i));
+            indexedValues.add(value);
+        }
+        indexedValues.addAll(nonIndexedValues);
+        return indexedValues;
+    }
+
+    public static List<TypeReference<Type>> getIndexedParameters(List<TypeReference<Type>> parameters) {
+        return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
+    }
+
+    public static List<TypeReference<Type>> getNonIndexedParameters(List<TypeReference<Type>> parameters) {
+        return parameters.stream().filter(p -> !p.isIndexed()).collect(Collectors.toList());
     }
 
     protected abstract void initParameters();

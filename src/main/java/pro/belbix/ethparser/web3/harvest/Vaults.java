@@ -38,7 +38,7 @@ public class Vaults {
 
 
 
-        vaultDividers.put(WETH , 100_000_000.0);
+        vaultDividers.put(WETH , 1000_000_000_000_000_000.0);
         vaultDividers.put(DAI , 100_000_000.0);
         vaultDividers.put(USDC , 100_000_000.0);
         vaultDividers.put(USDT , 100_000_000.0);

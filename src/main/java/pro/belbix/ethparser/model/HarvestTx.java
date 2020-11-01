@@ -11,7 +11,6 @@ public class HarvestTx implements EthTransactionI {
     private String hash;
     private String methodName;
     private String owner;
-    private String timestamp;
     private BigInteger block;
     private BigInteger amount = new BigInteger("0");
     private Address vault;
@@ -47,14 +46,6 @@ public class HarvestTx implements EthTransactionI {
 
     public void setOwner(String owner) {
         this.owner = owner;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
     }
 
     public BigInteger getBlock() {
@@ -157,6 +148,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
+        dto.setOwner(owner);
 
         enrichMethodDepend(dto);
         return dto;
@@ -201,7 +193,6 @@ public class HarvestTx implements EthTransactionI {
             "hash='" + hash + '\'' +
             ", methodName='" + methodName + '\'' +
             ", owner='" + owner + '\'' +
-            ", timestamp='" + timestamp + '\'' +
             ", block=" + block +
             ", amount=" + amount +
             ", vault=" + vault +

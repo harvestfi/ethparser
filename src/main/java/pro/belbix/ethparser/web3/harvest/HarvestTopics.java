@@ -19,14 +19,23 @@ public class HarvestTopics {
     public static final String WITHDRAW = "0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364";
 
     public static final Map<String, String> topicToMethodId = new HashMap<>();
+    public static final Map<String, String> methodIdToTopic = new HashMap<>();
 
     static {
         topicToMethodId.put(ADD_VAULT_AND_STRATEGY, "0xed32fa33");
-        topicToMethodId.put(EXIT, "0xa694fc3a");
-        topicToMethodId.put(STAKE, "0x095ea7b3");
+        topicToMethodId.put(EXIT, "0xe9fad8ee");
+        topicToMethodId.put(STAKE, "0xa694fc3a");
+//        topicToMethodId.put(STAKE, "0x095ea7b3");
         topicToMethodId.put(DEPOSIT_ALL, "0x3cb97237");
         topicToMethodId.put(MIGRATE_IN_ONE_TX, "0x5fe71f67");
         topicToMethodId.put(WITHDRAW, "0x2e1a7d4d");
+
+        methodIdToTopic.put("0x3cb97237", DEPOSIT_ALL);
+        methodIdToTopic.put("0x853828b6", "withdrawAll");
+        methodIdToTopic.put("0xb6b55f25", "deposit");
+        methodIdToTopic.put("0x2e1a7d4d", WITHDRAW);
+        methodIdToTopic.put("0xa694fc3a", STAKE);
+        methodIdToTopic.put("0xe9fad8ee", EXIT);
     }
 
 }

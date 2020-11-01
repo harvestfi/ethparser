@@ -10,7 +10,6 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -23,15 +22,15 @@ public class HarvestTransactionsParser implements Web3Parser {
     private final Web3Service web3Service;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
-    private final HarvestRepository harvestRepository;
+    private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private long parsedTxCount = 0;
 
     public HarvestTransactionsParser(Web3Service web3Service,
-                                     HarvestRepository harvestRepository,
+                                     HarvestDBService harvestDBService,
                                      EthBlockService ethBlockService) {
         this.web3Service = web3Service;
-        this.harvestRepository = harvestRepository;
+        this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
     }
 
@@ -52,7 +51,7 @@ public class HarvestTransactionsParser implements Web3Parser {
                     } catch (InterruptedException e) {
                     }
                     try {
-                        harvestRepository.save(dto);
+                        harvestDBService.saveHarvestDTO(dto);
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
                     }

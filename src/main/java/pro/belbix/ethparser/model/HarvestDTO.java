@@ -9,7 +9,8 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "harvest_tx", indexes = {
-    @Index(name = "idx_harvest_tx", columnList = "blockDate")
+    @Index(name = "idx_harvest_tx", columnList = "blockDate"),
+    @Index(name = "idx_harvest_tx2", columnList = "methodName, vault")
 })
 @Cacheable(false)
 public class HarvestDTO implements DtoI {
@@ -25,10 +26,20 @@ public class HarvestDTO implements DtoI {
     private String timestamp;
     private double amount;
     private String vault;
-    private String addressFromArgs;
-    private BigInteger intFromArgs1;
-    private BigInteger intFromArgs2;
-    private double lastGas;
+    private Double lastGas;
+    private Double lastTVL;
+
+    public void setLastGas(Double lastGas) {
+        this.lastGas = lastGas;
+    }
+
+    public Double getLastTVL() {
+        return lastTVL;
+    }
+
+    public void setLastTVL(Double lastTVL) {
+        this.lastTVL = lastTVL;
+    }
 
     public double getLastGas() {
         return lastGas;
@@ -110,35 +121,11 @@ public class HarvestDTO implements DtoI {
         this.vault = vault;
     }
 
-    public String getAddressFromArgs() {
-        return addressFromArgs;
-    }
-
-    public void setAddressFromArgs(String addressFromArgs) {
-        this.addressFromArgs = addressFromArgs;
-    }
-
-    public BigInteger getIntFromArgs1() {
-        return intFromArgs1;
-    }
-
-    public void setIntFromArgs1(BigInteger intFromArgs1) {
-        this.intFromArgs1 = intFromArgs1;
-    }
-
-    public BigInteger getIntFromArgs2() {
-        return intFromArgs2;
-    }
-
-    public void setIntFromArgs2(BigInteger intFromArgs2) {
-        this.intFromArgs2 = intFromArgs2;
-    }
-
     public String print() {
-        String result = methodName + " "
+        return methodName + " "
             + String.format("%.18f", amount) + " "
             + vault
-            + " " + hash;
-        return result;
+            + " " + hash
+            + " " + lastTVL;
     }
 }

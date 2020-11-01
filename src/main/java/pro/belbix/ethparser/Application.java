@@ -91,7 +91,7 @@ public class Application {
             dto.setOtherAmount(currentCount);
             dto.setCoin("FARM");
             dto.setOtherCoin("USDC");
-            dto.setHash("0x123123123asda2343121231sdad");
+            dto.setHash("0x" + count);
             dto.setType(new Random().nextBoolean() ?
                 new Random().nextBoolean() ? "BUY" : "SELL" :
                 new Random().nextBoolean() ? ADD_LIQ : REMOVE_LIQ);
