@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap;
 
+import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
+
 import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -56,83 +58,110 @@ public class UniswapRouterDecoder {
         tx.setHash(transaction.getHash());
         tx.setOwner(transaction.getFrom());
         tx.setBlock(transaction.getBlockNumber());
+        parseMethod(tx, types, methodName);
+
+        //ensure that FARM coin setCorrect
+        if (tx.isContainsAddress(FARM_TOKEN_CONTRACT)) {
+            if (tx.tokenIsFirstOrLast(FARM_TOKEN_CONTRACT)) { //BUY
+                tx.setCoinIn(new Address(FARM_TOKEN_CONTRACT));
+                tx.setCoinOut(tx.getAllAddresses()[1]);
+                tx.setBuy(false);
+            } else { //SELL
+                tx.setCoinOut(new Address(FARM_TOKEN_CONTRACT));
+                tx.setCoinIn(tx.getAllAddresses()[tx.getAllAddresses().length - 2]);
+                tx.setBuy(true);
+            }
+        }
+        return tx;
+    }
+
+    private void parseMethod(UniswapTx tx, List<Type> types, String methodName) {
+        Address[] addresses = new Address[2];
         switch (methodName) {
             case "addLiquidityETH":
                 tx.setType(UniswapTx.ADD_LIQ);
-                tx.setCoinIn(WETH_ADDRESS);
-                tx.setCoinOut(new Address((String) types.get(0).getValue()));
+                addresses[0] = WETH_ADDRESS;
+                addresses[1] = new Address((String) types.get(0).getValue());
+                tx.setAllAddresses(addresses);
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
                 tx.setAmountIn((BigInteger) types.get(3).getValue());
-                return tx;
+                return;
             case "addLiquidity":
                 tx.setType(UniswapTx.ADD_LIQ);
                 Object coinIn = types.get(0).getValue();
                 if (coinIn instanceof String) {
-                    tx.setCoinIn(new Address((String) coinIn));
+                    addresses[0] = new Address((String) coinIn);
                 } else {
-                    tx.setCoinIn((Address) coinIn);
+                    addresses[0] = (Address) coinIn;
                 }
                 Object coinOut = types.get(1).getValue();
                 if (coinOut instanceof String) {
-                    tx.setCoinOut(new Address((String) coinOut));
+                    addresses[1] = new Address((String) coinOut);
                 } else {
-                    tx.setCoinOut((Address) coinOut);
+                    addresses[1] = (Address) coinOut;
                 }
+                tx.setAllAddresses(addresses);
                 tx.setAmountIn((BigInteger) types.get(2).getValue());
                 tx.setAmountOut((BigInteger) types.get(3).getValue());
-                return tx;
+                return;
             case "removeLiquidityETH":
             case "removeLiquidityETHWithPermit":
             case "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens":
             case "removeLiquidityETHSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.REMOVE_LIQ);
-                tx.setCoinIn(WETH_ADDRESS);
-                tx.setCoinOut(new Address((String) types.get(0).getValue()));
+                addresses[0] = WETH_ADDRESS;
+                addresses[1] = new Address((String) types.get(0).getValue());
+                tx.setAllAddresses(addresses);
                 tx.setLiquidity((BigInteger) types.get(1).getValue());
                 tx.setAmountOut((BigInteger) types.get(2).getValue());
                 tx.setAmountIn((BigInteger) types.get(3).getValue());
-                return tx;
+                return;
             case "removeLiquidity":
             case "removeLiquidityWithPermit":
                 tx.setType(UniswapTx.REMOVE_LIQ);
-                tx.setCoinOut(new Address((String) types.get(0).getValue()));
-                tx.setCoinIn(new Address((String) types.get(1).getValue()));
+                addresses[1] = new Address((String) types.get(0).getValue());
+                addresses[0] = new Address((String) types.get(1).getValue());
+                tx.setAllAddresses(addresses);
                 tx.setLiquidity((BigInteger) types.get(2).getValue());
                 tx.setAmountOut((BigInteger) types.get(3).getValue());
                 tx.setAmountIn((BigInteger) types.get(4).getValue());
-                return tx;
+                return;
             case "swapExactTokensForETH": //0x75e17566b36eb7fc9bc1be4c95d2e36cd30b09faa803fd1e06732c504ecee1a9
             case "swapExactTokensForETHSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountEth((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), 1));
-                return tx;
+//                tx.setCoinIn(parseAddress(types.get(2), 0));
+//                tx.setCoinOut(parseAddress(types.get(2), 1));
+                tx.setAllAddresses(parseAddresses(types.get(2)));
+                return;
             case "swapExactTokensForTokens":
             case "swapExactTokensForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountIn((BigInteger) types.get(0).getValue());
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), 1));
-                return tx;
+//                tx.setCoinIn(parseAddress(types.get(2), -2)); //should parse last pair for detect farm
+//                tx.setCoinOut(parseAddress(types.get(2), -1));
+                tx.setAllAddresses(parseAddresses(types.get(2)));
+                return;
             case "swapExactETHForTokens": //0xb28bfbcc048fca2193b4c56518f42a7a1c1951720b07e86fe171c9db19cda71b
             case "swapETHForExactTokens":
             case "swapExactETHForTokensSupportingFeeOnTransferTokens":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountEth((BigInteger) types.get(0).getValue());
-                tx.setCoinIn(parseAddress(types.get(1), -2));
-                tx.setCoinOut(parseAddress(types.get(1), -1));
-                return tx;
+//                tx.setCoinIn(parseAddress(types.get(1), -2));
+//                tx.setCoinOut(parseAddress(types.get(1), -1));
+                tx.setAllAddresses(parseAddresses(types.get(1)));
+                return;
             case "swapTokensForExactTokens":
             case "swapTokensForExactETH":
                 tx.setType(UniswapTx.SWAP);
                 tx.setAmountOut((BigInteger) types.get(0).getValue());
                 tx.setAmountIn((BigInteger) types.get(1).getValue());
-                tx.setCoinIn(parseAddress(types.get(2), 0));
-                tx.setCoinOut(parseAddress(types.get(2), 1));
-                return tx;
+//                tx.setCoinIn(parseAddress(types.get(2), 0));
+//                tx.setCoinOut(parseAddress(types.get(2), 1));
+                tx.setAllAddresses(parseAddresses(types.get(2)));
+                return;
         }
         throw new IllegalStateException("Unknown method");
     }
@@ -143,6 +172,17 @@ public class UniswapRouterDecoder {
             return (Address) adrs.get(adrs.size() + i);
         }
         return (Address) ((List) type.getValue()).get(i);
+    }
+
+    private static Address[] parseAddresses(Type type) {
+        List adrs = ((List) type.getValue());
+        Address[] result = new Address[adrs.size()];
+        int i = 0;
+        for (Object a : adrs) {
+            result[i] = (Address) a;
+            i++;
+        }
+        return result;
     }
 
     String createMethodId(String name, List<TypeReference<Type>> parameters) {

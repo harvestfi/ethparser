@@ -16,10 +16,10 @@ spring:
     password: 111111
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-local.server.port: 4140
+local.server.port: 4142
 
 server:
-  port: 4140
+  port: 4142
   servlet:
     session.timeout: 1m
     multipart:
@@ -36,7 +36,7 @@ server:
 
 web3:
   apiKey:
-  startBlock:
+  startBlock: 11163257
   testWs: false
   testWsRate: 1000
 
