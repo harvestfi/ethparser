@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.uniswap;
 
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,36 +32,42 @@ public class UniswapPoolDecoder {
 
     public void enrichUniTx(UniswapTx tx, List<Log> logs) {
         Log log;
-        if (tx.getCoinIn().getValue().equals(FARM_TOKEN_CONTRACT)) {
-            log = findFirstSwapLog(logs);
-        } else {
+        if (tx.isBuy()) {
             log = findLastSwapLog(logs);
+        } else {
+            log = findFirstSwapLog(logs);
         }
 
-        mapAddresses(tx, log);
+//        mapAddresses(tx, log); //now we setup all correct in UniswapRouterDecoder (I hope)
         List<Type> types = decodeSwap(log.getData());
         enrichPrice(tx, types);
         tx.setEnriched(true);
     }
 
-    private void mapAddresses(UniswapTx tx, Log log) {
-        if (log.getTopics().size() == 3) {
-            String topicAddress1 = log.getTopics().get(1).toLowerCase();
-            String topicAddress2 = log.getTopics().get(2).toLowerCase();
-            if (USDC_TOPIC_ADDRESS.equals(topicAddress2)) {
-                tx.setCoinOut(new Address(USDC_ADDRESS));
-            }
-            if (USDC_TOPIC_ADDRESS.equals(topicAddress1)) {
-                tx.setCoinIn(new Address(USDC_ADDRESS));
-            }
-            if (WETH_TOPIC_ADDRESS.equals(topicAddress2)) {
-                tx.setCoinOut(new Address(WETH_ADDRESS));
-            }
-            if (WETH_TOPIC_ADDRESS.equals(topicAddress1)) {
-                tx.setCoinIn(new Address(WETH_ADDRESS));
-            }
-        }
-    }
+//    private void mapAddresses(UniswapTx tx, Log log) {
+//        if (log.getTopics().size() == 3) {
+//            String topicAddress1 = log.getTopics().get(1).toLowerCase();
+//            String topicAddress2 = log.getTopics().get(2).toLowerCase();
+//
+//            if (USDC_TOPIC_ADDRESS.equals(topicAddress2)) {
+//                tx.setCoinOut(new Address(USDC_ADDRESS));
+//                tx.assertBuy(false);
+//            }
+//            if (WETH_TOPIC_ADDRESS.equals(topicAddress2)) {
+//                tx.setCoinOut(new Address(WETH_ADDRESS));
+//                tx.assertBuy(false);
+//            }
+//
+//            if (USDC_TOPIC_ADDRESS.equals(topicAddress1)) {
+//                tx.setCoinIn(new Address(USDC_ADDRESS));
+//                tx.assertBuy(true);
+//            }
+//            if (WETH_TOPIC_ADDRESS.equals(topicAddress1)) {
+//                tx.setCoinIn(new Address(WETH_ADDRESS));
+//                tx.assertBuy(true);
+//            }
+//        }
+//    }
 
     public List<Type> decodeSwap(String data) {
         return FunctionReturnDecoder.decode(data, parametersByMethodName.get("Swap"));

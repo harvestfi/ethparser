@@ -24,6 +24,8 @@ public class UniswapTx implements EthTransactionI{
     private BigInteger liquidity;
     private boolean success = false;
     private boolean enriched;
+    private Boolean buy;
+    private Address[] allAddresses;
 
     public String getHash() {
         return hash;
@@ -129,6 +131,22 @@ public class UniswapTx implements EthTransactionI{
         this.enriched = enriched;
     }
 
+    public Address[] getAllAddresses() {
+        return allAddresses;
+    }
+
+    public void setAllAddresses(Address[] allAddresses) {
+        this.allAddresses = allAddresses;
+    }
+
+    public boolean isBuy() {
+        return buy;
+    }
+
+    public void setBuy(boolean buy) {
+        this.buy = buy;
+    }
+
     @Override
     public String toString() {
         return "UniswapTx{" +
@@ -148,7 +166,37 @@ public class UniswapTx implements EthTransactionI{
     }
 
     public boolean isContainsAddress(String address) {
-        return address.equals(coinIn.getValue().toLowerCase()) || address.equals(coinOut.getValue().toLowerCase());
+        for (Address a : allAddresses) {
+            if (address.equals(a.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean tokenIsFirstOrLast(String hash) {
+        if (allAddresses == null || allAddresses.length == 0) {
+            throw new IllegalStateException("Empty addresses");
+        }
+        if (allAddresses.length == 1) {
+            throw new IllegalStateException("Only one address");
+        }
+        if (allAddresses[0].getValue().equals(hash)) {
+            return true;
+        }
+        if (allAddresses[allAddresses.length - 1].getValue().equals(hash)) {
+            return false;
+        }
+        throw new IllegalStateException("Token not the last or first");
+    }
+
+    public void assertBuy(boolean expected) {
+        if (buy == null) {
+            throw new IllegalStateException("Buy now is null");
+        }
+        if (buy != expected) {
+            throw new IllegalStateException("Unexpected setup!");
+        }
     }
 
     public TransactionDTO toDto(String contract) {
@@ -159,8 +207,8 @@ public class UniswapTx implements EthTransactionI{
         transactionDTO.setConfirmed(success);
         transactionDTO.setEthAmount(amountToDouble(amountEth, coinIn));
 
-
         if (contract.equals(coinIn.getValue().toLowerCase())) {
+            assertBuy(false);
             transactionDTO.setAmount(amountToDouble(amountIn, coinIn));
             transactionDTO.setOtherCoin(addrToStr(coinOut));
             transactionDTO.setOtherAmount(amountToDouble(amountOut, coinOut));
@@ -170,6 +218,7 @@ public class UniswapTx implements EthTransactionI{
                 transactionDTO.setType(type);
             }
         } else if (contract.equals(coinOut.getValue().toLowerCase())) {
+            assertBuy(true);
             transactionDTO.setAmount(amountToDouble(amountOut, coinOut));
             transactionDTO.setOtherCoin(addrToStr(coinIn));
             transactionDTO.setOtherAmount(amountToDouble(amountIn, coinIn));
@@ -178,6 +227,8 @@ public class UniswapTx implements EthTransactionI{
             } else {
                 transactionDTO.setType(type);
             }
+        } else {
+            throw new IllegalStateException("Contract not found");
         }
         return transactionDTO;
     }
@@ -189,8 +240,10 @@ public class UniswapTx implements EthTransactionI{
     private static double amountToDouble(BigInteger amount, Address coin) {
         //really, it is totally unclear for me how it's work
         String divider = "1000000000000000000";
-        if(amount.toString().length() < 16) {
-            divider = "1000000";
+        if (!"0xa0246c9032bc3a600820415ae600c6388619a14d".equals(coin.getValue())) {
+            if (amount.toString().length() < 16) {
+                divider = "1000000";
+            }
         }
         return amount.doubleValue() / new BigInteger(divider).doubleValue();
     }
