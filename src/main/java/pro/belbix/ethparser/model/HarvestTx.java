@@ -149,13 +149,13 @@ public class HarvestTx implements EthTransactionI {
         return addresses.containsKey(vault.getValue().toLowerCase());
     }
 
-    public TransactionDTO toDto() {
-        TransactionDTO dto = new TransactionDTO();
+    public HarvestDTO toDto() {
+        HarvestDTO dto = new HarvestDTO();
         dto.setHash(hash);
         dto.setBlock(block);
-        dto.setCoin(Vaults.vaultNames.get(vault.getValue()));
+        dto.setVault(Vaults.vaultNames.get(vault.getValue()));
         dto.setConfirmed(success);
-        dto.setType(methodName);
+        dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
 
         enrichMethodDepend(dto);
@@ -169,7 +169,7 @@ public class HarvestTx implements EthTransactionI {
         return amount.doubleValue() / Vaults.vaultDividers.get(vault);
     }
 
-    private void enrichMethodDepend(TransactionDTO dto) {
+    private void enrichMethodDepend(HarvestDTO dto) {
         switch (methodName) {
             case "deposit":
             case "withdraw":

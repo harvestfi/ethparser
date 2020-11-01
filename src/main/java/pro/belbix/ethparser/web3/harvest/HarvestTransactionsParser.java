@@ -7,9 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import pro.belbix.ethparser.model.DtoI;
+import pro.belbix.ethparser.model.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.model.TransactionDTO;
-import pro.belbix.ethparser.repositories.TransactionsRepository;
+import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -21,16 +22,16 @@ public class HarvestTransactionsParser implements Web3Parser {
     private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<TransactionDTO> output = new ArrayBlockingQueue<>(10_000);
-    private final TransactionsRepository transactionsRepository;
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
+    private final HarvestRepository harvestRepository;
     private final EthBlockService ethBlockService;
     private long parsedTxCount = 0;
 
     public HarvestTransactionsParser(Web3Service web3Service,
-                                     TransactionsRepository transactionsRepository,
+                                     HarvestRepository harvestRepository,
                                      EthBlockService ethBlockService) {
         this.web3Service = web3Service;
-        this.transactionsRepository = transactionsRepository;
+        this.harvestRepository = harvestRepository;
         this.ethBlockService = ethBlockService;
     }
 
@@ -44,14 +45,14 @@ public class HarvestTransactionsParser implements Web3Parser {
                     transaction = transactions.take();
                 } catch (InterruptedException ignored) {
                 }
-                TransactionDTO dto = parseHarvestTransaction(transaction);
+                HarvestDTO dto = parseHarvestTransaction(transaction);
                 if (dto != null) {
                     try {
                         output.put(dto);
                     } catch (InterruptedException e) {
                     }
                     try {
-                        transactionsRepository.save(dto);
+                        harvestRepository.save(dto);
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
                     }
@@ -61,11 +62,11 @@ public class HarvestTransactionsParser implements Web3Parser {
     }
 
     @Override
-    public BlockingQueue<TransactionDTO> getOutput() {
+    public BlockingQueue<DtoI> getOutput() {
         return output;
     }
 
-    TransactionDTO parseHarvestTransaction(Transaction tx) {
+    HarvestDTO parseHarvestTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
             return null;
@@ -76,11 +77,11 @@ public class HarvestTransactionsParser implements Web3Parser {
             return null;
         }
 
-        TransactionDTO transactionDTO = harvestTx.toDto();
-        transactionDTO.setLastGas(web3Service.fetchAverageGasPrice());
-        transactionDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
-        print(transactionDTO);
-        return transactionDTO;
+        HarvestDTO dto = harvestTx.toDto();
+        dto.setLastGas(web3Service.fetchAverageGasPrice());
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
+        print(dto);
+        return dto;
     }
 
     private HarvestTx decodeTransaction(Transaction tx) {
@@ -110,11 +111,11 @@ public class HarvestTransactionsParser implements Web3Parser {
         return harvestTx;
     }
 
-    private void print(TransactionDTO transactionDTO) {
-        if (transactionDTO.isConfirmed()) {
-            log.info(transactionDTO.print());
+    private void print(HarvestDTO dto) {
+        if (dto.isConfirmed()) {
+            log.info(dto.print());
         } else {
-            log.debug(transactionDTO.print());
+            log.debug(dto.print());
         }
     }
 

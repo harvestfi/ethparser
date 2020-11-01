@@ -19,6 +19,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -68,13 +69,13 @@ public class Application {
 
         new Thread(() -> {
             while (true) {
-                TransactionDTO transactionDTO = null;
+                DtoI dto = null;
                 try {
-                    transactionDTO = parser.getOutput().take();
+                    dto = parser.getOutput().take();
                 } catch (InterruptedException ignored) {
                 }
-                if (transactionDTO != null) {
-                    ws.send(topicName, transactionDTO);
+                if (dto != null) {
+                    ws.send(topicName, dto);
                 }
             }
         }).start();

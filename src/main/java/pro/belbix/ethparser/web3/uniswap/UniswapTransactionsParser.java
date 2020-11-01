@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.TransactionDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.repositories.TransactionsRepository;
@@ -29,7 +30,7 @@ public class UniswapTransactionsParser implements Web3Parser {
     private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<TransactionDTO> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
     private final TransactionsRepository transactionsRepository;
     private final EthBlockService ethBlockService;
@@ -169,7 +170,7 @@ public class UniswapTransactionsParser implements Web3Parser {
         }
     }
 
-    public BlockingQueue<TransactionDTO> getOutput() {
+    public BlockingQueue<DtoI> getOutput() {
         return output;
     }
 }

@@ -12,7 +12,7 @@ import javax.persistence.Table;
     @Index(name = "idx_uni_tx", columnList = "blockDate")
 })
 @Cacheable(false)
-public class TransactionDTO {
+public class TransactionDTO implements DtoI{
 
     private String type;
     private String coin;
@@ -126,7 +126,7 @@ public class TransactionDTO {
 
     public String print() {
         String result = type + " "
-            + String.format("%.18f", amount) + " "
+            + String.format("%.2f", amount) + " "
             + coin + " for "
             + otherCoin + " "
             + String.format("%.2f", otherAmount)
