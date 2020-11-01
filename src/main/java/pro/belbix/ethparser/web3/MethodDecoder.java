@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Fixed;
@@ -31,6 +32,17 @@ public abstract class MethodDecoder {
 
     public MethodDecoder() {
         initParameters();
+    }
+
+    public static Address[] parseAddresses(Type type) {
+        List addresses = ((List) type.getValue());
+        Address[] result = new Address[addresses.size()];
+        int i = 0;
+        for (Object a : addresses) {
+            result[i] = (Address) a;
+            i++;
+        }
+        return result;
     }
 
     public EthTransactionI decodeInputData(Transaction transaction) {

@@ -80,17 +80,6 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         return integers;
     }
 
-    private static Address[] parseAddresses(Type type) {
-        List values = ((List) type.getValue());
-        Address[] addresses = new Address[values.size()];
-        int i = 0;
-        for (Object v : values) {
-            addresses[i] = (Address) v;
-            i++;
-        }
-        return addresses;
-    }
-
     @Override
     public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
         throw new UnsupportedOperationException();
