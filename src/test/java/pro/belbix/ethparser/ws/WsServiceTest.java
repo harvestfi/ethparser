@@ -2,7 +2,7 @@ package pro.belbix.ethparser.ws;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import static pro.belbix.ethparser.ws.WsService.TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class WsServiceTest {
             @Override
             public void afterConnected(final StompSession session, StompHeaders connectedHeaders) {
                 System.out.println("Connected");
-                session.subscribe(TOPIC_NAME, new StompFrameHandler() {
+                session.subscribe(UNI_TRANSACTIONS_TOPIC_NAME, new StompFrameHandler() {
                     @Override
                     public Type getPayloadType(StompHeaders headers) {
                         return TransactionDTO.class;
@@ -89,7 +89,7 @@ public class WsServiceTest {
         if (latchSubscribe.await(3, TimeUnit.SECONDS)) {
             TransactionDTO transactionDTO = new TransactionDTO();
             transactionDTO.setType("test");
-            wsService.send(TOPIC_NAME, transactionDTO);
+            wsService.send(UNI_TRANSACTIONS_TOPIC_NAME, transactionDTO);
             System.out.println("Sent test message");
         }
         if (latchReceive.await(3, TimeUnit.SECONDS)) {

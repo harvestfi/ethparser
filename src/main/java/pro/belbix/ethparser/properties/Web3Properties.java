@@ -11,6 +11,8 @@ public class Web3Properties {
     private String startBlock = "";
     private boolean testWs = false;
     private int testWsRate = 1000;
+    private boolean parseTransactions = true;
+    private boolean parseHarvest = true;
 
     public String getWeb3Url() {
         return web3Url;
@@ -42,5 +44,21 @@ public class Web3Properties {
 
     public void setTestWsRate(int testWsRate) {
         this.testWsRate = testWsRate;
+    }
+
+    public boolean isParseTransactions() {
+        return parseTransactions;
+    }
+
+    public void setParseTransactions(boolean parseTransactions) {
+        this.parseTransactions = parseTransactions;
+    }
+
+    public boolean isParseHarvest() {
+        return parseHarvest;
+    }
+
+    public void setParseHarvest(boolean parseHarvest) {
+        this.parseHarvest = parseHarvest;
     }
 }

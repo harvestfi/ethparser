@@ -8,51 +8,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.DynamicBytes;
-import org.web3j.abi.datatypes.Fixed;
-import org.web3j.abi.datatypes.Int;
-import org.web3j.abi.datatypes.StaticArray;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Ufixed;
-import org.web3j.abi.datatypes.Uint;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.utils.Numeric;
+import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class UniswapRouterDecoder {
+public class UniswapRouterDecoder extends MethodDecoder {
 
     private final static Address WETH_ADDRESS = new Address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
-    private Map<String, List<TypeReference<Type>>> parametersByMethodId;
-    private Map<String, String> methodNamesByMethodId;
 
-    public UniswapRouterDecoder() {
-        initParameters();
-    }
-
-    public UniswapTx decodeInputData(Transaction transaction) {
-        String data = transaction.getInput();
-        if (data.length() < 74) {
-            return null;
-        }
-        String methodID = data.substring(0, 10);
-        String input = data.substring(10);
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodID);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for " + transaction.getHash());
-        }
-        List<Type> types = FunctionReturnDecoder.decode(input, parameters);
-        return mapTypesToModel(types, methodID, transaction);
-    }
-
-    UniswapTx mapTypesToModel(List<Type> types, String methodId, Transaction transaction) {
+    @Override
+    public EthTransactionI mapTypesToModel(List<Type> types, String methodId, Transaction transaction) {
         String methodName = methodNamesByMethodId.get(methodId);
         UniswapTx tx = new UniswapTx();
         tx.setHash(transaction.getHash());
@@ -174,109 +144,9 @@ public class UniswapRouterDecoder {
         return (Address) ((List) type.getValue()).get(i);
     }
 
-    private static Address[] parseAddresses(Type type) {
-        List adrs = ((List) type.getValue());
-        Address[] result = new Address[adrs.size()];
-        int i = 0;
-        for (Object a : adrs) {
-            result[i] = (Address) a;
-            i++;
-        }
-        return result;
-    }
-
-    String createMethodId(String name, List<TypeReference<Type>> parameters) {
-        return methodSignatureToShortHex(createMethodSignature(name, parameters));
-    }
-
-    String createMethodSignature(String name, List<TypeReference<Type>> parameters) {
-        StringBuilder result = new StringBuilder();
-        result.append(name);
-        result.append("(");
-        String params =
-            parameters.stream().map(this::getTypeName).collect(Collectors.joining(","));
-        result.append(params);
-        result.append(")");
-        return result.toString();
-    }
-
-    String methodSignatureToShortHex(String methodSignature) {
-        final byte[] input = methodSignature.getBytes();
-        final byte[] hash = Hash.sha3(input);
-        return Numeric.toHexString(hash).substring(0, 10);
-    }
-
-    <T extends Type> String getTypeName(TypeReference<T> typeReference) {
-        try {
-            java.lang.reflect.Type reflectedType = typeReference.getType();
-
-            Class<?> type;
-            if (reflectedType instanceof ParameterizedType) {
-                type = (Class<?>) ((ParameterizedType) reflectedType).getRawType();
-                return getParameterizedTypeName(typeReference, type);
-            } else {
-                type = Class.forName(reflectedType.getTypeName());
-                return getSimpleTypeName(type);
-            }
-        } catch (ClassNotFoundException e) {
-            throw new UnsupportedOperationException("Invalid class reference provided", e);
-        }
-    }
-
-    <T extends Type, U extends Type> String getParameterizedTypeName(
-        TypeReference<T> typeReference, Class<?> type) {
-
-        try {
-            if (type.equals(DynamicArray.class)) {
-                Class<U> parameterizedType = getParameterizedTypeFromArray(typeReference);
-                String parameterizedTypeName = getSimpleTypeName(parameterizedType);
-                return parameterizedTypeName + "[]";
-            } else if (type.equals(StaticArray.class)) {
-                Class<U> parameterizedType = getParameterizedTypeFromArray(typeReference);
-                String parameterizedTypeName = getSimpleTypeName(parameterizedType);
-                return parameterizedTypeName
-                    + "["
-                    + ((TypeReference.StaticArrayTypeReference) typeReference).getSize()
-                    + "]";
-            } else {
-                throw new UnsupportedOperationException("Invalid type provided " + type.getName());
-            }
-        } catch (ClassNotFoundException e) {
-            throw new UnsupportedOperationException("Invalid class reference provided", e);
-        }
-    }
-
-    String getSimpleTypeName(Class<?> type) {
-        String simpleName = type.getSimpleName().toLowerCase();
-
-        if (type.equals(Uint.class)
-            || type.equals(Int.class)
-            || type.equals(Ufixed.class)
-            || type.equals(Fixed.class)) {
-            return simpleName + "256";
-        } else if (type.equals(Utf8String.class)) {
-            return "string";
-        } else if (type.equals(DynamicBytes.class)) {
-            return "bytes";
-        } else {
-            return simpleName;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    <T extends Type> Class<T> getParameterizedTypeFromArray(TypeReference typeReference)
-        throws ClassNotFoundException {
-
-        java.lang.reflect.Type type = typeReference.getType();
-        java.lang.reflect.Type[] typeArguments =
-            ((ParameterizedType) type).getActualTypeArguments();
-
-        String parameterizedTypeName = typeArguments[0].getTypeName();
-        return (Class<T>) Class.forName(parameterizedTypeName);
-    }
-
-    void initParameters() {
-        if (parametersByMethodId == null) {
+    @Override
+    protected void initParameters() {
+        if (parametersByMethodId.isEmpty()) {
             Map<String, List<TypeReference<Type>>> parameters = new HashMap<>();
             try {
                 parameters.put("addLiquidity",
@@ -443,13 +313,7 @@ public class UniswapRouterDecoder {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
-            parametersByMethodId = new HashMap<>();
-            methodNamesByMethodId = new HashMap<>();
-            for (Map.Entry<String, List<TypeReference<Type>>> entry : parameters.entrySet()) {
-                String methodID = createMethodId(entry.getKey(), entry.getValue());
-                parametersByMethodId.put(methodID, entry.getValue());
-                methodNamesByMethodId.put(methodID, entry.getKey());
-            }
+            writeParameters(parameters);
         }
     }
 }

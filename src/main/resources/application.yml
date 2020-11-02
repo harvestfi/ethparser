@@ -36,9 +36,11 @@ server:
 
 web3:
   apiKey:
-  startBlock: 11163257
-  testWs: false
-  testWsRate: 1000
+  startBlock: 11137613
+  parseTransactions: false
+#  parseHarvest: false
+#  testWs: true
+  testWsRate: 100
 
 logging:
   level:
