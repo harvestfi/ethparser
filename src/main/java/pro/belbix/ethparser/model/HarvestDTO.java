@@ -19,15 +19,16 @@ public class HarvestDTO implements DtoI {
     private String hash;
     private BigInteger block;
     private boolean confirmed = false;
-    private long blockDate;
+    private Long blockDate;
 
     private String methodName;
     private String owner;
     private String timestamp;
-    private double amount;
+    private Double amount;
     private String vault;
     private Double lastGas;
     private Double lastTVL;
+    private Integer ownerCount;
 
     public void setLastGas(Double lastGas) {
         this.lastGas = lastGas;

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Vaults {
@@ -18,8 +19,8 @@ public class Vaults {
     public final static String WETH_USDT_LP = "0x7DDc3ffF0612E75Ea5ddC0d6Bd4e268f70362Cff".toLowerCase();
     public final static String WETH_WBTC_LP = "0x01112a60f427205dcA6E229425306923c3Cc2073".toLowerCase();
     public final static String WBTC_TBTC = "0xF553E1f826f42716cDFe02bde5ee76b2a52fc7EB".toLowerCase();
-    public final static Map<String, String> vaultNames = new HashMap<>();
-    public final static Map<String, Double> vaultDividers = new HashMap<>();
+    public final static Map<String, String> vaultNames = new LinkedHashMap<>();
+    public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
 
     static {
         vaultNames.put(WETH , "WETH");
@@ -39,13 +40,13 @@ public class Vaults {
 
 
         vaultDividers.put(WETH , 1000_000_000_000_000_000.0);
-        vaultDividers.put(DAI , 100_000_000.0);
+        vaultDividers.put(DAI , 1000_000_000_000_000_000.0);
         vaultDividers.put(USDC , 100_000_000.0);
         vaultDividers.put(USDT , 100_000_000.0);
-        vaultDividers.put(TUSD , 100_000_000.0);
+        vaultDividers.put(TUSD , 1000_000_000_000_000_000.0);
         vaultDividers.put(WBTC , 100_000_000.0);
         vaultDividers.put(RENBTC , 100_000_000.0);
-        vaultDividers.put(CRVRENBTC , 100_000_000.0);
+        vaultDividers.put(CRVRENBTC , 1000_000_000_000_000_000.0);
         vaultDividers.put(WETH_DAI_LP , 1000_000_000_000_000_000.0);
         vaultDividers.put(WETH_USDC_LP , 1000_000_000_000_000_000.0);
         vaultDividers.put(WETH_USDT_LP , 1000_000_000_000_000_000.0);

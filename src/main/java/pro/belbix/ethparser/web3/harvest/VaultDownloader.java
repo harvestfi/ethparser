@@ -72,10 +72,10 @@ public class VaultDownloader {
                 continue;
             }
 
-            TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
-            if ("0x1".equals(transactionReceipt.getStatus())) {
-                harvestTx.setSuccess(true);
-            }
+//            TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+//            if ("0x1".equals(transactionReceipt.getStatus())) {
+                harvestTx.setSuccess(true); //always success from logs
+//            }
 
             HarvestDTO dto = harvestTx.toDto();
             dto.setBlockDate(ethBlockService.getTimestampSecForBlock(log.getBlockHash()));

@@ -8,7 +8,7 @@ import org.web3j.protocol.core.methods.response.EthBlock.Block;
 
 @Service
 public class EthBlockService {
-
+    private static final int MAX_CACHE = 10000;
     private final Web3Service web3;
     private final Map<String, Block> cache = new LinkedHashMap<>();
 
@@ -26,7 +26,7 @@ public class EthBlockService {
             return 0;
         }
         cache.put(blockHash, block);
-        if (cache.size() > 10) {
+        if (cache.size() > MAX_CACHE) {
             cache.remove(cache.entrySet().iterator().next().getKey()); //remove first
         }
         return extractDateFromBlock(block);
