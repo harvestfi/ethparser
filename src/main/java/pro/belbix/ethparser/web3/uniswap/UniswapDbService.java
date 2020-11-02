@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap;
 
+import java.math.BigInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,14 @@ public class UniswapDbService {
         }
         uniswapRepository.save(dto);
         return true;
+    }
+
+    public BigInteger lastBlock() {
+        UniswapDTO dto = uniswapRepository.findFirstByOrderByBlockDesc();
+        if (dto == null) {
+            return BigInteger.ONE;
+        }
+        return dto.getBlock();
     }
 
 }

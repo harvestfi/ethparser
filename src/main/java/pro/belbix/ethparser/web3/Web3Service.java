@@ -39,19 +39,21 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.web3.uniswap.UniswapDbService;
 
 @SuppressWarnings("rawtypes")
 @Service
 public class Web3Service {
 
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
-    public static final long MAX_DELAY_BETWEEN_TX = 60 * 60 * 2;
+    public static final long MAX_DELAY_BETWEEN_TX = 60 * 60;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
         .valueOf(new BigInteger("10765094"));
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
     private final Web3Properties web3Properties;
+    private final UniswapDbService uniswapDbService;
     private boolean init = false;
     private final List<BlockingQueue<Transaction>> transactionConsumers = new ArrayList<>();
     private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
@@ -59,8 +61,9 @@ public class Web3Service {
     private Web3Checker web3Checker;
     private LogFlowable logFlowable;
 
-    public Web3Service(Web3Properties web3Properties) {
+    public Web3Service(Web3Properties web3Properties, UniswapDbService uniswapDbService) {
         this.web3Properties = web3Properties;
+        this.uniswapDbService = uniswapDbService;
     }
 
     @PostConstruct
@@ -112,7 +115,7 @@ public class Web3Service {
         checkInit();
         DefaultBlockParameter from;
         if (Strings.isBlank(web3Properties.getStartLogBlock())) {
-            from = null;
+            from = new DefaultBlockParameterNumber(uniswapDbService.lastBlock());
         } else {
             from = DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartLogBlock()));
         }
@@ -288,6 +291,7 @@ public class Web3Service {
         subscriptions.clear();
         logFlowable.stop();
         //start all subscriptions again
+        subscribeLogFlowable();
         subscribeTransactionFlowable();
     }
 
@@ -303,7 +307,7 @@ public class Web3Service {
         private final Web3Service web3Service;
         private final String address;
         private DefaultBlockParameterNumber from;
-        private final DefaultBlockParameterNumber initialTo;
+        private final DefaultBlockParameterNumber initialTo; //TODO load history
         private BigInteger lastBlock;
 
         public LogFlowable(EthFilter filter, Web3Service web3Service) {
@@ -324,7 +328,8 @@ public class Web3Service {
         @SuppressWarnings("BusyWait")
         @Override
         public void run() {
-            BigInteger currentBlock = web3Service.fetchCurrentBlock();
+            log.info("Start LogFlowable");
+            BigInteger currentBlock;
             while (run.get()) {
                 try {
                     currentBlock = web3Service.fetchCurrentBlock();
@@ -338,7 +343,7 @@ public class Web3Service {
                         from = to;
                     }
                     List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(address, from, to);
-                    log.info("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
+                    log.debug("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
                         currentBlock, logResults.size());
                     for (LogResult logResult : logResults) {
                         Log ethLog = (Log) logResult.get();
@@ -350,7 +355,6 @@ public class Web3Service {
                         }
                     }
                     from = new DefaultBlockParameterNumber(to.getBlockNumber().add(BigInteger.ONE));
-//                    from = to;
                 } catch (Exception e) {
                     log.error("Error in log flow", e);
                 }

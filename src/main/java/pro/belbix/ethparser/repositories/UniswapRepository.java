@@ -13,4 +13,6 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     )
     Integer fetchOwnerCount();
 
+    UniswapDTO findFirstByOrderByBlockDesc();
+
 }
