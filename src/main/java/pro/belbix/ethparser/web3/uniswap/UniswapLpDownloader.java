@@ -1,84 +1,48 @@
 package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.UniswapDTO;
-import pro.belbix.ethparser.model.UniswapTx;
-import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Service;
 
+@SuppressWarnings("rawtypes")
 @Service
 public class UniswapLpDownloader {
 
     private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
     private final Web3Service web3Service;
-    private final EthBlockService ethBlockService;
     private final UniswapDbService saveHarvestDTO;
-    private UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
+    private final UniswapLpLogParser uniswapLpLogParser;
 
-    public UniswapLpDownloader(Web3Service web3Service, EthBlockService ethBlockService,
-                               UniswapDbService saveHarvestDTO) {
+    public UniswapLpDownloader(Web3Service web3Service, UniswapDbService saveHarvestDTO,
+                               UniswapLpLogParser uniswapLpLogParser) {
         this.web3Service = web3Service;
-        this.ethBlockService = ethBlockService;
         this.saveHarvestDTO = saveHarvestDTO;
+        this.uniswapLpLogParser = uniswapLpLogParser;
     }
 
     public void load(DefaultBlockParameter from, DefaultBlockParameter to) {
-        Map<String, Integer> topics = new HashMap<>();
         List<LogResult> logResults = web3Service.fetchContractLogs(FARM_USDC_LP_CONTRACT, from, to);
         if (logResults == null) {
             logger.error("Log results is null");
             return;
         }
-        int count = 0;
         for (LogResult logResult : logResults) {
-            Log log = null;
             UniswapDTO dto = null;
             try {
-                log = (Log) logResult.get();
-                String topic0 = log.getTopics().get(0);
-                if (topics.containsKey(topic0)) {
-                    topics.put(topic0, topics.get(topic0) + 1);
-                } else {
-                    topics.put(topic0, 1);
-                }
-                UniswapTx tx = new UniswapTx();
-
-                uniswapLpLogDecoder.enrichFromLog(tx, log);
-                if (tx.getHash() == null) {
-                    continue;
-                }
-
-                dto = tx.toDto(FARM_TOKEN_CONTRACT);
-
-                //enrich owner
-                TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
-                dto.setLastGas(receipt.getGasUsed().doubleValue());
-                dto.setOwner(receipt.getFrom());
-
-                //enrich date
-                dto.setBlockDate(ethBlockService.getTimestampSecForBlock(log.getBlockHash()));
-
-                logger.info(dto.print() + " " + count);
+                dto = uniswapLpLogParser.parseUniswapLog((Log) logResult.get());
                 saveHarvestDTO.saveUniswapDto(dto);
-                count++;
             } catch (Exception e) {
-                logger.info("error " + log + "\n" + dto, e);
+                logger.info("Downloader error  " + dto, e);
             }
         }
-
-        topics.forEach((key, value) -> logger.info(key + " " + value));
     }
 
 }

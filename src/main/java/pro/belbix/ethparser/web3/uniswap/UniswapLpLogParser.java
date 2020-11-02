@@ -50,6 +50,7 @@ public class UniswapLpLogParser implements Web3Parser {
                 UniswapDTO dto = parseUniswapLog(log);
                 if (dto != null) {
                     try {
+                        enrichDto(dto);
                         boolean success = uniswapDbService.saveUniswapDto(dto);
                         if (success) {
                             output.put(dto);
@@ -62,7 +63,7 @@ public class UniswapLpLogParser implements Web3Parser {
         }).start();
     }
 
-    private UniswapDTO parseUniswapLog(Log ethLog) {
+    public UniswapDTO parseUniswapLog(Log ethLog) {
         UniswapTx tx = new UniswapTx();
         uniswapLpLogDecoder.enrichFromLog(tx, ethLog);
         if (tx.getHash() == null) {
@@ -82,6 +83,10 @@ public class UniswapLpLogParser implements Web3Parser {
         log.info(dto.print());
 
         return dto;
+    }
+
+    private void enrichDto(UniswapDTO dto) {
+        dto.setLastGas(web3Service.fetchAverageGasPrice());
     }
 
     @Override
