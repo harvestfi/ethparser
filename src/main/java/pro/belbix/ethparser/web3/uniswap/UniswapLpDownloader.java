@@ -41,39 +41,41 @@ public class UniswapLpDownloader {
             logger.error("Log results is null");
             return;
         }
-
+        int count = 0;
         for (LogResult logResult : logResults) {
-            Log log = (Log) logResult.get();
-
-            String topic0 = log.getTopics().get(0);
-            if (topics.containsKey(topic0)) {
-                topics.put(topic0, topics.get(topic0) + 1);
-            } else {
-                topics.put(topic0, 1);
-            }
-            UniswapTx tx = new UniswapTx();
+            Log log = null;
+            UniswapDTO dto = null;
             try {
+                log = (Log) logResult.get();
+                String topic0 = log.getTopics().get(0);
+                if (topics.containsKey(topic0)) {
+                    topics.put(topic0, topics.get(topic0) + 1);
+                } else {
+                    topics.put(topic0, 1);
+                }
+                UniswapTx tx = new UniswapTx();
+
                 uniswapLpLogDecoder.enrichFromLog(tx, log);
                 if (tx.getHash() == null) {
                     continue;
                 }
+
+                dto = tx.toDto(FARM_TOKEN_CONTRACT);
+
+                //enrich owner
+                TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+                dto.setLastGas(receipt.getGasUsed().doubleValue());
+                dto.setOwner(receipt.getFrom());
+
+                //enrich date
+                dto.setBlockDate(ethBlockService.getTimestampSecForBlock(log.getBlockHash()));
+
+                logger.info(dto.print() + " " + count);
+                saveHarvestDTO.saveUniswapDto(dto);
+                count++;
             } catch (Exception e) {
-                logger.info("error with " + e.getMessage() + " " + log, e);
-                continue;
+                logger.info("error " + log + "\n" + dto, e);
             }
-
-            UniswapDTO dto = tx.toDto(FARM_TOKEN_CONTRACT);
-            logger.info(dto.print());
-
-            //enrich owner
-            TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
-            dto.setLastGas(receipt.getGasUsed().doubleValue());
-            dto.setOwner(receipt.getFrom());
-
-            //enrich date
-            dto.setBlockDate(ethBlockService.getTimestampSecForBlock(log.getBlockHash()));
-
-            saveHarvestDTO.saveUniswapDto(dto);
         }
 
         topics.forEach((key, value) -> logger.info(key + " " + value));

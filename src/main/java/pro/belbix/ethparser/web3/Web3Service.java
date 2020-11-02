@@ -103,8 +103,9 @@ public class Web3Service {
         log.info("Subscribe to Transaction Flowable");
     }
 
-    public void subscribe() {
-
+    public void subscribe(String hash, DefaultBlockParameter from, DefaultBlockParameter to) {
+        EthFilter filter = new EthFilter(from, to, hash);
+//        web3.ethLogFlowable();
     }
 
     private void startCheckTransactionSubscribe() {

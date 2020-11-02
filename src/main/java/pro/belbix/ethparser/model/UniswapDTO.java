@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.model;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -30,44 +31,41 @@ public class UniswapDTO implements DtoI {
     private Long blockDate;
     private Integer ownerCount;
 
+    public String print() {
+        return Instant.ofEpochSecond(blockDate) + " "
+            + type + " "
+            + String.format("%.2f", amount) + " "
+            + coin + " for "
+            + otherCoin + " "
+            + String.format("%.2f", otherAmount)
+            + " " + hash
+            + " " + lastPrice;
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionDTO{" +
+            "type='" + type + '\'' +
+            ", coin='" + coin + '\'' +
+            ", amount=" + amount +
+            ", otherCoin='" + otherCoin + '\'' +
+            ", otherAmount=" + otherAmount +
+            ", ethAmount=" + ethAmount +
+            ", hash='" + hash + '\'' +
+            ", block=" + block +
+            ", confirmed=" + confirmed +
+            ", lastPrice=" + lastPrice +
+            ", lastGas=" + lastGas +
+            ", blockDate=" + blockDate +
+            '}';
+    }
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public void setEthAmount(Double ethAmount) {
-        this.ethAmount = ethAmount;
-    }
-
-    public void setLastPrice(Double lastPrice) {
-        this.lastPrice = lastPrice;
-    }
-
-    public void setLastGas(Double lastGas) {
-        this.lastGas = lastGas;
-    }
-
-    public void setBlockDate(Long blockDate) {
-        this.blockDate = blockDate;
-    }
-
-    public Integer getOwnerCount() {
-        return ownerCount;
-    }
-
-    public void setOwnerCount(Integer ownerCount) {
-        this.ownerCount = ownerCount;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
     }
 
     public String getType() {
@@ -84,6 +82,14 @@ public class UniswapDTO implements DtoI {
 
     public void setCoin(String coin) {
         this.coin = coin;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public double getAmount() {
@@ -110,6 +116,14 @@ public class UniswapDTO implements DtoI {
         this.otherAmount = otherAmount;
     }
 
+    public Double getEthAmount() {
+        return ethAmount;
+    }
+
+    public void setEthAmount(Double ethAmount) {
+        this.ethAmount = ethAmount;
+    }
+
     public String getHash() {
         return hash;
     }
@@ -134,65 +148,35 @@ public class UniswapDTO implements DtoI {
         this.confirmed = confirmed;
     }
 
-    public double getEthAmount() {
-        return ethAmount;
-    }
-
-    public void setEthAmount(double ethAmount) {
-        this.ethAmount = ethAmount;
-    }
-
-    public double getLastPrice() {
+    public Double getLastPrice() {
         return lastPrice;
     }
 
-    public void setLastPrice(double lastPrice) {
+    public void setLastPrice(Double lastPrice) {
         this.lastPrice = lastPrice;
     }
 
-    public double getLastGas() {
+    public Double getLastGas() {
         return lastGas;
     }
 
-    public void setLastGas(double lastGas) {
+    public void setLastGas(Double lastGas) {
         this.lastGas = lastGas;
     }
 
-    public long getBlockDate() {
+    public Long getBlockDate() {
         return blockDate;
     }
 
-    public void setBlockDate(long blockDate) {
+    public void setBlockDate(Long blockDate) {
         this.blockDate = blockDate;
     }
 
-    public String print() {
-        String result = type + " "
-            + String.format("%.2f", amount) + " "
-            + coin + " for "
-            + otherCoin + " "
-            + String.format("%.2f", otherAmount)
-            + " " + hash
-            + " " + lastPrice;
-
-        return result;
+    public Integer getOwnerCount() {
+        return ownerCount;
     }
 
-    @Override
-    public String toString() {
-        return "TransactionDTO{" +
-            "type='" + type + '\'' +
-            ", coin='" + coin + '\'' +
-            ", amount=" + amount +
-            ", otherCoin='" + otherCoin + '\'' +
-            ", otherAmount=" + otherAmount +
-            ", ethAmount=" + ethAmount +
-            ", hash='" + hash + '\'' +
-            ", block=" + block +
-            ", confirmed=" + confirmed +
-            ", lastPrice=" + lastPrice +
-            ", lastGas=" + lastGas +
-            ", blockDate=" + blockDate +
-            '}';
+    public void setOwnerCount(Integer ownerCount) {
+        this.ownerCount = ownerCount;
     }
 }
