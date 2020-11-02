@@ -38,7 +38,7 @@ public class HarvestTransactionsParser implements Web3Parser {
 
     public void startParse() {
         log.info("Start parse Harvest");
-        web3Service.subscribeOn(transactions);
+        web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
             while (true) {
                 Transaction transaction = null;
@@ -49,11 +49,10 @@ public class HarvestTransactionsParser implements Web3Parser {
                 HarvestDTO dto = parseHarvestTransaction(transaction);
                 if (dto != null) {
                     try {
-                        output.put(dto);
-                    } catch (InterruptedException e) {
-                    }
-                    try {
-                        harvestDBService.saveHarvestDTO(dto);
+                        boolean success = harvestDBService.saveHarvestDTO(dto);
+                        if (success) {
+                            output.put(dto);
+                        }
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
                     }

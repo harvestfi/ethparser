@@ -13,7 +13,6 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
-import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -33,19 +32,19 @@ public class UniswapTransactionsParser implements Web3Parser {
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
-    private final UniswapRepository uniswapRepository;
+    private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
 
-    public UniswapTransactionsParser(Web3Service web3Service, UniswapRepository uniswapRepository,
+    public UniswapTransactionsParser(Web3Service web3Service, UniswapDbService uniswapDbService,
                                      EthBlockService ethBlockService) {
         this.web3Service = web3Service;
-        this.uniswapRepository = uniswapRepository;
+        this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
     }
 
     public void startParse() {
-        log.info("Start parse transactions");
-        web3Service.subscribeOn(transactions);
+        log.info("Start parse Uniswap transactions");
+        web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
             while (true) {
                 Transaction transaction = null;
@@ -56,11 +55,10 @@ public class UniswapTransactionsParser implements Web3Parser {
                 UniswapDTO dto = parseUniswapTransaction(transaction);
                 if (dto != null) {
                     try {
-                        output.put(dto);
-                    } catch (InterruptedException e) {
-                    }
-                    try {
-                        uniswapRepository.save(dto);
+                        boolean success = uniswapDbService.saveUniswapDto(dto);
+                        if (success) {
+                            output.put(dto);
+                        }
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
                     }

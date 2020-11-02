@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -9,10 +11,37 @@ public class Web3Properties {
 
     private String web3Url = "";
     private String startBlock = "";
+    private String startLogBlock = "";
+    private String startLogHash = FARM_USDC_LP_CONTRACT;
     private boolean testWs = false;
     private int testWsRate = 1000;
-    private boolean parseTransactions = true;
-    private boolean parseHarvest = true;
+    private boolean parseUniswapLog = true;
+    private boolean parseTransactions = false;
+    private boolean parseHarvest = false;
+
+    public boolean isParseUniswapLog() {
+        return parseUniswapLog;
+    }
+
+    public void setParseUniswapLog(boolean parseUniswapLog) {
+        this.parseUniswapLog = parseUniswapLog;
+    }
+
+    public String getStartLogHash() {
+        return startLogHash;
+    }
+
+    public void setStartLogHash(String startLogHash) {
+        this.startLogHash = startLogHash;
+    }
+
+    public String getStartLogBlock() {
+        return startLogBlock;
+    }
+
+    public void setStartLogBlock(String startLogBlock) {
+        this.startLogBlock = startLogBlock;
+    }
 
     public String getWeb3Url() {
         return web3Url;

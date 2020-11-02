@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
@@ -31,6 +32,7 @@ import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
@@ -51,9 +53,10 @@ public class Web3Service {
     private final Set<Disposable> subscriptions = new HashSet<>();
     private final Web3Properties web3Properties;
     private boolean init = false;
-    private final List<BlockingQueue<Transaction>> consumers = new ArrayList<>();
-    private Instant lastTxTime = Instant.now();
-    private AtomicBoolean checkTransactionSubscribe = null;
+    private final List<BlockingQueue<Transaction>> transactionConsumers = new ArrayList<>();
+    private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
+    private final AtomicReference<Instant> lastTxTime = new AtomicReference<>(Instant.now());
+    private Web3Checker web3Checker;
 
     public Web3Service(Web3Properties web3Properties) {
         this.web3Properties = web3Properties;
@@ -74,16 +77,19 @@ public class Web3Service {
 
         web3 = Web3j.build(new HttpService(url));
         log.info("Successfully connected to Ethereum");
+        web3Checker = new Web3Checker(lastTxTime, this);
+        new Thread(web3Checker).start();
+
         init = true;
     }
 
     public void subscribeTransactionFlowable() {
-        checkInit();
-        if (checkTransactionSubscribe != null) {
-            checkTransactionSubscribe.set(false);
+        if (!web3Properties.isParseTransactions() && !web3Properties.isParseTransactions()) {
+            return;
         }
+        checkInit();
         Flowable<Transaction> flowable;
-        if (web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isEmpty()) {
+        if (Strings.isBlank(web3Properties.getStartBlock())) {
             flowable = web3.transactionFlowable();
         } else {
             log.info("Start flow from block " + web3Properties.getStartBlock());
@@ -91,39 +97,39 @@ public class Web3Service {
                 DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
         }
         Disposable subscription = flowable
-            .subscribe(tx -> consumers.forEach(queue -> {
+            .subscribe(tx -> transactionConsumers.forEach(queue -> {
                 try {
                     queue.put(tx);
                 } catch (InterruptedException ignored) {
                 }
-                lastTxTime = Instant.now();
+                lastTxTime.set(Instant.now());
             }));
         subscriptions.add(subscription);
-        startCheckTransactionSubscribe();
         log.info("Subscribe to Transaction Flowable");
     }
 
-    public void subscribe(String hash, DefaultBlockParameter from, DefaultBlockParameter to) {
-        EthFilter filter = new EthFilter(from, to, hash);
-//        web3.ethLogFlowable();
-    }
-
-    private void startCheckTransactionSubscribe() {
-        checkTransactionSubscribe = new AtomicBoolean(true);
-        new Thread(() -> {
-            while (checkTransactionSubscribe.get()) {
-                if (Duration.between(lastTxTime, Instant.now()).getSeconds() > MAX_DELAY_BETWEEN_TX) {
-                    log.error("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
-                    subscriptions.forEach(Disposable::dispose);
-                    subscriptions.clear();
-                    //start all subscriptions again
-                    subscribeTransactionFlowable();
-                }
+    public void subscribeLogFlowable() {
+        if (!web3Properties.isParseUniswapLog()) {
+            return;
+        }
+        checkInit();
+        DefaultBlockParameter from;
+        if (Strings.isBlank(web3Properties.getStartLogBlock())) {
+            from = BLOCK_NUMBER_30_AUGUST_2020;
+        } else {
+            from = DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartLogBlock()));
+        }
+        EthFilter filter = new EthFilter(from, LATEST, web3Properties.getStartLogHash());
+        Disposable subscription = web3.ethLogFlowable(filter)
+            .subscribe(log -> logConsumers.forEach(queue -> {
                 try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {}
-            }
-        }).start();
+                    queue.put(log);
+                } catch (InterruptedException ignored) {
+                }
+                lastTxTime.set(Instant.now());
+            }));
+        subscriptions.add(subscription);
+        log.info("Subscribe to Log Flowable");
     }
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
@@ -227,8 +233,12 @@ public class Web3Service {
         return ethGetBalance.getBalance().doubleValue();
     }
 
-    public void subscribeOn(BlockingQueue<Transaction> queue) {
-        consumers.add(queue);
+    public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {
+        transactionConsumers.add(queue);
+    }
+
+    public void subscribeOnLogs(BlockingQueue<Log> queue) {
+        logConsumers.add(queue);
     }
 
     @PreDestroy
@@ -236,6 +246,7 @@ public class Web3Service {
         log.info("Close web3");
         subscriptions.forEach(Disposable::dispose);
         web3.shutdown();
+        web3Checker.stop();
     }
 
     private void checkInit() {
@@ -245,6 +256,45 @@ public class Web3Service {
                 //noinspection BusyWait
                 Thread.sleep(1000);
             } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
+    private void resubscribe() {
+        subscriptions.forEach(Disposable::dispose);
+        subscriptions.clear();
+        //start all subscriptions again
+        subscribeTransactionFlowable();
+    }
+
+    public static class Web3Checker implements Runnable {
+
+        private AtomicBoolean run = new AtomicBoolean(true);
+        private final AtomicReference<Instant> lastActionTime;
+        private final Web3Service web3Service;
+
+        public Web3Checker(AtomicReference<Instant> lastActionTime, Web3Service web3Service) {
+            this.lastActionTime = lastActionTime;
+            this.web3Service = web3Service;
+        }
+
+        public void stop() {
+            run.set(false);
+        }
+
+        @Override
+        public void run() {
+            while (run.get()) {
+                if (Duration.between(lastActionTime.get(), Instant.now()).getSeconds() > MAX_DELAY_BETWEEN_TX) {
+                    log.error("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
+                    lastActionTime.set(Instant.now());
+                    //TODO alert
+                    web3Service.resubscribe();
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
             }
         }
     }

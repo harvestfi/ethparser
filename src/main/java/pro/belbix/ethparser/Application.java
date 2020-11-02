@@ -30,6 +30,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.harvest.Vaults;
+import pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
 import pro.belbix.ethparser.ws.WsService;
 
@@ -37,13 +38,15 @@ import pro.belbix.ethparser.ws.WsService;
 public class Application {
 
     private final static Logger log = LoggerFactory.getLogger(Application.class);
-    private static boolean web3Started = false;
+    private static boolean web3TransactionsStarted = false;
+    private static boolean web3LogsStarted = false;
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         Web3Service web3Service = context.getBean(Web3Service.class);
         UniswapTransactionsParser uniswapTransactionsParser = context.getBean(UniswapTransactionsParser.class);
         HarvestTransactionsParser harvestTransactionsParser = context.getBean(HarvestTransactionsParser.class);
+        UniswapLpLogParser uniswapLpLogParser = context.getBean(UniswapLpLogParser.class);
         WsService ws = context.getBean(WsService.class);
         Web3Properties conf = context.getBean(Web3Properties.class);
 
@@ -51,25 +54,40 @@ public class Application {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
             if (conf.isParseTransactions()) {
-                startParse(web3Service, uniswapTransactionsParser, ws, UNI_TRANSACTIONS_TOPIC_NAME);
+                startParse(web3Service, uniswapTransactionsParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, false);
             }
 
             if (conf.isParseHarvest()) {
-                startParse(web3Service, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME);
+                startParse(web3Service, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
+            }
+
+            if(conf.isParseUniswapLog()) {
+                startParse(web3Service, uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
             }
         }
     }
 
-    private static void startWeb3Subscribe(Web3Service web3Service) {
-        if (!web3Started) {
+    private static void startWeb3SubscribeLog(Web3Service web3Service) {
+        if (!web3LogsStarted) {
+            web3Service.subscribeLogFlowable();
+            web3LogsStarted = true;
+        }
+    }
+
+    private static void startWeb3SubscribeTx(Web3Service web3Service) {
+        if (!web3TransactionsStarted) {
             web3Service.subscribeTransactionFlowable();
-            web3Started = true;
+            web3TransactionsStarted = true;
         }
     }
 
     public static void startParse(Web3Service web3Service, Web3Parser parser, WsService ws,
-                                  String topicName) {
-        startWeb3Subscribe(web3Service);
+                                  String topicName, boolean logs) {
+        if(logs) {
+            startWeb3SubscribeLog(web3Service);
+        } else {
+            startWeb3SubscribeTx(web3Service);
+        }
         parser.startParse();
 
         new Thread(() -> {

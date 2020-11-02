@@ -23,6 +23,6 @@ public class AppUniswapLPDownloader {
             downloader.load(from, to);
         }
 
-        System.exit(0);
+        context.close();
     }
 }

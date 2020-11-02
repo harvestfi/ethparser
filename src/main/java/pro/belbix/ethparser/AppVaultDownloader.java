@@ -27,7 +27,7 @@ public class AppVaultDownloader {
             vaultDownloader.parseVault(vaultName, from);
         }
 
-        System.exit(0);
+        context.close();
     }
 
     private static Set<String> exclude = new HashSet<>(

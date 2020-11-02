@@ -17,7 +17,7 @@ public class UniswapDbService {
         this.uniswapRepository = uniswapRepository;
     }
 
-    public void saveUniswapDto(UniswapDTO dto) {
+    public boolean saveUniswapDto(UniswapDTO dto) {
         Integer ownerCount = uniswapRepository.fetchOwnerCount();
         if (ownerCount == null) {
             ownerCount = 0;
@@ -25,9 +25,10 @@ public class UniswapDbService {
         dto.setOwnerCount(ownerCount);
         if (uniswapRepository.existsById(dto.getId())) {
             log.info("Duplicate tx " + dto.getId());
-            return;
+            return false;
         }
         uniswapRepository.save(dto);
+        return true;
     }
 
 }
