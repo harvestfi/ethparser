@@ -86,6 +86,7 @@ public class Web3ServiceTest {
     }
 
     @Test
+    @Ignore
     public void getBalanceTest() {
         double balance = web3Service.fetchBalance(WBTC);
         assertTrue(balance > 0);

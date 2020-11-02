@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class ContractParseTest {
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
 
     @Test
-//    @Ignore
+    @Ignore
     public void parseVault_WBTC() {
         Map<String, Integer> topics = new HashMap<>();
         List<LogResult> logResults = web3Service.fetchContractLogs(WBTC, DefaultBlockParameter
