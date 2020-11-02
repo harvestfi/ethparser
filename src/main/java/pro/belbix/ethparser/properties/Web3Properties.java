@@ -12,7 +12,7 @@ public class Web3Properties {
     private String web3Url = "";
     private String startBlock = "";
     private String startLogBlock = "";
-    private String startLogHash = FARM_USDC_LP_CONTRACT;
+    private String logHash = FARM_USDC_LP_CONTRACT;
     private boolean testWs = false;
     private int testWsRate = 1000;
     private boolean parseUniswapLog = true;
@@ -27,12 +27,12 @@ public class Web3Properties {
         this.parseUniswapLog = parseUniswapLog;
     }
 
-    public String getStartLogHash() {
-        return startLogHash;
+    public String getLogHash() {
+        return logHash;
     }
 
-    public void setStartLogHash(String startLogHash) {
-        this.startLogHash = startLogHash;
+    public void setLogHash(String logHash) {
+        this.logHash = logHash;
     }
 
     public String getStartLogBlock() {

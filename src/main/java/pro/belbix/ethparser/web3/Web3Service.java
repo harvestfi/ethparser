@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
@@ -43,11 +45,9 @@ import pro.belbix.ethparser.properties.Web3Properties;
 public class Web3Service {
 
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
-    public static final long MAX_DELAY_BETWEEN_TX = 600;
+    public static final long MAX_DELAY_BETWEEN_TX = 60 * 60 * 2;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
         .valueOf(new BigInteger("10765094"));
-    public static final DefaultBlockParameter BLOCK_NUMBER_27_OCT_2020 = DefaultBlockParameter
-        .valueOf(new BigInteger("11137613"));
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
@@ -57,6 +57,7 @@ public class Web3Service {
     private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
     private final AtomicReference<Instant> lastTxTime = new AtomicReference<>(Instant.now());
     private Web3Checker web3Checker;
+    private LogFlowable logFlowable;
 
     public Web3Service(Web3Properties web3Properties) {
         this.web3Properties = web3Properties;
@@ -97,13 +98,9 @@ public class Web3Service {
                 DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
         }
         Disposable subscription = flowable
-            .subscribe(tx -> transactionConsumers.forEach(queue -> {
-                try {
-                    queue.put(tx);
-                } catch (InterruptedException ignored) {
-                }
-                lastTxTime.set(Instant.now());
-            }));
+            .subscribe(tx -> transactionConsumers.forEach(queue ->
+                    writeInQueue(queue, tx)),
+                e -> log.error("Transaction flowable error", e));
         subscriptions.add(subscription);
         log.info("Subscribe to Transaction Flowable");
     }
@@ -115,21 +112,28 @@ public class Web3Service {
         checkInit();
         DefaultBlockParameter from;
         if (Strings.isBlank(web3Properties.getStartLogBlock())) {
-            from = BLOCK_NUMBER_30_AUGUST_2020;
+            from = null;
         } else {
             from = DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartLogBlock()));
         }
-        EthFilter filter = new EthFilter(from, LATEST, web3Properties.getStartLogHash());
-        Disposable subscription = web3.ethLogFlowable(filter)
-            .subscribe(log -> logConsumers.forEach(queue -> {
-                try {
-                    queue.put(log);
-                } catch (InterruptedException ignored) {
-                }
-                lastTxTime.set(Instant.now());
-            }));
-        subscriptions.add(subscription);
+        EthFilter filter = new EthFilter(from, LATEST, web3Properties.getLogHash());
+        logFlowable(filter);
+        //NPE https://github.com/web3j/web3j/issues/1264
+//        Disposable subscription = web3.ethLogFlowable(filter)
+//            .subscribe(log -> logConsumers.forEach(queue ->
+//                    writeInQueue(queue, log)),
+//                e -> log.error("Log flowable error", e));
+//        subscriptions.add(subscription);
         log.info("Subscribe to Log Flowable");
+    }
+
+    private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
+        try {
+            queue.put(o);
+            lastTxTime.set(Instant.now());
+        } catch (Exception e) {
+            log.error("Error write in queue", e);
+        }
     }
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
@@ -233,6 +237,24 @@ public class Web3Service {
         return ethGetBalance.getBalance().doubleValue();
     }
 
+    public BigInteger fetchCurrentBlock() {
+        EthBlockNumber ethBlockNumber = null;
+        try {
+            ethBlockNumber = web3.ethBlockNumber().send();
+        } catch (IOException e) {
+            log.error("Error last block", e);
+        }
+        if (ethBlockNumber == null) {
+            log.error("Null callback last block");
+            return BigInteger.ZERO;
+        }
+        if (ethBlockNumber.getError() != null) {
+            log.error("Error from last block: " + ethBlockNumber.getError());
+            return BigInteger.ZERO;
+        }
+        return ethBlockNumber.getBlockNumber();
+    }
+
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {
         transactionConsumers.add(queue);
     }
@@ -243,7 +265,7 @@ public class Web3Service {
 
     @PreDestroy
     private void close() {
-        log.info("Close web3");
+        log.warn("Close web3");
         subscriptions.forEach(Disposable::dispose);
         web3.shutdown();
         web3Checker.stop();
@@ -261,15 +283,84 @@ public class Web3Service {
     }
 
     private void resubscribe() {
+        log.warn("Resubscribe");
         subscriptions.forEach(Disposable::dispose);
         subscriptions.clear();
+        logFlowable.stop();
         //start all subscriptions again
         subscribeTransactionFlowable();
     }
 
+    private void logFlowable(EthFilter filter) {
+        logFlowable = new LogFlowable(filter, this);
+        new Thread(logFlowable).start();
+    }
+
+    public static class LogFlowable implements Runnable {
+
+        public static final int DEFAULT_BLOCK_TIME = 5 * 1000;
+        private final AtomicBoolean run = new AtomicBoolean(true);
+        private final Web3Service web3Service;
+        private final String address;
+        private DefaultBlockParameterNumber from;
+        private final DefaultBlockParameterNumber initialTo;
+        private BigInteger lastBlock;
+
+        public LogFlowable(EthFilter filter, Web3Service web3Service) {
+            this.web3Service = web3Service;
+            this.address = filter.getAddress().get(0);
+            this.from = (DefaultBlockParameterNumber) filter.getFromBlock();
+            if (filter.getToBlock() instanceof DefaultBlockParameterNumber) {
+                this.initialTo = (DefaultBlockParameterNumber) filter.getToBlock();
+            } else {
+                initialTo = null;
+            }
+        }
+
+        public void stop() {
+            run.set(false);
+        }
+
+        @SuppressWarnings("BusyWait")
+        @Override
+        public void run() {
+            BigInteger currentBlock = web3Service.fetchCurrentBlock();
+            while (run.get()) {
+                try {
+                    currentBlock = web3Service.fetchCurrentBlock();
+                    if (lastBlock != null && lastBlock.intValue() >= currentBlock.intValue()) {
+                        Thread.sleep(DEFAULT_BLOCK_TIME);
+                        continue;
+                    }
+                    lastBlock = currentBlock;
+                    DefaultBlockParameterNumber to = new DefaultBlockParameterNumber(currentBlock);
+                    if (from == null) {
+                        from = to;
+                    }
+                    List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(address, from, to);
+                    log.info("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
+                        currentBlock, logResults.size());
+                    for (LogResult logResult : logResults) {
+                        Log ethLog = (Log) logResult.get();
+                        if (ethLog == null) {
+                            continue;
+                        }
+                        for (BlockingQueue<Log> queue : web3Service.logConsumers) {
+                            web3Service.writeInQueue(queue, ethLog);
+                        }
+                    }
+                    from = new DefaultBlockParameterNumber(to.getBlockNumber().add(BigInteger.ONE));
+//                    from = to;
+                } catch (Exception e) {
+                    log.error("Error in log flow", e);
+                }
+            }
+        }
+    }
+
     public static class Web3Checker implements Runnable {
 
-        private AtomicBoolean run = new AtomicBoolean(true);
+        private final AtomicBoolean run = new AtomicBoolean(true);
         private final AtomicReference<Instant> lastActionTime;
         private final Web3Service web3Service;
 
@@ -292,8 +383,9 @@ public class Web3Service {
                     web3Service.resubscribe();
                 }
                 try {
+                    //noinspection BusyWait
                     Thread.sleep(100);
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ignored) {
                 }
             }
         }

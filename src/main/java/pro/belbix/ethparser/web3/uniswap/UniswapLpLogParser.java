@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.UniswapDTO;
+import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -49,7 +51,7 @@ public class UniswapLpLogParser implements Web3Parser {
                 if (dto != null) {
                     try {
                         boolean success = uniswapDbService.saveUniswapDto(dto);
-                        if(success) {
+                        if (success) {
                             output.put(dto);
                         }
                     } catch (Exception e) {
@@ -60,9 +62,26 @@ public class UniswapLpLogParser implements Web3Parser {
         }).start();
     }
 
-    private UniswapDTO parseUniswapLog(Log log) {
+    private UniswapDTO parseUniswapLog(Log ethLog) {
+        UniswapTx tx = new UniswapTx();
+        uniswapLpLogDecoder.enrichFromLog(tx, ethLog);
+        if (tx.getHash() == null) {
+            return null;
+        }
 
-        return null;
+        UniswapDTO dto = tx.toDto(FARM_TOKEN_CONTRACT);
+
+        //enrich owner
+        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+        dto.setLastGas(receipt.getGasUsed().doubleValue());
+        dto.setOwner(receipt.getFrom());
+
+        //enrich date
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash()));
+
+        log.info(dto.print());
+
+        return dto;
     }
 
     @Override
