@@ -23,8 +23,8 @@ public class UniswapDbService {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-        if (uniswapRepository.existsById(dto.getHash())) {
-            log.info("Duplicate tx " + dto.getHash());
+        if (uniswapRepository.existsById(dto.getId())) {
+            log.info("Duplicate tx " + dto.getId());
             return;
         }
         uniswapRepository.save(dto);

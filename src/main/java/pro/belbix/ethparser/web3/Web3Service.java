@@ -103,6 +103,10 @@ public class Web3Service {
         log.info("Subscribe to Transaction Flowable");
     }
 
+    public void subscribe() {
+
+    }
+
     private void startCheckTransactionSubscribe() {
         checkTransactionSubscribe = new AtomicBoolean(true);
         new Thread(() -> {

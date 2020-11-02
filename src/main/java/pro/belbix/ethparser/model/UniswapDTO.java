@@ -13,7 +13,8 @@ import javax.persistence.Table;
 })
 @Cacheable(false)
 public class UniswapDTO implements DtoI {
-
+    @Id
+    private String id;
     private String type;
     private String coin;
     private String owner;
@@ -21,7 +22,6 @@ public class UniswapDTO implements DtoI {
     private String otherCoin;
     private double otherAmount;
     private Double ethAmount;
-    @Id
     private String hash;
     private BigInteger block;
     private boolean confirmed = false;
@@ -29,6 +29,14 @@ public class UniswapDTO implements DtoI {
     private Double lastGas;
     private Long blockDate;
     private Integer ownerCount;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public void setEthAmount(Double ethAmount) {
         this.ethAmount = ethAmount;

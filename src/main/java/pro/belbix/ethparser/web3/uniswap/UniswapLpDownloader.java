@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -63,7 +64,15 @@ public class UniswapLpDownloader {
 
             UniswapDTO dto = tx.toDto(FARM_TOKEN_CONTRACT);
             logger.info(dto.print());
+
+            //enrich owner
+            TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+            dto.setLastGas(receipt.getGasUsed().doubleValue());
+            dto.setOwner(receipt.getFrom());
+
+            //enrich date
             dto.setBlockDate(ethBlockService.getTimestampSecForBlock(log.getBlockHash()));
+
             saveHarvestDTO.saveUniswapDto(dto);
         }
 

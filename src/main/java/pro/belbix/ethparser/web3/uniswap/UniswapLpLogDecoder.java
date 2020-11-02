@@ -50,6 +50,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
 
         List<Type> types = extractLogIndexedValues(log, parameters);
         tx.setHash(log.getTransactionHash());
+        tx.setLogId(log.getLogIndex().longValue());
         tx.setBlock(log.getBlockNumber());
         tx.setSuccess(true);
         enrich(types, methodName, tx);
@@ -60,12 +61,10 @@ public class UniswapLpLogDecoder extends MethodDecoder {
             case "Swap":
                 tx.setType(UniswapTx.SWAP);
                 String sender = (String) types.get(0).getValue();
-                String to = (String) types.get(1).getValue();
                 BigInteger amount0In = (BigInteger) types.get(2).getValue();
                 BigInteger amount1In = (BigInteger) types.get(3).getValue();
                 BigInteger amount0Out = (BigInteger) types.get(4).getValue();
                 BigInteger amount1Out = (BigInteger) types.get(5).getValue();
-                tx.setOwner(to);
 
                 if (!amount0In.equals(BigInteger.ZERO)) {
                     tx.setAmountIn(amount0In);
@@ -100,7 +99,6 @@ public class UniswapLpLogDecoder extends MethodDecoder {
             case "Mint":
                 tx.setType(UniswapTx.ADD_LIQ);
                 tx.setBuy(true);
-                tx.setOwner((String) types.get(0).getValue());
                 tx.setCoinIn(new Address(USDC_ADDRESS));
                 tx.setCoinOut(new Address(FARM_TOKEN_CONTRACT));
                 tx.setAmountOut((BigInteger) types.get(1).getValue());
@@ -110,7 +108,6 @@ public class UniswapLpLogDecoder extends MethodDecoder {
             case "Burn":
                 tx.setType(UniswapTx.REMOVE_LIQ);
                 tx.setBuy(false);
-                tx.setOwner((String) types.get(1).getValue());
                 tx.setCoinIn(new Address(FARM_TOKEN_CONTRACT));
                 tx.setCoinOut(new Address(USDC_ADDRESS));
                 tx.setAmountIn((BigInteger) types.get(2).getValue());

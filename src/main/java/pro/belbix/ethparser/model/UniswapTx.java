@@ -11,6 +11,7 @@ public class UniswapTx implements EthTransactionI {
     public static final String REMOVE_LIQ = "REM";
 
     private String hash;
+    private long logId;
     private String type;
     private String owner;
     private BigInteger block;
@@ -31,6 +32,14 @@ public class UniswapTx implements EthTransactionI {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public long getLogId() {
+        return logId;
+    }
+
+    public void setLogId(long logId) {
+        this.logId = logId;
     }
 
     public String getType() {
@@ -121,6 +130,14 @@ public class UniswapTx implements EthTransactionI {
         this.enriched = enriched;
     }
 
+    public Boolean getBuy() {
+        return buy;
+    }
+
+    public void setBuy(Boolean buy) {
+        this.buy = buy;
+    }
+
     public Address[] getAllAddresses() {
         return allAddresses;
     }
@@ -179,6 +196,8 @@ public class UniswapTx implements EthTransactionI {
         throw new IllegalStateException("Token not the last or first");
     }
 
+
+
     public void assertBuy(boolean expected) {
         if (buy == null) {
             throw new IllegalStateException("Buy now is null");
@@ -190,6 +209,7 @@ public class UniswapTx implements EthTransactionI {
 
     public UniswapDTO toDto(String contract) {
         UniswapDTO uniswapDTO = new UniswapDTO();
+        uniswapDTO.setId(hash + "_" + logId);
         uniswapDTO.setHash(hash);
         uniswapDTO.setOwner(owner);
         uniswapDTO.setBlock(block);
@@ -242,4 +262,6 @@ public class UniswapTx implements EthTransactionI {
         }
         return amount.doubleValue() / new BigInteger(divider).doubleValue();
     }
+
+    
 }

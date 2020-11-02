@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.model.UniswapTx;
@@ -32,7 +31,7 @@ public class UniswapPoolDecoder {
 
     public void enrichUniTx(UniswapTx tx, List<Log> logs) {
         Log log;
-        if (tx.isBuy()) {
+        if (tx.getBuy()) {
             log = findLastSwapLog(logs);
         } else {
             log = findFirstSwapLog(logs);
