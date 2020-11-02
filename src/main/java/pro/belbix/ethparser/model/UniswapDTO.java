@@ -12,21 +12,55 @@ import javax.persistence.Table;
     @Index(name = "idx_uni_tx", columnList = "blockDate")
 })
 @Cacheable(false)
-public class TransactionDTO implements DtoI{
+public class UniswapDTO implements DtoI {
 
     private String type;
     private String coin;
+    private String owner;
     private double amount;
     private String otherCoin;
     private double otherAmount;
-    private double ethAmount;
+    private Double ethAmount;
     @Id
     private String hash;
     private BigInteger block;
     private boolean confirmed = false;
-    private double lastPrice;
-    private double lastGas;
-    private long blockDate;
+    private Double lastPrice;
+    private Double lastGas;
+    private Long blockDate;
+    private Integer ownerCount;
+
+    public void setEthAmount(Double ethAmount) {
+        this.ethAmount = ethAmount;
+    }
+
+    public void setLastPrice(Double lastPrice) {
+        this.lastPrice = lastPrice;
+    }
+
+    public void setLastGas(Double lastGas) {
+        this.lastGas = lastGas;
+    }
+
+    public void setBlockDate(Long blockDate) {
+        this.blockDate = blockDate;
+    }
+
+    public Integer getOwnerCount() {
+        return ownerCount;
+    }
+
+    public void setOwnerCount(Integer ownerCount) {
+        this.ownerCount = ownerCount;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
     public String getType() {
         return type;
@@ -130,7 +164,9 @@ public class TransactionDTO implements DtoI{
             + coin + " for "
             + otherCoin + " "
             + String.format("%.2f", otherAmount)
-            + " " + hash;
+            + " " + hash
+            + " " + lastPrice;
+
         return result;
     }
 

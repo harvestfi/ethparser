@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +42,7 @@ public class VaultDownloader {
             fromBlock = DefaultBlockParameter.valueOf(harvestDBService.lastBlock());
         }
         Map<String, Integer> methods = new HashMap<>();
-        List<LogResult> logResults = web3Service.fetchContractLogs(vaultHash, fromBlock);
+        List<LogResult> logResults = web3Service.fetchContractLogs(vaultHash, fromBlock, LATEST);
         if (logResults.isEmpty()) {
             logger.error("Empty log");
             return;

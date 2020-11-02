@@ -20,6 +20,11 @@ public class HarvestDBService {
             tvl = 0.0;
         }
         dto.setLastTVL(tvl);
+        Integer ownerCount = harvestRepository.fetchOwnerCount(dto.getVault());
+        if (ownerCount == null) {
+            ownerCount = 0;
+        }
+        dto.setOwnerCount(ownerCount);
         harvestRepository.save(dto);
     }
 

@@ -1,7 +1,8 @@
-package pro.belbix.ethparser;
+package pro.belbix.ethparser.web3.harvest;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultDecoder;
@@ -29,7 +31,7 @@ import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
-public class ContractParseTest {
+public class HarvestVaultParseTest {
 
     @Autowired
     private Web3Service web3Service;
@@ -41,7 +43,7 @@ public class ContractParseTest {
     public void parseVault_WBTC() {
         Map<String, Integer> topics = new HashMap<>();
         List<LogResult> logResults = web3Service.fetchContractLogs(WBTC, DefaultBlockParameter
-            .valueOf(new BigInteger("11164503")));
+            .valueOf(new BigInteger("11164503")), LATEST);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

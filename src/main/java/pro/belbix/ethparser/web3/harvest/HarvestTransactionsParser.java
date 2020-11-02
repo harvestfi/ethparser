@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
@@ -132,7 +134,7 @@ public class HarvestTransactionsParser implements Web3Parser {
 
     private void incrementAndPrintCount(Transaction tx) {
         parsedTxCount++;
-        if (parsedTxCount % 10_000 == 0) {
+        if (parsedTxCount % LOG_LAST_PARSED_COUNT == 0) {
             log.info("Harvest parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
         }
     }

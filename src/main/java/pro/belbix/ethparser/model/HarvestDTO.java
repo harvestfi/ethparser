@@ -23,12 +23,19 @@ public class HarvestDTO implements DtoI {
 
     private String methodName;
     private String owner;
-    private String timestamp;
     private Double amount;
     private String vault;
     private Double lastGas;
     private Double lastTVL;
     private Integer ownerCount;
+
+    public Integer getOwnerCount() {
+        return ownerCount;
+    }
+
+    public void setOwnerCount(Integer ownerCount) {
+        this.ownerCount = ownerCount;
+    }
 
     public void setLastGas(Double lastGas) {
         this.lastGas = lastGas;
@@ -96,14 +103,6 @@ public class HarvestDTO implements DtoI {
 
     public void setOwner(String owner) {
         this.owner = owner;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
     }
 
     public double getAmount() {

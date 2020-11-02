@@ -15,14 +15,14 @@ import pro.belbix.ethparser.model.UniswapTx;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class UniswapPoolDecoder {
 
-    private final static BigInteger ZERO = new BigInteger("0");
-    private final static String USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-    private final static String WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
-    private final static String SWAP_TOPIC = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
-    private final static String WETH_TOPIC_ADDRESS = "0x000000000000000000000000fed6b9243748e5a5bb5c1f373fd7da9fca235334";
-    private final static String USDC_TOPIC_ADDRESS = "0x000000000000000000000000558806e332b2cdab47d61cf96ef7753d8c97e33b";
-    private final static String USDC_TOPIC_ADDRESS_2 = "0x000000000000000000000000bd33caaedf06e436932522a9284d8312f325cae8";
-    private final static String FARM_TOPIC_ADDRESS = "0x0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d";
+    public final static BigInteger ZERO = new BigInteger("0");
+    public final static String USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+    public final static String WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+    public final static String SWAP_TOPIC = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
+    public final static String WETH_TOPIC_ADDRESS = "0x000000000000000000000000fed6b9243748e5a5bb5c1f373fd7da9fca235334";
+    public final static String USDC_TOPIC_ADDRESS = "0x000000000000000000000000558806e332b2cdab47d61cf96ef7753d8c97e33b";
+    public final static String USDC_TOPIC_ADDRESS_2 = "0x000000000000000000000000bd33caaedf06e436932522a9284d8312f325cae8";
+    public final static String FARM_TOPIC_ADDRESS = "0x0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d";
 
     private Map<String, List<TypeReference<Type>>> parametersByMethodName;
 

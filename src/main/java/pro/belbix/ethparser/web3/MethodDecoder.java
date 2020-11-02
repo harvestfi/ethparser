@@ -200,4 +200,8 @@ public abstract class MethodDecoder {
     }
 
     protected abstract void initParameters();
+
+    public Map<String, String> getMethodNamesByMethodId() {
+        return methodNamesByMethodId;
+    }
 }

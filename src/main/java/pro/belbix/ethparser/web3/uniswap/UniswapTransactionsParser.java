@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.model.UniswapTx.SWAP;
+import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.model.DtoI;
-import pro.belbix.ethparser.model.TransactionDTO;
+import pro.belbix.ethparser.model.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
-import pro.belbix.ethparser.repositories.TransactionsRepository;
+import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -32,13 +33,13 @@ public class UniswapTransactionsParser implements Web3Parser {
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
-    private final TransactionsRepository transactionsRepository;
+    private final UniswapRepository uniswapRepository;
     private final EthBlockService ethBlockService;
 
-    public UniswapTransactionsParser(Web3Service web3Service, TransactionsRepository transactionsRepository,
+    public UniswapTransactionsParser(Web3Service web3Service, UniswapRepository uniswapRepository,
                                      EthBlockService ethBlockService) {
         this.web3Service = web3Service;
-        this.transactionsRepository = transactionsRepository;
+        this.uniswapRepository = uniswapRepository;
         this.ethBlockService = ethBlockService;
     }
 
@@ -52,14 +53,14 @@ public class UniswapTransactionsParser implements Web3Parser {
                     transaction = transactions.take();
                 } catch (InterruptedException ignored) {
                 }
-                TransactionDTO dto = parseUniswapTransaction(transaction);
+                UniswapDTO dto = parseUniswapTransaction(transaction);
                 if (dto != null) {
                     try {
                         output.put(dto);
                     } catch (InterruptedException e) {
                     }
                     try {
-                        transactionsRepository.save(dto);
+                        uniswapRepository.save(dto);
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
                     }
@@ -68,7 +69,7 @@ public class UniswapTransactionsParser implements Web3Parser {
         }).start();
     }
 
-    TransactionDTO parseUniswapTransaction(Transaction tx) {
+    UniswapDTO parseUniswapTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
             return null;
@@ -79,18 +80,18 @@ public class UniswapTransactionsParser implements Web3Parser {
             return null;
         }
 
-        TransactionDTO transactionDTO = uniswapTx.toDto(FARM_TOKEN_CONTRACT);
-        transactionDTO.setLastGas(web3Service.fetchAverageGasPrice());
-        transactionDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
-        calculateNotClearData(transactionDTO);
-        saveLastPrice(transactionDTO);
-        print(transactionDTO);
-        return transactionDTO;
+        UniswapDTO uniswapDTO = uniswapTx.toDto(FARM_TOKEN_CONTRACT);
+        uniswapDTO.setLastGas(web3Service.fetchAverageGasPrice());
+        uniswapDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
+        calculateNotClearData(uniswapDTO);
+        saveLastPrice(uniswapDTO);
+        print(uniswapDTO);
+        return uniswapDTO;
     }
 
     private void incrementAndPrintCount(Transaction tx) {
         parsedTxCount++;
-        if (parsedTxCount % 10_000 == 0) {
+        if (parsedTxCount % LOG_LAST_PARSED_COUNT == 0) {
             log.info("Uniswap parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
         }
     }
@@ -137,36 +138,36 @@ public class UniswapTransactionsParser implements Web3Parser {
         return uniswapTx;
     }
 
-    private void print(TransactionDTO transactionDTO) {
-        if (transactionDTO.isConfirmed()) {
-            log.info(transactionDTO.print() + " " + lastPrice);
+    private void print(UniswapDTO uniswapDTO) {
+        if (uniswapDTO.isConfirmed()) {
+            log.info(uniswapDTO.print() + " " + lastPrice);
         } else {
-            log.debug(transactionDTO.print() + " " + lastPrice);
+            log.debug(uniswapDTO.print() + " " + lastPrice);
         }
     }
 
-    private void calculateNotClearData(TransactionDTO transactionDTO) {
-        if (!transactionDTO.isConfirmed() && lastPrice != 0.0) {
-            if (transactionDTO.getAmount() == 0.0) {
-                if (transactionDTO.getEthAmount() != 0.0) {
-                    transactionDTO.setAmount((transactionDTO.getEthAmount() * ETH_PRICE) / lastPrice);
+    private void calculateNotClearData(UniswapDTO uniswapDTO) {
+        if (!uniswapDTO.isConfirmed() && lastPrice != 0.0) {
+            if (uniswapDTO.getAmount() == 0.0) {
+                if (uniswapDTO.getEthAmount() != 0.0) {
+                    uniswapDTO.setAmount((uniswapDTO.getEthAmount() * ETH_PRICE) / lastPrice);
                 } else {
-                    transactionDTO.setOtherAmount(transactionDTO.getAmount() * lastPrice);
+                    uniswapDTO.setOtherAmount(uniswapDTO.getAmount() * lastPrice);
                 }
-            } else if (transactionDTO.getOtherAmount() == 0.0) {
-                if (transactionDTO.getEthAmount() != 0.0) {
-                    transactionDTO.setOtherAmount(transactionDTO.getEthAmount() * ETH_PRICE);
+            } else if (uniswapDTO.getOtherAmount() == 0.0) {
+                if (uniswapDTO.getEthAmount() != 0.0) {
+                    uniswapDTO.setOtherAmount(uniswapDTO.getEthAmount() * ETH_PRICE);
                 } else {
-                    transactionDTO.setAmount(transactionDTO.getOtherAmount() / lastPrice);
+                    uniswapDTO.setAmount(uniswapDTO.getOtherAmount() / lastPrice);
                 }
             }
         }
     }
 
-    private void saveLastPrice(TransactionDTO transactionDTO) {
-        if (transactionDTO.isConfirmed() && "USDC".equals(transactionDTO.getOtherCoin())) {
-            lastPrice = transactionDTO.getOtherAmount() / transactionDTO.getAmount();
-            transactionDTO.setLastPrice(lastPrice);
+    private void saveLastPrice(UniswapDTO uniswapDTO) {
+        if (uniswapDTO.isConfirmed() && "USDC".equals(uniswapDTO.getOtherCoin())) {
+            lastPrice = uniswapDTO.getOtherAmount() / uniswapDTO.getAmount();
+            uniswapDTO.setLastPrice(lastPrice);
         }
     }
 

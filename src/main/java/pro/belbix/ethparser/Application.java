@@ -7,6 +7,8 @@ import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +22,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import pro.belbix.ethparser.model.DtoI;
-import pro.belbix.ethparser.model.TransactionDTO;
+import pro.belbix.ethparser.model.HarvestDTO;
+import pro.belbix.ethparser.model.UniswapDTO;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestTransactionsParser;
+import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
 import pro.belbix.ethparser.ws.WsService;
 
@@ -84,22 +89,38 @@ public class Application {
 
     private static void startFakeDataForWebSocket(WsService ws, int rate) {
         int count = 0;
+        List<String> vaults = new ArrayList<>(Vaults.vaultNames.values());
+        HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+        List<String> harvestMethods = new ArrayList<>(harvestVaultLogDecoder.getMethodNamesByMethodId().values());
         while (true) {
             double currentCount = count * new Random().nextDouble();
-            TransactionDTO dto = new TransactionDTO();
-            dto.setAmount(currentCount);
-            dto.setOtherAmount(currentCount);
-            dto.setCoin("FARM");
-            dto.setOtherCoin("USDC");
-            dto.setHash("0x" + count);
-            dto.setType(new Random().nextBoolean() ?
+
+            UniswapDTO uniswapDTO = new UniswapDTO();
+            uniswapDTO.setAmount(currentCount);
+            uniswapDTO.setOtherAmount(currentCount);
+            uniswapDTO.setCoin("FARM");
+            uniswapDTO.setOtherCoin("USDC");
+            uniswapDTO.setHash("0x" + count);
+            uniswapDTO.setType(new Random().nextBoolean() ?
                 new Random().nextBoolean() ? "BUY" : "SELL" :
                 new Random().nextBoolean() ? ADD_LIQ : REMOVE_LIQ);
-            dto.setLastPrice(currentCount);
-            dto.setConfirmed(new Random().nextBoolean());
-            dto.setLastGas(currentCount / 6);
-            dto.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
-            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, dto);
+            uniswapDTO.setLastPrice(currentCount);
+            uniswapDTO.setConfirmed(new Random().nextBoolean());
+            uniswapDTO.setLastGas(currentCount / 6);
+            uniswapDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
+            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, uniswapDTO);
+
+            HarvestDTO harvestDTO = new HarvestDTO();
+            harvestDTO.setAmount(currentCount);
+            harvestDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
+            harvestDTO.setHash("0x" + count);
+            harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
+            harvestDTO.setLastTVL(currentCount * 10);
+            harvestDTO.setConfirmed(new Random().nextBoolean());
+            harvestDTO.setLastGas(currentCount / 6);
+            harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
+            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, harvestDTO);
+
             log.info("Msg sent " + currentCount);
             count++;
             try {

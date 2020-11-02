@@ -1,17 +1,19 @@
 package pro.belbix.ethparser.web3;
 
-import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.logging.log4j.util.Strings;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -39,6 +40,8 @@ import pro.belbix.ethparser.properties.Web3Properties;
 @Service
 public class Web3Service {
 
+    public static final int LOG_LAST_PARSED_COUNT = 1_000;
+    public static final long MAX_DELAY_BETWEEN_TX = 600;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
         .valueOf(new BigInteger("10765094"));
     public static final DefaultBlockParameter BLOCK_NUMBER_27_OCT_2020 = DefaultBlockParameter
@@ -49,6 +52,8 @@ public class Web3Service {
     private final Web3Properties web3Properties;
     private boolean init = false;
     private final List<BlockingQueue<Transaction>> consumers = new ArrayList<>();
+    private Instant lastTxTime = Instant.now();
+    private AtomicBoolean checkTransactionSubscribe = null;
 
     public Web3Service(Web3Properties web3Properties) {
         this.web3Properties = web3Properties;
@@ -74,6 +79,9 @@ public class Web3Service {
 
     public void subscribeTransactionFlowable() {
         checkInit();
+        if (checkTransactionSubscribe != null) {
+            checkTransactionSubscribe.set(false);
+        }
         Flowable<Transaction> flowable;
         if (web3Properties.getStartBlock() == null || web3Properties.getStartBlock().isEmpty()) {
             flowable = web3.transactionFlowable();
@@ -88,10 +96,29 @@ public class Web3Service {
                     queue.put(tx);
                 } catch (InterruptedException ignored) {
                 }
+                lastTxTime = Instant.now();
             }));
         subscriptions.add(subscription);
-
+        startCheckTransactionSubscribe();
         log.info("Subscribe to Transaction Flowable");
+    }
+
+    private void startCheckTransactionSubscribe() {
+        checkTransactionSubscribe = new AtomicBoolean(true);
+        new Thread(() -> {
+            while (checkTransactionSubscribe.get()) {
+                if (Duration.between(lastTxTime, Instant.now()).getSeconds() > MAX_DELAY_BETWEEN_TX) {
+                    log.error("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
+                    subscriptions.forEach(Disposable::dispose);
+                    subscriptions.clear();
+                    //start all subscriptions again
+                    subscribeTransactionFlowable();
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {}
+            }
+        }).start();
     }
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
@@ -112,10 +139,12 @@ public class Web3Service {
     }
 
     public Transaction findTransaction(String hash) throws IOException {
+        checkInit();
         return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
     }
 
     public Block findBlock(String blockHash) {
+        checkInit();
         EthBlock ethBlock;
         try {
             ethBlock = web3.ethGetBlockByHash(blockHash, false).send();
@@ -135,6 +164,7 @@ public class Web3Service {
     }
 
     public double fetchAverageGasPrice() {
+        checkInit();
         EthGasPrice gasPrice;
         try {
             gasPrice = web3.ethGasPrice().send();
@@ -152,9 +182,10 @@ public class Web3Service {
         return 0.0;
     }
 
-    public List<LogResult> fetchContractLogs(String hash, DefaultBlockParameter from ) {
+    public List<LogResult> fetchContractLogs(String hash, DefaultBlockParameter from, DefaultBlockParameter to) {
+        checkInit();
         EthFilter filter = new EthFilter(from,
-            LATEST, hash);
+            to, hash);
         EthLog ethLog;
         try {
             ethLog = web3.ethGetLogs(filter).send();
@@ -173,6 +204,7 @@ public class Web3Service {
     }
 
     public double fetchBalance(String hash) {
+        checkInit();
         EthGetBalance ethGetBalance;
         try {
             ethGetBalance = web3.ethGetBalance(hash, LATEST).send();
@@ -180,10 +212,10 @@ public class Web3Service {
             log.error("Get balance error", e);
             return 0.0;
         }
-        if(ethGetBalance == null) {
+        if (ethGetBalance == null) {
             return 0.0;
         }
-        if(ethGetBalance.getError() != null) {
+        if (ethGetBalance.getError() != null) {
             log.error("Get balance error callback " + ethGetBalance.getError().getMessage());
             return 0.0;
         }

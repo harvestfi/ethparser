@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
@@ -79,7 +80,7 @@ public class Web3ServiceTest {
     @Ignore
     public void checkLogsForAllVaults() {
         for (String hash : Vaults.vaultNames.keySet()) {
-            List<LogResult> logs = web3Service.fetchContractLogs(hash, DefaultBlockParameterName.EARLIEST);
+            List<LogResult> logs = web3Service.fetchContractLogs(hash, DefaultBlockParameterName.EARLIEST, LATEST);
             assertNotNull(logs);
             System.out.println(hash + " " + logs.size());
         }

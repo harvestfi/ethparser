@@ -4,17 +4,15 @@ import java.math.BigInteger;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.web3.ContractMapper;
 
+public class UniswapTx implements EthTransactionI {
 
-public class UniswapTx implements EthTransactionI{
-
-    public static final String SWAP = "swap";
-    public static final String ADD_LIQ = "add_liq";
-    public static final String REMOVE_LIQ = "remove_liq";
+    public static final String SWAP = "SWAP";
+    public static final String ADD_LIQ = "ADD";
+    public static final String REMOVE_LIQ = "REM";
 
     private String hash;
     private String type;
     private String owner;
-    private String timestamp;
     private BigInteger block;
     private BigInteger amountIn = new BigInteger("0");
     private Address coinIn;
@@ -49,14 +47,6 @@ public class UniswapTx implements EthTransactionI{
 
     public void setOwner(String owner) {
         this.owner = owner;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
     }
 
     public BigInteger getBlock() {
@@ -153,7 +143,6 @@ public class UniswapTx implements EthTransactionI{
             "hash='" + hash + '\'' +
             ", type='" + type + '\'' +
             ", owner='" + owner + '\'' +
-            ", timestamp='" + timestamp + '\'' +
             ", block='" + block + '\'' +
             ", amountIn=" + amountIn +
             ", coinIn=" + coinIn +
@@ -199,38 +188,44 @@ public class UniswapTx implements EthTransactionI{
         }
     }
 
-    public TransactionDTO toDto(String contract) {
-        TransactionDTO transactionDTO = new TransactionDTO();
-        transactionDTO.setHash(hash);
-        transactionDTO.setBlock(block);
-        transactionDTO.setCoin(ContractMapper.findName(contract));
-        transactionDTO.setConfirmed(success);
-        transactionDTO.setEthAmount(amountToDouble(amountEth, coinIn));
+    public UniswapDTO toDto(String contract) {
+        UniswapDTO uniswapDTO = new UniswapDTO();
+        uniswapDTO.setHash(hash);
+        uniswapDTO.setOwner(owner);
+        uniswapDTO.setBlock(block);
+        uniswapDTO.setCoin(ContractMapper.findName(contract));
+        uniswapDTO.setConfirmed(success);
+        uniswapDTO.setEthAmount(amountToDouble(amountEth, coinIn));
 
         if (contract.equals(coinIn.getValue().toLowerCase())) {
             assertBuy(false);
-            transactionDTO.setAmount(amountToDouble(amountIn, coinIn));
-            transactionDTO.setOtherCoin(addrToStr(coinOut));
-            transactionDTO.setOtherAmount(amountToDouble(amountOut, coinOut));
+            uniswapDTO.setAmount(amountToDouble(amountIn, coinIn));
+            uniswapDTO.setOtherCoin(addrToStr(coinOut));
+            uniswapDTO.setOtherAmount(amountToDouble(amountOut, coinOut));
             if (type.equals(SWAP)) {
-                transactionDTO.setType("SELL");
+                uniswapDTO.setType("SELL");
             } else {
-                transactionDTO.setType(type);
+                uniswapDTO.setType(type);
             }
         } else if (contract.equals(coinOut.getValue().toLowerCase())) {
             assertBuy(true);
-            transactionDTO.setAmount(amountToDouble(amountOut, coinOut));
-            transactionDTO.setOtherCoin(addrToStr(coinIn));
-            transactionDTO.setOtherAmount(amountToDouble(amountIn, coinIn));
+            uniswapDTO.setAmount(amountToDouble(amountOut, coinOut));
+            uniswapDTO.setOtherCoin(addrToStr(coinIn));
+            uniswapDTO.setOtherAmount(amountToDouble(amountIn, coinIn));
             if (type.equals(SWAP)) {
-                transactionDTO.setType("BUY");
+                uniswapDTO.setType("BUY");
             } else {
-                transactionDTO.setType(type);
+                uniswapDTO.setType(type);
             }
         } else {
             throw new IllegalStateException("Contract not found");
         }
-        return transactionDTO;
+
+        if (uniswapDTO.getOtherCoin().equals("USDC")) {
+            double price = (uniswapDTO.getOtherAmount() / uniswapDTO.getAmount());
+            uniswapDTO.setLastPrice(price);
+        }
+        return uniswapDTO;
     }
 
     private static String addrToStr(Address adr) {
