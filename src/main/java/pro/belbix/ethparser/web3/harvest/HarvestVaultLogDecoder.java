@@ -20,8 +20,6 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
 
-    private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
-
     public HarvestTx decode(Log log) {
         if (!isValidLog(log)) {
             return null;
@@ -33,9 +31,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             throw new IllegalStateException("Unknown topic " + topic0);
         }
         String methodName = methodNamesByMethodId.get(methodId);
-        if (!allowedMethods.contains(methodName.toLowerCase())) {
-            return null;
-        }
+
 
         List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
         if (parameters == null) {

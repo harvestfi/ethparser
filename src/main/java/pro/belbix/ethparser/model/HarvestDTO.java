@@ -25,6 +25,7 @@ public class HarvestDTO implements DtoI {
     private String methodName;
     private String owner;
     private Double amount;
+    private Double amountIn;
     private String vault;
     private Double lastGas;
     private Double lastTVL;
@@ -39,6 +40,14 @@ public class HarvestDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Double getAmountIn() {
+        return amountIn;
+    }
+
+    public void setAmountIn(Double amountIn) {
+        this.amountIn = amountIn;
+    }
 
     public String getId() {
         return id;

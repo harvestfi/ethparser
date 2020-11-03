@@ -17,19 +17,30 @@ public class Web3Properties {
     private String startLogBlock = "";
     private List<String> logSubscriptions = Arrays.asList(
         FARM_USDC_LP_CONTRACT,
+//        WETH_V0,
+//        USDC_V0,
+//        USDT_V0,
+//        TUSD,
+//        DAI_V0,
+//        WBTC_V0,
+//        RENBTC_V0,
+//        CRVRENWBTC_V0,
+//        UNI_ETH_DAI_V0,
+//        UNI_ETH_USDC_V0,
+//        UNI_ETH_USDT_V0,
+//        UNI_ETH_WBTC_V0,
+        UNI_ETH_DAI,
+        UNI_ETH_USDC,
+        UNI_ETH_USDT,
+        UNI_ETH_WBTC,
         WETH,
-        DAI,
         USDC,
         USDT,
-        TUSD,
+        DAI,
         WBTC,
         RENBTC,
-        CRVRENBTC,
-        WETH_DAI_LP,
-        WETH_USDC_LP,
-        WETH_USDT_LP,
-        WETH_WBTC_LP,
-        WBTC_TBTC
+        CRVRENWBTC,
+        SUSHI_WBTC_TBTC
     );
     private boolean testWs = false;
     private int testWsRate = 1000;

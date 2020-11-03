@@ -15,7 +15,9 @@ public class HarvestTx implements EthTransactionI {
     private BigInteger block;
     private String blockHash;
     private BigInteger amount = new BigInteger("0");
+    private BigInteger amountIn = new BigInteger("0");
     private Address vault;
+    private Address fToken;
     private Address[] addressFromArgs;
     private Address addressFromArgs1;
     private Address addressFromArgs2;
@@ -38,17 +40,22 @@ public class HarvestTx implements EthTransactionI {
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
+        dto.setAmountIn(parseAmount(amountIn, fToken.getValue()));
         dto.setOwner(owner);
 
         enrichMethodDepend(dto);
         return dto;
     }
 
-    public static double parseAmount(BigInteger amount, String vault) {
+    public static double parseAmount(BigInteger amount, String address) {
         if (amount == null) {
             return 0.0;
         }
-        return amount.doubleValue() / Vaults.vaultDividers.get(vault);
+        Double divider = Vaults.vaultDividers.get(address);
+        if (divider == null) {
+            throw new IllegalStateException("Divider not found for " + address);
+        }
+        return amount.doubleValue() / divider;
     }
 
     private void enrichMethodDepend(HarvestDTO dto) {
@@ -98,6 +105,22 @@ public class HarvestTx implements EthTransactionI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Address getfToken() {
+        return fToken;
+    }
+
+    public void setfToken(Address fToken) {
+        this.fToken = fToken;
+    }
+
+    public BigInteger getAmountIn() {
+        return amountIn;
+    }
+
+    public void setAmountIn(BigInteger amountIn) {
+        this.amountIn = amountIn;
+    }
 
     public String getBlockHash() {
         return blockHash;
