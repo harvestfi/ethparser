@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.harvest.HarvestVaultParser.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
@@ -21,6 +22,10 @@ import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
@@ -29,6 +34,7 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
+import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
@@ -230,7 +236,8 @@ public class Web3Service {
         return 0.0;
     }
 
-    public List<LogResult> fetchContractLogs(List<String> adresses, DefaultBlockParameter from, DefaultBlockParameter to) {
+    public List<LogResult> fetchContractLogs(List<String> adresses, DefaultBlockParameter from,
+                                             DefaultBlockParameter to) {
         checkInit();
         EthFilter filter = new EthFilter(from,
             to, adresses);
@@ -286,6 +293,27 @@ public class Web3Service {
             return BigInteger.ZERO;
         }
         return ethBlockNumber.getBlockNumber();
+    }
+
+    public List<Type> callMethod(Function function, String contractAddress, DefaultBlockParameter block) {
+        org.web3j.protocol.core.methods.request.Transaction transaction =
+            org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
+                ZERO_ADDRESS, contractAddress, FunctionEncoder.encode(function));
+        EthCall ethCall = null;
+        try {
+            ethCall = web3.ethCall(transaction, block).send();
+        } catch (IOException e) {
+            log.error("Error call", e);
+        }
+        if (ethCall == null) {
+            log.error("Eth call is null");
+            return null;
+        }
+        if (ethCall.getError() != null) {
+            log.error("Eth call callback is error " + ethCall.getError().getMessage());
+            return null;
+        }
+        return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
     }
 
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {

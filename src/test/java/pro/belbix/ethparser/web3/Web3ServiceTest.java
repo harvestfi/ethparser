@@ -2,9 +2,11 @@ package pro.belbix.ethparser.web3;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
@@ -28,6 +30,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder;
 
@@ -81,7 +84,8 @@ public class Web3ServiceTest {
     @Ignore
     public void checkLogsForAllVaults() {
         for (String hash : Vaults.vaultNames.keySet()) {
-            List<LogResult> logs = web3Service.fetchContractLogs(singletonList(hash), DefaultBlockParameterName.EARLIEST, LATEST);
+            List<LogResult> logs = web3Service
+                .fetchContractLogs(singletonList(hash), DefaultBlockParameterName.EARLIEST, LATEST);
             assertNotNull(logs);
             System.out.println(hash + " " + logs.size());
         }
@@ -92,5 +96,13 @@ public class Web3ServiceTest {
     public void getBalanceTest() {
         double balance = web3Service.fetchBalance(WBTC);
         assertTrue(balance > 0);
+    }
+
+    @Test
+    public void ethCallTest() {
+        List<Type> types = web3Service.callMethod(GET_PRICE_PER_FULL_SHARE, WBTC, LATEST);
+        assertNotNull(types);
+        assertFalse(types.isEmpty());
+        assertTrue(HarvestTx.parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
     }
 }

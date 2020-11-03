@@ -1,14 +1,13 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Vaults {
 
-
-
-
-//    public static final String WETH_V0 = "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase();
+    //    public static final String WETH_V0 = "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase();
 //    public static final String USDC_V0 = "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f".toLowerCase();
 //    public static final String USDT_V0 = "0xc7EE21406BB581e741FBb8B21f213188433D9f2F".toLowerCase();
 //    public static final String TUSD = "0x7674622c63Bee7F46E86a4A5A18976693D54441b".toLowerCase();
@@ -35,6 +34,7 @@ public class Vaults {
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
+    public final static Set<String> lpTokens = new LinkedHashSet<>();
 
     static {
 //        vaultNames.put(WETH_V0, "WETH_V0");
@@ -86,6 +86,12 @@ public class Vaults {
         vaultDividers.put(RENBTC, 100_000_000.0);
         vaultDividers.put(CRVRENWBTC, 1000_000_000_000_000_000.0);
         vaultDividers.put(SUSHI_WBTC_TBTC, 1000_000_000_000_000_000.0);
+
+        lpTokens.add("UNI_ETH_DAI");
+        lpTokens.add("UNI_ETH_USDC");
+        lpTokens.add("UNI_ETH_USDT");
+        lpTokens.add("UNI_ETH_WBTC");
+        lpTokens.add("SUSHI_WBTC_TBTC");
     }
 
 }

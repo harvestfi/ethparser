@@ -30,6 +30,8 @@ public class HarvestDTO implements DtoI {
     private Double lastGas;
     private Double lastTVL;
     private Integer ownerCount;
+    private Double sharePrice;
+    private Double usdAmount;
 
     public String print() {
         return methodName + " "
@@ -40,6 +42,22 @@ public class HarvestDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Double getUsdAmount() {
+        return usdAmount;
+    }
+
+    public void setUsdAmount(Double usdAmount) {
+        this.usdAmount = usdAmount;
+    }
+
+    public Double getSharePrice() {
+        return sharePrice;
+    }
+
+    public void setSharePrice(Double sharePrice) {
+        this.sharePrice = sharePrice;
+    }
 
     public Double getAmountIn() {
         return amountIn;

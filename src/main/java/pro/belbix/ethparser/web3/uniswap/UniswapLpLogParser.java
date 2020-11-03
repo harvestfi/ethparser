@@ -46,22 +46,19 @@ public class UniswapLpLogParser implements Web3Parser {
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
-                Log log = null;
+                UniswapDTO dto = null;
                 try {
-                    log = logs.poll(1, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-                UniswapDTO dto = parseUniswapLog(log);
-                if (dto != null) {
-                    try {
+                    Log log = logs.poll(1, TimeUnit.SECONDS);
+                    dto = parseUniswapLog(log);
+                    if (dto != null) {
                         enrichDto(dto);
                         boolean success = uniswapDbService.saveUniswapDto(dto);
                         if (success) {
                             output.put(dto);
                         }
-                    } catch (Exception e) {
-                        UniswapLpLogParser.log.error("Can't save " + dto.toString(), e);
                     }
+                } catch (Exception e) {
+                    UniswapLpLogParser.log.error("Error uniswap parser loop " + dto, e);
                 }
             }
         }).start();
