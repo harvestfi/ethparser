@@ -60,10 +60,10 @@ public class HarvestVaultParser implements Web3Parser {
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
-                HarvestDTO dto = null;
+                Log ethLog = null;
                 try {
-                    Log ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    dto = parseVaultLog(ethLog);
+                    ethLog = logs.poll(1, TimeUnit.SECONDS);
+                    HarvestDTO dto = parseVaultLog(ethLog);
                     if (dto != null) {
                         enrichDto(dto);
                         boolean success = harvestDBService.saveHarvestDTO(dto);
@@ -72,7 +72,7 @@ public class HarvestVaultParser implements Web3Parser {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("Can't save " + dto, e);
+                    log.error("Can't save " + ethLog, e);
                 }
             }
         }).start();

@@ -45,7 +45,7 @@ public class Web3Properties {
     private boolean testWs = false;
     private int testWsRate = 1000;
     private boolean parseUniswapLog = true;
-    private boolean parseHarvestLog = true;
+    private boolean parseHarvestLog = false;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
 

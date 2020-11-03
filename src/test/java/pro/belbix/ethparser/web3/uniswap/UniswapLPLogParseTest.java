@@ -53,7 +53,7 @@ public class UniswapLPLogParseTest {
             }
             UniswapTx tx = new UniswapTx();
             try {
-                uniswapLpLogDecoder.enrichFromLog(tx, log);
+                uniswapLpLogDecoder.decode(tx, log);
                 if (tx.getHash() == null) {
                     continue;
                 }

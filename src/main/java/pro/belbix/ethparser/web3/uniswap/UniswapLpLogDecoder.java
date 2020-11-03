@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder.USDC_ADDRESS;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.UNI_ROUTER;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -27,8 +28,8 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     public static final String USDC_TOPIC_ADDRESS1 = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase(); //buy
     private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Mint", "Burn", "Swap"));
 
-    public void enrichFromLog(UniswapTx tx, Log log) {
-        if (log.getTopics().isEmpty()) {
+    public void decode(UniswapTx tx, Log log) {
+        if (!isValidLog(log)) {
             return;
         }
         String topic0 = log.getTopics().get(0);
@@ -54,6 +55,13 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         tx.setBlock(log.getBlockNumber());
         tx.setSuccess(true);
         enrich(types, methodName, tx);
+    }
+
+    private boolean isValidLog(Log log) {
+        if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+            return false;
+        }
+        return FARM_USDC_LP_CONTRACT.equals(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, UniswapTx tx) {
