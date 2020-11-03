@@ -28,8 +28,8 @@ public class HarvestDBService {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-        if (harvestRepository.existsById(dto.getHash())) {
-            log.info("Duplicate Harvest entry " + dto.getHash());
+        if (harvestRepository.existsById(dto.getId())) {
+            log.info("Duplicate Harvest entry " + dto.getId());
             return false;
         }
         harvestRepository.save(dto);

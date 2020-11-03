@@ -39,8 +39,8 @@ web3:
 #  startBlock: 11137613
 #  parseTransactions: false
 #  parseHarvest: false
-#  testWs: true
-  testWsRate: 100
+  testWs: true
+  testWsRate: 10000
 
 logging:
   level:

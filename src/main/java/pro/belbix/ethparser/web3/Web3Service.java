@@ -46,7 +46,7 @@ import pro.belbix.ethparser.web3.uniswap.UniswapDbService;
 public class Web3Service {
 
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
-    public static final long MAX_DELAY_BETWEEN_TX = 60 * 60;
+    public static final long MAX_DELAY_BETWEEN_TX = 60 * 10;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
         .valueOf(new BigInteger("10765094"));
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
@@ -290,7 +290,12 @@ public class Web3Service {
         subscriptions.forEach(Disposable::dispose);
         subscriptions.clear();
         logFlowable.stop();
-        //start all subscriptions again
+        web3.shutdown();
+        web3Checker.stop();
+
+        //start all again
+        init = false;
+        init();
         subscribeLogFlowable();
         subscribeTransactionFlowable();
     }
@@ -343,7 +348,7 @@ public class Web3Service {
                         from = to;
                     }
                     List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(address, from, to);
-                    log.debug("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
+                    log.info("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
                         currentBlock, logResults.size());
                     for (LogResult logResult : logResults) {
                         Log ethLog = (Log) logResult.get();

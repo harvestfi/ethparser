@@ -60,6 +60,8 @@ public class UniswapDTO implements DtoI {
             '}';
     }
 
+    //------------- GETTERS & SETTERS -------------------------
+
     public String getId() {
         return id;
     }

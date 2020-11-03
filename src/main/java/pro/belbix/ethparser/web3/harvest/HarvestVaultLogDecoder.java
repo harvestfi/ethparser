@@ -35,6 +35,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         }
 
         List<Type> types = extractLogIndexedValues(log, parameters);
+        tx.setLogId(log.getLogIndex().longValue());
         tx.setHash(log.getTransactionHash());
         tx.setBlock(log.getBlockNumber());
         String methodName = methodNamesByMethodId.get(methodId);

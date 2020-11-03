@@ -74,7 +74,6 @@ public class UniswapLpLogParser implements Web3Parser {
 
         //enrich owner
         TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
-        dto.setLastGas(receipt.getGasUsed().doubleValue());
         dto.setOwner(receipt.getFrom());
 
         //enrich date

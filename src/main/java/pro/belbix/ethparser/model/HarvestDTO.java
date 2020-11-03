@@ -16,6 +16,7 @@ import javax.persistence.Table;
 public class HarvestDTO implements DtoI {
 
     @Id
+    private String id;
     private String hash;
     private BigInteger block;
     private boolean confirmed = false;
@@ -29,32 +30,22 @@ public class HarvestDTO implements DtoI {
     private Double lastTVL;
     private Integer ownerCount;
 
-    public Integer getOwnerCount() {
-        return ownerCount;
+    public String print() {
+        return methodName + " "
+            + String.format("%.18f", amount) + " "
+            + vault
+            + " " + hash
+            + " " + lastTVL;
     }
 
-    public void setOwnerCount(Integer ownerCount) {
-        this.ownerCount = ownerCount;
+    //------------- GETTERS & SETTERS -------------------------
+
+    public String getId() {
+        return id;
     }
 
-    public void setLastGas(Double lastGas) {
-        this.lastGas = lastGas;
-    }
-
-    public Double getLastTVL() {
-        return lastTVL;
-    }
-
-    public void setLastTVL(Double lastTVL) {
-        this.lastTVL = lastTVL;
-    }
-
-    public double getLastGas() {
-        return lastGas;
-    }
-
-    public void setLastGas(double lastGas) {
-        this.lastGas = lastGas;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getHash() {
@@ -81,11 +72,11 @@ public class HarvestDTO implements DtoI {
         this.confirmed = confirmed;
     }
 
-    public long getBlockDate() {
+    public Long getBlockDate() {
         return blockDate;
     }
 
-    public void setBlockDate(long blockDate) {
+    public void setBlockDate(Long blockDate) {
         this.blockDate = blockDate;
     }
 
@@ -105,11 +96,11 @@ public class HarvestDTO implements DtoI {
         this.owner = owner;
     }
 
-    public double getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
@@ -121,11 +112,27 @@ public class HarvestDTO implements DtoI {
         this.vault = vault;
     }
 
-    public String print() {
-        return methodName + " "
-            + String.format("%.18f", amount) + " "
-            + vault
-            + " " + hash
-            + " " + lastTVL;
+    public Double getLastGas() {
+        return lastGas;
+    }
+
+    public void setLastGas(Double lastGas) {
+        this.lastGas = lastGas;
+    }
+
+    public Double getLastTVL() {
+        return lastTVL;
+    }
+
+    public void setLastTVL(Double lastTVL) {
+        this.lastTVL = lastTVL;
+    }
+
+    public Integer getOwnerCount() {
+        return ownerCount;
+    }
+
+    public void setOwnerCount(Integer ownerCount) {
+        this.ownerCount = ownerCount;
     }
 }

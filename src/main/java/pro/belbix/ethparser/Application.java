@@ -114,6 +114,7 @@ public class Application {
             double currentCount = count * new Random().nextDouble();
 
             UniswapDTO uniswapDTO = new UniswapDTO();
+            uniswapDTO.setId("0x" + (count * 1000000));
             uniswapDTO.setAmount(currentCount);
             uniswapDTO.setOtherAmount(currentCount);
             uniswapDTO.setCoin("FARM");
@@ -129,11 +130,12 @@ public class Application {
             ws.send(UNI_TRANSACTIONS_TOPIC_NAME, uniswapDTO);
 
             HarvestDTO harvestDTO = new HarvestDTO();
-            harvestDTO.setAmount(currentCount);
+            harvestDTO.setAmount(currentCount * 10000);
             harvestDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
+            harvestDTO.setId("0x" + (count * 1000000));
             harvestDTO.setHash("0x" + count);
             harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
-            harvestDTO.setLastTVL(currentCount * 10);
+            harvestDTO.setLastTVL(currentCount * 1000000);
             harvestDTO.setConfirmed(new Random().nextBoolean());
             harvestDTO.setLastGas(currentCount / 6);
             harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
