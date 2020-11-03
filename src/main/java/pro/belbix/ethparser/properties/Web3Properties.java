@@ -1,7 +1,10 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.harvest.Vaults.*;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
 
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -12,12 +15,44 @@ public class Web3Properties {
     private String web3Url = "";
     private String startBlock = "";
     private String startLogBlock = "";
-    private String logHash = FARM_USDC_LP_CONTRACT;
+    private List<String> logSubscriptions = Arrays.asList(
+        FARM_USDC_LP_CONTRACT,
+        WETH,
+        DAI,
+        USDC,
+        USDT,
+        TUSD,
+        WBTC,
+        RENBTC,
+        CRVRENBTC,
+        WETH_DAI_LP,
+        WETH_USDC_LP,
+        WETH_USDT_LP,
+        WETH_WBTC_LP,
+        WBTC_TBTC
+    );
     private boolean testWs = false;
     private int testWsRate = 1000;
     private boolean parseUniswapLog = true;
+    private boolean parseHarvestLog = true;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+
+    public List<String> getLogSubscriptions() {
+        return logSubscriptions;
+    }
+
+    public void setLogSubscriptions(List<String> logSubscriptions) {
+        this.logSubscriptions = logSubscriptions;
+    }
+
+    public boolean isParseHarvestLog() {
+        return parseHarvestLog;
+    }
+
+    public void setParseHarvestLog(boolean parseHarvestLog) {
+        this.parseHarvestLog = parseHarvestLog;
+    }
 
     public boolean isParseUniswapLog() {
         return parseUniswapLog;
@@ -25,14 +60,6 @@ public class Web3Properties {
 
     public void setParseUniswapLog(boolean parseUniswapLog) {
         this.parseUniswapLog = parseUniswapLog;
-    }
-
-    public String getLogHash() {
-        return logHash;
-    }
-
-    public void setLogHash(String logHash) {
-        this.logHash = logHash;
     }
 
     public String getStartLogBlock() {

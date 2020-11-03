@@ -5,6 +5,9 @@ import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 public class UniswapTransactionsParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(UniswapTransactionsParser.class);
+    private static final AtomicBoolean run = new AtomicBoolean(true);
     public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
     public static final String FARM_TOKEN_CONTRACT = "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase();
     public static final String FARM_WETH_UNI_CONTRACT = "0x56feAccb7f750B997B36A68625C7C596F0B41A58".toLowerCase();
@@ -46,10 +50,10 @@ public class UniswapTransactionsParser implements Web3Parser {
         log.info("Start parse Uniswap transactions");
         web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
-            while (true) {
+            while (run.get()) {
                 Transaction transaction = null;
                 try {
-                    transaction = transactions.take();
+                    transaction = transactions.poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
                 }
                 UniswapDTO dto = parseUniswapTransaction(transaction);
@@ -171,5 +175,10 @@ public class UniswapTransactionsParser implements Web3Parser {
 
     public BlockingQueue<DtoI> getOutput() {
         return output;
+    }
+
+    @PreDestroy
+    public void stop() {
+        run.set(false);
     }
 }

@@ -4,6 +4,9 @@ import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 public class HarvestTransactionsParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestTransactionsParser.class);
+    private static final AtomicBoolean run = new AtomicBoolean(true);
     private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
@@ -40,10 +44,10 @@ public class HarvestTransactionsParser implements Web3Parser {
         log.info("Start parse Harvest");
         web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
-            while (true) {
+            while (run.get()) {
                 Transaction transaction = null;
                 try {
-                    transaction = transactions.take();
+                    transaction = transactions.poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
                 }
                 HarvestDTO dto = parseHarvestTransaction(transaction);
@@ -136,5 +140,10 @@ public class HarvestTransactionsParser implements Web3Parser {
         if (parsedTxCount % LOG_LAST_PARSED_COUNT == 0) {
             log.info("Harvest parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
         }
+    }
+
+    @PreDestroy
+    public void stop() {
+        run.set(false);
     }
 }

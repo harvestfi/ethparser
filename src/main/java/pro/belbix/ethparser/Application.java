@@ -10,6 +10,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -29,6 +31,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.HarvestVaultParser;
 import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
@@ -40,6 +43,7 @@ public class Application {
     private final static Logger log = LoggerFactory.getLogger(Application.class);
     private static boolean web3TransactionsStarted = false;
     private static boolean web3LogsStarted = false;
+    public static AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
@@ -47,6 +51,7 @@ public class Application {
         UniswapTransactionsParser uniswapTransactionsParser = context.getBean(UniswapTransactionsParser.class);
         HarvestTransactionsParser harvestTransactionsParser = context.getBean(HarvestTransactionsParser.class);
         UniswapLpLogParser uniswapLpLogParser = context.getBean(UniswapLpLogParser.class);
+        HarvestVaultParser harvestVaultParser = context.getBean(HarvestVaultParser.class);
         WsService ws = context.getBean(WsService.class);
         Web3Properties conf = context.getBean(Web3Properties.class);
 
@@ -61,8 +66,12 @@ public class Application {
                 startParse(web3Service, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
             }
 
-            if(conf.isParseUniswapLog()) {
+            if (conf.isParseUniswapLog()) {
                 startParse(web3Service, uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+            }
+
+            if (conf.isParseHarvestLog()) {
+                startParse(web3Service, harvestVaultParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
         }
     }
@@ -83,7 +92,7 @@ public class Application {
 
     public static void startParse(Web3Service web3Service, Web3Parser parser, WsService ws,
                                   String topicName, boolean logs) {
-        if(logs) {
+        if (logs) {
             startWeb3SubscribeLog(web3Service);
         } else {
             startWeb3SubscribeTx(web3Service);
@@ -91,10 +100,10 @@ public class Application {
         parser.startParse();
 
         new Thread(() -> {
-            while (true) {
+            while (run.get()) {
                 DtoI dto = null;
                 try {
-                    dto = parser.getOutput().take();
+                    dto = parser.getOutput().poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
                 }
                 if (dto != null) {

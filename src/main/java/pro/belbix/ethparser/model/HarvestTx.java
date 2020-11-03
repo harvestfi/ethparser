@@ -13,6 +13,7 @@ public class HarvestTx implements EthTransactionI {
     private String methodName;
     private String owner;
     private BigInteger block;
+    private String blockHash;
     private BigInteger amount = new BigInteger("0");
     private Address vault;
     private Address[] addressFromArgs;
@@ -97,6 +98,14 @@ public class HarvestTx implements EthTransactionI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public String getBlockHash() {
+        return blockHash;
+    }
+
+    public void setBlockHash(String blockHash) {
+        this.blockHash = blockHash;
+    }
 
     public long getLogId() {
         return logId;

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
@@ -25,8 +26,6 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.HarvestVaultDecoder;
-import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -42,7 +41,7 @@ public class HarvestVaultParseTest {
     @Ignore
     public void parseVault_WBTC() {
         Map<String, Integer> topics = new HashMap<>();
-        List<LogResult> logResults = web3Service.fetchContractLogs(WBTC, DefaultBlockParameter
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(WBTC), DefaultBlockParameter
             .valueOf(new BigInteger("11164503")), LATEST);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
@@ -54,9 +53,9 @@ public class HarvestVaultParseTest {
             } else {
                 topics.put(topic0, 1);
             }
-            HarvestTx harvestTx = new HarvestTx();
+            HarvestTx harvestTx;
             try {
-                harvestVaultLogDecoder.enrichFromLog(harvestTx, log);
+                harvestTx = harvestVaultLogDecoder.decode(log);
             } catch (Exception e) {
                 System.out.println("error with " + e.getMessage() + " " + log);
                 e.printStackTrace();

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
@@ -38,7 +39,8 @@ public class UniswapLPLogParseTest {
         Map<String, Integer> topics = new HashMap<>();
         DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(new BigInteger("11165610"));
 //        DefaultBlockParameter fromBlock = DefaultBlockParameterName.EARLIEST;
-        List<LogResult> logResults = web3Service.fetchContractLogs(FARM_USDC_LP_CONTRACT, fromBlock, LATEST);
+        List<LogResult> logResults = web3Service
+            .fetchContractLogs(singletonList(FARM_USDC_LP_CONTRACT), fromBlock, LATEST);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

@@ -4,8 +4,10 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -18,15 +20,21 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
 
-    public void enrichFromLog(HarvestTx tx, Log log) {
-        if (log.getTopics().isEmpty()) {
-            return;
+    private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
+
+    public HarvestTx decode(Log log) {
+        if (!isValidLog(log)) {
+            return null;
         }
         String topic0 = log.getTopics().get(0);
         String methodId = methodIdByFullHex.get(topic0);
 
         if (methodId == null) {
             throw new IllegalStateException("Unknown topic " + topic0);
+        }
+        String methodName = methodNamesByMethodId.get(methodId);
+        if (!allowedMethods.contains(methodName.toLowerCase())) {
+            return null;
         }
 
         List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
@@ -35,12 +43,23 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         }
 
         List<Type> types = extractLogIndexedValues(log, parameters);
+        HarvestTx tx = new HarvestTx();
+        tx.setVault(new Address(log.getAddress()));
         tx.setLogId(log.getLogIndex().longValue());
         tx.setHash(log.getTransactionHash());
         tx.setBlock(log.getBlockNumber());
-        String methodName = methodNamesByMethodId.get(methodId);
+        tx.setBlockHash(log.getBlockHash());
         tx.setMethodName(methodName);
+        tx.setSuccess(true); //from logs always success
         enrich(types, methodName, tx);
+        return tx;
+    }
+
+    private boolean isValidLog(Log log) {
+        if (log == null || log.getTopics().isEmpty()) {
+            return false;
+        }
+        return Vaults.vaultNames.containsKey(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

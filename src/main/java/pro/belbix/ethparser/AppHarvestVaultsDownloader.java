@@ -1,30 +1,33 @@
 package pro.belbix.ethparser;
 
+import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
+
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import pro.belbix.ethparser.web3.harvest.VaultDownloader;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import pro.belbix.ethparser.web3.harvest.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.Vaults;
 
 @SpringBootApplication
-public class AppVaultDownloader {
+public class AppHarvestVaultsDownloader {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(AppVaultDownloader.class, args);
-        VaultDownloader vaultDownloader = context.getBean(VaultDownloader.class);
-        DefaultBlockParameterName from = DefaultBlockParameterName.EARLIEST;
-//        DefaultBlockParameterName from = DefaultBlockParameter.valueOf(new BigInteger(""));
+        ConfigurableApplicationContext context = SpringApplication.run(AppHarvestVaultsDownloader.class, args);
+        HarvestVaultDownloader harvestVaultDownloader = context.getBean(HarvestVaultDownloader.class);
+//        DefaultBlockParameterName from = DefaultBlockParameterName.EARLIEST;
+        DefaultBlockParameter from = DefaultBlockParameter.valueOf(new BigInteger("11176203"));
 //        vaultDownloader.parseVault(WBTC, from);
 
         for (String vaultName : Vaults.vaultNames.keySet()) {
 //            if (exclude.contains(Vaults.vaultNames.get(vaultName))) {
 //                continue;
 //            }
-            vaultDownloader.parseVault(vaultName, from);
+            harvestVaultDownloader.parseVault(vaultName, BLOCK_NUMBER_30_AUGUST_2020); //fromBlock = null means last from DB
         }
 
         context.close();
