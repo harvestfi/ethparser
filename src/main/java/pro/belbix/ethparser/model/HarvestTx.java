@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.web3.harvest.Vaults;
+import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 public class HarvestTx implements EthTransactionI {
 
@@ -53,7 +54,10 @@ public class HarvestTx implements EthTransactionI {
         }
         Double divider = Vaults.vaultDividers.get(address);
         if (divider == null) {
-            throw new IllegalStateException("Divider not found for " + address);
+            divider = LpContracts.lpHashToDividers.get(address);
+            if (divider == null) {
+                throw new IllegalStateException("Divider not found for " + address);
+            }
         }
         return amount.doubleValue() / divider;
     }

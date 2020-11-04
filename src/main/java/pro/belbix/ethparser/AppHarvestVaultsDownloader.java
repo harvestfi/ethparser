@@ -1,6 +1,7 @@
 package pro.belbix.ethparser;
 
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
+import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_DAI;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class AppHarvestVaultsDownloader {
         HarvestVaultDownloader harvestVaultDownloader = context.getBean(HarvestVaultDownloader.class);
 //        DefaultBlockParameterName from = DefaultBlockParameterName.EARLIEST;
         DefaultBlockParameter from = DefaultBlockParameter.valueOf(new BigInteger("11176203"));
-//        vaultDownloader.parseVault(WBTC, from);
+//        harvestVaultDownloader.parseVault(UNI_ETH_DAI, BLOCK_NUMBER_30_AUGUST_2020);
 
         for (String vaultName : Vaults.vaultNames.keySet()) {
 //            if (exclude.contains(Vaults.vaultNames.get(vaultName))) {

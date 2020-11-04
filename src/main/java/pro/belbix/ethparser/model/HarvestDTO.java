@@ -6,8 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import org.web3j.tuples.generated.Tuple2;
 
 @Entity
 @Table(name = "harvest_tx", indexes = {
@@ -35,17 +33,14 @@ public class HarvestDTO implements DtoI {
     private Integer ownerCount;
     private Double sharePrice;
     private Long usdAmount;
-    @Transient
-    private Tuple2<Double, Double> usdPrice;
-    @Transient
-    private Double tvlUsdFactor;
 
     public String print() {
         return methodName + " "
-            + String.format("%.18f", amount) + " "
+            + "usd: " + usdAmount + " "
+            + "f: " + amount + " "
             + vault
             + " " + hash
-            + " " + lastUsdTvl;
+            + " " + String.format("%f.0", lastUsdTvl);
     }
 
     //------------- GETTERS & SETTERS -------------------------
@@ -56,22 +51,6 @@ public class HarvestDTO implements DtoI {
 
     public void setLastTvl(Double lastTvl) {
         this.lastTvl = lastTvl;
-    }
-
-    public Double getTvlUsdFactor() {
-        return tvlUsdFactor;
-    }
-
-    public void setTvlUsdFactor(Double tvlUsdFactor) {
-        this.tvlUsdFactor = tvlUsdFactor;
-    }
-
-    public Tuple2<Double, Double> getUsdPrice() {
-        return usdPrice;
-    }
-
-    public void setUsdPrice(Tuple2<Double, Double> usdPrice) {
-        this.usdPrice = usdPrice;
     }
 
     public Long getUsdAmount() {

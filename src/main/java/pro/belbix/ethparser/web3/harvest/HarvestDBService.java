@@ -18,7 +18,7 @@ public class HarvestDBService {
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
-        fillTVL(dto);
+
 
         Integer ownerCount = harvestRepository.fetchOwnerCount(dto.getVault());
         if (ownerCount == null) {
@@ -29,6 +29,8 @@ public class HarvestDBService {
             log.info("Duplicate Harvest entry " + dto.getId());
             return false;
         }
+        harvestRepository.save(dto);
+        fillTVL(dto);
         harvestRepository.save(dto);
         return true;
     }
@@ -48,7 +50,6 @@ public class HarvestDBService {
             return;
         }
         dto.setLastTvl(tvl);
-        dto.setLastUsdTvl(dto.getTvlUsdFactor() * tvl);
     }
 
 

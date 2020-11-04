@@ -70,6 +70,25 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultUNI_ETH_DAI2() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_DAI,
+            11188946 ,
+            1,
+            "0x49b68b3c022f3531cde7e42ef5ff974193fe2576",
+            "Deposit",
+            "UNI_ETH_DAI",
+            "0x7b13ad50915c24bdc78ba87413027f184d36134436dc88e14f50d5d681e2fd15_44",
+            "147,42969692",
+            "148,58879257",
+            "1,00424760",
+            11776851L,
+            1604469644L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultUNI_ETH_USDC() {
         harvestVaultParseTest(
             Vaults.UNI_ETH_USDC,

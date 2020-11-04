@@ -35,7 +35,7 @@ public class Vaults {
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
-    public final static Map<String, Tuple2<Long, Long>> coinDividers = new LinkedHashMap<>();
+    public final static Map<String, Tuple2<Long, Long>> lpDividers = new LinkedHashMap<>();
     public final static Set<String> lpTokens = new LinkedHashSet<>();
 
     static {
@@ -95,11 +95,11 @@ public class Vaults {
         lpTokens.add("UNI_ETH_WBTC");
         lpTokens.add("SUSHI_WBTC_TBTC");
 
-        coinDividers.put("UNI_ETH_DAI", new Tuple2<>(1000_000_000_000_000_000L, 1000_000_000_000_000_000L));
-        coinDividers.put("UNI_ETH_USDC", new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
-        coinDividers.put("UNI_ETH_USDT", new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
-        coinDividers.put("UNI_ETH_WBTC", new Tuple2<>(100_000_000L, 1000_000_000_000_000_000L));
-        coinDividers.put("SUSHI_WBTC_TBTC", new Tuple2<>(100_000_000L, 100_000_000L));
+        lpDividers.put("UNI_ETH_DAI", new Tuple2<>(1000_000_000_000_000_000L, 1000_000_000_000_000_000L));
+        lpDividers.put("UNI_ETH_USDC", new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
+        lpDividers.put("UNI_ETH_USDT", new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
+        lpDividers.put("UNI_ETH_WBTC", new Tuple2<>(100_000_000L, 1000_000_000_000_000_000L));
+        lpDividers.put("SUSHI_WBTC_TBTC", new Tuple2<>(100_000_000L, 100_000_000L));
 
     }
 

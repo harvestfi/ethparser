@@ -3,6 +3,7 @@ package pro.belbix.ethparser;
 import java.util.HashMap;
 import java.util.Map;
 import org.web3j.tuples.generated.Tuple2;
+import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 public class PriceProvider {
 
@@ -16,14 +17,15 @@ public class PriceProvider {
         return lastPrices.get(name);
     }
 
-    public Tuple2<Double, Double> getPriceForUniPair(String name) {
-        String[] names = name.split("_");
-        if (names.length != 3) {
-            throw new IllegalStateException("Wrong name " + name);
+    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash) {
+        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(
+            LpContracts.harvestStrategyToLp.get(strategyHash));
+        if (names == null) {
+            throw new IllegalStateException("Not found names for " + strategyHash);
         }
         return new Tuple2<>(
-            lastPrices.get(names[1]),
-            lastPrices.get(names[2])
+            lastPrices.get(names.component1()),
+            lastPrices.get(names.component2())
         );
     }
 

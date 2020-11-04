@@ -27,4 +27,16 @@ public class HarvestFunctions {
             }
         ));
 
+    public static final Function ERC_20_TOTAL_SUPPLY = new Function(
+        "totalSupply",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    public static final Function UNDERLYING_UNIT = new Function(
+        "underlyingUnit",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
 }
