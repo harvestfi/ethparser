@@ -1,13 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
-import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.ERC_20_TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.GET_PRICE_PER_FULL_SHARE;
-import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.GET_RESERVES;
-import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.UNDERLYING_UNIT;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
@@ -30,6 +23,7 @@ import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
@@ -43,19 +37,21 @@ public class HarvestVaultParser implements Web3Parser {
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
-    private long parsedTxCount = 0;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10_000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
-    private PriceProvider priceProvider = new PriceProvider();
+    private final PriceProvider priceProvider;
+    private final Functions functions;
 
     public HarvestVaultParser(Web3Service web3Service,
                               HarvestDBService harvestDBService,
-                              EthBlockService ethBlockService) {
+                              EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
+        this.priceProvider = priceProvider;
+        this.functions = functions;
     }
 
     @Override
@@ -111,7 +107,7 @@ public class HarvestVaultParser implements Web3Parser {
         //share price
         dto.setSharePrice(
             parseAmount(
-                fetchLastSharePrice(harvestTx.getVault().getValue())
+                functions.callPricePerFullShare(harvestTx.getVault().getValue())
                 , harvestTx.getVault().getValue())
         );
 
@@ -154,15 +150,6 @@ public class HarvestVaultParser implements Web3Parser {
         dto.setLastGas(web3Service.fetchAverageGasPrice());
     }
 
-    private BigInteger fetchLastSharePrice(String contractAddress) {
-        List<Type> types = web3Service
-            .callMethod(GET_PRICE_PER_FULL_SHARE, contractAddress, LATEST); //TODO archive data required for not LATEST
-        if (types == null || types.isEmpty()) {
-            return BigInteger.ONE;
-        }
-        return (BigInteger) types.get(0).getValue();
-    }
-
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
         if (Vaults.lpTokens.contains(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
@@ -171,41 +158,17 @@ public class HarvestVaultParser implements Web3Parser {
             if (price == null) {
                 throw new IllegalStateException("Unknown coin " + dto.getVault());
             }
-            dto.setUsdAmount((long) (price * dto.getAmount()));
+            dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
         }
-    }
-
-    private Tuple2<Double, Double> fetchUniBalance(String contractAddress) {
-        List<Type> types = web3Service
-            .callMethod(GET_RESERVES, LpContracts.harvestStrategyToLp.get(contractAddress),
-                LATEST); //TODO archive data required for not LATEST
-        if (types == null || types.size() < 3) {
-            log.error("Wrong values for " + contractAddress);
-            return new Tuple2<>(0.0, 0.0);
-        }
-        String contractName = Vaults.vaultNames.get(contractAddress);
-        if (contractName == null) {
-            throw new IllegalStateException("Not found name for " + contractAddress);
-        }
-        Tuple2<Long, Long> dividers = Vaults.lpDividers.get(contractName);
-        if (dividers == null) {
-            throw new IllegalStateException("Not found divider for " + contractName);
-        }
-        double v1 = ((BigInteger) types.get(0).getValue()).doubleValue();
-        double v2 = ((BigInteger) types.get(1).getValue()).doubleValue();
-        return new Tuple2<>(
-            v1 / dividers.component1(),
-            v2 / dividers.component2()
-        );
     }
 
     private void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
-        double vaultBalance = parseAmount(callErc20TotalSupply(vaultHash), vaultHash);
-        double sharedPrice = parseAmount(fetchLastSharePrice(vaultHash), vaultHash);
-        double vaultUnderlyingUnit = parseAmount(callUnderlyingUnit(vaultHash), vaultHash);
-        double lpBalance = parseAmount(callErc20TotalSupply(lpHash), lpHash);
-        Tuple2<Double, Double> lpUnderlyingBalances = fetchUniBalance(vaultHash);
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash), vaultHash);
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash), vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash), vaultHash);
+        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash), lpHash);
+        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash);
 
         double vaultSharedBalance = (vaultBalance * sharedPrice);
         double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpBalance;
@@ -220,24 +183,6 @@ public class HarvestVaultParser implements Web3Parser {
         double txFraction = (dto.getAmount() / vaultBalance);
         long txUsdAmount = Math.round(vaultUsdAmount * txFraction);
         dto.setUsdAmount(txUsdAmount);
-    }
-
-    private BigInteger callErc20TotalSupply(String hash) {
-        List<Type> types = web3Service.callMethod(ERC_20_TOTAL_SUPPLY, hash, LATEST);
-        if (types == null || types.isEmpty()) {
-            log.error("Wrong total supply for " + hash);
-            return BigInteger.ZERO;
-        }
-        return (BigInteger) types.get(0).getValue();
-    }
-
-    private BigInteger callUnderlyingUnit(String hash) {
-        List<Type> types = web3Service.callMethod(UNDERLYING_UNIT, hash, LATEST);
-        if (types == null || types.isEmpty()) {
-            log.error("Wrong underlying unit for " + hash);
-            return BigInteger.ZERO;
-        }
-        return (BigInteger) types.get(0).getValue();
     }
 
     @Override
