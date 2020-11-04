@@ -69,6 +69,44 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultUNI_ETH_USDC() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_USDC,
+            11187006 ,
+            1,
+            "0xefc8dcba0188825ad5a35206e8d372d75c488f65",
+            "Withdraw",
+            "UNI_ETH_USDC",
+            "0x1619bc754cbc8b74de04b660260d8509262b9eb10952e2efa08bc6a4fd9b9fae_108",
+            "0,00000152",
+            "0,00000153",
+            "0",
+            0L,
+            1604444037L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultCRVRENWBTC() {
+        harvestVaultParseTest(
+            Vaults.CRVRENWBTC,
+            11187206 ,
+            1,
+            "0x13e252df0cafe34116cec052177b7540afc75f76",
+            "Deposit",
+            "CRVRENWBTC",
+            "0xc0e321b9bf751ac25922b34346e63b6ed6cb76789f9151bb00b8e1a75b4bf644_242",
+            "624,51801895",
+            "624,89371055",
+            "0",
+            0L,
+            1604446549L,
+            true
+        );
+    }
+
     private void harvestVaultParseTest(
         String fromVault,
         long onBlock,

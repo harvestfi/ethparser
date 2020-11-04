@@ -47,8 +47,8 @@ public class HarvestDBService {
             dto.setLastUsdTvl(0.0);
             return;
         }
-
-        dto.setLastUsdTvl(dto.getTvlFactor() * tvl);
+        dto.setLastTvl(tvl);
+        dto.setLastUsdTvl(dto.getTvlUsdFactor() * tvl);
     }
 
 

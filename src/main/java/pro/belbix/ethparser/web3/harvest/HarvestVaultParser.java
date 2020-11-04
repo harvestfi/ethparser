@@ -161,13 +161,13 @@ public class HarvestVaultParser implements Web3Parser {
             double lpUsdAmount = getUniLpUsdAmount(dto.getVault(), strategyHash);
             long usdAmount = (long) (lpUsdAmount * dto.getAmount());
             dto.setUsdAmount(usdAmount);
-            dto.setTvlFactor(lpUsdAmount);
+            dto.setTvlUsdFactor(lpUsdAmount);
         } else {
             Double price = priceProvider.getPriceForCoin(dto.getVault());
             if (price == null) {
                 throw new IllegalStateException("Unknown coin " + dto.getVault());
             }
-            dto.setTvlFactor(price);
+            dto.setTvlUsdFactor(price);
             dto.setUsdAmount((long) (price * dto.getAmount()));
         }
     }

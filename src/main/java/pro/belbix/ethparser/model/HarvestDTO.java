@@ -30,6 +30,7 @@ public class HarvestDTO implements DtoI {
     private Double amountIn;
     private String vault;
     private Double lastGas;
+    private Double lastTvl;
     private Double lastUsdTvl;
     private Integer ownerCount;
     private Double sharePrice;
@@ -37,7 +38,7 @@ public class HarvestDTO implements DtoI {
     @Transient
     private Tuple2<Double, Double> usdPrice;
     @Transient
-    private Double tvlFactor;
+    private Double tvlUsdFactor;
 
     public String print() {
         return methodName + " "
@@ -49,12 +50,20 @@ public class HarvestDTO implements DtoI {
 
     //------------- GETTERS & SETTERS -------------------------
 
-    public Double getTvlFactor() {
-        return tvlFactor;
+    public Double getLastTvl() {
+        return lastTvl;
     }
 
-    public void setTvlFactor(Double tvlFactor) {
-        this.tvlFactor = tvlFactor;
+    public void setLastTvl(Double lastTvl) {
+        this.lastTvl = lastTvl;
+    }
+
+    public Double getTvlUsdFactor() {
+        return tvlUsdFactor;
+    }
+
+    public void setTvlUsdFactor(Double tvlUsdFactor) {
+        this.tvlUsdFactor = tvlUsdFactor;
     }
 
     public Tuple2<Double, Double> getUsdPrice() {
