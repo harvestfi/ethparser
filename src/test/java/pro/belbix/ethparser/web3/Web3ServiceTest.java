@@ -7,7 +7,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.GET_PRICE_PER_FULL_SHARE;
+import static pro.belbix.ethparser.web3.harvest.HarvestFunctions.GET_RESERVES;
 import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DAI;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
 import java.math.BigInteger;
@@ -24,6 +26,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Uint112;
+import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
@@ -99,10 +103,22 @@ public class Web3ServiceTest {
     }
 
     @Test
-    public void ethCallTest() {
+    public void ethCallGET_PRICE_PER_FULL_SHARETest() {
         List<Type> types = web3Service.callMethod(GET_PRICE_PER_FULL_SHARE, WBTC, LATEST);
         assertNotNull(types);
         assertFalse(types.isEmpty());
         assertTrue(HarvestTx.parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
+    }
+
+    @Test
+    public void ethCallGET_RESERVESTest() {
+        List<Type> types = web3Service.callMethod(GET_RESERVES, UNI_LP_ETH_DAI, LATEST);
+        assertNotNull(types);
+        assertEquals(3, types.size());
+        assertTrue(((Uint112) types.get(0)).getValue()
+            .divide(new BigInteger("1000000000000000000")).longValue() > 0);
+        assertTrue(((Uint112) types.get(1)).getValue()
+            .divide(new BigInteger("1000000000000000000")).longValue() > 0);
+        assertTrue(((Uint32) types.get(2)).getValue().longValue() > 0);
     }
 }

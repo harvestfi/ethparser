@@ -30,7 +30,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
-public class HarvestVaultParseTest {
+public class HarvestVaultDecoderTest {
 
     @Autowired
     private Web3Service web3Service;

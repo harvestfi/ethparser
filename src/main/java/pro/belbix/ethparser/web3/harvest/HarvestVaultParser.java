@@ -29,6 +29,7 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
 public class HarvestVaultParser implements Web3Parser {
@@ -159,28 +160,43 @@ public class HarvestVaultParser implements Web3Parser {
         if (Vaults.lpTokens.contains(dto.getVault())) {
             Tuple2<Double, Double> prices = priceProvider.getPriceForUniPair(dto.getVault());
             Tuple2<Double, Double> values = fetchUniBalance(strategyHash);
+            if (values.component1() == 0 || values.component2() == 0) {
+                throw new IllegalStateException("Wrong values for " + strategyHash);
+            }
             Double value1 = prices.component1() * values.component1();
             Double value2 = prices.component2() * values.component2();
-            dto.setUsdAmount((value1 + value2) * dto.getAmount());
+            long usdAmount = Math.round((value1 + value2) * dto.getAmount());
+            dto.setUsdAmount(usdAmount);
         } else {
             Double price = priceProvider.getPriceForCoin(dto.getVault());
             if (price == null) {
                 throw new IllegalStateException("Unknown coin " + dto.getVault());
             }
-            dto.setUsdAmount(price * dto.getAmount());
+            dto.setUsdAmount((long) (price * dto.getAmount()));
         }
     }
 
     private Tuple2<Double, Double> fetchUniBalance(String contractAddress) {
         List<Type> types = web3Service
-            .callMethod(GET_RESERVES, contractAddress, LATEST); //TODO archive data required for not LATEST
+            .callMethod(GET_RESERVES, LpContracts.harvestStrategyToLp.get(contractAddress),
+                LATEST); //TODO archive data required for not LATEST
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + contractAddress);
             return new Tuple2<>(0.0, 0.0);
         }
+        String contractName = Vaults.vaultNames.get(contractAddress);
+        if (contractName == null) {
+            throw new IllegalStateException("Not found name for " + contractAddress);
+        }
+        Tuple2<Long, Long> dividers = Vaults.coinDividers.get(contractName);
+        if (dividers == null) {
+            throw new IllegalStateException("Not found divider for " + contractName);
+        }
+        double v1 = ((BigInteger) types.get(0).getValue()).doubleValue();
+        double v2 = ((BigInteger) types.get(1).getValue()).doubleValue();
         return new Tuple2<>(
-            HarvestTx.parseAmount((BigInteger) types.get(0).getValue(), Vaults.vaultNames.get(contractAddress)),
-            HarvestTx.parseAmount((BigInteger) types.get(1).getValue(), Vaults.vaultNames.get(contractAddress))
+            v1 / dividers.component1(),
+            v2 / dividers.component2()
         );
     }
 
