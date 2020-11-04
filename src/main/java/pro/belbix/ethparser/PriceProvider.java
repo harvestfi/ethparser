@@ -18,6 +18,9 @@ public class PriceProvider {
 
     public Tuple2<Double, Double> getPriceForUniPair(String name) {
         String[] names = name.split("_");
+        if (names.length != 3) {
+            throw new IllegalStateException("Wrong name " + name);
+        }
         return new Tuple2<>(
             lastPrices.get(names[1]),
             lastPrices.get(names[2])

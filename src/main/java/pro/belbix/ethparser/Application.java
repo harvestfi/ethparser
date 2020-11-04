@@ -144,7 +144,7 @@ public class Application {
             harvestDTO.setId("0x" + (count * 1000000));
             harvestDTO.setHash("0x" + count);
             harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
-            harvestDTO.setLastTVL(currentCount * 1000000);
+            harvestDTO.setLastUsdTvl(currentCount * 1000000);
             harvestDTO.setConfirmed(new Random().nextBoolean());
             harvestDTO.setLastGas(currentCount / 6);
             harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());

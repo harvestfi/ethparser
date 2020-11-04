@@ -18,11 +18,8 @@ public class HarvestDBService {
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
-        Double tvl = harvestRepository.fetchTVL(dto.getVault());
-        if (tvl == null) {
-            tvl = 0.0;
-        }
-        dto.setLastTVL(tvl);
+        fillTVL(dto);
+
         Integer ownerCount = harvestRepository.fetchOwnerCount(dto.getVault());
         if (ownerCount == null) {
             ownerCount = 0;
@@ -43,4 +40,16 @@ public class HarvestDBService {
         }
         return dto.getBlock();
     }
+
+    private void fillTVL(HarvestDTO dto) {
+        Double tvl = harvestRepository.fetchTVL(dto.getVault());
+        if (tvl == null) {
+            dto.setLastUsdTvl(0.0);
+            return;
+        }
+
+        dto.setLastUsdTvl(dto.getTvlFactor() * tvl);
+    }
+
+
 }

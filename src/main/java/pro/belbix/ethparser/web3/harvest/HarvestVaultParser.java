@@ -158,22 +158,29 @@ public class HarvestVaultParser implements Web3Parser {
 
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
         if (Vaults.lpTokens.contains(dto.getVault())) {
-            Tuple2<Double, Double> prices = priceProvider.getPriceForUniPair(dto.getVault());
-            Tuple2<Double, Double> values = fetchUniBalance(strategyHash);
-            if (values.component1() == 0 || values.component2() == 0) {
-                throw new IllegalStateException("Wrong values for " + strategyHash);
-            }
-            Double value1 = prices.component1() * values.component1();
-            Double value2 = prices.component2() * values.component2();
-            long usdAmount = Math.round((value1 + value2) * dto.getAmount());
+            double lpUsdAmount = getUniLpUsdAmount(dto.getVault(), strategyHash);
+            long usdAmount = (long) (lpUsdAmount * dto.getAmount());
             dto.setUsdAmount(usdAmount);
+            dto.setTvlFactor(lpUsdAmount);
         } else {
             Double price = priceProvider.getPriceForCoin(dto.getVault());
             if (price == null) {
                 throw new IllegalStateException("Unknown coin " + dto.getVault());
             }
+            dto.setTvlFactor(price);
             dto.setUsdAmount((long) (price * dto.getAmount()));
         }
+    }
+
+    public double getUniLpUsdAmount(String vaultName, String strategyHash) {
+        Tuple2<Double, Double> prices = priceProvider.getPriceForUniPair(vaultName);
+        Tuple2<Double, Double> values = fetchUniBalance(strategyHash);
+        if (values.component1() == 0 || values.component2() == 0) {
+            throw new IllegalStateException("Wrong values for " + strategyHash);
+        }
+        Double value1 = prices.component1() * values.component1();
+        Double value2 = prices.component2() * values.component2();
+        return Math.round((value1 + value2));
     }
 
     private Tuple2<Double, Double> fetchUniBalance(String contractAddress) {
