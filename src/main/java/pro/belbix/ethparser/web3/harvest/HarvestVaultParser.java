@@ -117,6 +117,9 @@ public class HarvestVaultParser implements Web3Parser {
         return dto;
     }
 
+    /*
+     * TODO This method totally unclear, but I don't know how to get fAmount without parsing logs
+     */
     private void replaceInputCoinValueOnFarmWrap(HarvestTx harvestTx, TransactionReceipt receipt) {
         harvestTx.setAmountIn(harvestTx.getAmount());
 
@@ -128,7 +131,7 @@ public class HarvestVaultParser implements Web3Parser {
             }
             long logPlace = harvestTx.getLogId() - logTx.getLogId();
             if ((logPlace > 3 && harvestTx.getMethodName().toLowerCase().equals("deposit"))
-                || (logPlace > 8 && harvestTx.getMethodName().toLowerCase().equals("withdraw"))
+//                || (logPlace > 11 && harvestTx.getMethodName().toLowerCase().equals("withdraw")) //no limit for withdraw
                 || logPlace <= 0) {
                 continue;
             }

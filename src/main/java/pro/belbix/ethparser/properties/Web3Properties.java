@@ -42,12 +42,14 @@ public class Web3Properties {
         WBTC,
         RENBTC,
         CRVRENWBTC,
-        SUSHI_WBTC_TBTC
+        SUSHI_WBTC_TBTC,
+        YCRV,
+        _3CRV
     );
     private boolean testWs = false;
     private int testWsRate = 1000;
     private boolean parseUniswapLog = true;
-    private boolean parseHarvestLog = false;
+    private boolean parseHarvestLog = true;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
 

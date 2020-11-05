@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.model;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -35,7 +36,8 @@ public class HarvestDTO implements DtoI {
     private Long usdAmount;
 
     public String print() {
-        return methodName + " "
+        return Instant.ofEpochSecond(blockDate) + " "
+            + methodName + " "
             + "usd: " + usdAmount + " "
             + "f: " + amount + " "
             + vault

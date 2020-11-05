@@ -429,6 +429,44 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultCRVRENWBTC2() {
+        harvestVaultParseTest(
+            Vaults.CRVRENWBTC,
+            11105759,
+            1,
+            "0x875abe6f1e2aba07bed4a3234d8555a0d7656d12",
+            "Withdraw",
+            "CRVRENWBTC",
+            "0xda678594b1a8d10c34312bbcfce496cc5fd3ba6bae2065bfe98ba4c005574d1a_148",
+            "282,00527470",
+            "282,01465792",
+            "0",
+            3855986L,
+            130621783L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultTUSD() {
+        harvestVaultParseTest(
+            Vaults.TUSD,
+            11005889,
+            1,
+            "0xb71cd2a879c8d887ea8d75155ff51116178641c0",
+            "Withdraw",
+            "TUSD",
+            "0x1c3112e872cd47ee3dc3405b4159f1ec59cd4141dcd3a56a789e0abe336c1d6f_198",
+            "1474561,71532449",
+            "1473478,20140244",
+            "0",
+            1473502L,
+            3124008L,
+            true
+        );
+    }
+
     private void harvestVaultParseTest(
         String fromVault,
         long onBlock,

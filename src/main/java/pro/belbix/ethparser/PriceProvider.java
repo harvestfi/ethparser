@@ -81,6 +81,9 @@ public class PriceProvider {
         return "USD".equals(name)
             || "USDC".equals(name)
             || "USDT".equals(name)
+            || "YCRV".equals(name)
+            || "3CRV".equals(name)
+            || "TUSD".equals(name)
             || "DAI".equals(name);
     }
 
@@ -104,6 +107,9 @@ public class PriceProvider {
         lastPrices.put("USDC", 1.0);
         lastPrices.put("USDT", 1.0);
         lastPrices.put("DAI", 1.0);
+        lastPrices.put("YCRV", 1.0);
+        lastPrices.put("3CRV", 1.0);
+        lastPrices.put("TUSD", 1.0);
 
         lastPrices.put("WBTC", 13673.0);
         lastPrices.put("RENBTC", 13673.0);

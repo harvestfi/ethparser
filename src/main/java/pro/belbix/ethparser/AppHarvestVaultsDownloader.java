@@ -26,7 +26,7 @@ public class AppHarvestVaultsDownloader {
             if (!include.contains(Vaults.vaultNames.get(vaultName))) {
                 continue;
             }
-            harvestVaultDownloader.parseVault(vaultName, BLOCK_NUMBER_30_AUGUST_2020); //fromBlock = null means last from DB
+            harvestVaultDownloader.parseVault(vaultName, new DefaultBlockParameterNumber(11005889)); //fromBlock = null means last from DB
         }
 
         context.close();
@@ -38,14 +38,17 @@ public class AppHarvestVaultsDownloader {
 //            "UNI_ETH_USDC",
 //            "UNI_ETH_USDT",
 //            "UNI_ETH_WBTC",
-            "WETH",
-            "USDC",
-            "USDT",
-            "DAI",
-            "WBTC",
-            "RENBTC",
-            "CRVRENWBTC",
-            "SUSHI_WBTC_TBTC"
+//            "WETH",
+//            "USDC",
+//            "USDT",
+//            "DAI",
+//            "WBTC",
+//            "RENBTC",
+//            "CRVRENWBTC",
+//            "SUSHI_WBTC_TBTC",
+//            "YCRV",
+//            "3CRV",
+            "TUSD"
         )
     );
 
