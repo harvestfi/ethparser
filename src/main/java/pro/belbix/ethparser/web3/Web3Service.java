@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.harvest.HarvestVaultParser.ZERO_ADDRESS;
 
@@ -85,7 +86,11 @@ public class Web3Service {
     @PostConstruct
     private void init() {
         log.info("Connecting to Ethereum ...");
-        if(Strings.isBlank(web3Properties.getWeb3User())) {
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        clientBuilder.callTimeout(600, SECONDS)
+            .writeTimeout(600, SECONDS)
+            .connectTimeout(600, SECONDS);
+        if (Strings.isBlank(web3Properties.getWeb3User())) {
             String url;
             if (Strings.isBlank(web3Properties.getWeb3Url())) {
                 url = System.getProperty("ethjava.web3.url");
@@ -95,13 +100,14 @@ public class Web3Service {
             if (url == null) {
                 throw new IllegalStateException("Web3 url not defined");
             }
-
-            web3 = Web3j.build(new HttpService(url));
+            HttpService httpService = new HttpService(url, clientBuilder.build(), false);
+            web3 = Web3j.build(httpService);
         } else {
-            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
             clientBuilder.authenticator(new Authenticator() {
-                @Override public Request authenticate(Route route, Response response) throws IOException {
-                    String credential = Credentials.basic(web3Properties.getWeb3User(), web3Properties.getWeb3Password());
+                @Override
+                public Request authenticate(Route route, Response response) throws IOException {
+                    String credential = Credentials
+                        .basic(web3Properties.getWeb3User(), web3Properties.getWeb3Password());
                     return response.request().newBuilder().header("Authorization", credential).build();
                 }
             });
@@ -423,6 +429,11 @@ public class Web3Service {
                     DefaultBlockParameterNumber to = new DefaultBlockParameterNumber(currentBlock);
                     if (from == null) {
                         from = to;
+                    } else {
+                        long diff = to.getBlockNumber().longValue() - from.getBlockNumber().longValue();
+                        if (diff > 1000) {
+                            to = new DefaultBlockParameterNumber(from.getBlockNumber().longValue() + 1000L);
+                        }
                     }
                     List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(addresses, from, to);
                     log.info("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
