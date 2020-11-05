@@ -107,7 +107,7 @@ public class HarvestVaultParser implements Web3Parser {
         //share price
         dto.setSharePrice(
             parseAmount(
-                functions.callPricePerFullShare(harvestTx.getVault().getValue())
+                functions.callPricePerFullShare(harvestTx.getVault().getValue(), dto.getBlock().longValue())
                 , harvestTx.getVault().getValue())
         );
 
@@ -121,10 +121,15 @@ public class HarvestVaultParser implements Web3Parser {
         harvestTx.setAmountIn(harvestTx.getAmount());
 
         List<Log> logs = receipt.getLogs();
-
         for (Log ethLog : logs) {
             HarvestTx logTx = harvestVaultLogDecoder.decode(ethLog);
             if (logTx == null) {
+                continue;
+            }
+            long logPlace = harvestTx.getLogId() - logTx.getLogId();
+            if ((logPlace > 3 && harvestTx.getMethodName().toLowerCase().equals("deposit"))
+                || (logPlace > 8 && harvestTx.getMethodName().toLowerCase().equals("withdraw"))
+                || logPlace <= 0) {
                 continue;
             }
             if (!"Transfer".equals(logTx.getMethodName())) {
@@ -143,7 +148,7 @@ public class HarvestVaultParser implements Web3Parser {
                 return;
             }
         }
-        throw new IllegalStateException("Not found transfer value");
+        throw new IllegalStateException("Not found transfer value " + harvestTx.getHash());
     }
 
     public void enrichDto(HarvestDTO dto) {
@@ -154,26 +159,43 @@ public class HarvestVaultParser implements Web3Parser {
         if (Vaults.lpTokens.contains(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
         } else {
-            Double price = priceProvider.getPriceForCoin(dto.getVault());
-            if (price == null) {
-                throw new IllegalStateException("Unknown coin " + dto.getVault());
-            }
-            dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
+            fillUsdValues(dto, strategyHash);
         }
+    }
+
+    private void fillUsdValues(HarvestDTO dto, String vaultHash) {
+        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        if (price == null) {
+            throw new IllegalStateException("Unknown coin " + dto.getVault());
+        }
+
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+
+        double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
+        dto.setLastUsdTvl((double) Math.round(vault * price));
+        dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
     }
 
     private void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash), vaultHash);
-        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash), vaultHash);
-        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash), vaultHash);
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash), lpHash);
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash);
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock().longValue()), lpHash);
+        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock().longValue());
 
         double vaultSharedBalance = (vaultBalance * sharedPrice);
         double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpBalance;
 
-        Tuple2<Double, Double> uniPrices = priceProvider.getPriceForUniPair(vaultHash);
+        Tuple2<Double, Double> uniPrices = priceProvider.getPriceForUniPair(vaultHash, dto.getBlock().longValue());
 
         Long firstVault = Math.round(vaultFraction * lpUnderlyingBalances.component1() * uniPrices.component1());
         Long secondVault = Math.round(vaultFraction * lpUnderlyingBalances.component2() * uniPrices.component2());

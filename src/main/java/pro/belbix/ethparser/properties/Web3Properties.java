@@ -13,6 +13,8 @@ import org.springframework.validation.annotation.Validated;
 public class Web3Properties {
 
     private String web3Url = "";
+    private String web3User = "";
+    private String web3Password = "";
     private String startBlock = "";
     private String startLogBlock = "";
     private List<String> logSubscriptions = Arrays.asList(
@@ -48,6 +50,22 @@ public class Web3Properties {
     private boolean parseHarvestLog = false;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+
+    public String getWeb3User() {
+        return web3User;
+    }
+
+    public void setWeb3User(String web3User) {
+        this.web3User = web3User;
+    }
+
+    public String getWeb3Password() {
+        return web3Password;
+    }
+
+    public void setWeb3Password(String web3Password) {
+        this.web3Password = web3Password;
+    }
 
     public List<String> getLogSubscriptions() {
         return logSubscriptions;

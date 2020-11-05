@@ -182,10 +182,10 @@ public class UniswapTx implements EthTransactionI {
 
     public boolean tokenIsFirstOrLast(String hash) {
         if (allAddresses == null || allAddresses.length == 0) {
-            throw new IllegalStateException("Empty addresses");
+            throw new IllegalStateException("Empty addresses for " + hash);
         }
         if (allAddresses.length == 1) {
-            throw new IllegalStateException("Only one address");
+            throw new IllegalStateException("Only one address for " + hash);
         }
         if (allAddresses[0].getValue().equals(hash)) {
             return true;
@@ -193,17 +193,17 @@ public class UniswapTx implements EthTransactionI {
         if (allAddresses[allAddresses.length - 1].getValue().equals(hash)) {
             return false;
         }
-        throw new IllegalStateException("Token not the last or first");
+        throw new IllegalStateException("Token not the last or first for " + hash);
     }
 
 
 
     public void assertBuy(boolean expected) {
         if (buy == null) {
-            throw new IllegalStateException("Buy now is null");
+            throw new IllegalStateException("Buy now is null for " + hash);
         }
         if (buy != expected) {
-            throw new IllegalStateException("Unexpected setup!");
+            throw new IllegalStateException("Unexpected setup for " + hash);
         }
     }
 
@@ -238,7 +238,7 @@ public class UniswapTx implements EthTransactionI {
                 uniswapDTO.setType(type);
             }
         } else {
-            throw new IllegalStateException("Contract not found");
+            throw new IllegalStateException("Contract not found for " +hash);
         }
 
         if (uniswapDTO.getOtherCoin().equals("USDC")) {

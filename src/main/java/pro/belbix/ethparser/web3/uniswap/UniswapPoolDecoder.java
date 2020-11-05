@@ -108,14 +108,14 @@ public class UniswapPoolDecoder {
         } else if (!ZERO.equals(amountIn1)) {
             amountIn = amountIn1;
         } else {
-            throw new IllegalStateException("amountIn in is zero");
+            throw new IllegalStateException("amountIn in is zero " + tx.getHash());
         }
         if (!ZERO.equals(amountOut0)) {
             amountOut = amountOut0;
         } else if (!ZERO.equals(amountOut1)) {
             amountOut = amountOut1;
         } else {
-            throw new IllegalStateException("amountOut in is zero");
+            throw new IllegalStateException("amountOut in is zero " + tx.getHash());
         }
 
         tx.setAmountIn(amountIn);

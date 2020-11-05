@@ -29,24 +29,24 @@ public class PriceProvider {
         this.functions = functions;
     }
 
-    public Double getPriceForCoin(String name) {
-        updateUSDCPrice(name);
+    public Double getPriceForCoin(String name, long block) {
+        updateUSDCPrice(name, block);
         return lastPrices.get(name);
     }
 
-    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash) {
+    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash, long block) {
         Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(
             LpContracts.harvestStrategyToLp.get(strategyHash));
         if (names == null) {
             throw new IllegalStateException("Not found names for " + strategyHash);
         }
         return new Tuple2<>(
-            getPriceForCoin(names.component1()),
-            getPriceForCoin(names.component2())
+            getPriceForCoin(names.component1(), block),
+            getPriceForCoin(names.component2(), block)
         );
     }
 
-    private void updateUSDCPrice(String coinName) {
+    private void updateUSDCPrice(String coinName, long block) {
         if (isStableCoin(coinName)) {
             return;
         }
@@ -63,7 +63,7 @@ public class PriceProvider {
             throw new IllegalStateException("Not found hash for " + lpName);
         }
 
-        Tuple2<Double, Double> reserves = functions.callReserves(lpHash);
+        Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
         double price;
         if (UNI_LP_USDC_ETH.equals(lpHash)) {
             price = reserves.component1() / reserves.component2();

@@ -31,6 +31,25 @@ public class HarvestVaultParserTest {
     private Web3Service web3Service;
 
     @Test
+    public void parseVaultWETH2() {
+        harvestVaultParseTest(
+            Vaults.WETH,
+            11147169,
+            1,
+            "0xc22bc5f7e5517d7a5df9273d66e254d4b549523c",
+            "Withdraw",
+            "WETH",
+            "0x8ca5430e2311a0ba200982f90fb03fae00d1a1bf7cf0c9f6ab4b5519a7cd3613_280",
+            "82,00902140",
+            "82,05226438",
+            "1,00424760",
+            31343L,
+            7605254L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultUNI_ETH_WBTC() {
         harvestVaultParseTest(
             Vaults.UNI_ETH_WBTC,
@@ -43,8 +62,8 @@ public class HarvestVaultParserTest {
             "0,00084212",
             "0,00084570",
             "1,00424760",
-            422843L,
-            1604415805L,
+            422271L,
+            65786027L,
             true
         );
     }
@@ -63,7 +82,7 @@ public class HarvestVaultParserTest {
             "0,68734177",
             "1,00424760",
             32L,
-            1604425790L,
+            24905449L,
             true
         );
     }
@@ -81,8 +100,46 @@ public class HarvestVaultParserTest {
             "147,42969692",
             "148,58879257",
             "1,00424760",
-            6885L,
-            1604469644L,
+            6868L,
+            24108089L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultUNI_ETH_DAI3() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_DAI,
+            11059006,
+            1,
+            "0xa51030ce6ee1f832ea559499cd4ae57c26a5c614",
+            "Deposit",
+            "UNI_ETH_DAI",
+            "0xee05ff562e847cd2b51f86280eaef1892c536cde8153b571415811faa95929e6_160",
+            "0,33045221",
+            "0,33045221",
+            "1,00424760",
+            15L,
+            42017501L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultUNI_ETH_DAI4() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_DAI,
+            11059057,
+            1,
+            "0x8a85ee300b04f9f1622f13941a58cbdabec14af4",
+            "Withdraw",
+            "UNI_ETH_DAI",
+            "0x972267d1f6fe7eef882736a8e0c26b7e38f4bc803170e194f476b638173db215_97",
+            "158000,22215390",
+            "158000,22215390",
+            "1,00424760",
+            7285329L,
+            34732534L,
             true
         );
     }
@@ -97,11 +154,11 @@ public class HarvestVaultParserTest {
             "Deposit",
             "USDT",
             "0xa212d43adde6faeab6039288af6eeee5aefeea8c299ab6a44ce8db1aa93975d2_249",
-            "0,03189300",
+            "0,00078300",
             "0,00066200",
             "0",
             0L,
-            1604491973L,
+            8979591L,
             true
         );
     }
@@ -120,7 +177,7 @@ public class HarvestVaultParserTest {
             "1998649,72839200",
             "0,00066200",
             1998648L,
-            1604459302L,
+            8949404L,
             true
         );
     }
@@ -138,8 +195,8 @@ public class HarvestVaultParserTest {
             "0,00068016",
             "0,00068416",
             "1,00424760",
-            33656L,
-            1604480111L,
+            33571L,
+            32528952L,
             true
         );
     }
@@ -157,8 +214,8 @@ public class HarvestVaultParserTest {
             "0,01479451",
             "0,01488166",
             "1,00424760",
-            730803L,
-            1604462506L,
+            730203L,
+            32333996L,
             true
         );
     }
@@ -177,7 +234,7 @@ public class HarvestVaultParserTest {
             "10,00000000",
             "1,00424760",
             3820L,
-            1604492330L,
+            8342370L,
             true
         );
     }
@@ -196,7 +253,7 @@ public class HarvestVaultParserTest {
             "0,00000153",
             "0",
             75L,
-            1604444037L,
+            47134568L,
             true
         );
     }
@@ -215,7 +272,7 @@ public class HarvestVaultParserTest {
             "0,02663700",
             "0",
             0L,
-            1604491973L,
+            10844841L,
             true
         );
     }
@@ -234,7 +291,7 @@ public class HarvestVaultParserTest {
             "1662355,80963700",
             "0",
             1662354L,
-            1604457921L,
+            10913194L,
             true
         );
     }
@@ -252,8 +309,8 @@ public class HarvestVaultParserTest {
             "624,51801895",
             "624,89371055",
             "0",
-            8544662L,
-            1604446549L,
+            8544171L,
+            127486817L,
             true
         );
     }
@@ -272,7 +329,7 @@ public class HarvestVaultParserTest {
             "4414,54065701",
             "0",
             4414L,
-            1604475193L,
+            1297996L,
             true
         );
     }
@@ -290,8 +347,8 @@ public class HarvestVaultParserTest {
             "0,02802258",
             "0,02805316",
             "0",
-            386L,
-            1604493911L,
+            387L,
+            7471619L,
             true
         );
     }
@@ -310,7 +367,7 @@ public class HarvestVaultParserTest {
             "1,02579537",
             "0",
             14025L,
-            1604446751L,
+            10530495L,
             true
         );
     }
@@ -328,8 +385,46 @@ public class HarvestVaultParserTest {
             "0,00000981",
             "0,00000981",
             "0",
-            27056L,
-            1602701976L,
+            26994L,
+            3231186L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultUNI_ETH_USDC2() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_USDC,
+            11061363,
+            1,
+            "0x4c8133051b300ccd66b6b35c5a0af15b6a97012a",
+            "Deposit",
+            "UNI_ETH_USDC",
+            "0xd55e956b30b6fd561700a7a87cc42c1a50b88645d38451d1b5ff706660a64d16_48",
+            "0,27332899",
+            "0,27336849",
+            "0",
+            13289747L,
+            89246378L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultUNI_ETH_USDC3() {
+        harvestVaultParseTest(
+            Vaults.UNI_ETH_USDC,
+            11105503,
+            1,
+            "0xc50b3f8f200ae3f1e8dca71ca770c3c4ea94a083",
+            "Deposit",
+            "UNI_ETH_USDC",
+            "0x0d66e450cf9cca6a5a838e3ecf11f5f558d3d9494a7ccd0a9ddda2697730385b_223",
+            "0,07969178",
+            "0,07984819",
+            "0",
+            3887396L,
+            104327899L,
             true
         );
     }
@@ -346,7 +441,7 @@ public class HarvestVaultParserTest {
         String amountIn,
         String sharePrice,
         Long usdAmount,
-        Long blockDate,
+        Long usdTvl,
         boolean confirmed
     ) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault),
@@ -362,7 +457,7 @@ public class HarvestVaultParserTest {
             amountIn,
             sharePrice,
             usdAmount,
-            blockDate,
+            usdTvl,
             confirmed
         );
     }
@@ -376,7 +471,7 @@ public class HarvestVaultParserTest {
                            String amountIn,
                            String sharePrice,
                            Long usdAmount,
-                           Long blockDate,
+                           Long usdTvl,
                            boolean confirmed) {
         assertNotNull("Dto is null", dto);
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
@@ -386,8 +481,10 @@ public class HarvestVaultParserTest {
             () -> assertEquals("Amount", amount, String.format("%.8f", dto.getAmount())),
             () -> assertEquals("AmountIn", amountIn, String.format("%.8f", dto.getAmountIn())),
 //            () -> assertEquals("SharePrice", sharePrice, String.format("%.8f", dto.getSharePrice())), //unstable without archive
-            () -> assertEquals("UsdAmount", usdAmount, dto.getUsdAmount(), dto.getUsdAmount() / 30.0),
-            () -> assertEquals("BlockDate", blockDate, dto.getBlockDate()),
+            () -> assertEquals("UsdAmount", String.format("%.0f", usdAmount.doubleValue()),
+                String.format("%.0f", dto.getUsdAmount().doubleValue())),
+            () -> assertEquals("usdTvl", String.format("%.0f", usdTvl.doubleValue()),
+                String.format("%.0f", dto.getLastUsdTvl())),
             () -> assertEquals("Confirmed", confirmed, dto.isConfirmed())
         );
     }

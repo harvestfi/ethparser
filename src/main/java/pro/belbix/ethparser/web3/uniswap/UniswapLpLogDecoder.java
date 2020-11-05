@@ -79,14 +79,14 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 } else if (!amount1In.equals(BigInteger.ZERO)) {
                     tx.setAmountIn(amount1In);
                 } else {
-                    throw new IllegalStateException("Zero amountIn");
+                    throw new IllegalStateException("Zero amountIn for " + tx.getHash());
                 }
                 if (!amount0Out.equals(BigInteger.ZERO)) {
                     tx.setAmountOut(amount0Out);
                 } else if (!amount1Out.equals(BigInteger.ZERO)) {
                     tx.setAmountOut(amount1Out);
                 } else {
-                    throw new IllegalStateException("Zero amountOut");
+                    throw new IllegalStateException("Zero amountOut for " + tx.getHash());
                 }
 
 //                if (FARM_TOPIC_ADDRESS1.equals(sender)) {

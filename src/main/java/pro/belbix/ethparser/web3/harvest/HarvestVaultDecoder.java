@@ -59,7 +59,7 @@ public class HarvestVaultDecoder extends MethodDecoder {
             case "rebalance":
                 return tx;
         }
-        throw new IllegalStateException("Unknown method");
+        throw new IllegalStateException("Unknown method " + methodName + " from " + transaction.getHash());
     }
 
     @Override

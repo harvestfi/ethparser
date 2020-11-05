@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3;
 
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,8 +13,8 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @SuppressWarnings("rawtypes")
@@ -30,18 +28,18 @@ public class Functions {
         this.web3Service = web3Service;
     }
 
-    public BigInteger callPricePerFullShare(String contractAddress) {
+    public BigInteger callPricePerFullShare(String contractAddress, long block) {
         List<Type> types = web3Service
-            .callMethod(GET_PRICE_PER_FULL_SHARE, contractAddress, LATEST); //TODO archive data required for not LATEST
+            .callMethod(GET_PRICE_PER_FULL_SHARE, contractAddress, new DefaultBlockParameterNumber(block));
         if (types == null || types.isEmpty()) {
             return BigInteger.ONE;
         }
         return (BigInteger) types.get(0).getValue();
     }
 
-    public Tuple2<Double, Double> callReserves(String lpAddress) {
+    public Tuple2<Double, Double> callReserves(String lpAddress, long block) {
         List<Type> types = web3Service
-            .callMethod(GET_RESERVES, lpAddress, LATEST); //TODO archive data required for not LATEST
+            .callMethod(GET_RESERVES, lpAddress, new DefaultBlockParameterNumber(block));
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + lpAddress);
             return new Tuple2<>(0.0, 0.0);
@@ -59,8 +57,8 @@ public class Functions {
         );
     }
 
-    public BigInteger callErc20TotalSupply(String hash) {
-        List<Type> types = web3Service.callMethod(ERC_20_TOTAL_SUPPLY, hash, LATEST);
+    public BigInteger callErc20TotalSupply(String hash, long block) {
+        List<Type> types = web3Service.callMethod(ERC_20_TOTAL_SUPPLY, hash, new DefaultBlockParameterNumber(block));
         if (types == null || types.isEmpty()) {
             log.error("Wrong total supply for " + hash);
             return BigInteger.ZERO;
@@ -68,8 +66,8 @@ public class Functions {
         return (BigInteger) types.get(0).getValue();
     }
 
-    public BigInteger callUnderlyingUnit(String hash) {
-        List<Type> types = web3Service.callMethod(UNDERLYING_UNIT, hash, LATEST);
+    public BigInteger callUnderlyingUnit(String hash, long block) {
+        List<Type> types = web3Service.callMethod(UNDERLYING_UNIT, hash, new DefaultBlockParameterNumber(block));
         if (types == null || types.isEmpty()) {
             log.error("Wrong underlying unit for " + hash);
             return BigInteger.ZERO;

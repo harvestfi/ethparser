@@ -11,7 +11,7 @@ import pro.belbix.ethparser.web3.uniswap.UniswapLpDownloader;
 public class AppUniswapLPDownloader {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(AppHarvestVaultsDownloader.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(AppUniswapLPDownloader.class, args);
         UniswapLpDownloader downloader = context.getBean(UniswapLpDownloader.class);
 //        DefaultBlockParameterName from = DefaultBlockParameterName.EARLIEST;
 //        DefaultBlockParameterName from = DefaultBlockParameter.valueOf(new BigInteger(""));

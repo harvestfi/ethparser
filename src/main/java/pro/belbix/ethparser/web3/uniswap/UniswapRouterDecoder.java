@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
 
-import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -133,7 +132,7 @@ public class UniswapRouterDecoder extends MethodDecoder {
                 tx.setAllAddresses(parseAddresses(types.get(2)));
                 return;
         }
-        throw new IllegalStateException("Unknown method");
+        throw new IllegalStateException("Unknown method " + methodName + " for " + tx.getHash());
     }
 
     private static Address parseAddress(Type type, int i) {

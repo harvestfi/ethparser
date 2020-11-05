@@ -18,6 +18,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,17 +85,30 @@ public class Web3Service {
     @PostConstruct
     private void init() {
         log.info("Connecting to Ethereum ...");
-        String url;
-        if (Strings.isBlank(web3Properties.getWeb3Url())) {
-            url = System.getProperty("ethjava.web3.url");
-        } else {
-            url = web3Properties.getWeb3Url();
-        }
-        if (url == null) {
-            throw new IllegalStateException("Web3 url not defined");
-        }
+        if(Strings.isBlank(web3Properties.getWeb3User())) {
+            String url;
+            if (Strings.isBlank(web3Properties.getWeb3Url())) {
+                url = System.getProperty("ethjava.web3.url");
+            } else {
+                url = web3Properties.getWeb3Url();
+            }
+            if (url == null) {
+                throw new IllegalStateException("Web3 url not defined");
+            }
 
-        web3 = Web3j.build(new HttpService(url));
+            web3 = Web3j.build(new HttpService(url));
+        } else {
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+            clientBuilder.authenticator(new Authenticator() {
+                @Override public Request authenticate(Route route, Response response) throws IOException {
+                    String credential = Credentials.basic(web3Properties.getWeb3User(), web3Properties.getWeb3Password());
+                    return response.request().newBuilder().header("Authorization", credential).build();
+                }
+            });
+
+            HttpService service = new HttpService(web3Properties.getWeb3Url(), clientBuilder.build(), false);
+            web3 = Web3j.build(service);
+        }
         log.info("Successfully connected to Ethereum");
         init = true;
     }
