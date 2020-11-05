@@ -36,11 +36,11 @@ server:
 
 web3:
 #  startBlock: 11137613
-#  startLogBlock: 11181432
+#  startLogBlock: 11189000
 #  parseTransactions: false
 #  parseHarvest: false
 #  parseHarvestLog: true
-#  parseUniswapLog: false
+#  parseUniswapLog: true
 #  testWs: true
   testWsRate: 10000
 
