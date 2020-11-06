@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.model.UniswapDTO;
+import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 
 @Service
@@ -12,10 +13,12 @@ public class UniswapDbService {
 
     private static final Logger log = LoggerFactory.getLogger(UniswapDbService.class);
     private final UniswapRepository uniswapRepository;
+    private final Web3Properties web3Properties;
 
     public UniswapDbService(
-        UniswapRepository uniswapRepository) {
+        UniswapRepository uniswapRepository, Web3Properties web3Properties) {
         this.uniswapRepository = uniswapRepository;
+        this.web3Properties = web3Properties;
     }
 
     public boolean saveUniswapDto(UniswapDTO dto) {
@@ -24,7 +27,7 @@ public class UniswapDbService {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-        if (uniswapRepository.existsById(dto.getId())) {
+        if (!web3Properties.isOverrideDuplicates() && uniswapRepository.existsById(dto.getId())) {
             log.info("Duplicate tx " + dto.getId());
             return false;
         }

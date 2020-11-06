@@ -35,12 +35,14 @@ server:
     uri-encoding: UTF-8 # Character encoding to use to decode the URI.
 
 web3:
-#  startBlock: 11137613
-#  startLogBlock: 11189000
+  stubPrice: true
+#  overrideDuplicates: true
+#  startBlock: 11196986
+#  startLogBlock: 11196986
 #  parseTransactions: false
 #  parseHarvest: false
 #  parseHarvestLog: true
-#  parseUniswapLog: true
+#  parseUniswapLog: false
 #  testWs: true
   testWsRate: 10000
 

@@ -1,7 +1,11 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -18,12 +22,13 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.PriceProvider;
 import pro.belbix.ethparser.model.DtoI;
 import pro.belbix.ethparser.model.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
@@ -32,6 +37,7 @@ import pro.belbix.ethparser.web3.uniswap.LpContracts;
 public class HarvestVaultParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestVaultParser.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -66,7 +72,12 @@ public class HarvestVaultParser implements Web3Parser {
                     HarvestDTO dto = parseVaultLog(ethLog);
                     if (dto != null) {
                         enrichDto(dto);
-                        boolean success = harvestDBService.saveHarvestDTO(dto);
+                        boolean success = true;
+                        if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
+                            success = harvestDBService.saveHarvestDTO(dto);
+                        } else {
+                            log.info("Last prices send " + dto.getPrices() + " " + dto.getLastGas());
+                        }
                         if (success) {
                             output.put(dto);
                         }
@@ -79,6 +90,12 @@ public class HarvestVaultParser implements Web3Parser {
     }
 
     public HarvestDTO parseVaultLog(Log ethLog) {
+        if (ethLog == null) {
+            return null;
+        }
+        if (PRICE_STUB_TYPE.equals(ethLog.getType())) {
+            return createStubPriceDto();
+        }
         HarvestTx harvestTx;
         try {
             harvestTx = harvestVaultLogDecoder.decode(ethLog);
@@ -114,6 +131,14 @@ public class HarvestVaultParser implements Web3Parser {
         fillUsdPrice(dto, harvestTx.getVault().getValue());
 
         log.info(dto.print());
+        return dto;
+    }
+
+    private HarvestDTO createStubPriceDto() {
+        HarvestDTO dto = new HarvestDTO();
+        dto.setBlockDate(Instant.now().getEpochSecond());
+        dto.setBlock(web3Service.fetchCurrentBlock());
+        dto.setMethodName(PRICE_STUB_TYPE);
         return dto;
     }
 
@@ -154,8 +179,19 @@ public class HarvestVaultParser implements Web3Parser {
         throw new IllegalStateException("Not found transfer value " + harvestTx.getHash());
     }
 
+    /**
+     * Separate method for avoid any unnecessary enrichment for other methods
+     */
     public void enrichDto(HarvestDTO dto) {
+        //set gas
         dto.setLastGas(web3Service.fetchAverageGasPrice());
+
+        //write all prices
+        try {
+            dto.setPrices(priceProvider.getAllPrices(dto.getBlock().longValue()));
+        } catch (Exception e) {
+            log.error("Error get prices", e);
+        }
     }
 
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
@@ -180,6 +216,7 @@ public class HarvestVaultParser implements Web3Parser {
             vaultHash);
 
         double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
+        dto.setLastTvl(vault);
         dto.setLastUsdTvl((double) Math.round(vault * price));
         dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
     }
@@ -200,9 +237,25 @@ public class HarvestVaultParser implements Web3Parser {
 
         Tuple2<Double, Double> uniPrices = priceProvider.getPriceForUniPair(vaultHash, dto.getBlock().longValue());
 
-        Long firstVault = Math.round(vaultFraction * lpUnderlyingBalances.component1() * uniPrices.component1());
-        Long secondVault = Math.round(vaultFraction * lpUnderlyingBalances.component2() * uniPrices.component2());
-        long vaultUsdAmount = firstVault + secondVault;
+        double firstVault = vaultFraction * lpUnderlyingBalances.component1();
+        double secondVault = vaultFraction * lpUnderlyingBalances.component2();
+
+        try {
+            Tuple2<String, String> coinNames =
+                LpContracts.lpHashToCoinNames.get(LpContracts.harvestStrategyToLp.get(vaultHash));
+            LpStat lpStat = new LpStat();
+            lpStat.setCoin1(coinNames.component1());
+            lpStat.setCoin2(coinNames.component2());
+            lpStat.setAmount1(firstVault);
+            lpStat.setAmount2(secondVault);
+            dto.setLpStat(OBJECT_MAPPER.writeValueAsString(lpStat));
+        } catch (JsonProcessingException e) {
+            log.error("Error write lp stat", e);
+        }
+
+        Long firstVaultUsdAmount = Math.round(firstVault * uniPrices.component1());
+        Long secondVaultUsdAmount = Math.round(secondVault * uniPrices.component2());
+        long vaultUsdAmount = firstVaultUsdAmount + secondVaultUsdAmount;
         dto.setLastUsdTvl((double) vaultUsdAmount);
 
         double txFraction = (dto.getAmount() / vaultBalance);
@@ -213,6 +266,10 @@ public class HarvestVaultParser implements Web3Parser {
     @Override
     public BlockingQueue<DtoI> getOutput() {
         return output;
+    }
+
+    public BlockingQueue<Log> getLogs() {
+        return logs;
     }
 
     @PreDestroy

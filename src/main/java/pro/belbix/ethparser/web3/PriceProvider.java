@@ -1,37 +1,48 @@
-package pro.belbix.ethparser;
+package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.model.PricesDTO;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
 public class PriceProvider {
 
-    private static final int UPDATE_TIMEOUT = 60 * 10;
-    private final Web3Service web3Service;
+    private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
+    private final static ObjectMapper objectMapper = new ObjectMapper();
+    private static final int UPDATE_TIMEOUT = 60;
     private final Functions functions;
 
     private final Map<String, Double> lastPrices = new HashMap<>();
     private final Map<String, Instant> lastUpdates = new HashMap<>();
 
-    public PriceProvider(Web3Service web3Service, Functions functions) {
+    public PriceProvider(Functions functions) {
         init();
-        this.web3Service = web3Service;
         this.functions = functions;
     }
 
+    public String getAllPrices(long block) throws JsonProcessingException {
+        PricesDTO dto = new PricesDTO();
+        dto.setBtc(getPriceForCoin("WBTC", block));
+        dto.setEth(getPriceForCoin("WETH", block));
+        return objectMapper.writeValueAsString(dto);
+    }
+
     public Double getPriceForCoin(String name, long block) {
-        updateUSDCPrice(name, block);
-        return lastPrices.get(name);
+        String coinNameSimple = simplifyName(name);
+        updateUSDCPrice(coinNameSimple, block);
+        return lastPrices.get(coinNameSimple);
     }
 
     public Tuple2<Double, Double> getPriceForUniPair(String strategyHash, long block) {
@@ -50,7 +61,6 @@ public class PriceProvider {
         if (isStableCoin(coinName)) {
             return;
         }
-        coinName = simplifyName(coinName);
 
         Instant lastUpdate = lastUpdates.get(coinName);
         if (lastUpdate != null && Duration.between(lastUpdate, Instant.now()).getSeconds() < UPDATE_TIMEOUT) {
@@ -75,6 +85,7 @@ public class PriceProvider {
 
         lastPrices.put(coinName, price);
         lastUpdates.put(coinName, Instant.now());
+        log.info("Price {} updated {}", coinName, price);
     }
 
     private boolean isStableCoin(String name) {
@@ -95,6 +106,8 @@ public class PriceProvider {
         } else if ("CRVRENWBTC".equals(name)) {
             return "WBTC";
         } else if ("TBTC".equals(name)) {
+            return "WBTC";
+        } else if ("BTC".equals(name)) {
             return "WBTC";
         }
         return name;

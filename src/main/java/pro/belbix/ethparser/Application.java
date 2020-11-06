@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -169,6 +170,7 @@ public class Application {
 
     @Configuration
     @EnableWebSocketMessageBroker
+    @EnableScheduling
     public static class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         @Override

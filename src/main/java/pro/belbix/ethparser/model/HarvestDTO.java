@@ -22,7 +22,6 @@ public class HarvestDTO implements DtoI {
     private BigInteger block;
     private boolean confirmed = false;
     private Long blockDate;
-
     private String methodName;
     private String owner;
     private Double amount;
@@ -34,6 +33,8 @@ public class HarvestDTO implements DtoI {
     private Integer ownerCount;
     private Double sharePrice;
     private Long usdAmount;
+    private String prices;
+    private String lpStat;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -46,6 +47,22 @@ public class HarvestDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public String getLpStat() {
+        return lpStat;
+    }
+
+    public void setLpStat(String lpStat) {
+        this.lpStat = lpStat;
+    }
+
+    public String getPrices() {
+        return prices;
+    }
+
+    public void setPrices(String prices) {
+        this.prices = prices;
+    }
 
     public Double getLastTvl() {
         return lastTvl;

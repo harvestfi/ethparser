@@ -52,6 +52,24 @@ public class Web3Properties {
     private boolean parseHarvestLog = true;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+    private boolean overrideDuplicates = false;
+    private boolean stubPrice = false;
+
+    public boolean isStubPrice() {
+        return stubPrice;
+    }
+
+    public void setStubPrice(boolean stubPrice) {
+        this.stubPrice = stubPrice;
+    }
+
+    public boolean isOverrideDuplicates() {
+        return overrideDuplicates;
+    }
+
+    public void setOverrideDuplicates(boolean overrideDuplicates) {
+        this.overrideDuplicates = overrideDuplicates;
+    }
 
     public String getWeb3User() {
         return web3User;
