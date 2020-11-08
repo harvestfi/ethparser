@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.model.UniswapDTO;
+import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @SuppressWarnings("rawtypes")

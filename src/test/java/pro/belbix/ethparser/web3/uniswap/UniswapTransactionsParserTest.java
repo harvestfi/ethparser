@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.model.UniswapDTO;
+import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @RunWith(SpringRunner.class)

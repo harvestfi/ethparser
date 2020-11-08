@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.model.PricesDTO;
+import pro.belbix.ethparser.dto.PricesDTO;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
@@ -85,7 +85,7 @@ public class PriceProvider {
 
         lastPrices.put(coinName, price);
         lastUpdates.put(coinName, Instant.now());
-        log.info("Price {} updated {}", coinName, price);
+        log.info("Price {} updated {} on block {}", coinName, price, block);
     }
 
     private boolean isStableCoin(String name) {
@@ -99,6 +99,7 @@ public class PriceProvider {
     }
 
     private String simplifyName(String name) {
+        name = name.replaceFirst("_V0", "");
         if ("WETH".equals(name)) {
             return "ETH";
         } else if ("RENBTC".equals(name)) {

@@ -3,11 +3,12 @@ package pro.belbix.ethparser.web3.harvest;
 import java.math.BigInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.model.HarvestDTO;
+import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 
 @Service
 public class HarvestDBService {
@@ -15,16 +16,18 @@ public class HarvestDBService {
     private static final Logger log = LoggerFactory.getLogger(HarvestDBService.class);
     private final HarvestRepository harvestRepository;
     private final Web3Properties web3Properties;
+    private final HarvestTvlRepository harvestTvlRepository;
 
-    public HarvestDBService(HarvestRepository harvestRepository, Web3Properties web3Properties) {
+    public HarvestDBService(HarvestRepository harvestRepository, Web3Properties web3Properties,
+                            HarvestTvlRepository harvestTvlRepository) {
         this.harvestRepository = harvestRepository;
         this.web3Properties = web3Properties;
+        this.harvestTvlRepository = harvestTvlRepository;
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
-
-
-        Integer ownerCount = harvestRepository.fetchOwnerCount(dto.getVault());
+        Integer ownerCount = harvestRepository.fetchActualOwnerCount(dto.getVault(),
+            Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
@@ -34,8 +37,33 @@ public class HarvestDBService {
             return false;
         }
         harvestRepository.save(dto);
-        harvestRepository.save(dto);
+        harvestRepository.flush();
+        saveHarvestTvl(dto);
         return true;
+    }
+
+    public void saveHarvestTvl(HarvestDTO dto) {
+        double tvl = 0.0;
+        int owners = 0;
+        for (String vaultName : Vaults.vaultNames.values()) {
+            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+            if (lastHarvest == null) {
+                continue;
+            }
+            tvl += lastHarvest.getLastUsdTvl();
+            owners += lastHarvest.getOwnerCount();
+        }
+
+        HarvestTvlEntity newTvl = new HarvestTvlEntity();
+        newTvl.setCalculateTime(dto.getBlockDate());
+        newTvl.setLastTvl(tvl);
+        newTvl.setLastOwnersCount(owners);
+        newTvl.setCalculateHash(dto.getHash());
+//        if (harvestTvlRepository.findFirstByTimeAndLastTvl(dto.getBlockDate(), tvl) != null) {
+//            log.info("Found the same (" + tvl + ") last TVL record for " + dto);
+//            return;
+//        }
+        harvestTvlRepository.save(newTvl);
     }
 
     public BigInteger lastBlock() {

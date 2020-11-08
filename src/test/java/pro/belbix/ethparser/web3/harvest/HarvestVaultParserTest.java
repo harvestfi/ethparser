@@ -17,7 +17,7 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.model.HarvestDTO;
+import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @RunWith(SpringRunner.class)
@@ -29,6 +29,25 @@ public class HarvestVaultParserTest {
     private HarvestVaultParser harvestVaultParser;
     @Autowired
     private Web3Service web3Service;
+
+    @Test
+    public void parseVaultUSDC_V0() {
+        harvestVaultParseTest(
+            Vaults.USDC_V0,
+            11147169,
+            1,
+            "0xc22bc5f7e5517d7a5df9273d66e254d4b549523c",
+            "Withdraw",
+            "USDC_V0",
+            "0x8ca5430e2311a0ba200982f90fb03fae00d1a1bf7cf0c9f6ab4b5519a7cd3613_280",
+            "82,00902140",
+            "82,05226438",
+            "1,00424760",
+            31343L,
+            7605254L,
+            true
+        );
+    }
 
     @Test
     public void parseVaultWETH2() {

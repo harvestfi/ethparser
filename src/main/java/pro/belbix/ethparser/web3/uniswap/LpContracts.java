@@ -2,9 +2,13 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_WBTC_TBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_DAI_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_USDC;
+import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_USDC_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_USDT;
+import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_USDT_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_WBTC;
+import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_WBTC_V0;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,6 +36,10 @@ public class LpContracts {
         harvestStrategyToLp.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
         harvestStrategyToLp.put(UNI_ETH_WBTC, UNI_LP_ETH_WBTC);
         harvestStrategyToLp.put(SUSHI_WBTC_TBTC, SUSHI_LP_WBTC_TBTC);
+        harvestStrategyToLp.put(UNI_ETH_DAI_V0, UNI_LP_ETH_DAI);
+        harvestStrategyToLp.put(UNI_ETH_USDC_V0, UNI_LP_ETH_USDC);
+        harvestStrategyToLp.put(UNI_ETH_USDT_V0, UNI_LP_ETH_USDT);
+        harvestStrategyToLp.put(UNI_ETH_WBTC_V0, UNI_LP_ETH_WBTC);
 
         lpHashToDividers.put(UNI_LP_ETH_DAI, 1000_000_000_000_000_000.0);
         lpHashToDividers.put(UNI_LP_ETH_USDC, 1000_000_000_000_000_000.0);
@@ -52,6 +60,10 @@ public class LpContracts {
         lpNameToHash.put("SUSHI_LP_WBTC_TBTC", SUSHI_LP_WBTC_TBTC);
         lpNameToHash.put("UNI_LP_USDC_ETH", UNI_LP_USDC_ETH);
         lpNameToHash.put("UNI_LP_USDC_WBTC", UNI_LP_USDC_WBTC);
+        lpNameToHash.put("UNI_ETH_DAI_V0", UNI_ETH_DAI_V0);
+        lpNameToHash.put("UNI_ETH_USDC_V0", UNI_ETH_USDC_V0);
+        lpNameToHash.put("UNI_ETH_USDT_V0", UNI_ETH_USDT_V0);
+        lpNameToHash.put("UNI_ETH_WBTC_V0", UNI_ETH_WBTC_V0);
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(1000_000_000_000_000_000L, 1000_000_000_000_000_000L));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));

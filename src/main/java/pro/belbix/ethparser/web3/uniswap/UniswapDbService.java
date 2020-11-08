@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.model.UniswapDTO;
+import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 

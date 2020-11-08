@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.model;
+package pro.belbix.ethparser.dto;
 
 import java.math.BigInteger;
 import java.time.Instant;

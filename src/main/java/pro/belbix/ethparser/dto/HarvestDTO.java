@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.model;
+package pro.belbix.ethparser.dto;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -44,6 +44,30 @@ public class HarvestDTO implements DtoI {
             + vault
             + " " + hash
             + " " + String.format("%f.0", lastUsdTvl);
+    }
+
+    @Override
+    public String toString() {
+        return "HarvestDTO{" +
+            "id='" + id + '\'' +
+            ", hash='" + hash + '\'' +
+            ", block=" + block +
+            ", confirmed=" + confirmed +
+            ", blockDate=" + blockDate +
+            ", methodName='" + methodName + '\'' +
+            ", owner='" + owner + '\'' +
+            ", amount=" + amount +
+            ", amountIn=" + amountIn +
+            ", vault='" + vault + '\'' +
+            ", lastGas=" + lastGas +
+            ", lastTvl=" + lastTvl +
+            ", lastUsdTvl=" + lastUsdTvl +
+            ", ownerCount=" + ownerCount +
+            ", sharePrice=" + sharePrice +
+            ", usdAmount=" + usdAmount +
+            ", prices='" + prices + '\'' +
+            ", lpStat='" + lpStat + '\'' +
+            '}';
     }
 
     //------------- GETTERS & SETTERS -------------------------

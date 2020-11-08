@@ -2,6 +2,7 @@ package pro.belbix.ethparser.model;
 
 import java.math.BigInteger;
 import org.web3j.abi.datatypes.Address;
+import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.ContractMapper;
 
 public class UniswapTx implements EthTransactionI {

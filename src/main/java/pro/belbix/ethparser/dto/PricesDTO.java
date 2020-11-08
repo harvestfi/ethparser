@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.model;
+package pro.belbix.ethparser.dto;
 
 public class PricesDTO {
     private Double btc;
