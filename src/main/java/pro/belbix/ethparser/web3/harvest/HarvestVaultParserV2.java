@@ -6,9 +6,8 @@ import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -18,9 +17,7 @@ import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
@@ -34,12 +31,12 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
-public class HarvestVaultParser implements Web3Parser {
+public class HarvestVaultParserV2 implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParser.class);
+    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParserV2.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
+    private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
@@ -50,9 +47,9 @@ public class HarvestVaultParser implements Web3Parser {
     private final PriceProvider priceProvider;
     private final Functions functions;
 
-    public HarvestVaultParser(Web3Service web3Service,
-                              HarvestDBService harvestDBService,
-                              EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
+    public HarvestVaultParserV2(Web3Service web3Service,
+                                HarvestDBService harvestDBService,
+                                EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
@@ -110,16 +107,23 @@ public class HarvestVaultParser implements Web3Parser {
         if (!allowedMethods.contains(harvestTx.getMethodName().toLowerCase())) {
             return null;
         }
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
-        replaceInputCoinValueOnFarmWrap(harvestTx, receipt);
+
+        if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs1().getValue())) {
+            harvestTx.setMethodName("Deposit");
+            harvestTx.setOwner(harvestTx.getAddressFromArgs2().getValue());
+        } else if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs2().getValue())) {
+            harvestTx.setMethodName("Withdraw");
+            harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
+        } else {
+            //migrate?
+            log.error("migrate? tx " + harvestTx.toString());
+            System.exit(-1);
+        }
 
         HarvestDTO dto = harvestTx.toDto();
 
         //enrich date
         dto.setBlockDate(ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
-
-        //enrich owner
-        dto.setOwner(receipt.getFrom());
 
         //share price
         dto.setSharePrice(
@@ -140,43 +144,6 @@ public class HarvestVaultParser implements Web3Parser {
         dto.setBlock(web3Service.fetchCurrentBlock());
         dto.setMethodName(PRICE_STUB_TYPE);
         return dto;
-    }
-
-    /*
-     * TODO This method totally unclear, but I don't know how to get fAmount without parsing logs
-     */
-    private void replaceInputCoinValueOnFarmWrap(HarvestTx harvestTx, TransactionReceipt receipt) {
-        harvestTx.setAmountIn(harvestTx.getAmount());
-
-        List<Log> logs = receipt.getLogs();
-        for (Log ethLog : logs) {
-            HarvestTx logTx = harvestVaultLogDecoder.decode(ethLog);
-            if (logTx == null) {
-                continue;
-            }
-            long logPlace = harvestTx.getLogId() - logTx.getLogId();
-            if ((logPlace > 3 && harvestTx.getMethodName().toLowerCase().equals("deposit"))
-//                || (logPlace > 11 && harvestTx.getMethodName().toLowerCase().equals("withdraw")) //no limit for withdraw
-                || logPlace <= 0) {
-                continue;
-            }
-            if (!"Transfer".equals(logTx.getMethodName())) {
-                continue;
-            }
-
-            if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs1().getValue())
-                && harvestTx.getMethodName().toLowerCase().equals("deposit")) {
-                harvestTx.setAmount(logTx.getAmount());
-                harvestTx.setfToken(new Address(ethLog.getAddress()));
-                return;
-            } else if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs2().getValue())
-                && harvestTx.getMethodName().toLowerCase().equals("withdraw")) {
-                harvestTx.setAmount(logTx.getAmount());
-                harvestTx.setfToken(new Address(ethLog.getAddress()));
-                return;
-            }
-        }
-        throw new IllegalStateException("Not found transfer value " + harvestTx.getHash());
     }
 
     /**

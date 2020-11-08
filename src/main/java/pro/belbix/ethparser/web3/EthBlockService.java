@@ -1,34 +1,36 @@
 package pro.belbix.ethparser.web3;
 
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import pro.belbix.ethparser.entity.BlockCacheEntity;
+import pro.belbix.ethparser.repositories.BlockCacheRepository;
 
 @Service
 public class EthBlockService {
-    private static final int MAX_CACHE = 10000;
-    private final Web3Service web3;
-    private final Map<String, Block> cache = new LinkedHashMap<>();
 
-    public EthBlockService(Web3Service web3) {
+    private final Web3Service web3;
+
+    private final BlockCacheRepository blockCacheRepository;
+
+    public EthBlockService(Web3Service web3, BlockCacheRepository blockCacheRepository) {
         this.web3 = web3;
+        this.blockCacheRepository = blockCacheRepository;
     }
 
-    public long getTimestampSecForBlock(String blockHash) {
-        Block cachedBlock = cache.get(blockHash);
+    public long getTimestampSecForBlock(String blockHash, long blockId) {
+        BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
         if (cachedBlock != null) {
-            return extractDateFromBlock(cachedBlock);
+            return cachedBlock.getBlockDate();
         }
         Block block = web3.findBlock(blockHash);
         if (block == null) {
             return 0;
         }
-        cache.put(blockHash, block);
-        if (cache.size() > MAX_CACHE) {
-            cache.remove(cache.entrySet().iterator().next().getKey()); //remove first
-        }
+
+        cachedBlock = new BlockCacheEntity();
+        cachedBlock.setBlock(blockId);
+        cachedBlock.setBlockDate(extractDateFromBlock(block));
+        blockCacheRepository.save(cachedBlock);
         return extractDateFromBlock(block);
     }
 

@@ -14,4 +14,6 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     UniswapDTO findFirstByOrderByBlockDesc();
 
+    UniswapDTO findFirstByBlockDateBeforeOrderByBlockDesc(long blockDate);
+
 }

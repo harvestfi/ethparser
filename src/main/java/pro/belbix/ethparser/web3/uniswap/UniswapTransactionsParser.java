@@ -84,7 +84,7 @@ public class UniswapTransactionsParser implements Web3Parser {
 
         UniswapDTO uniswapDTO = uniswapTx.toDto(FARM_TOKEN_CONTRACT);
         uniswapDTO.setLastGas(web3Service.fetchAverageGasPrice());
-        uniswapDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash()));
+        uniswapDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlockNumber().longValue()));
         calculateNotClearData(uniswapDTO);
         saveLastPrice(uniswapDTO);
         print(uniswapDTO);

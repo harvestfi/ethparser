@@ -78,7 +78,7 @@ public class UniswapLpLogParser implements Web3Parser {
         dto.setOwner(receipt.getFrom());
 
         //enrich date
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash()));
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
         log.info(dto.print());
 

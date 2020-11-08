@@ -16,8 +16,8 @@ public class HarvestTx implements EthTransactionI {
     private String owner;
     private BigInteger block;
     private String blockHash;
-    private BigInteger amount = new BigInteger("0");
-    private BigInteger amountIn = new BigInteger("0");
+    private BigInteger amount;
+    private BigInteger amountIn;
     private Address vault;
     private Address fToken;
     private Address[] addressFromArgs;
@@ -42,7 +42,9 @@ public class HarvestTx implements EthTransactionI {
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
-        dto.setAmountIn(parseAmount(amountIn, fToken.getValue()));
+        if (amountIn != null) {
+            dto.setAmountIn(parseAmount(amountIn, fToken.getValue()));
+        }
         dto.setOwner(owner);
 
         enrichMethodDepend(dto);

@@ -5,10 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
+import pro.belbix.ethparser.repositories.UniswapRepository;
 
 @Service
 public class HarvestDBService {
@@ -17,12 +19,14 @@ public class HarvestDBService {
     private final HarvestRepository harvestRepository;
     private final Web3Properties web3Properties;
     private final HarvestTvlRepository harvestTvlRepository;
+    private final UniswapRepository uniswapRepository;
 
     public HarvestDBService(HarvestRepository harvestRepository, Web3Properties web3Properties,
-                            HarvestTvlRepository harvestTvlRepository) {
+                            HarvestTvlRepository harvestTvlRepository, UniswapRepository uniswapRepository) {
         this.harvestRepository = harvestRepository;
         this.web3Properties = web3Properties;
         this.harvestTvlRepository = harvestTvlRepository;
+        this.uniswapRepository = uniswapRepository;
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
@@ -59,10 +63,15 @@ public class HarvestDBService {
         newTvl.setLastTvl(tvl);
         newTvl.setLastOwnersCount(owners);
         newTvl.setCalculateHash(dto.getHash());
-//        if (harvestTvlRepository.findFirstByTimeAndLastTvl(dto.getBlockDate(), tvl) != null) {
-//            log.info("Found the same (" + tvl + ") last TVL record for " + dto);
-//            return;
-//        }
+
+        UniswapDTO uniswapDTO = uniswapRepository.findFirstByBlockDateBeforeOrderByBlockDesc(dto.getBlockDate());
+        if (uniswapDTO != null) {
+            newTvl.setLastPrice(uniswapDTO.getLastPrice());
+        }
+
+        if (harvestTvlRepository.findFirstByCalculateTimeAndLastTvl(dto.getBlockDate(), tvl) != null) {
+            log.info("Found the same (" + tvl + ") last TVL record for " + dto);
+        }
         harvestTvlRepository.save(newTvl);
     }
 

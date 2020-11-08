@@ -21,7 +21,7 @@ public class PriceProvider {
 
     private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
-    private static final int UPDATE_TIMEOUT = 60;
+    private int updateTimeout = 60;
     private final Functions functions;
 
     private final Map<String, Double> lastPrices = new HashMap<>();
@@ -30,6 +30,10 @@ public class PriceProvider {
     public PriceProvider(Functions functions) {
         init();
         this.functions = functions;
+    }
+
+    public void setUpdateTimeout(int updateTimeout) {
+        this.updateTimeout = updateTimeout;
     }
 
     public String getAllPrices(long block) throws JsonProcessingException {
@@ -63,7 +67,8 @@ public class PriceProvider {
         }
 
         Instant lastUpdate = lastUpdates.get(coinName);
-        if (lastUpdate != null && Duration.between(lastUpdate, Instant.now()).getSeconds() < UPDATE_TIMEOUT) {
+        if (lastUpdate != null && updateTimeout != 0
+            && Duration.between(lastUpdate, Instant.now()).getSeconds() < updateTimeout) {
             return;
         }
 

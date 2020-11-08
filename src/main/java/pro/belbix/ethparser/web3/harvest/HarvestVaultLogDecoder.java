@@ -213,6 +213,12 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                     Collections.singletonList(
                         TypeReference.makeTypeReference("uint256")
                     ));
+                parameters.put("Migrated",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }

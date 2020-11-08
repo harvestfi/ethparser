@@ -21,7 +21,16 @@ public class HarvestTvlEntity {
     private Long calculateTime;
     private Double lastTvl;
     private int lastOwnersCount;
+    private Double lastPrice;
     private String calculateHash;
+
+    public Double getLastPrice() {
+        return lastPrice;
+    }
+
+    public void setLastPrice(Double lastPrice) {
+        this.lastPrice = lastPrice;
+    }
 
     public String getCalculateHash() {
         return calculateHash;

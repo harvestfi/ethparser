@@ -5,5 +5,6 @@ import pro.belbix.ethparser.entity.HarvestTvlEntity;
 
 public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, Long> {
 
+    HarvestTvlEntity findFirstByCalculateTimeAndLastTvl(long time, double lastTvl);
 
 }

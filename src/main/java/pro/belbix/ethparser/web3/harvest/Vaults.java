@@ -121,4 +121,8 @@ public class Vaults {
 
     }
 
+    public static boolean isOldVault(String name) {
+        return name.endsWith("_V0");
+    }
+
 }

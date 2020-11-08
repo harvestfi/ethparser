@@ -39,7 +39,9 @@ public class UniswapLpDownloader {
             UniswapDTO dto = null;
             try {
                 dto = uniswapLpLogParser.parseUniswapLog((Log) logResult.get());
-                saveHarvestDTO.saveUniswapDto(dto);
+                if (dto != null) {
+                    saveHarvestDTO.saveUniswapDto(dto);
+                }
             } catch (Exception e) {
                 logger.info("Downloader error  " + dto, e);
             }
