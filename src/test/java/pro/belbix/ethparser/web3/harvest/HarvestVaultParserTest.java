@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -26,6 +27,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 public class HarvestVaultParserTest {
+
     private static final int LOG_ID = 0;
 
     @Autowired
@@ -40,7 +42,29 @@ public class HarvestVaultParserTest {
         priceProvider.setUpdateTimeout(0);
     }
 
-    //TODO 0xd4d4ea3fd788fed4b14ca1836d90cedb171a42af3dc08c252a37549ef523ebd3 migration
+    @Test
+    public void parseVaultUSDC_V0_stake() {
+        shouldNotParse(  Vaults.USDC_V0, 11021481, LOG_ID);
+    }
+
+    @Test
+    public void parseVaultWETH_V0() {
+        harvestVaultParseTest(
+            Vaults.WETH_V0,
+            11037623,
+            LOG_ID,
+            "0x602b2d2278465ea5823898000140cef95f2b8d56",
+            "Deposit",
+            "WETH_V0",
+            "0xb6ce381d9f423e1ff5fcb6164f95db8c0b8db99abced9f0bc43806df232fd52e",
+            "4,98502606",
+            "0",
+            "0",
+            6766L,
+            28704336L,
+            true
+        );
+    }
 
     @Test
     public void parseVaultWETH_V0_migration() {
@@ -49,14 +73,14 @@ public class HarvestVaultParserTest {
             11207867,
             LOG_ID,
             "0x252e7e8b9863f81798b1fef8cfd9741a46de653c",
-            "Deposit",
+            "Withdraw",
             "WETH_V0",
-            "0xd4d4ea3fd788fed4b14ca1836d90cedb171a42af3dc08c252a37549ef523ebd3",
-            "9025,23421600",
-            "82,05226438",
-            "1,00424760",
-            9334L,
-            98066088L,
+            "0xd4d4ea3fd788fed4b14ca1836d90cedb171a42af3dc08c252a37549ef523ebd3_39",
+            "4,98502606",
+            "0",
+            "0",
+            2302L,
+            28704336L,
             true
         );
     }
@@ -515,6 +539,14 @@ public class HarvestVaultParserTest {
             3124008L,
             true
         );
+    }
+
+    private void shouldNotParse(String fromVault, long onBlock, int logId) {
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault),
+            new DefaultBlockParameterNumber(onBlock), new DefaultBlockParameterNumber(onBlock));
+        assertTrue("Log smaller then necessary", logId < logResults.size());
+        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
+        assertNull(dto);
     }
 
     private void harvestVaultParseTest(

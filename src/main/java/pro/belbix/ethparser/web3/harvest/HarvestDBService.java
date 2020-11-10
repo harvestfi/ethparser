@@ -69,7 +69,7 @@ public class HarvestDBService {
             newTvl.setLastPrice(uniswapDTO.getLastPrice());
         }
 
-        if (harvestTvlRepository.findFirstByCalculateTimeAndLastTvl(dto.getBlockDate(), tvl) != null) {
+        if (harvestTvlRepository.existsById(dto.getId())) {
             log.info("Found the same (" + tvl + ") last TVL record for " + dto);
         }
         harvestTvlRepository.save(newTvl);

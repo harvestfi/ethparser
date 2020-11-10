@@ -353,8 +353,12 @@ public class Web3Service {
     private void close() {
         log.info("Close web3");
         subscriptions.forEach(Disposable::dispose);
-        web3.shutdown();
-        web3Checker.stop();
+        if(web3 != null) {
+            web3.shutdown();
+        }
+        if(web3Checker != null) {
+            web3Checker.stop();
+        }
     }
 
     private void checkInit() {

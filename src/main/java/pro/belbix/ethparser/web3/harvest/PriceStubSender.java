@@ -12,10 +12,10 @@ public class PriceStubSender {
 
     private static final Logger log = LoggerFactory.getLogger(PriceStubSender.class);
     public static final String PRICE_STUB_TYPE = "price_stub";
-    private final HarvestVaultParser harvestVaultParser;
+    private final HarvestVaultParserV2 harvestVaultParser;
     private final Web3Properties web3Properties;
 
-    public PriceStubSender(HarvestVaultParser harvestVaultParser, Web3Properties web3Properties) {
+    public PriceStubSender(HarvestVaultParserV2 harvestVaultParser, Web3Properties web3Properties) {
         this.harvestVaultParser = harvestVaultParser;
         this.web3Properties = web3Properties;
     }

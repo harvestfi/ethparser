@@ -31,16 +31,20 @@ public class UtilsStarter {
     @Autowired
     private UniswapLpDownloader uniswapLpDownloader;
     @Autowired
-    private HarvestDownloader harvestVaultDownloader;
+    private HarvestVaultDownloader harvestVaultDownloader;
+    @Autowired
+    private TvlRecalculate tvlRecalculate;
 
     public void startUtils() {
 //        cacheBlocks();
-        uniswapDownloader();
+//        uniswapDownloader();
+//        harvestVaultDownloader.start();
+        tvlRecalculate.start();
     }
 
     private void uniswapDownloader() {
         int step = 10000;
-        for (int blockNum = 10765094; blockNum < 11216385; blockNum += step) {
+        for (int blockNum = 11195486; blockNum < 11216385; blockNum += step) {
             DefaultBlockParameter from = DefaultBlockParameter.valueOf(new BigInteger(blockNum + ""));
             DefaultBlockParameter to = DefaultBlockParameter.valueOf(new BigInteger((blockNum + step) + ""));
             uniswapLpDownloader.load(from, to);

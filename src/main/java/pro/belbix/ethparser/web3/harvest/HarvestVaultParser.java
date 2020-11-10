@@ -34,6 +34,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
+@Deprecated
 public class HarvestVaultParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestVaultParser.class);

@@ -32,7 +32,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
-import pro.belbix.ethparser.web3.harvest.HarvestVaultParser;
+import pro.belbix.ethparser.web3.harvest.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
@@ -52,7 +52,7 @@ public class Application {
         UniswapTransactionsParser uniswapTransactionsParser = context.getBean(UniswapTransactionsParser.class);
         HarvestTransactionsParser harvestTransactionsParser = context.getBean(HarvestTransactionsParser.class);
         UniswapLpLogParser uniswapLpLogParser = context.getBean(UniswapLpLogParser.class);
-        HarvestVaultParser harvestVaultParser = context.getBean(HarvestVaultParser.class);
+        HarvestVaultParserV2 harvestVaultParser = context.getBean(HarvestVaultParserV2.class);
         WsService ws = context.getBean(WsService.class);
         Web3Properties conf = context.getBean(Web3Properties.class);
 

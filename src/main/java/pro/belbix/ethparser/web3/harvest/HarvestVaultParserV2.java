@@ -2,9 +2,11 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
+import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.UNI_ROUTER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
@@ -115,27 +118,64 @@ public class HarvestVaultParserV2 implements Web3Parser {
             harvestTx.setMethodName("Withdraw");
             harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
         } else {
-            //migrate?
-            log.error("migrate? tx " + harvestTx.toString());
-            System.exit(-1);
+            if (isMigration(harvestTx, Stackings.vaultHashToStackingHash.get(ethLog.getAddress()))) {
+                log.warn("migrate? tx " + harvestTx.toString());
+                harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
+                harvestTx.setMethodName("Withdraw");
+            } else {
+                //test purpose
+//                if(checkTransactionStructure(harvestTx)) {
+//                    return null; //it's normal
+//                }
+//                log.error("unknown tx " + harvestTx.toString());
+                return null;
+            }
         }
 
         HarvestDTO dto = harvestTx.toDto();
 
         //enrich date
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
+        dto.setBlockDate(
+            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
         //share price
-        dto.setSharePrice(
-            parseAmount(
-                functions.callPricePerFullShare(harvestTx.getVault().getValue(), dto.getBlock().longValue())
-                , harvestTx.getVault().getValue())
-        );
+        fillSharedPrice(dto, harvestTx);
 
+        //usd values
         fillUsdPrice(dto, harvestTx.getVault().getValue());
 
         log.info(dto.print());
         return dto;
+    }
+
+    private boolean checkTransactionStructure(HarvestTx harvestTx) {
+        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+        return !UNI_ROUTER.equals(receipt.getTo())
+            && !"0xebb4d6cfc2b538e2a7969aa4187b1c00b2762108".equals(receipt.getTo()) //?
+            && !"0x743dd3139c6b70f664ab4329b2cde646f0bac99a".equals(receipt.getTo()) //swap WETH_V0 uni
+            && !"0x7fe2153de0006d76c85cc04c8ea10bf4546c879e".equals(receipt.getTo()) //swap WETH_V0 uni
+            && !"0x494cc492c9f01699bff1449180201dbfbd592ea5".equals(receipt.getTo()) //swap WETH_V0 uni
+            && !"0x343e3a490c9251dc0eaa81da146ba6abe6c78b2d".equals(receipt.getTo()) //zapper WETH_V0 uni
+            && !Stackings.hashToName.containsKey(receipt.getTo()) //stacking
+            && !Vaults.vaultNames.containsKey(receipt.getTo()  //transfer
+        );
+    }
+
+    private boolean isMigration(HarvestTx harvestTx, String currentStackingContract) {
+        return Stackings.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
+            && !harvestTx.getAddressFromArgs2().getValue().equals(currentStackingContract); // and it is not current contract
+    }
+
+    private void fillSharedPrice(HarvestDTO dto, HarvestTx harvestTx) {
+        BigInteger sharedPriceInt = functions
+            .callPricePerFullShare(harvestTx.getVault().getValue(), dto.getBlock().longValue());
+        double sharedPrice;
+        if (BigInteger.ONE.equals(sharedPriceInt)) {
+            sharedPrice = 0.0;
+        } else {
+            sharedPrice = parseAmount(sharedPriceInt, harvestTx.getVault().getValue());
+        }
+        dto.setSharePrice(sharedPrice);
     }
 
     private HarvestDTO createStubPriceDto() {
@@ -177,8 +217,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
-        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
-            vaultHash);
+        double sharedPrice = dto.getSharePrice();
         double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
             vaultHash);
 
@@ -192,8 +231,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
-        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
-            vaultHash);
+        double sharedPrice = dto.getSharePrice();
         double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
             vaultHash);
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock().longValue()), lpHash);

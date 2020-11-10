@@ -2,8 +2,6 @@ package pro.belbix.ethparser.entity;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
@@ -16,13 +14,11 @@ import javax.persistence.Table;
 public class HarvestTvlEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private String calculateHash;
     private Long calculateTime;
     private Double lastTvl;
     private int lastOwnersCount;
     private Double lastPrice;
-    private String calculateHash;
 
     public Double getLastPrice() {
         return lastPrice;
@@ -38,14 +34,6 @@ public class HarvestTvlEntity {
 
     public void setCalculateHash(String calculateHash) {
         this.calculateHash = calculateHash;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public int getLastOwnersCount() {
