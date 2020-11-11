@@ -11,15 +11,21 @@ spring:
 
   datasource:
     platform: mysql
-    url: jdbc:mysql://localhost:3306/egv?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/harvest?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: belbix
-    password: 111111
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 local.server.port: 4142
 
 server:
   port: 4142
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:farmdb.p12
+    key-alias: farmdb
+    key-store-password:
   servlet:
     session.timeout: 1m
     multipart:
@@ -33,18 +39,6 @@ server:
     max-threads: 10 # Maximum amount of worker threads.
     min-spare-threads: 10 # Minimum amount of worker threads.
     uri-encoding: UTF-8 # Character encoding to use to decode the URI.
-
-web3:
-  stubPrice: true
-#  overrideDuplicates: true
-#  startBlock: 11196986
-#  startLogBlock: 11196986
-#  parseTransactions: false
-#  parseHarvest: false
-#  parseHarvestLog: true
-#  parseUniswapLog: false
-#  testWs: true
-  testWsRate: 10000
 
 logging:
   level:

@@ -56,12 +56,12 @@ public class HarvestVaultParserTest {
             "0x602b2d2278465ea5823898000140cef95f2b8d56",
             "Deposit",
             "WETH_V0",
-            "0xb6ce381d9f423e1ff5fcb6164f95db8c0b8db99abced9f0bc43806df232fd52e",
-            "4,98502606",
+            "0xb6ce381d9f423e1ff5fcb6164f95db8c0b8db99abced9f0bc43806df232fd52e_148",
+            "14,94268625",
             "0",
             "0",
-            6766L,
-            28704336L,
+            5602L,
+            20766702L,
             true
         );
     }
@@ -79,8 +79,8 @@ public class HarvestVaultParserTest {
             "4,98502606",
             "0",
             "0",
-            2302L,
-            28704336L,
+            0L,
+            0L,
             true
         );
     }

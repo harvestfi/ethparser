@@ -168,7 +168,7 @@ public class Web3Service {
 //                e -> log.error("Log flowable error", e));
 //        subscriptions.add(subscription);
         initChecker();
-        log.info("Subscribe to Log Flowable");
+        log.info("Subscribe to Log Flowable from {}", from.getValue());
     }
 
     private BigInteger findEarliestLastBlock() {
@@ -182,13 +182,11 @@ public class Web3Service {
             return lastBlocUniswap;
         }
         //multiple enabled
-        if (web3Properties.isParseHarvestLog() && lastBlocHarvest.intValue() < lastBlocUniswap.intValue()) {
+        if (lastBlocHarvest.intValue() < lastBlocUniswap.intValue()) {
             return lastBlocHarvest;
-        }
-        if (web3Properties.isParseUniswapLog() && lastBlocHarvest.intValue() > lastBlocUniswap.intValue()) {
+        } else {
             return lastBlocUniswap;
         }
-        throw new IllegalStateException("Wrong properties");
     }
 
     private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
@@ -353,10 +351,10 @@ public class Web3Service {
     private void close() {
         log.info("Close web3");
         subscriptions.forEach(Disposable::dispose);
-        if(web3 != null) {
+        if (web3 != null) {
             web3.shutdown();
         }
-        if(web3Checker != null) {
+        if (web3Checker != null) {
             web3Checker.stop();
         }
     }

@@ -115,6 +115,8 @@ public class PriceProvider {
             return "WBTC";
         } else if ("BTC".equals(name)) {
             return "WBTC";
+        } else if ("CRV_TBTC".equals(name)) {
+            return "WBTC";
         }
         return name;
     }

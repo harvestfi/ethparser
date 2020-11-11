@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.harvest.Vaults.CRVRENWBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.CRVRENWBTC_V0;
+import static pro.belbix.ethparser.web3.harvest.Vaults.CRV_TBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.DAI;
 import static pro.belbix.ethparser.web3.harvest.Vaults.DAI_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.RENBTC;
@@ -59,6 +60,7 @@ public class Stackings {
     public static final String ST__3CRV = "".toLowerCase();
     public static final String ST_TUSD = "0xeC56a21CF0D7FeB93C25587C12bFfe094aa0eCdA".toLowerCase();
     public static final String ST_PS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50".toLowerCase();
+    public static final String ST_CRV_TBTC = "".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> vaultHashToStackingHash = new LinkedHashMap<>();
@@ -118,6 +120,7 @@ public class Stackings {
         vaultHashToStackingHash.put(YCRV, ST_YCRV);
         vaultHashToStackingHash.put(_3CRV, ST__3CRV);
         vaultHashToStackingHash.put(TUSD, ST_TUSD);
+        vaultHashToStackingHash.put(CRV_TBTC, ST_CRV_TBTC);
     }
 
 }

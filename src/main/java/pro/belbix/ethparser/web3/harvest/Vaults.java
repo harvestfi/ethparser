@@ -36,6 +36,7 @@ public class Vaults {
     public static final String YCRV = "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3".toLowerCase();
     public static final String _3CRV = "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5".toLowerCase();
     public static final String TUSD = "0x7674622c63Bee7F46E86a4A5A18976693D54441b".toLowerCase();
+    public static final String CRV_TBTC = "0x640704D106E79e105FDA424f05467F005418F1B5".toLowerCase();
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
@@ -69,6 +70,7 @@ public class Vaults {
         vaultNames.put(YCRV, "YCRV");
         vaultNames.put(_3CRV, "3CRV");
         vaultNames.put(TUSD, "TUSD");
+        vaultNames.put(CRV_TBTC, "CRV_TBTC");
 
         vaultDividers.put(WETH_V0, D18);
         vaultDividers.put(USDC_V0, D6);
@@ -96,6 +98,7 @@ public class Vaults {
         vaultDividers.put(YCRV, D18);
         vaultDividers.put(_3CRV, D18);
         vaultDividers.put(TUSD, D18);
+        vaultDividers.put(CRV_TBTC, D18);
 
         lpTokens.add("UNI_ETH_DAI");
         lpTokens.add("UNI_ETH_USDC");
@@ -119,10 +122,6 @@ public class Vaults {
         vaultNameToOldVaultName.put("RENBTC", "RENBTC_V0");
         vaultNameToOldVaultName.put("CRVRENWBTC", "CRVRENWBTC_V0");
 
-    }
-
-    public static boolean isOldVault(String name) {
-        return name.endsWith("_V0");
     }
 
 }

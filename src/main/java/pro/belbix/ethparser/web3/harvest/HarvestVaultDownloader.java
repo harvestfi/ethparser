@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.harvest.Vaults.*;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -39,40 +40,41 @@ public class HarvestVaultDownloader {
 
         Set<String> include = new HashSet<>(
             Arrays.asList(
-                "UNI_ETH_DAI",
-                "UNI_ETH_USDC",
-                "UNI_ETH_USDT",
-                "UNI_ETH_WBTC",
-                "WETH",
-                "USDC",
-                "USDT",
-                "DAI",
-                "WBTC",
-                "RENBTC",
-                "CRVRENWBTC",
-                "SUSHI_WBTC_TBTC",
-                "YCRV",
-                "3CRV",
-                "TUSD",
-//                "WETH_V0"
-//                "USDC_V0"
-                "USDT_V0",
-                "DAI_V0",
-                "WBTC_V0",
-                "RENBTC_V0",
-                "CRVRENWBTC_V0",
-                "UNI_ETH_DAI_V0",
-                "UNI_ETH_USDC_V0",
-                "UNI_ETH_USDT_V0",
-                "UNI_ETH_WBTC_V0"
+//                WETH_V0,
+//                USDC_V0,
+//                USDT_V0,
+//                DAI_V0,
+//                WBTC_V0,
+//                RENBTC_V0,
+//                CRVRENWBTC_V0,
+//                UNI_ETH_DAI_V0,
+//                UNI_ETH_USDC_V0,
+//                UNI_ETH_USDT_V0,
+//                UNI_ETH_WBTC_V0,
+//                UNI_ETH_DAI,
+//                UNI_ETH_USDC,
+//                UNI_ETH_USDT,
+//                UNI_ETH_WBTC,
+//                WETH,
+//                USDC,
+//                USDT,
+//                DAI,
+//                WBTC,
+//                RENBTC,
+//                CRVRENWBTC,
+//                SUSHI_WBTC_TBTC,
+//                YCRV,
+//                _3CRV,
+//                TUSD,
+                CRV_TBTC
             )
         );
 
         for (String vaultHash : Vaults.vaultNames.keySet()) {
-            if (!include.contains(Vaults.vaultNames.get(vaultHash))) {
+            if (!include.contains(vaultHash)) {
                 continue;
             }
-            parseVault(vaultHash, 10770000, 11225000);
+            parseVault(vaultHash, 10770000, null);
 //            parseVault(vaultHash, 11021480, 11223256);
         }
     }

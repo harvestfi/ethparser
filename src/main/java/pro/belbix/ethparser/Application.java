@@ -16,14 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
@@ -108,6 +101,7 @@ public class Application {
                 } catch (InterruptedException ignored) {
                 }
                 if (dto != null) {
+                    log.debug("Sent to ws {} {}", topicName, dto);
                     ws.send(topicName, dto);
                 }
             }
@@ -157,33 +151,6 @@ public class Application {
                 Thread.sleep(rate);
             } catch (InterruptedException ignored) {
             }
-        }
-    }
-
-    @Configuration
-    @EnableConfigurationProperties({
-        Web3Properties.class
-    })
-    public static class AppConfig {
-
-    }
-
-    @Configuration
-    @EnableWebSocketMessageBroker
-    @EnableScheduling
-    public static class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
-        @Override
-        public void configureMessageBroker(MessageBrokerRegistry config) {
-            config.enableSimpleBroker("/topic");
-            config.setApplicationDestinationPrefixes("/app");
-        }
-
-        @Override
-        public void registerStompEndpoints(StompEndpointRegistry registry) {
-            registry.addEndpoint("/stomp")
-                .setAllowedOrigins("*")
-                .withSockJS();
         }
     }
 }
