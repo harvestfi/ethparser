@@ -43,25 +43,6 @@ public class HarvestVaultParserTest {
     }
 
     @Test
-    public void parseVaultCRV_CMPND() {
-        harvestVaultParseTest(
-            Vaults.CRV_CMPND,
-            11266336,
-            LOG_ID,
-            "0x814055779f8d2f591277b76c724b7adc74fb82d9",
-            "Deposit",
-            "CRV_CMPND",
-            "0x83de6dbbbcfa81ed8456703b993e88e1b00d8a2d33d7952e28e8010afd9b7795",
-            "1,75901662",
-            "0",
-            "0",
-            196L,
-            19750016L,
-            true
-        );
-    }
-
-    @Test
     public void parseVaultUSDC_V0_stake() {
         shouldNotParse(  Vaults.USDC_V0, 11021481, LOG_ID);
     }
