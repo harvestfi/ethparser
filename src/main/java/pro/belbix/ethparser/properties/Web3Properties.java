@@ -45,7 +45,10 @@ public class Web3Properties {
         YCRV,
         _3CRV,
         CRV_TBTC,
-        PS
+        PS,
+        CRV_CMPND,
+        CRV_BUSD,
+        CRV_USDN
     );
     private boolean testWs = false;
     private int testWsRate = 1000;

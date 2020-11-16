@@ -47,6 +47,9 @@ public class PriceProvider {
     public Double getPriceForCoin(String name, long block) {
         String coinNameSimple = simplifyName(name);
         updateUSDCPrice(coinNameSimple, block);
+        if (isStableCoin(coinNameSimple)) {
+            return 1.0;
+        }
         return lastPrices.get(coinNameSimple);
     }
 
@@ -84,7 +87,7 @@ public class PriceProvider {
         if (UNI_LP_USDC_ETH.equals(lpHash)) {
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
-            ||UNI_LP_USDC_FARM.equals(lpHash)) {
+            || UNI_LP_USDC_FARM.equals(lpHash)) {
             price = reserves.component2() / reserves.component1();
         } else {
             throw new IllegalStateException("Unknown LP");
@@ -102,7 +105,11 @@ public class PriceProvider {
             || "YCRV".equals(name)
             || "3CRV".equals(name)
             || "TUSD".equals(name)
-            || "DAI".equals(name);
+            || "DAI".equals(name)
+            || "CRV_CMPND".equals(name)
+            || "CRV_BUSD".equals(name)
+            || "CRV_USDN".equals(name)
+            ;
     }
 
     private String simplifyName(String name) {
@@ -128,13 +135,6 @@ public class PriceProvider {
     private void init() {
         lastPrices.put("ETH", 382.0);
         lastPrices.put("WETH", 382.0);
-
-        lastPrices.put("USDC", 1.0);
-        lastPrices.put("USDT", 1.0);
-        lastPrices.put("DAI", 1.0);
-        lastPrices.put("YCRV", 1.0);
-        lastPrices.put("3CRV", 1.0);
-        lastPrices.put("TUSD", 1.0);
 
         lastPrices.put("WBTC", 13673.0);
         lastPrices.put("RENBTC", 13673.0);

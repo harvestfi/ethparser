@@ -20,7 +20,7 @@ public class TvlRecalculate {
 
     public void start() {
 
-        List<HarvestDTO> harvestDTOList = harvestRepository.findAll();
+        List<HarvestDTO> harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
 
         for (HarvestDTO harvestDTO : harvestDTOList) {
             log.info("Save for " + harvestDTO.print());

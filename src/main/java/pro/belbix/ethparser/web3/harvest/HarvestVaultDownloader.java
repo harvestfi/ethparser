@@ -67,7 +67,10 @@ public class HarvestVaultDownloader {
 //                _3CRV,
 //                TUSD,
 //                CRV_TBTC,
-                PS
+//                PS
+//                CRV_CMPND
+//                CRV_BUSD
+                CRV_USDN
             )
         );
 
@@ -75,7 +78,7 @@ public class HarvestVaultDownloader {
             if (!include.contains(vaultHash)) {
                 continue;
             }
-            parseVault(vaultHash, 10770000, 11256248);
+            parseVault(vaultHash, 10770000, null);
 //            parseVault(vaultHash, 11021480, 11223256);
         }
     }

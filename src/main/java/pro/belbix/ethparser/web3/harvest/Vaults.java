@@ -40,9 +40,9 @@ public class Vaults {
     public static final String PS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50".toLowerCase();
 //    public static final String PS = "0xa0246c9032bC3A600820415aE600c6388619A14D".toLowerCase();
 
-    public static final String CRV_CMPND = "".toLowerCase();
-    public static final String CRV_BUSD = "".toLowerCase();
-    public static final String CRV_USDN = "".toLowerCase();
+    public static final String CRV_CMPND = "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD".toLowerCase();
+    public static final String CRV_BUSD = "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a".toLowerCase();
+    public static final String CRV_USDN = "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664".toLowerCase();
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
@@ -78,6 +78,9 @@ public class Vaults {
         vaultNames.put(TUSD, "TUSD");
         vaultNames.put(CRV_TBTC, "CRV_TBTC");
         vaultNames.put(PS, "PS");
+        vaultNames.put(CRV_CMPND, "CRV_CMPND");
+        vaultNames.put(CRV_BUSD, "CRV_BUSD");
+        vaultNames.put(CRV_USDN, "CRV_USDN");
 
         vaultDividers.put(WETH_V0, D18);
         vaultDividers.put(USDC_V0, D6);
@@ -107,6 +110,9 @@ public class Vaults {
         vaultDividers.put(TUSD, D18);
         vaultDividers.put(CRV_TBTC, D18);
         vaultDividers.put(PS, D18);
+        vaultDividers.put(CRV_CMPND, D18);
+        vaultDividers.put(CRV_BUSD, D18);
+        vaultDividers.put(CRV_USDN, D18);
 
         lpTokens.add("UNI_ETH_DAI");
         lpTokens.add("UNI_ETH_USDC");
