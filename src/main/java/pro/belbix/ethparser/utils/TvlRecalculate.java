@@ -23,7 +23,7 @@ public class TvlRecalculate {
         List<HarvestDTO> harvestDTOList = harvestRepository.findAll();
 
         for (HarvestDTO harvestDTO : harvestDTOList) {
-            log.info("Save for " + harvestDTO.getId());
+            log.info("Save for " + harvestDTO.print());
             harvestDBService.saveHarvestTvl(harvestDTO);
         }
 

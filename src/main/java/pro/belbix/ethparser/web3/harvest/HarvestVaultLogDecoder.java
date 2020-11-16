@@ -4,10 +4,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -31,7 +29,6 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             throw new IllegalStateException("Unknown topic " + topic0);
         }
         String methodName = methodNamesByMethodId.get(methodId);
-
 
         List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
         if (parameters == null) {
@@ -77,6 +74,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                 return;
             case "StrategyChanged":
             case "addVaultAndStrategy":
+            case "OwnershipTransferred":
                 tx.setAddressFromArgs1(new Address((String) types.get(0).getValue()));
                 tx.setAddressFromArgs2(new Address((String) types.get(1).getValue()));
                 return;
@@ -97,6 +95,16 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                 addresses[2] = (Address) types.get(2).getValue();
                 addresses[3] = (Address) types.get(3).getValue();
                 tx.setAddressFromArgs(addresses);
+                return;
+            case "Staked#V2":
+                tx.setOwner((String) types.get(0).getValue());
+                BigInteger[] args = new BigInteger[5];
+                args[0] = (BigInteger) types.get(1).getValue();
+                args[1] = (BigInteger) types.get(2).getValue();
+                args[2] = (BigInteger) types.get(3).getValue();
+                args[3] = (BigInteger) types.get(4).getValue();
+                args[4] = (BigInteger) types.get(5).getValue();
+                tx.setIntFromArgs(args);
                 return;
             case "exit":
                 return;
@@ -216,6 +224,20 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                 parameters.put("Migrated",
                     Arrays.asList(
                         TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("OwnershipTransferred",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address", true, false)
+                    ));
+                parameters.put("Staked#V2",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256")
                     ));

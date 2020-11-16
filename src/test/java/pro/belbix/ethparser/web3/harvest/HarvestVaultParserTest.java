@@ -48,6 +48,44 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultPS2() {
+        harvestVaultParseTest(
+            Vaults.PS,
+            11262684,
+            LOG_ID,
+            "0xad77e73a9fd5d002bd1d043e6a4c6a456c9524fb",
+            "Deposit",
+            "PS",
+            "0x1174e819acca01e2611a6f5b8846115938f46c2b014d258ffa5ce3fbb3fbb51c_267",
+            "1,75901662",
+            "0",
+            "0",
+            196L,
+            19750016L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultPS() {
+        harvestVaultParseTest(
+            Vaults.PS,
+            10964982,
+            LOG_ID,
+            "0x640236965becf920a70a5dcd44b5c9c18f283095",
+            "Withdraw",
+            "PS",
+            "0x62649ba91314e388be6f62088a4506e9629a9e5401805d02fe14530ac8107d8c_73",
+            "300,05543538",
+            "0",
+            "0",
+            26207L,
+            844047L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultWETH_V0() {
         harvestVaultParseTest(
             Vaults.WETH_V0,

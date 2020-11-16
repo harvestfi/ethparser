@@ -23,6 +23,7 @@ public class LpContracts {
     public static final String SUSHI_LP_WBTC_TBTC = "0x2Dbc7dD86C6cd87b525BD54Ea73EBeeBbc307F68".toLowerCase();
     public static final String UNI_LP_USDC_ETH = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc".toLowerCase();
     public static final String UNI_LP_USDC_WBTC = "0x004375dff511095cc5a197a54140a24efef3a416".toLowerCase();
+    public static final String UNI_LP_USDC_FARM = "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase();
 
     public static final Map<String, String> harvestStrategyToLp = new LinkedHashMap<>();
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
@@ -64,6 +65,7 @@ public class LpContracts {
         lpNameToHash.put("UNI_ETH_USDC_V0", UNI_ETH_USDC_V0);
         lpNameToHash.put("UNI_ETH_USDT_V0", UNI_ETH_USDT_V0);
         lpNameToHash.put("UNI_ETH_WBTC_V0", UNI_ETH_WBTC_V0);
+        lpNameToHash.put("UNI_LP_USDC_FARM", UNI_LP_USDC_FARM);
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(1000_000_000_000_000_000L, 1000_000_000_000_000_000L));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
@@ -72,6 +74,7 @@ public class LpContracts {
         lpPairsDividers.put(SUSHI_LP_WBTC_TBTC, new Tuple2<>(100_000_000L, 1000_000_000_000_000_000L));
         lpPairsDividers.put(UNI_LP_USDC_ETH, new Tuple2<>(1000_000L, 1000_000_000_000_000_000L));
         lpPairsDividers.put(UNI_LP_USDC_WBTC, new Tuple2<>(100_000_000L, 1000_000L));
+        lpPairsDividers.put(UNI_LP_USDC_FARM, new Tuple2<>(1000_000_000_000_000_000L, 1000_000L));
     }
 
 }

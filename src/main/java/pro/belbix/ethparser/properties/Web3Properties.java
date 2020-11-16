@@ -44,7 +44,8 @@ public class Web3Properties {
         SUSHI_WBTC_TBTC,
         YCRV,
         _3CRV,
-        CRV_TBTC
+        CRV_TBTC,
+        PS
     );
     private boolean testWs = false;
     private int testWsRate = 1000;

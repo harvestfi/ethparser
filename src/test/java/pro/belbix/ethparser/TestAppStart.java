@@ -7,7 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class TestAppStart {
 
     @Test
-    public void startTest() {
+    public void startTest() throws InterruptedException {
         Application.main(new String[]{});
+        while (true) {
+            Thread.sleep(1000);
+        }
     }
 }

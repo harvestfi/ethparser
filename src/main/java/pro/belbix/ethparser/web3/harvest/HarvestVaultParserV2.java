@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
+import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.FARM_TOKEN_CONTRACT;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.UNI_ROUTER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +42,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+    public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10_000);
@@ -107,10 +109,72 @@ public class HarvestVaultParserV2 implements Web3Parser {
             return null;
         }
 
-        if (!allowedMethods.contains(harvestTx.getMethodName().toLowerCase())) {
+        if (!isAllowedMethod(harvestTx)) {
             return null;
         }
 
+        if (isPs(harvestTx)) {
+            if (!parsePs(harvestTx)) {
+                return null;
+            }
+        } else {
+            if (!parseVaults(harvestTx, ethLog)) {
+                return null;
+            }
+        }
+
+        HarvestDTO dto = harvestTx.toDto();
+
+        //enrich date
+        dto.setBlockDate(
+            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
+
+        if (isPs(harvestTx)) {
+            fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue());
+        } else {
+            //share price
+            fillSharedPrice(dto, harvestTx);
+
+            //usd values
+            fillUsdPrice(dto, harvestTx.getVault().getValue());
+        }
+        log.info(dto.print());
+        return dto;
+    }
+
+    private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
+        String st = Stackings.vaultHashToStackingHash.get(vaultHash);
+        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        double vaultBalance = parseAmount(
+            functions.callErc20TotalSupply(st, dto.getBlock().longValue()), vaultHash);
+        double allFarm = parseAmount(
+            functions.callErc20TotalSupply(FARM_TOKEN_CONTRACT, dto.getBlock().longValue()), vaultHash)
+            - BURNED_FARM;
+        dto.setLastUsdTvl(price * vaultBalance);
+        dto.setLastTvl(vaultBalance);
+        dto.setSharePrice(allFarm);
+        dto.setUsdAmount(Math.round(dto.getAmount() * price));
+    }
+
+    private boolean parsePs(HarvestTx harvestTx) {
+        if ("staked".equals(harvestTx.getMethodName().toLowerCase())
+            || "Staked#V2".equals(harvestTx.getMethodName())) {
+            harvestTx.setMethodName("Deposit");
+            harvestTx.setAmount(harvestTx.getIntFromArgs()[0]);
+        } else if ("withdrawn".equals(harvestTx.getMethodName().toLowerCase())) {
+            TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+            String owner = receipt.getFrom();
+            if (!owner.equals(harvestTx.getOwner())) {
+                return false; //withdrawn for not owner is a garbage
+            }
+            harvestTx.setMethodName("Withdraw");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean parseVaults(HarvestTx harvestTx, Log ethLog) {
         if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs1().getValue())) {
             harvestTx.setMethodName("Deposit");
             harvestTx.setOwner(harvestTx.getAddressFromArgs2().getValue());
@@ -128,24 +192,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
 //                    return null; //it's normal
 //                }
 //                log.error("unknown tx " + harvestTx.toString());
-                return null;
+                return false;
             }
         }
-
-        HarvestDTO dto = harvestTx.toDto();
-
-        //enrich date
-        dto.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
-
-        //share price
-        fillSharedPrice(dto, harvestTx);
-
-        //usd values
-        fillUsdPrice(dto, harvestTx.getVault().getValue());
-
-        log.info(dto.print());
-        return dto;
+        return true;
     }
 
     private boolean checkTransactionStructure(HarvestTx harvestTx) {
@@ -163,7 +213,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private boolean isMigration(HarvestTx harvestTx, String currentStackingContract) {
         return Stackings.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
-            && !harvestTx.getAddressFromArgs2().getValue().equals(currentStackingContract); // and it is not current contract
+            && !harvestTx.getAddressFromArgs2().getValue()
+            .equals(currentStackingContract); // and it is not current contract
     }
 
     private void fillSharedPrice(HarvestDTO dto, HarvestTx harvestTx) {
@@ -266,6 +317,19 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double txFraction = (dto.getAmount() / vaultBalance);
         long txUsdAmount = Math.round(vaultUsdAmount * txFraction);
         dto.setUsdAmount(txUsdAmount);
+    }
+
+    private boolean isAllowedMethod(HarvestTx harvestTx) {
+        if (isPs(harvestTx)) {
+            return "staked".equals(harvestTx.getMethodName().toLowerCase())
+                || "Staked#V2".equals(harvestTx.getMethodName())
+                || "withdrawn".equals(harvestTx.getMethodName().toLowerCase());
+        }
+        return allowedMethods.contains(harvestTx.getMethodName().toLowerCase());
+    }
+
+    private boolean isPs(HarvestTx harvestTx) {
+        return Vaults.PS.equals(harvestTx.getVault().getValue());
     }
 
     @Override

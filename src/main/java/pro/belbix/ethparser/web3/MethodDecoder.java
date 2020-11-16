@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -166,8 +165,13 @@ public abstract class MethodDecoder {
 
     public void writeParameters(Map<String, List<TypeReference<Type>>> parameters) {
         for (Map.Entry<String, List<TypeReference<Type>>> entry : parameters.entrySet()) {
-            String methodID = createMethodId(entry.getKey(), entry.getValue());
-            String methodFullHex = createMethodFullHex(entry.getKey(), entry.getValue());
+            String methodName = entry.getKey();
+            if (methodName.contains("#")) {
+                methodName = methodName.split("#")[0];
+            }
+
+            String methodID = createMethodId(methodName, entry.getValue());
+            String methodFullHex = createMethodFullHex(methodName, entry.getValue());
             parametersByMethodId.put(methodID, entry.getValue());
             methodNamesByMethodId.put(methodID, entry.getKey());
             methodIdByFullHex.put(methodFullHex, methodID);

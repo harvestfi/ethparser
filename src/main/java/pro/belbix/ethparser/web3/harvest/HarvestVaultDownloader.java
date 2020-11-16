@@ -23,7 +23,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 @Service
 public class HarvestVaultDownloader {
 
-    private static final int BATCH = 100000;
+    private static final int BATCH = 10000;
     private static final Logger logger = LoggerFactory.getLogger(HarvestVaultDownloader.class);
     private final Web3Service web3Service;
     private final HarvestDBService harvestDBService;
@@ -66,7 +66,8 @@ public class HarvestVaultDownloader {
 //                YCRV,
 //                _3CRV,
 //                TUSD,
-                CRV_TBTC
+//                CRV_TBTC,
+                PS
             )
         );
 
@@ -74,7 +75,7 @@ public class HarvestVaultDownloader {
             if (!include.contains(vaultHash)) {
                 continue;
             }
-            parseVault(vaultHash, 10770000, null);
+            parseVault(vaultHash, 10770000, 11256248);
 //            parseVault(vaultHash, 11021480, 11223256);
         }
     }

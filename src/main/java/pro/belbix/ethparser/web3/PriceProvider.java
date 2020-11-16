@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -82,7 +83,8 @@ public class PriceProvider {
         double price;
         if (UNI_LP_USDC_ETH.equals(lpHash)) {
             price = reserves.component1() / reserves.component2();
-        } else if (UNI_LP_USDC_WBTC.equals(lpHash)) {
+        } else if (UNI_LP_USDC_WBTC.equals(lpHash)
+            ||UNI_LP_USDC_FARM.equals(lpHash)) {
             price = reserves.component2() / reserves.component1();
         } else {
             throw new IllegalStateException("Unknown LP");
@@ -117,6 +119,8 @@ public class PriceProvider {
             return "WBTC";
         } else if ("CRV_TBTC".equals(name)) {
             return "WBTC";
+        } else if ("PS".equals(name)) {
+            return "FARM";
         }
         return name;
     }
