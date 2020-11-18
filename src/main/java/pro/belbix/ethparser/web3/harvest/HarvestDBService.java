@@ -42,11 +42,11 @@ public class HarvestDBService {
         }
         harvestRepository.save(dto);
         harvestRepository.flush();
-        saveHarvestTvl(dto);
+        saveHarvestTvl(dto, true);
         return true;
     }
 
-    public void saveHarvestTvl(HarvestDTO dto) {
+    public void saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
         double tvl = 0.0;
         int owners = 0;
         for (String vaultName : Vaults.vaultNames.values()) {
@@ -69,7 +69,7 @@ public class HarvestDBService {
             newTvl.setLastPrice(uniswapDTO.getLastPrice());
         }
 
-        if (harvestTvlRepository.existsById(dto.getId())) {
+        if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
             log.info("Found the same (" + tvl + ") last TVL record for " + dto);
         }
         harvestTvlRepository.save(newTvl);

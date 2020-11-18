@@ -42,8 +42,8 @@ public class UtilsStarter {
     public void startUtils() {
 //        cacheBlocks();
 //        uniswapDownloader();
-        harvestVaultDownloader.start();
-//        tvlRecalculate.start();
+//        harvestVaultDownloader.start();
+        tvlRecalculate.start();
 //        downloadIncome.start();
     }
 
