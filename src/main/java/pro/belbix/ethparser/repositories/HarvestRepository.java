@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,8 +35,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "select t.owner from harvest_tx t where t.vault = :vault and t.block_date <= :block_date group by t.owner) tt"
     )
     Integer fetchOwnerCount(@Param("vault") String vault, @Param("block_date") long blockDate);
-    
-    @Query(nativeQuery = true, value = "" 
+
+    @Query(nativeQuery = true, value = ""
         + "select count(t.owner) from ( "
         + "select deposit.owner owner, deposit.d_amnt, withdraw.w_amnt, (deposit.d_amnt - withdraw.w_amnt) result from "
         + "    (select owner, sum(amount) d_amnt "
@@ -60,5 +61,11 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
     HarvestDTO findFirstByVaultAndBlockDateLessThanEqualAndIdNotOrderByBlockDateDesc(String vault, long date,
                                                                                      String id);
+
+    @Query("select t.lastTvl from HarvestDTO t where t.vault = :vault and t.blockDate <= :from order by t.blockDate desc")
+    List<Double> fetchTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
+
+    @Query("select t.lastUsdTvl from HarvestDTO t where t.vault = :vault and t.blockDate <= :from  order by t.blockDate desc")
+    List<Double> fetchUsdTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
 
 }

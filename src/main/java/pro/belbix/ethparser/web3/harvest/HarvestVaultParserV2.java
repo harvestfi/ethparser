@@ -157,8 +157,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private boolean parsePs(HarvestTx harvestTx) {
-        if ("staked".equals(harvestTx.getMethodName().toLowerCase())
-            || "Staked#V2".equals(harvestTx.getMethodName())) {
+        if("Staked".equals(harvestTx.getMethodName())) {
+            harvestTx.setMethodName("Deposit");
+        } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
             harvestTx.setMethodName("Deposit");
             harvestTx.setAmount(harvestTx.getIntFromArgs()[0]);
         } else if ("withdrawn".equals(harvestTx.getMethodName().toLowerCase())) {
@@ -329,7 +330,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private boolean isPs(HarvestTx harvestTx) {
-        return Vaults.PS.equals(harvestTx.getVault().getValue());
+        return Vaults.PS.equals(harvestTx.getVault().getValue())
+            ||  Vaults.PS_V0.equals(harvestTx.getVault().getValue());
     }
 
     @Override

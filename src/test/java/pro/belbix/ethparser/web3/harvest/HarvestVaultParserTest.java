@@ -43,8 +43,32 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultSUSHI_ETH_DAI() {
+        shouldNotParse(Vaults.SUSHI_ETH_DAI, 11278329, LOG_ID);
+    }
+
+    @Test
+    public void parseVaultPS_V0() {
+        harvestVaultParseTest(
+            Vaults.PS_V0,
+            10798055,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "PS_V0",
+            "0xe51375ce951af9c2f9cc61a94bf3dc1676a8440d93e9955c4af040646da4b4f2_259",
+            "1,96201716",
+            "0",
+            "0",
+            445L,
+            445L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultUSDC_V0_stake() {
-        shouldNotParse(  Vaults.USDC_V0, 11021481, LOG_ID);
+        shouldNotParse(Vaults.USDC_V0, 11021481, LOG_ID);
     }
 
     @Test

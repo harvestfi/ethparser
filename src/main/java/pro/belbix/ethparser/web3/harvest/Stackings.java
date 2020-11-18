@@ -6,8 +6,13 @@ import static pro.belbix.ethparser.web3.harvest.Vaults.CRV_TBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.DAI;
 import static pro.belbix.ethparser.web3.harvest.Vaults.DAI_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.PS;
+import static pro.belbix.ethparser.web3.harvest.Vaults.PS_V0;
 import static pro.belbix.ethparser.web3.harvest.Vaults.RENBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.RENBTC_V0;
+import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_ETH_USDC;
+import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_ETH_USDT;
+import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_ETH_WBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.SUSHI_WBTC_TBTC;
 import static pro.belbix.ethparser.web3.harvest.Vaults.TUSD;
 import static pro.belbix.ethparser.web3.harvest.Vaults.UNI_ETH_DAI;
@@ -61,7 +66,12 @@ public class Stackings {
     public static final String ST__3CRV = "".toLowerCase();
     public static final String ST_TUSD = "0xeC56a21CF0D7FeB93C25587C12bFfe094aa0eCdA".toLowerCase();
     public static final String ST_PS = "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase();
+    public static final String ST_PS_V0 = "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".toLowerCase();
     public static final String ST_CRV_TBTC = "".toLowerCase();
+    public static final String SUSHI_ETH_DAI_ST = "0x76Aef359a33C02338902aCA543f37de4b01BA1FA".toLowerCase();
+    public static final String SUSHI_ETH_USDC_ST = "0x6B4e1E0656Dd38F36c318b077134487B9b0cf7a6".toLowerCase();
+    public static final String SUSHI_ETH_USDT_ST = "0xA56522BCA0A09f57B85C52c0Cc8Ba1B5eDbc64ef".toLowerCase();
+    public static final String SUSHI_ETH_WBTC_ST = "0xE2D9FAe95f1e68afca7907dFb36143781f917194".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> vaultHashToStackingHash = new LinkedHashMap<>();
@@ -94,6 +104,11 @@ public class Stackings {
         hashToName.put(ST__3CRV, "ST__3CRV");
         hashToName.put(ST_TUSD, "ST_TUSD");
         hashToName.put(ST_PS, "ST_PS");
+        hashToName.put(ST_PS_V0, "ST_PS_V0");
+        hashToName.put(SUSHI_ETH_DAI_ST, "SUSHI_ETH_DAI_ST");
+        hashToName.put(SUSHI_ETH_USDC_ST, "SUSHI_ETH_USDC_ST");
+        hashToName.put(SUSHI_ETH_USDT_ST, "SUSHI_ETH_USDT_ST");
+        hashToName.put(SUSHI_ETH_WBTC_ST, "SUSHI_ETH_WBTC_ST");
 
         vaultHashToStackingHash.put(WETH_V0, ST_WETH_V0);
         vaultHashToStackingHash.put(USDC_V0, ST_USDC_V0);
@@ -123,6 +138,11 @@ public class Stackings {
         vaultHashToStackingHash.put(TUSD, ST_TUSD);
         vaultHashToStackingHash.put(CRV_TBTC, ST_CRV_TBTC);
         vaultHashToStackingHash.put(PS, ST_PS);
+        vaultHashToStackingHash.put(PS_V0, ST_PS_V0);
+        vaultHashToStackingHash.put(SUSHI_ETH_DAI, SUSHI_ETH_DAI_ST);
+        vaultHashToStackingHash.put(SUSHI_ETH_USDC, SUSHI_ETH_USDC_ST);
+        vaultHashToStackingHash.put(SUSHI_ETH_USDT, SUSHI_ETH_USDT_ST);
+        vaultHashToStackingHash.put(SUSHI_ETH_WBTC, SUSHI_ETH_WBTC_ST);
     }
 
 }

@@ -46,9 +46,14 @@ public class Web3Properties {
         _3CRV,
         CRV_TBTC,
         PS,
+        PS_V0,
         CRV_CMPND,
         CRV_BUSD,
-        CRV_USDN
+        CRV_USDN,
+        SUSHI_ETH_DAI,
+        SUSHI_ETH_USDC,
+        SUSHI_ETH_USDT,
+        SUSHI_ETH_WBTC
     );
     private boolean testWs = false;
     private int testWsRate = 1000;
