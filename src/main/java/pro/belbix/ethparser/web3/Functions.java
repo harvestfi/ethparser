@@ -45,7 +45,7 @@ public class Functions {
             return new Tuple2<>(0.0, 0.0);
         }
 
-        Tuple2<Long, Long> dividers = LpContracts.lpPairsDividers.get(lpAddress);
+        Tuple2<Double, Double> dividers = LpContracts.lpPairsDividers.get(lpAddress);
         if (dividers == null) {
             throw new IllegalStateException("Not found divider for " + lpAddress);
         }

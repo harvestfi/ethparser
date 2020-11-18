@@ -43,7 +43,83 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultSUSHI_ETH_USDT() {
+        harvestVaultParseTest(
+            Vaults.SUSHI_ETH_USDT,
+            11279480,
+            LOG_ID,
+            "0x385153335428d17024b32614ba66259ed307c9ba",
+            "Deposit",
+            "SUSHI_ETH_USDT",
+            "0xe83f8805e98f2e2cccca82fa2bd48785914a09d9887e750183fceb4543f92654_292",
+            "0,00089347",
+            "0",
+            "0",
+            48497L,
+            15531830L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultSUSHI_ETH_USDC() {
+        harvestVaultParseTest(
+            Vaults.SUSHI_ETH_USDC,
+            11279940,
+            LOG_ID,
+            "0xa20f9874dd1edccbec1beda894f98f45069e4205",
+            "Deposit",
+            "SUSHI_ETH_USDC",
+            "0x265bd97b6dfc7df3799ad6ca077ef8ae36b8d62f1c7ba8368f788f4535f9bd16_56",
+            "0,00017192",
+            "0",
+            "0",
+            9443L,
+            14126008L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultSUSHI_ETH_DAI() {
+        harvestVaultParseTest(
+            Vaults.SUSHI_ETH_DAI,
+            11279440,
+            LOG_ID,
+            "0x7b5c7755dffc97bf44677a084b591c38bf894abf",
+            "Deposit",
+            "SUSHI_ETH_DAI",
+            "0x157cbc1828110467acf387ffeeb4f9a53255394ea7c1edb2bd388e145e1b7cf5_333",
+            "181,23103431",
+            "0",
+            "0",
+            9328L,
+            10132491L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultSUSHI_ETH_WBTC() {
+        harvestVaultParseTest(
+            Vaults.SUSHI_ETH_WBTC,
+            11279665,
+            LOG_ID,
+            "0x9ebaff2192d2746fec76561bdf72fd249d7a73ab",
+            "Deposit",
+            "SUSHI_ETH_WBTC",
+            "0x44c68835607ae3286d2ca09bfe206527bfbf8e3a328902d25933ef80f8acdf42_196",
+            "0,00003057",
+            "0",
+            "0",
+            423523L,
+            31808001L,
+            true
+        );
+    }
+
+    @Test
+    public void shouldNotParseVaultSUSHI_ETH_DAI() {
         shouldNotParse(Vaults.SUSHI_ETH_DAI, 11278329, LOG_ID);
     }
 

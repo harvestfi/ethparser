@@ -1,15 +1,15 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static pro.belbix.ethparser.web3.ContractMapper.D18;
+import static pro.belbix.ethparser.web3.ContractMapper.D6;
+import static pro.belbix.ethparser.web3.ContractMapper.D8;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class Vaults {
-    private static final double D6 = 1000_000.0;
-    private static final double D8 = 100_000_000.0;
-    private static final double D18 = 1000_000_000_000_000_000.0;
-
     public static final String WETH_V0 = "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase();
     public static final String USDC_V0 = "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f".toLowerCase();
     public static final String USDT_V0 = "0xc7EE21406BB581e741FBb8B21f213188433D9f2F".toLowerCase();

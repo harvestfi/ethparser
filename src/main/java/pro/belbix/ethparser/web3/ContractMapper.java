@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ContractMapper {
+    public static final double D6 = 1000_000.0;
+    public static final double D8 = 100_000_000.0;
+    public static final double D18 = 1000_000_000_000_000_000.0;
 
     private final static Map<String, String> names = new HashMap<>();
     private final static Map<String, String> digits = new HashMap<>();

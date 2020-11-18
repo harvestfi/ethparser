@@ -72,8 +72,8 @@ public class HarvestVaultDownloader {
 //                CRV_BUSD
 //                CRV_USDN
 //                PS_V0
-//                SUSHI_ETH_DAI
-//                SUSHI_ETH_USDC
+                SUSHI_ETH_DAI,
+                SUSHI_ETH_USDC,
                 SUSHI_ETH_USDT,
                 SUSHI_ETH_WBTC
             )
