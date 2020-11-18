@@ -49,10 +49,13 @@ public class TvlRecalculate {
 
         harvestDtosToMap(harvestDTOList);
         uniDtosToMap(uniswapRepository.findAll());
-
+        int count = 0;
         for (HarvestDTO harvestDTO : harvestDTOList) {
-            log.info("Save for " + harvestDTO.print());
+            count++;
             harvestDBService.saveHarvestTvl(harvestDTO, false);
+            if (count % 10000 == 0) {
+                log.info("Save for " + harvestDTO.print());
+            }
         }
     }
 
