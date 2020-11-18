@@ -46,13 +46,15 @@ public class UniswapDbService {
         }
         uniswapRepository.save(dto);
         uniswapRepository.flush();
-        saveIncome(dto);
+        if (saveIncome(dto)) {
+            uniswapRepository.save(dto);
+        }
         return true;
     }
 
-    public void saveIncome(UniswapDTO dto) {
+    public boolean saveIncome(UniswapDTO dto) {
         if (!DO_HARD_WORK.equals(dto.getOwner())) {
-            return;
+            return false;
         }
 
         double amountSum = 0.0;
@@ -113,6 +115,8 @@ public class UniswapDbService {
         }
 
         incomeRepository.save(incomeEntity);
+        dto.setPsWeekApy(weekPerc);
+        return true;
     }
 
     public BigInteger lastBlock() {

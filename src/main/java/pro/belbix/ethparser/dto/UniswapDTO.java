@@ -30,6 +30,7 @@ public class UniswapDTO implements DtoI {
     private Double lastGas;
     private Long blockDate;
     private Integer ownerCount;
+    private Double psWeekApy;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -61,6 +62,14 @@ public class UniswapDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Double getPsWeekApy() {
+        return psWeekApy;
+    }
+
+    public void setPsWeekApy(Double psWeekApy) {
+        this.psWeekApy = psWeekApy;
+    }
 
     public String getId() {
         return id;
