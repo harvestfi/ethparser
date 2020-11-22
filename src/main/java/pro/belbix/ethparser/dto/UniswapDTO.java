@@ -31,6 +31,7 @@ public class UniswapDTO implements DtoI {
     private Long blockDate;
     private Integer ownerCount;
     private Double psWeekApy;
+    private Double psIncomeUsd;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -62,6 +63,14 @@ public class UniswapDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Double getPsIncomeUsd() {
+        return psIncomeUsd;
+    }
+
+    public void setPsIncomeUsd(Double psIncomeUsd) {
+        this.psIncomeUsd = psIncomeUsd;
+    }
 
     public Double getPsWeekApy() {
         return psWeekApy;

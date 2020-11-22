@@ -2,6 +2,7 @@ package pro.belbix.ethparser;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
@@ -71,7 +72,7 @@ public class Application {
             }
 
             if (conf.isParseHardWorkLog()) {
-                startParse(web3Service, hardWorkParser, ws, null, true);
+                startParse(web3Service, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
             }
         }
     }

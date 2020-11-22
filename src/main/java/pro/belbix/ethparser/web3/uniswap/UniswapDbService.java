@@ -116,6 +116,7 @@ public class UniswapDbService {
 
         incomeRepository.save(incomeEntity);
         dto.setPsWeekApy(weekPerc);
+        dto.setPsIncomeUsd(amountSumUsd);
         return true;
     }
 

@@ -15,7 +15,6 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -95,7 +94,7 @@ public class HardWorkParser implements Web3Parser {
         }
 
         HardWorkDTO dto = new HardWorkDTO();
-        dto.setId(tx.getHash());
+        dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock());
         dto.setBlockDate(tx.getBlockDate());
         dto.setVault(Vaults.vaultNames.get(tx.getVault()));

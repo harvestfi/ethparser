@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.model;
 
 import java.math.BigInteger;
-import pro.belbix.ethparser.dto.HardWorkDTO;
 
 public class HardWorkTx {
     private String hash;
+    private String logId;
     private String vault;
     private String strategy;
     private String methodName;
@@ -14,6 +14,14 @@ public class HardWorkTx {
     private BigInteger newSharePrice;
     private BigInteger profitAmount;
     private BigInteger feeAmount;
+
+    public String getLogId() {
+        return logId;
+    }
+
+    public void setLogId(String logId) {
+        this.logId = logId;
+    }
 
     public BigInteger getProfitAmount() {
         return profitAmount;

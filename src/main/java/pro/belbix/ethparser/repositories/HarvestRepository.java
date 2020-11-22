@@ -30,6 +30,10 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "where vault = :vault and block_date <= :block_date order by block_date desc limit 0,1")
     HarvestDTO fetchLastByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
 
+    @Query(nativeQuery = true, value = "select * from harvest_tx "
+        + "where vault = :vault and last_usd_tvl != 0 and block_date <= :block_date order by block_date desc limit 0,1")
+    HarvestDTO fetchLastByVaultAndDateNotZero(@Param("vault") String vault, @Param("block_date") long blockDate);
+
     @Query(nativeQuery = true, value = ""
         + "select count(*) from ("
         + "select t.owner from harvest_tx t where t.vault = :vault and t.block_date <= :block_date group by t.owner) tt"
@@ -67,5 +71,11 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
     @Query("select t.lastUsdTvl from HarvestDTO t where t.vault = :vault and t.blockDate <= :from  order by t.blockDate desc")
     List<Double> fetchUsdTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
+
+    @Query("select max(t.blockDate) - min(t.blockDate) as period from HarvestDTO t where "
+        + "t.vault = :vault and t.blockDate <= :to")
+    List<Long> fetchPeriodOfWork(@Param("vault") String vault,
+                                 @Param("to") long to,
+                                 Pageable pageable);
 
 }

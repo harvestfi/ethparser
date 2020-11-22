@@ -36,6 +36,7 @@ public class HardWorkLogDecoder extends MethodDecoder {
 
         List<Type> types = extractLogIndexedValues(log, parameters);
         HardWorkTx tx = new HardWorkTx();
+        tx.setLogId(log.getLogIndex().toString());
         tx.setHash(log.getTransactionHash());
         tx.setMethodName(methodName);
         tx.setBlock(log.getBlockNumber().longValue());

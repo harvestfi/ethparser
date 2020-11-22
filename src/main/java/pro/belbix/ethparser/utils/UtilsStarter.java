@@ -41,6 +41,8 @@ public class UtilsStarter {
     private DownloadIncome downloadIncome;
     @Autowired
     private HardWorkDownloader hardWorkDownloader;
+    @Autowired
+    private HardWorkRecalculate hardWorkRecalculate;
 
     public void startUtils() {
 //        cacheBlocks();
@@ -49,6 +51,7 @@ public class UtilsStarter {
 //        tvlRecalculate.start();
 //        downloadIncome.start();
         hardWorkDownloader.start();
+//        hardWorkRecalculate.start();
     }
 
     private void uniswapDownloader() {

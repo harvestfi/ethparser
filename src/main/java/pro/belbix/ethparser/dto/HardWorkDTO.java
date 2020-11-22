@@ -21,6 +21,8 @@ public class HardWorkDTO implements DtoI {
     private double shareChangeUsd;
     private double shareUsdTotal;
     private double tvl;
+    private double perc;
+    private double apr;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -29,6 +31,22 @@ public class HardWorkDTO implements DtoI {
             + shareUsdTotal + " "
             + id;
 
+    }
+
+    public double getPerc() {
+        return perc;
+    }
+
+    public void setPerc(double perc) {
+        this.perc = perc;
+    }
+
+    public double getApr() {
+        return apr;
+    }
+
+    public void setApr(double apr) {
+        this.apr = apr;
     }
 
     public double getTvl() {

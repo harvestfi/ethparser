@@ -262,6 +262,11 @@ public class TvlRecalculate {
             }
 
             @Override
+            public HarvestDTO fetchLastByVaultAndDateNotZero(String vault, long blockDate) {
+                return null;
+            }
+
+            @Override
             public Integer fetchOwnerCount(String vault, long blockDate) {
                 return null;
             }
@@ -290,6 +295,11 @@ public class TvlRecalculate {
 
             @Override
             public List<Double> fetchUsdTvlFrom(long from, String vault, Pageable pageable) {
+                return null;
+            }
+
+            @Override
+            public List<Long> fetchPeriodOfWork(String vault, long to, Pageable pageable) {
                 return null;
             }
 
