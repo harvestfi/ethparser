@@ -40,17 +40,17 @@ public class HarvestVaultDownloader {
 
         Set<String> include = new HashSet<>(
             Arrays.asList(
-//                WETH_V0,
-//                USDC_V0,
-//                USDT_V0,
-//                DAI_V0,
-//                WBTC_V0,
-//                RENBTC_V0,
-//                CRVRENWBTC_V0,
-//                UNI_ETH_DAI_V0,
-//                UNI_ETH_USDC_V0,
-//                UNI_ETH_USDT_V0,
-//                UNI_ETH_WBTC_V0,
+                WETH_V0,
+//                USDC_V0
+                USDT_V0,
+                DAI_V0,
+                WBTC_V0,
+                RENBTC_V0,
+                CRVRENWBTC_V0,
+                UNI_ETH_DAI_V0,
+                UNI_ETH_USDC_V0,
+                UNI_ETH_USDT_V0,
+                UNI_ETH_WBTC_V0
 //                UNI_ETH_DAI,
 //                UNI_ETH_USDC,
 //                UNI_ETH_USDT,
@@ -72,10 +72,11 @@ public class HarvestVaultDownloader {
 //                CRV_BUSD
 //                CRV_USDN
 //                PS_V0
-                SUSHI_ETH_DAI,
-                SUSHI_ETH_USDC,
-                SUSHI_ETH_USDT,
-                SUSHI_ETH_WBTC
+//                SUSHI_ETH_DAI,
+//                SUSHI_ETH_USDC,
+//                SUSHI_ETH_USDT,
+//                SUSHI_ETH_WBTC
+//                YCRV_V0
             )
         );
 
@@ -83,7 +84,7 @@ public class HarvestVaultDownloader {
             if (!include.contains(vaultHash)) {
                 continue;
             }
-            parseVault(vaultHash, 10770000, null);
+            parseVault(vaultHash, 10770000, 11303222);
 //            parseVault(vaultHash, 11021480, 11223256);
         }
     }

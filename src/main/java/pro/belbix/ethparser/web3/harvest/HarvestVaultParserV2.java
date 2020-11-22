@@ -270,8 +270,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
-        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
-            vaultHash);
+//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+//            vaultHash);
+        double vaultUnderlyingUnit = 1.0; // currently always 1
 
         double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
         dto.setLastTvl(vault);
@@ -284,8 +285,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
-        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
-            vaultHash);
+//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+//            vaultHash);
+        double vaultUnderlyingUnit = 1.0; // currently always 1
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock().longValue()), lpHash);
         Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock().longValue());
 

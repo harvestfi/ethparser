@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Vaults {
+    public static final String YCRV_V0 = "0xF2B223Eb3d2B382Ead8D85f3c1b7eF87c1D35f3A".toLowerCase();
     public static final String WETH_V0 = "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase();
     public static final String USDC_V0 = "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f".toLowerCase();
     public static final String USDT_V0 = "0xc7EE21406BB581e741FBb8B21f213188433D9f2F".toLowerCase();
@@ -42,7 +43,6 @@ public class Vaults {
     public static final String CRV_CMPND = "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD".toLowerCase();
     public static final String CRV_BUSD = "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a".toLowerCase();
     public static final String CRV_USDN = "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664".toLowerCase();
-
     public static final String SUSHI_ETH_DAI = "0x203E97aa6eB65A1A02d9E80083414058303f241E".toLowerCase();
     public static final String SUSHI_ETH_USDC = "0x01bd09A1124960d9bE04b638b142Df9DF942b04a".toLowerCase();
     public static final String SUSHI_ETH_USDT = "0x64035b583c8c694627A199243E863Bb33be60745".toLowerCase();
@@ -54,6 +54,7 @@ public class Vaults {
     public final static Map<String, String> vaultNameToOldVaultName = new LinkedHashMap<>();
 
     static {
+        vaultNames.put(YCRV_V0, "YCRV_V0");
         vaultNames.put(WETH_V0, "WETH_V0");
         vaultNames.put(USDC_V0, "USDC_V0");
         vaultNames.put(USDT_V0, "USDT_V0");
@@ -91,6 +92,7 @@ public class Vaults {
         vaultNames.put(SUSHI_ETH_USDT, "SUSHI_ETH_USDT");
         vaultNames.put(SUSHI_ETH_WBTC, "SUSHI_ETH_WBTC");
 
+        vaultDividers.put(YCRV_V0, D18);
         vaultDividers.put(WETH_V0, D18);
         vaultDividers.put(USDC_V0, D6);
         vaultDividers.put(USDT_V0, D6);

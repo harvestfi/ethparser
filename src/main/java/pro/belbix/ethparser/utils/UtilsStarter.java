@@ -17,6 +17,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.entity.BlockCacheEntity;
 import pro.belbix.ethparser.repositories.BlockCacheRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.web3.harvest.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.Vaults;
 import pro.belbix.ethparser.web3.uniswap.DownloadIncome;
@@ -38,13 +39,16 @@ public class UtilsStarter {
     private TvlRecalculate tvlRecalculate;
     @Autowired
     private DownloadIncome downloadIncome;
+    @Autowired
+    private HardWorkDownloader hardWorkDownloader;
 
     public void startUtils() {
 //        cacheBlocks();
 //        uniswapDownloader();
 //        harvestVaultDownloader.start();
-        tvlRecalculate.start();
+//        tvlRecalculate.start();
 //        downloadIncome.start();
+        hardWorkDownloader.start();
     }
 
     private void uniswapDownloader() {

@@ -30,16 +30,18 @@ public class HarvestDBService {
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
+        if (!web3Properties.isOverrideDuplicates() && harvestRepository.existsById(dto.getId())) {
+            log.info("Duplicate Harvest entry " + dto.getId());
+            return false;
+        }
+
         Integer ownerCount = harvestRepository.fetchActualOwnerCount(dto.getVault(),
             Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-        if (!web3Properties.isOverrideDuplicates() && harvestRepository.existsById(dto.getId())) {
-            log.info("Duplicate Harvest entry " + dto.getId());
-            return false;
-        }
+
         harvestRepository.save(dto);
         harvestRepository.flush();
         saveHarvestTvl(dto, true);

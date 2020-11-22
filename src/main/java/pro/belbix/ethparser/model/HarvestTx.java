@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.model;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Map;
 import org.web3j.abi.datatypes.Address;
@@ -63,6 +65,7 @@ public class HarvestTx implements EthTransactionI {
             }
         }
         return amount.doubleValue() / divider;
+        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
     }
 
     private void enrichMethodDepend(HarvestDTO dto) {

@@ -23,6 +23,7 @@ import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.properties.Web3Properties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.HardWorkParser;
 import pro.belbix.ethparser.web3.harvest.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.harvest.HarvestVaultParserV2;
@@ -46,6 +47,7 @@ public class Application {
         HarvestTransactionsParser harvestTransactionsParser = context.getBean(HarvestTransactionsParser.class);
         UniswapLpLogParser uniswapLpLogParser = context.getBean(UniswapLpLogParser.class);
         HarvestVaultParserV2 harvestVaultParser = context.getBean(HarvestVaultParserV2.class);
+        HardWorkParser hardWorkParser = context.getBean(HardWorkParser.class);
         WsService ws = context.getBean(WsService.class);
         Web3Properties conf = context.getBean(Web3Properties.class);
 
@@ -66,6 +68,10 @@ public class Application {
 
             if (conf.isParseHarvestLog()) {
                 startParse(web3Service, harvestVaultParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            }
+
+            if (conf.isParseHardWorkLog()) {
+                startParse(web3Service, hardWorkParser, ws, null, true);
             }
         }
     }
@@ -100,7 +106,7 @@ public class Application {
                     dto = parser.getOutput().poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
                 }
-                if (dto != null) {
+                if (dto != null && topicName != null) {
                     log.debug("Sent to ws {} {}", topicName, dto);
                     ws.send(topicName, dto);
                 }

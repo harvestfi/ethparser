@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.harvest.HardWorkParser.CONTROLLER;
 import static pro.belbix.ethparser.web3.harvest.Vaults.*;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
 
@@ -19,6 +20,7 @@ public class Web3Properties {
     private String startLogBlock = "";
     private List<String> logSubscriptions = Arrays.asList(
         FARM_USDC_LP_CONTRACT,
+        CONTROLLER,
         WETH_V0,
         USDC_V0,
         USDT_V0,
@@ -59,10 +61,19 @@ public class Web3Properties {
     private int testWsRate = 1000;
     private boolean parseUniswapLog = true;
     private boolean parseHarvestLog = true;
+    private boolean parseHardWorkLog = true;
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
     private boolean overrideDuplicates = false;
     private boolean stubPrice = false;
+
+    public boolean isParseHardWorkLog() {
+        return parseHardWorkLog;
+    }
+
+    public void setParseHardWorkLog(boolean parseHardWorkLog) {
+        this.parseHardWorkLog = parseHardWorkLog;
+    }
 
     public boolean isStubPrice() {
         return stubPrice;
