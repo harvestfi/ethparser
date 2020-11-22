@@ -19,6 +19,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import pro.belbix.ethparser.dto.DtoI;
+import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.properties.Web3Properties;
@@ -151,6 +152,17 @@ public class Application {
             harvestDTO.setLastGas(currentCount / 6);
             harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
             ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, harvestDTO);
+
+            HardWorkDTO hardWorkDTO = new HardWorkDTO();
+            hardWorkDTO.setId("0x" + (count * 1000000));
+            hardWorkDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
+            hardWorkDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
+            hardWorkDTO.setShareChange(count / 1000.0);
+            hardWorkDTO.setShareChangeUsd(count / 69.0);
+            hardWorkDTO.setShareUsdTotal(count);
+            hardWorkDTO.setTvl(count * 60);
+            hardWorkDTO.setPerc((double) count / 633.0);
+            ws.send(HARDWORK_TOPIC_NAME, hardWorkDTO);
 
             log.info("Msg sent " + currentCount);
             count++;

@@ -18,6 +18,8 @@ public class HardWorkDbService {
     private static final Logger log = LoggerFactory.getLogger(HardWorkDbService.class);
     private final Pageable limitOne = PageRequest.of(0, 1);
     private final static double SECONDS_OF_YEAR = 31557600.0;
+    private final static long PS_DEPLOYED = 1601389313;
+    private final static long PS_OLD_DEPLOYED = 1599258042;
 
     private final HardWorkRepository hardWorkRepository;
     private final HarvestRepository harvestRepository;
@@ -49,6 +51,13 @@ public class HardWorkDbService {
         }
         dto.setShareUsdTotal(all);
 
+        calculateVaultApr(dto);
+        calculatePsApr(dto);
+
+        hardWorkRepository.save(dto);
+    }
+
+    private void calculateVaultApr(HardWorkDTO dto) {
         HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate());
         if (harvestDTO != null) {
             dto.setTvl(harvestDTO.getLastUsdTvl());
@@ -67,7 +76,8 @@ public class HardWorkDbService {
                     .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne);
                 if (periodL != null && !periodL.isEmpty() && periodL.get(0) != null) {
                     double period = (double) periodL.get(0);
-                    if(period != 0.0) {
+                    dto.setPeriodOfWork(periodL.get(0));
+                    if (period != 0.0) {
                         double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
                         dto.setApr(apr);
                     }
@@ -77,7 +87,50 @@ public class HardWorkDbService {
         } else {
             log.warn("Not found harvest for " + dto.print());
         }
+    }
 
-        hardWorkRepository.save(dto);
+    private void calculatePsApr(HardWorkDTO dto) {
+        HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS", dto.getBlockDate());
+        if (harvestDTO == null) {
+            harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS_V0", dto.getBlockDate());
+        }
+        if (harvestDTO != null) {
+            dto.setPsTvlUsd(harvestDTO.getLastUsdTvl());
+
+            List<Double> allProfitL = hardWorkRepository.fetchAllProfitForPeriod(dto.getBlockDate(), limitOne);
+            if (allProfitL != null && !allProfitL.isEmpty() && allProfitL.get(0) != null) {
+                double allProfit = allProfitL.get(0);
+                dto.setAllProfit(allProfit);
+                double allPsProfit = (allProfit / 0.7) * 0.3;
+
+                double psProfitPerc = (allPsProfit / dto.getPsTvlUsd()) * 100;
+
+                double period = 0.0;
+                if (dto.getBlockDate() < PS_DEPLOYED) {
+                    List<Long> periodOldPsL = harvestRepository
+                        .fetchPeriodOfWork("PS_V0", dto.getBlockDate(), limitOne);
+                    if (periodOldPsL != null && !periodOldPsL.isEmpty() && periodOldPsL.get(0) != null) {
+                        period = (double) periodOldPsL.get(0);
+                    }
+                } else {
+                    List<Long> periodNewPsL = harvestRepository.fetchPeriodOfWork("PS", dto.getBlockDate(), limitOne);
+                    if (periodNewPsL != null && !periodNewPsL.isEmpty() && periodNewPsL.get(0) != null) {
+                        period = (double) periodNewPsL.get(0);
+                    }
+                    period += PS_DEPLOYED - PS_OLD_DEPLOYED;
+                }
+
+                dto.setPsPeriodOfWork((long) period);
+
+                if (period != 0.0) {
+                    double apr = (SECONDS_OF_YEAR / period) * psProfitPerc;
+                    dto.setPsApr(apr);
+                }
+
+            }
+
+        } else {
+            log.warn("Not found PS for " + dto.print());
+        }
     }
 }

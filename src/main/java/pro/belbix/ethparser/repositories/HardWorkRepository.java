@@ -22,4 +22,9 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     List<Double> fetchPercentForPeriod(@Param("vault") String vault,
                                        @Param("to") long to,
                                        Pageable pageable);
+
+    @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
+        + "t.blockDate <= :to")
+    List<Double> fetchAllProfitForPeriod(@Param("to") long to,
+                                       Pageable pageable);
 }

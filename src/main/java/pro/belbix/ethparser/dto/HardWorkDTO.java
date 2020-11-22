@@ -21,8 +21,13 @@ public class HardWorkDTO implements DtoI {
     private double shareChangeUsd;
     private double shareUsdTotal;
     private double tvl;
+    private double allProfit;
+    private long periodOfWork;
+    private long psPeriodOfWork;
     private double perc;
     private double apr;
+    private double psTvlUsd;
+    private double psApr;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -31,6 +36,46 @@ public class HardWorkDTO implements DtoI {
             + shareUsdTotal + " "
             + id;
 
+    }
+
+    public long getPsPeriodOfWork() {
+        return psPeriodOfWork;
+    }
+
+    public void setPsPeriodOfWork(long psPeriodOfWork) {
+        this.psPeriodOfWork = psPeriodOfWork;
+    }
+
+    public long getPeriodOfWork() {
+        return periodOfWork;
+    }
+
+    public void setPeriodOfWork(long periodOfWork) {
+        this.periodOfWork = periodOfWork;
+    }
+
+    public double getAllProfit() {
+        return allProfit;
+    }
+
+    public void setAllProfit(double allProfit) {
+        this.allProfit = allProfit;
+    }
+
+    public double getPsTvlUsd() {
+        return psTvlUsd;
+    }
+
+    public void setPsTvlUsd(double psTvl) {
+        this.psTvlUsd = psTvl;
+    }
+
+    public double getPsApr() {
+        return psApr;
+    }
+
+    public void setPsApr(double psApr) {
+        this.psApr = psApr;
     }
 
     public double getPerc() {
