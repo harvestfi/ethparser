@@ -51,7 +51,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.harvest.HarvestDBService;
 import pro.belbix.ethparser.web3.uniswap.UniswapDbService;
 
@@ -66,7 +66,7 @@ public class Web3Service {
     private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
-    private final Web3Properties web3Properties;
+    private final AppProperties appProperties;
     private final UniswapDbService uniswapDbService;
     private final HarvestDBService harvestDBService;
     private boolean init = false;
@@ -76,9 +76,9 @@ public class Web3Service {
     private Web3Checker web3Checker;
     private LogFlowable logFlowable;
 
-    public Web3Service(Web3Properties web3Properties, UniswapDbService uniswapDbService,
+    public Web3Service(AppProperties appProperties, UniswapDbService uniswapDbService,
                        HarvestDBService harvestDBService) {
-        this.web3Properties = web3Properties;
+        this.appProperties = appProperties;
         this.uniswapDbService = uniswapDbService;
         this.harvestDBService = harvestDBService;
     }
@@ -90,12 +90,12 @@ public class Web3Service {
         clientBuilder.callTimeout(600, SECONDS)
             .writeTimeout(600, SECONDS)
             .connectTimeout(600, SECONDS);
-        if (Strings.isBlank(web3Properties.getWeb3User())) {
+        if (Strings.isBlank(appProperties.getWeb3User())) {
             String url;
-            if (Strings.isBlank(web3Properties.getWeb3Url())) {
+            if (Strings.isBlank(appProperties.getWeb3Url())) {
                 url = System.getProperty("ethjava.web3.url");
             } else {
-                url = web3Properties.getWeb3Url();
+                url = appProperties.getWeb3Url();
             }
             if (url == null) {
                 throw new IllegalStateException("Web3 url not defined");
@@ -107,12 +107,12 @@ public class Web3Service {
                 @Override
                 public Request authenticate(Route route, Response response) throws IOException {
                     String credential = Credentials
-                        .basic(web3Properties.getWeb3User(), web3Properties.getWeb3Password());
+                        .basic(appProperties.getWeb3User(), appProperties.getWeb3Password());
                     return response.request().newBuilder().header("Authorization", credential).build();
                 }
             });
 
-            HttpService service = new HttpService(web3Properties.getWeb3Url(), clientBuilder.build(), false);
+            HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
             web3 = Web3j.build(service);
         }
         log.info("Successfully connected to Ethereum");
@@ -127,17 +127,17 @@ public class Web3Service {
     }
 
     public void subscribeTransactionFlowable() {
-        if (!web3Properties.isParseTransactions() && !web3Properties.isParseTransactions()) {
+        if (!appProperties.isParseTransactions() && !appProperties.isParseTransactions()) {
             return;
         }
         checkInit();
         Flowable<Transaction> flowable;
-        if (Strings.isBlank(web3Properties.getStartBlock())) {
+        if (Strings.isBlank(appProperties.getStartBlock())) {
             flowable = web3.transactionFlowable();
         } else {
-            log.info("Start flow from block " + web3Properties.getStartBlock());
+            log.info("Start flow from block " + appProperties.getStartBlock());
             flowable = web3.replayPastAndFutureTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartBlock())));
+                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock())));
         }
         Disposable subscription = flowable
             .subscribe(tx -> transactionConsumers.forEach(queue ->
@@ -149,17 +149,17 @@ public class Web3Service {
     }
 
     public void subscribeLogFlowable() {
-        if (!web3Properties.isParseUniswapLog() && !web3Properties.isParseHarvestLog()) {
+        if (!appProperties.isParseUniswapLog() && !appProperties.isParseHarvestLog()) {
             return;
         }
         checkInit();
         DefaultBlockParameter from;
-        if (Strings.isBlank(web3Properties.getStartLogBlock())) {
+        if (Strings.isBlank(appProperties.getStartLogBlock())) {
             from = new DefaultBlockParameterNumber(findEarliestLastBlock());
         } else {
-            from = DefaultBlockParameter.valueOf(new BigInteger(web3Properties.getStartLogBlock()));
+            from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
         }
-        EthFilter filter = new EthFilter(from, LATEST, web3Properties.getLogSubscriptions());
+        EthFilter filter = new EthFilter(from, LATEST, appProperties.getLogSubscriptions());
         logFlowable(filter);
         //NPE https://github.com/web3j/web3j/issues/1264
 //        Disposable subscription = web3.ethLogFlowable(filter)
@@ -175,10 +175,10 @@ public class Web3Service {
         BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
         BigInteger lastBlocHarvest = harvestDBService.lastBlock();
         //if only one enabled
-        if (web3Properties.isParseHarvestLog() && !web3Properties.isParseUniswapLog()) {
+        if (appProperties.isParseHarvestLog() && !appProperties.isParseUniswapLog()) {
             return lastBlocHarvest;
         }
-        if (!web3Properties.isParseHarvestLog() && web3Properties.isParseUniswapLog()) {
+        if (!appProperties.isParseHarvestLog() && appProperties.isParseUniswapLog()) {
             return lastBlocUniswap;
         }
         //multiple enabled

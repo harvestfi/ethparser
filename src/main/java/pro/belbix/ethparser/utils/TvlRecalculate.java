@@ -16,7 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
@@ -29,7 +29,7 @@ public class TvlRecalculate {
     @Autowired
     private HarvestRepository harvestRepository;
     @Autowired
-    private Web3Properties web3Properties;
+    private AppProperties appProperties;
     @Autowired
     private HarvestTvlRepository harvestTvlRepository;
     @Autowired
@@ -40,7 +40,7 @@ public class TvlRecalculate {
     public void start() {
         HarvestDBService harvestDBService = new HarvestDBService(
             createHarvestRepository(),
-            web3Properties,
+            appProperties,
             harvestTvlRepository,
             createUniswapRepository()
         );

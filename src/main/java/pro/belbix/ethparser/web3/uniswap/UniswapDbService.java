@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.IncomeEntity;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.IncomeRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
@@ -22,16 +22,16 @@ public class UniswapDbService {
     private final UniswapRepository uniswapRepository;
     private final HarvestRepository harvestRepository;
     private final IncomeRepository incomeRepository;
-    private final Web3Properties web3Properties;
+    private final AppProperties appProperties;
     private final Pageable limitOne = PageRequest.of(0, 1);
 
     public UniswapDbService(
         UniswapRepository uniswapRepository, HarvestRepository harvestRepository,
-        IncomeRepository incomeRepository, Web3Properties web3Properties) {
+        IncomeRepository incomeRepository, AppProperties appProperties) {
         this.uniswapRepository = uniswapRepository;
         this.harvestRepository = harvestRepository;
         this.incomeRepository = incomeRepository;
-        this.web3Properties = web3Properties;
+        this.appProperties = appProperties;
     }
 
     public boolean saveUniswapDto(UniswapDTO dto) {
@@ -40,7 +40,7 @@ public class UniswapDbService {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-        if (!web3Properties.isOverrideDuplicates() && uniswapRepository.existsById(dto.getId())) {
+        if (!appProperties.isOverrideDuplicates() && uniswapRepository.existsById(dto.getId())) {
             log.info("Duplicate tx " + dto.getId());
             return false;
         }

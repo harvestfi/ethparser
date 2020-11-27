@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
@@ -17,20 +17,20 @@ public class HarvestDBService {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestDBService.class);
     private final HarvestRepository harvestRepository;
-    private final Web3Properties web3Properties;
+    private final AppProperties appProperties;
     private final HarvestTvlRepository harvestTvlRepository;
     private final UniswapRepository uniswapRepository;
 
-    public HarvestDBService(HarvestRepository harvestRepository, Web3Properties web3Properties,
+    public HarvestDBService(HarvestRepository harvestRepository, AppProperties appProperties,
                             HarvestTvlRepository harvestTvlRepository, UniswapRepository uniswapRepository) {
         this.harvestRepository = harvestRepository;
-        this.web3Properties = web3Properties;
+        this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
         this.uniswapRepository = uniswapRepository;
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
-        if (!web3Properties.isOverrideDuplicates() && harvestRepository.existsById(dto.getId())) {
+        if (!appProperties.isOverrideDuplicates() && harvestRepository.existsById(dto.getId())) {
             log.info("Duplicate Harvest entry " + dto.getId());
             return false;
         }
@@ -45,6 +45,7 @@ public class HarvestDBService {
         harvestRepository.save(dto);
         harvestRepository.flush();
         saveHarvestTvl(dto, true);
+        harvestRepository.save(dto);
         return true;
     }
 
@@ -74,6 +75,7 @@ public class HarvestDBService {
         if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
             log.info("Found the same (" + tvl + ") last TVL record for " + dto);
         }
+        dto.setLastAllUsdTvl(tvl);
         harvestTvlRepository.save(newTvl);
     }
 
@@ -83,6 +85,10 @@ public class HarvestDBService {
             return new BigInteger("0");
         }
         return dto.getBlock();
+    }
+
+    public static double aprToApy(double apr, double period){
+        return (Math.pow(1 + (apr / period), period) - 1.0);
     }
 
 }

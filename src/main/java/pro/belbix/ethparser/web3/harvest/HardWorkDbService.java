@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 
@@ -23,18 +23,18 @@ public class HardWorkDbService {
 
     private final HardWorkRepository hardWorkRepository;
     private final HarvestRepository harvestRepository;
-    private final Web3Properties web3Properties;
+    private final AppProperties appProperties;
 
     public HardWorkDbService(HardWorkRepository hardWorkRepository,
                              HarvestRepository harvestRepository,
-                             Web3Properties web3Properties) {
+                             AppProperties appProperties) {
         this.hardWorkRepository = hardWorkRepository;
         this.harvestRepository = harvestRepository;
-        this.web3Properties = web3Properties;
+        this.appProperties = appProperties;
     }
 
     public boolean save(HardWorkDTO dto) {
-        if (!web3Properties.isOverrideDuplicates() && hardWorkRepository.existsById(dto.getId())) {
+        if (!appProperties.isOverrideDuplicates() && hardWorkRepository.existsById(dto.getId())) {
             log.info("Duplicate HardWork entry " + dto.getId());
             return false;
         }

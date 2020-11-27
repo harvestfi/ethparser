@@ -22,7 +22,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HardWorkParser;
@@ -51,7 +51,7 @@ public class Application {
         HarvestVaultParserV2 harvestVaultParser = context.getBean(HarvestVaultParserV2.class);
         HardWorkParser hardWorkParser = context.getBean(HardWorkParser.class);
         WsService ws = context.getBean(WsService.class);
-        Web3Properties conf = context.getBean(Web3Properties.class);
+        AppProperties conf = context.getBean(AppProperties.class);
 
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
@@ -143,6 +143,7 @@ public class Application {
 
             HarvestDTO harvestDTO = new HarvestDTO();
             harvestDTO.setAmount(currentCount * 10000);
+            harvestDTO.setUsdAmount((long) currentCount * 100);
             harvestDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
             harvestDTO.setId("0x" + (count * 1000000));
             harvestDTO.setHash("0x" + count);
@@ -151,6 +152,7 @@ public class Application {
             harvestDTO.setConfirmed(new Random().nextBoolean());
             harvestDTO.setLastGas(currentCount / 6);
             harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
+            harvestDTO.setLastAllUsdTvl(count * 5.1);
             ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, harvestDTO);
 
             HardWorkDTO hardWorkDTO = new HardWorkDTO();
@@ -162,6 +164,7 @@ public class Application {
             hardWorkDTO.setShareUsdTotal(count);
             hardWorkDTO.setTvl(count * 60);
             hardWorkDTO.setPerc((double) count / 633.0);
+            hardWorkDTO.setPsApr((double) count / 63.0);
             ws.send(HARDWORK_TOPIC_NAME, hardWorkDTO);
 
             log.info("Msg sent " + currentCount);

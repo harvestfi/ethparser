@@ -11,8 +11,10 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "web3")
-public class Web3Properties {
+public class AppProperties {
 
+    private boolean devMod = false;
+    private String startUtil = "";
     private String web3Url = "";
     private String web3User = "";
     private String web3Password = "";
@@ -66,6 +68,22 @@ public class Web3Properties {
     private boolean parseHarvest = false;
     private boolean overrideDuplicates = false;
     private boolean stubPrice = false;
+
+    public String getStartUtil() {
+        return startUtil;
+    }
+
+    public void setStartUtil(String startUtil) {
+        this.startUtil = startUtil;
+    }
+
+    public boolean isDevMod() {
+        return devMod;
+    }
+
+    public void setDevMod(boolean devMod) {
+        this.devMod = devMod;
+    }
 
     public boolean isParseHardWorkLog() {
         return parseHardWorkLog;

@@ -36,6 +36,7 @@ public class HarvestDTO implements DtoI {
     private Long usdAmount;
     private String prices;
     private String lpStat;
+    private Double lastAllUsdTvl;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -72,6 +73,14 @@ public class HarvestDTO implements DtoI {
     }
 
     //------------- GETTERS & SETTERS -------------------------
+
+    public Double getLastAllUsdTvl() {
+        return lastAllUsdTvl;
+    }
+
+    public void setLastAllUsdTvl(Double lastAllUsdTvl) {
+        this.lastAllUsdTvl = lastAllUsdTvl;
+    }
 
     public String getLpStat() {
         return lpStat;

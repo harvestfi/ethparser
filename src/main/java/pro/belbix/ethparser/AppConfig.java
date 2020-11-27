@@ -7,11 +7,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import pro.belbix.ethparser.properties.Web3Properties;
+import pro.belbix.ethparser.properties.AppProperties;
 
 @Configuration
 @EnableConfigurationProperties({
-    Web3Properties.class
+    AppProperties.class
 })
 @EnableScheduling
 public class AppConfig {
