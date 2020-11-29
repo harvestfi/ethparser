@@ -1,13 +1,11 @@
 package pro.belbix.ethparser.model;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Map;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.harvest.Vaults;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 public class HarvestTx implements EthTransactionI {

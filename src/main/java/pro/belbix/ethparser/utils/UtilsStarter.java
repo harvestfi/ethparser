@@ -1,19 +1,18 @@
 package pro.belbix.ethparser.utils;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.entity.BlockCacheEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.BlockCacheRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.web3.harvest.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.HarvestVaultDownloader;
+import pro.belbix.ethparser.web3.harvest.utils.HardWorkDownloader;
+import pro.belbix.ethparser.web3.harvest.utils.HarvestVaultDownloader;
+import pro.belbix.ethparser.web3.harvest.utils.RewardDownloader;
 import pro.belbix.ethparser.web3.uniswap.DownloadIncome;
 import pro.belbix.ethparser.web3.uniswap.UniswapLpDownloader;
 
@@ -30,6 +29,7 @@ public class UtilsStarter {
     private final DownloadIncome downloadIncome;
     private final HardWorkDownloader hardWorkDownloader;
     private final HardWorkRecalculate hardWorkRecalculate;
+    private final RewardDownloader rewardDownloader;
 
     public UtilsStarter(AppProperties appProperties,
                         HarvestRepository harvestRepository,
@@ -39,7 +39,8 @@ public class UtilsStarter {
                         TvlRecalculate tvlRecalculate,
                         DownloadIncome downloadIncome,
                         HardWorkDownloader hardWorkDownloader,
-                        HardWorkRecalculate hardWorkRecalculate) {
+                        HardWorkRecalculate hardWorkRecalculate,
+                        RewardDownloader rewardDownloader) {
         this.appProperties = appProperties;
         this.harvestRepository = harvestRepository;
         this.blockCacheRepository = blockCacheRepository;
@@ -49,6 +50,7 @@ public class UtilsStarter {
         this.downloadIncome = downloadIncome;
         this.hardWorkDownloader = hardWorkDownloader;
         this.hardWorkRecalculate = hardWorkRecalculate;
+        this.rewardDownloader = rewardDownloader;
     }
 
     public void startUtils() {
@@ -66,15 +68,15 @@ public class UtilsStarter {
             hardWorkDownloader.start();
         } else if ("hardwork_recalculate".equals(appProperties.getStartUtil())) {
             hardWorkRecalculate.start();
+        } else if ("reward_download".equals(appProperties.getStartUtil())) {
+            rewardDownloader.start();
         }
     }
 
     private void uniswapDownloader() {
         int step = 10000;
         for (int blockNum = 11195486; blockNum < 11216385; blockNum += step) {
-            DefaultBlockParameter from = DefaultBlockParameter.valueOf(new BigInteger(blockNum + ""));
-            DefaultBlockParameter to = DefaultBlockParameter.valueOf(new BigInteger((blockNum + step) + ""));
-            uniswapLpDownloader.load(from, to);
+            uniswapLpDownloader.load(blockNum, blockNum + step);
         }
     }
 

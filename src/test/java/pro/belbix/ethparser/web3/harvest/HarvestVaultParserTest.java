@@ -15,13 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -679,9 +680,8 @@ public class HarvestVaultParserTest {
         );
     }
 
-    private void shouldNotParse(String fromVault, long onBlock, int logId) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault),
-            new DefaultBlockParameterNumber(onBlock), new DefaultBlockParameterNumber(onBlock));
+    private void shouldNotParse(String fromVault, int onBlock, int logId) {
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertNull(dto);
@@ -689,7 +689,7 @@ public class HarvestVaultParserTest {
 
     private void harvestVaultParseTest(
         String fromVault,
-        long onBlock,
+        int onBlock,
         int logId,
         String owner,
         String methodName,
@@ -702,8 +702,7 @@ public class HarvestVaultParserTest {
         Long usdTvl,
         boolean confirmed
     ) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault),
-            new DefaultBlockParameterNumber(onBlock), new DefaultBlockParameterNumber(onBlock));
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertDto(dto,

@@ -20,7 +20,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.harvest.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 
 @Service
 public class TvlRecalculate {

@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.db;
 
 import java.math.BigInteger;
 import org.slf4j.Logger;
@@ -11,6 +11,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @Service
 public class HarvestDBService {

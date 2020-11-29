@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.decoder;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -7,18 +7,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class HarvestVaultLogDecoder extends MethodDecoder {
+public class HardWorkLogDecoder extends MethodDecoder {
 
-    public HarvestTx decode(Log log) {
+    public HardWorkTx decode(Log log) {
         if (!isValidLog(log)) {
             return null;
         }
@@ -36,80 +35,30 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         }
 
         List<Type> types = extractLogIndexedValues(log, parameters);
-        HarvestTx tx = new HarvestTx();
-        tx.setVault(new Address(log.getAddress()));
-        tx.setLogId(log.getLogIndex().longValue());
+        HardWorkTx tx = new HardWorkTx();
+        tx.setLogId(log.getLogIndex().toString());
         tx.setHash(log.getTransactionHash());
-        tx.setBlock(log.getBlockNumber());
-        tx.setBlockHash(log.getBlockHash());
         tx.setMethodName(methodName);
-        tx.setSuccess(true); //from logs always success
-        enrich(types, methodName, tx);
+        tx.setBlock(log.getBlockNumber().longValue());
+        enrich(types, tx);
         return tx;
     }
 
     private boolean isValidLog(Log log) {
-        if (log == null || log.getTopics().isEmpty()) {
-            return false;
-        }
-        return Vaults.vaultNames.containsKey(log.getAddress());
+        return log != null && !log.getTopics().isEmpty();
     }
 
-    private void enrich(List<Type> types, String methodName, HarvestTx tx) {
-        switch (methodName) {
-            case "Deposit":
-            case "Withdraw":
-            case "Staked":
-            case "Withdrawn":
-            case "RewardPaid":
-            case "StrategyAnnounced":
-                tx.setOwner((String) types.get(0).getValue());
-                tx.setAmount((BigInteger) types.get(1).getValue());
-                return;
-            case "Invest":
-            case "RewardAdded":
-            case "withdraw":
-            case "stake":
-                tx.setAmount((BigInteger) types.get(0).getValue());
-                return;
-            case "StrategyChanged":
-            case "addVaultAndStrategy":
-            case "OwnershipTransferred":
-                tx.setAddressFromArgs1(new Address((String) types.get(0).getValue()));
-                tx.setAddressFromArgs2(new Address((String) types.get(1).getValue()));
-                return;
-            case "Transfer":
-            case "Approval":
-                tx.setAddressFromArgs1(new Address((String) types.get(0).getValue()));
-                tx.setAddressFromArgs2(new Address((String) types.get(1).getValue()));
-                tx.setAmount((BigInteger) types.get(2).getValue());
-                return;
-            case "depositAll":
-                tx.setIntFromArgs(parseInts(types.get(0)));
-                tx.setAddressFromArgs(parseAddresses(types.get(1)));
-                return;
-            case "migrateInOneTx":
-                Address[] addresses = new Address[4];
-                addresses[0] = (Address) types.get(0).getValue();
-                addresses[1] = (Address) types.get(1).getValue();
-                addresses[2] = (Address) types.get(2).getValue();
-                addresses[3] = (Address) types.get(3).getValue();
-                tx.setAddressFromArgs(addresses);
-                return;
-            case "Staked#V2":
-                tx.setOwner((String) types.get(0).getValue());
-                BigInteger[] args = new BigInteger[5];
-                args[0] = (BigInteger) types.get(1).getValue();
-                args[1] = (BigInteger) types.get(2).getValue();
-                args[2] = (BigInteger) types.get(3).getValue();
-                args[3] = (BigInteger) types.get(4).getValue();
-                args[4] = (BigInteger) types.get(5).getValue();
-                tx.setIntFromArgs(args);
-                return;
-            case "exit":
-                return;
+    private void enrich(List<Type> types, HardWorkTx tx) {
+        if ("SharePriceChangeLog".equals(tx.getMethodName())) {
+            tx.setVault((String) types.get(0).getValue());
+            tx.setStrategy((String) types.get(1).getValue());
+            tx.setOldSharePrice((BigInteger) types.get(2).getValue());
+            tx.setNewSharePrice((BigInteger) types.get(3).getValue());
+            tx.setBlockDate(((BigInteger) types.get(4).getValue()).longValue());
+        } else if ("ProfitLogInReward".equals(tx.getMethodName())) {
+            tx.setProfitAmount((BigInteger) types.get(0).getValue());
+            tx.setFeeAmount((BigInteger) types.get(1).getValue());
         }
-        throw new IllegalStateException("Unknown method " + methodName);
     }
 
     private static BigInteger[] parseInts(Type type) {
@@ -239,6 +188,58 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Withdraw#V2",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("ProfitLogInReward",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("SharePriceChangeLog",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Sync",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("uint112"),
+                        TypeReference.makeTypeReference("uint112")
+                    ));
+                parameters.put("Swap",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("address", true, false)
+                    ));
+                parameters.put("Mint",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Deposit#V2",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("uint256", true, false),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("Rewarded",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address", true, false),
                         TypeReference.makeTypeReference("uint256")
                     ));
             } catch (ClassNotFoundException e) {

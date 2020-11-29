@@ -1,4 +1,6 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.db;
+
+import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -17,7 +19,6 @@ public class HardWorkDbService {
 
     private static final Logger log = LoggerFactory.getLogger(HardWorkDbService.class);
     private final Pageable limitOne = PageRequest.of(0, 1);
-    private final static double SECONDS_OF_YEAR = 31557600.0;
     private final static long PS_DEPLOYED = 1601389313;
     private final static long PS_OLD_DEPLOYED = 1599258042;
 

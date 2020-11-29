@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParser;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)

@@ -20,7 +20,7 @@ import pro.belbix.ethparser.web3.uniswap.LpContracts;
 @SuppressWarnings("rawtypes")
 @Service
 public class Functions {
-
+    public final static double SECONDS_OF_YEAR = 31557600.0;
     private static final Logger log = LoggerFactory.getLogger(Functions.class);
     private final Web3Service web3Service;
 
@@ -58,18 +58,33 @@ public class Functions {
     }
 
     public BigInteger callErc20TotalSupply(String hash, long block) {
-        List<Type> types = web3Service.callMethod(ERC_20_TOTAL_SUPPLY, hash, new DefaultBlockParameterNumber(block));
-        if (types == null || types.isEmpty()) {
-            log.error("Wrong total supply for " + hash);
-            return BigInteger.ZERO;
-        }
-        return (BigInteger) types.get(0).getValue();
+        return callUint256Function(ERC_20_TOTAL_SUPPLY, hash, block);
     }
 
     public BigInteger callUnderlyingUnit(String hash, long block) {
-        List<Type> types = web3Service.callMethod(UNDERLYING_UNIT, hash, new DefaultBlockParameterNumber(block));
+        return callUint256Function(UNDERLYING_UNIT, hash, block);
+    }
+
+    public BigInteger callRewardPerTokens(String hash, long block) {
+        return callUint256Function(REWARD_PER_TOKEN, hash, block);
+    }
+
+    public BigInteger callLastTimeRewardApplicable(String hash, long block) {
+        return callUint256Function(LAST_TIME_REWARD_APPLICABLE, hash, block);
+    }
+
+    public BigInteger callRewardRate(String hash, long block) {
+        return callUint256Function(REWARD_RATE, hash, block);
+    }
+
+    public BigInteger callPeriodFinish(String hash, long block) {
+        return callUint256Function(PERIOD_FINISH, hash, block);
+    }
+
+    private BigInteger callUint256Function(Function function, String hash, long block) {
+        List<Type> types = web3Service.callMethod(function, hash, new DefaultBlockParameterNumber(block));
         if (types == null || types.isEmpty()) {
-            log.error("Wrong underlying unit for " + hash);
+            log.error("Wrong callback " + hash);
             return BigInteger.ZERO;
         }
         return (BigInteger) types.get(0).getValue();
@@ -100,6 +115,30 @@ public class Functions {
 
     static final Function UNDERLYING_UNIT = new Function(
         "underlyingUnit",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function REWARD_PER_TOKEN = new Function(
+        "rewardPerToken",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function LAST_TIME_REWARD_APPLICABLE = new Function(
+        "lastTimeRewardApplicable",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function REWARD_RATE = new Function(
+        "rewardRate",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function PERIOD_FINISH = new Function(
+        "periodFinish",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Uint256>() {
         }));

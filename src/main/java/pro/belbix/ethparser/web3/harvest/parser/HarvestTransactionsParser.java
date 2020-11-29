@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
@@ -18,6 +18,9 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 
 @Service
 public class HarvestTransactionsParser implements Web3Parser {

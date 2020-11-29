@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.contracts;
 
 import static pro.belbix.ethparser.web3.ContractMapper.D18;
 import static pro.belbix.ethparser.web3.ContractMapper.D6;

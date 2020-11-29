@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
 @Service
 public class PriceStubSender {

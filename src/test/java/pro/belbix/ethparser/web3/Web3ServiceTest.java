@@ -9,7 +9,7 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.Functions.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.Functions.GET_RESERVES;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
-import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DAI;
 import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
 
@@ -29,14 +29,13 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint32;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.web3.harvest.Vaults;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder;
 
 @RunWith(SpringRunner.class)
@@ -90,7 +89,7 @@ public class Web3ServiceTest {
     public void checkLogsForAllVaults() {
         for (String hash : Vaults.vaultNames.keySet()) {
             List<LogResult> logs = web3Service
-                .fetchContractLogs(singletonList(hash), DefaultBlockParameterName.EARLIEST, LATEST);
+                .fetchContractLogs(singletonList(hash), null, null);
             assertNotNull(logs);
             System.out.println(hash + " " + logs.size());
         }

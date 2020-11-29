@@ -1,7 +1,7 @@
 package pro.belbix.ethparser;
 
 import static org.junit.Assert.assertEquals;
-import static pro.belbix.ethparser.web3.harvest.HarvestDBService.aprToApy;
+import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
 
 import org.junit.Test;
 

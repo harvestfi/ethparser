@@ -3,11 +3,9 @@ package pro.belbix.ethparser.web3.harvest;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.harvest.Vaults.WBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -26,6 +23,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
+import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -41,8 +40,7 @@ public class HarvestVaultDecoderTest {
     @Ignore
     public void parseVault_WBTC() {
         Map<String, Integer> topics = new HashMap<>();
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(WBTC), DefaultBlockParameter
-            .valueOf(new BigInteger("11164503")), LATEST);
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(WBTC), 11164503, null);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

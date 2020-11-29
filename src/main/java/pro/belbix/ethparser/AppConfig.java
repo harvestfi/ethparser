@@ -8,10 +8,12 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.SubscriptionsProperties;
 
 @Configuration
 @EnableConfigurationProperties({
-    AppProperties.class
+    AppProperties.class,
+    SubscriptionsProperties.class
 })
 @EnableScheduling
 public class AppConfig {

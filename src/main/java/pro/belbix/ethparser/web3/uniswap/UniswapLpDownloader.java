@@ -29,7 +29,7 @@ public class UniswapLpDownloader {
         this.uniswapLpLogParser = uniswapLpLogParser;
     }
 
-    public void load(DefaultBlockParameter from, DefaultBlockParameter to) {
+    public void load(Integer from, Integer to) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(FARM_USDC_LP_CONTRACT), from, to);
         if (logResults == null) {
             logger.error("Log results is null");

@@ -1,8 +1,7 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.utils;
 
 import static java.util.Collections.singletonList;
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.harvest.Vaults.*;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.*;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -12,12 +11,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -95,33 +95,11 @@ public class HarvestVaultDownloader {
             from = lastBlock.intValue();
             logger.info("Use last block " + lastBlock);
         }
-
-        while (true) {
-            Integer end = null;
-            if (to != null) {
-                end = from + BATCH;
-            }
-            parse(vaultHash, from, end);
-            from = end;
-            if (to != null) {
-                if (end > to) {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
+        LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultHash, start, end));
     }
 
     private void parse(String vaultHash, int start, Integer end) {
-        DefaultBlockParameter fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
-        DefaultBlockParameter toBlock;
-        if (end == null) {
-            toBlock = LATEST;
-        } else {
-            toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
-        }
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(vaultHash), fromBlock, toBlock);
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(vaultHash), start, end);
         if (logResults.isEmpty()) {
             logger.info("Empty log {} {} {}", start, end, vaultHash);
             return;

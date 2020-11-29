@@ -1,8 +1,9 @@
 package pro.belbix.ethparser.web3;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.harvest.HarvestVaultParser.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParser.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
@@ -52,7 +53,8 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.harvest.HarvestDBService;
+import pro.belbix.ethparser.properties.SubscriptionsProperties;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.uniswap.UniswapDbService;
 
 @SuppressWarnings("rawtypes")
@@ -67,6 +69,7 @@ public class Web3Service {
     private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
     private final AppProperties appProperties;
+    private final SubscriptionsProperties subscriptionsProperties;
     private final UniswapDbService uniswapDbService;
     private final HarvestDBService harvestDBService;
     private boolean init = false;
@@ -76,9 +79,12 @@ public class Web3Service {
     private Web3Checker web3Checker;
     private LogFlowable logFlowable;
 
-    public Web3Service(AppProperties appProperties, UniswapDbService uniswapDbService,
+    public Web3Service(AppProperties appProperties,
+                       SubscriptionsProperties subscriptionsProperties,
+                       UniswapDbService uniswapDbService,
                        HarvestDBService harvestDBService) {
         this.appProperties = appProperties;
+        this.subscriptionsProperties = subscriptionsProperties;
         this.uniswapDbService = uniswapDbService;
         this.harvestDBService = harvestDBService;
     }
@@ -127,7 +133,7 @@ public class Web3Service {
     }
 
     public void subscribeTransactionFlowable() {
-        if (!appProperties.isParseTransactions() && !appProperties.isParseTransactions()) {
+        if (!appProperties.isParseTransactions()) {
             return;
         }
         checkInit();
@@ -159,7 +165,7 @@ public class Web3Service {
         } else {
             from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
         }
-        EthFilter filter = new EthFilter(from, LATEST, appProperties.getLogSubscriptions());
+        EthFilter filter = new EthFilter(from, LATEST, subscriptionsProperties.getLogSubscriptions());
         logFlowable(filter);
         //NPE https://github.com/web3j/web3j/issues/1264
 //        Disposable subscription = web3.ethLogFlowable(filter)
@@ -259,11 +265,23 @@ public class Web3Service {
         return 0.0;
     }
 
-    public List<LogResult> fetchContractLogs(List<String> adresses, DefaultBlockParameter from,
-                                             DefaultBlockParameter to) {
+    public List<LogResult> fetchContractLogs(List<String> adresses, Integer start,
+                                             Integer end) {
         checkInit();
-        EthFilter filter = new EthFilter(from,
-            to, adresses);
+        DefaultBlockParameter fromBlock;
+        DefaultBlockParameter toBlock;
+        if(start == null) {
+            fromBlock = EARLIEST;
+        } else {
+            fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
+        }
+        if (end == null) {
+            toBlock = LATEST;
+        } else {
+            toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
+        }
+        EthFilter filter = new EthFilter(fromBlock,
+            toBlock, adresses);
         EthLog ethLog;
         try {
             ethLog = web3.ethGetLogs(filter).send();
@@ -396,19 +414,13 @@ public class Web3Service {
         private final AtomicBoolean run = new AtomicBoolean(true);
         private final Web3Service web3Service;
         private final List<String> addresses;
-        private DefaultBlockParameterNumber from;
-        private final DefaultBlockParameterNumber initialTo; //TODO load history
+        private Integer from;
         private BigInteger lastBlock;
 
         public LogFlowable(EthFilter filter, Web3Service web3Service) {
             this.web3Service = web3Service;
             this.addresses = filter.getAddress();
-            this.from = (DefaultBlockParameterNumber) filter.getFromBlock();
-            if (filter.getToBlock() instanceof DefaultBlockParameterNumber) {
-                this.initialTo = (DefaultBlockParameterNumber) filter.getToBlock();
-            } else {
-                initialTo = null;
-            }
+            this.from = ((DefaultBlockParameterNumber) filter.getFromBlock()).getBlockNumber().intValue();
         }
 
         public void stop() {
@@ -428,17 +440,17 @@ public class Web3Service {
                         continue;
                     }
                     lastBlock = currentBlock;
-                    DefaultBlockParameterNumber to = new DefaultBlockParameterNumber(currentBlock);
+                    int to = currentBlock.intValue();
                     if (from == null) {
                         from = to;
                     } else {
-                        long diff = to.getBlockNumber().longValue() - from.getBlockNumber().longValue();
+                        int diff = to - from;
                         if (diff > 1000) {
-                            to = new DefaultBlockParameterNumber(from.getBlockNumber().longValue() + 1000L);
+                            to = from + 1000;
                         }
                     }
                     List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(addresses, from, to);
-                    log.info("Parse log from {} to {} on block: {} - {}", from.getBlockNumber(), to.getBlockNumber(),
+                    log.info("Parse log from {} to {} on block: {} - {}", from, to,
                         currentBlock, logResults.size());
                     for (LogResult logResult : logResults) {
                         Log ethLog = (Log) logResult.get();
@@ -449,7 +461,7 @@ public class Web3Service {
                             web3Service.writeInQueue(queue, ethLog);
                         }
                     }
-                    from = new DefaultBlockParameterNumber(to.getBlockNumber().add(BigInteger.ONE));
+                    from = to + 1;
                 } catch (Exception e) {
                     log.error("Error in log flow", e);
                 }

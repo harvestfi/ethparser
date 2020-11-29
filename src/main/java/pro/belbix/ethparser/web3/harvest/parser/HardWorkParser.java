@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 
@@ -19,6 +19,9 @@ import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
+import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service

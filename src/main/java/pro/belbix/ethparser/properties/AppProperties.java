@@ -1,11 +1,5 @@
 package pro.belbix.ethparser.properties;
 
-import static pro.belbix.ethparser.web3.harvest.HardWorkParser.CONTROLLER;
-import static pro.belbix.ethparser.web3.harvest.Vaults.*;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
-
-import java.util.Arrays;
-import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -13,61 +7,27 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "web3")
 public class AppProperties {
 
-    private boolean devMod = false;
-    private String startUtil = "";
+
     private String web3Url = "";
     private String web3User = "";
     private String web3Password = "";
-    private String startBlock = "";
-    private String startLogBlock = "";
-    private List<String> logSubscriptions = Arrays.asList(
-        FARM_USDC_LP_CONTRACT,
-        CONTROLLER,
-        WETH_V0,
-        USDC_V0,
-        USDT_V0,
-        DAI_V0,
-        WBTC_V0,
-        RENBTC_V0,
-        CRVRENWBTC_V0,
-        UNI_ETH_DAI_V0,
-        UNI_ETH_USDC_V0,
-        UNI_ETH_USDT_V0,
-        UNI_ETH_WBTC_V0,
-        UNI_ETH_DAI,
-        UNI_ETH_USDC,
-        UNI_ETH_USDT,
-        UNI_ETH_WBTC,
-        WETH,
-        USDC,
-        USDT,
-        DAI,
-        WBTC,
-        RENBTC,
-        CRVRENWBTC,
-        SUSHI_WBTC_TBTC,
-        YCRV,
-        _3CRV,
-        CRV_TBTC,
-        PS,
-        PS_V0,
-        CRV_CMPND,
-        CRV_BUSD,
-        CRV_USDN,
-        SUSHI_ETH_DAI,
-        SUSHI_ETH_USDC,
-        SUSHI_ETH_USDT,
-        SUSHI_ETH_WBTC
-    );
+
     private boolean testWs = false;
     private int testWsRate = 1000;
+    private boolean devMod = false;
+    private String startUtil = "";
+
+    private boolean overrideDuplicates = false;
+    private boolean stubPrice = false;
+
+    private String startLogBlock = "";
     private boolean parseUniswapLog = true;
     private boolean parseHarvestLog = true;
     private boolean parseHardWorkLog = true;
+
+    private String startBlock = "";
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
-    private boolean overrideDuplicates = false;
-    private boolean stubPrice = false;
 
     public String getStartUtil() {
         return startUtil;
@@ -123,14 +83,6 @@ public class AppProperties {
 
     public void setWeb3Password(String web3Password) {
         this.web3Password = web3Password;
-    }
-
-    public List<String> getLogSubscriptions() {
-        return logSubscriptions;
-    }
-
-    public void setLogSubscriptions(List<String> logSubscriptions) {
-        this.logSubscriptions = logSubscriptions;
     }
 
     public boolean isParseHarvestLog() {

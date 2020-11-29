@@ -37,10 +37,8 @@ public class UniswapLPLogParseTest {
     @Ignore
     public void parseFarmLp() {
         Map<String, Integer> topics = new HashMap<>();
-        DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(new BigInteger("11165610"));
-//        DefaultBlockParameter fromBlock = DefaultBlockParameterName.EARLIEST;
         List<LogResult> logResults = web3Service
-            .fetchContractLogs(singletonList(FARM_USDC_LP_CONTRACT), fromBlock, LATEST);
+            .fetchContractLogs(singletonList(FARM_USDC_LP_CONTRACT), 11165610, null);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

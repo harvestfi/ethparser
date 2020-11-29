@@ -1,16 +1,14 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.FARM_TOKEN_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.UNI_ROUTER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigInteger;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -20,6 +18,7 @@ import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
@@ -32,17 +31,20 @@ import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
-public class HarvestVaultParserV2 implements Web3Parser {
+@Deprecated
+public class HarvestVaultParser implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParserV2.class);
+    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParser.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
+    private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-    public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10_000);
@@ -52,9 +54,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final PriceProvider priceProvider;
     private final Functions functions;
 
-    public HarvestVaultParserV2(Web3Service web3Service,
-                                HarvestDBService harvestDBService,
-                                EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
+    public HarvestVaultParser(Web3Service web3Service,
+                              HarvestDBService harvestDBService,
+                              EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
@@ -109,125 +111,31 @@ public class HarvestVaultParserV2 implements Web3Parser {
             return null;
         }
 
-        if (!isAllowedMethod(harvestTx)) {
+        if (!allowedMethods.contains(harvestTx.getMethodName().toLowerCase())) {
             return null;
         }
-
-        if (isPs(harvestTx)) {
-            if (!parsePs(harvestTx)) {
-                return null;
-            }
-        } else {
-            if (!parseVaults(harvestTx, ethLog)) {
-                return null;
-            }
-        }
+        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+        replaceInputCoinValueOnFarmWrap(harvestTx, receipt);
 
         HarvestDTO dto = harvestTx.toDto();
 
         //enrich date
-        dto.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
-        if (isPs(harvestTx)) {
-            fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue());
-        } else {
-            //share price
-            fillSharedPrice(dto, harvestTx);
+        //enrich owner
+        dto.setOwner(receipt.getFrom());
 
-            //usd values
-            fillUsdPrice(dto, harvestTx.getVault().getValue());
-        }
+        //share price
+        dto.setSharePrice(
+            parseAmount(
+                functions.callPricePerFullShare(harvestTx.getVault().getValue(), dto.getBlock().longValue())
+                , harvestTx.getVault().getValue())
+        );
+
+        fillUsdPrice(dto, harvestTx.getVault().getValue());
+
         log.info(dto.print());
         return dto;
-    }
-
-    private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
-        String st = Stackings.vaultHashToStackingHash.get(vaultHash);
-        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
-        double vaultBalance = parseAmount(
-            functions.callErc20TotalSupply(st, dto.getBlock().longValue()), vaultHash);
-        double allFarm = parseAmount(
-            functions.callErc20TotalSupply(FARM_TOKEN_CONTRACT, dto.getBlock().longValue()), vaultHash)
-            - BURNED_FARM;
-        dto.setLastUsdTvl(price * vaultBalance);
-        dto.setLastTvl(vaultBalance);
-        dto.setSharePrice(allFarm);
-        dto.setUsdAmount(Math.round(dto.getAmount() * price));
-    }
-
-    private boolean parsePs(HarvestTx harvestTx) {
-        if("Staked".equals(harvestTx.getMethodName())) {
-            harvestTx.setMethodName("Deposit");
-        } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
-            harvestTx.setMethodName("Deposit");
-            harvestTx.setAmount(harvestTx.getIntFromArgs()[0]);
-        } else if ("withdrawn".equals(harvestTx.getMethodName().toLowerCase())) {
-            TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
-            String owner = receipt.getFrom();
-            if (!owner.equals(harvestTx.getOwner())) {
-                return false; //withdrawn for not owner is a garbage
-            }
-            harvestTx.setMethodName("Withdraw");
-        } else {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean parseVaults(HarvestTx harvestTx, Log ethLog) {
-        if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs1().getValue())) {
-            harvestTx.setMethodName("Deposit");
-            harvestTx.setOwner(harvestTx.getAddressFromArgs2().getValue());
-        } else if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs2().getValue())) {
-            harvestTx.setMethodName("Withdraw");
-            harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
-        } else {
-            if (isMigration(harvestTx, Stackings.vaultHashToStackingHash.get(ethLog.getAddress()))) {
-                log.warn("migrate? tx " + harvestTx.toString());
-                harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
-                harvestTx.setMethodName("Withdraw");
-            } else {
-                //test purpose
-//                if(checkTransactionStructure(harvestTx)) {
-//                    return null; //it's normal
-//                }
-//                log.error("unknown tx " + harvestTx.toString());
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean checkTransactionStructure(HarvestTx harvestTx) {
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
-        return !UNI_ROUTER.equals(receipt.getTo())
-            && !"0xebb4d6cfc2b538e2a7969aa4187b1c00b2762108".equals(receipt.getTo()) //?
-            && !"0x743dd3139c6b70f664ab4329b2cde646f0bac99a".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x7fe2153de0006d76c85cc04c8ea10bf4546c879e".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x494cc492c9f01699bff1449180201dbfbd592ea5".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x343e3a490c9251dc0eaa81da146ba6abe6c78b2d".equals(receipt.getTo()) //zapper WETH_V0 uni
-            && !Stackings.hashToName.containsKey(receipt.getTo()) //stacking
-            && !Vaults.vaultNames.containsKey(receipt.getTo()  //transfer
-        );
-    }
-
-    private boolean isMigration(HarvestTx harvestTx, String currentStackingContract) {
-        return Stackings.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
-            && !harvestTx.getAddressFromArgs2().getValue()
-            .equals(currentStackingContract); // and it is not current contract
-    }
-
-    private void fillSharedPrice(HarvestDTO dto, HarvestTx harvestTx) {
-        BigInteger sharedPriceInt = functions
-            .callPricePerFullShare(harvestTx.getVault().getValue(), dto.getBlock().longValue());
-        double sharedPrice;
-        if (BigInteger.ONE.equals(sharedPriceInt)) {
-            sharedPrice = 0.0;
-        } else {
-            sharedPrice = parseAmount(sharedPriceInt, harvestTx.getVault().getValue());
-        }
-        dto.setSharePrice(sharedPrice);
     }
 
     private HarvestDTO createStubPriceDto() {
@@ -236,6 +144,43 @@ public class HarvestVaultParserV2 implements Web3Parser {
         dto.setBlock(web3Service.fetchCurrentBlock());
         dto.setMethodName(PRICE_STUB_TYPE);
         return dto;
+    }
+
+    /*
+     * TODO This method totally unclear, but I don't know how to get fAmount without parsing logs
+     */
+    private void replaceInputCoinValueOnFarmWrap(HarvestTx harvestTx, TransactionReceipt receipt) {
+        harvestTx.setAmountIn(harvestTx.getAmount());
+
+        List<Log> logs = receipt.getLogs();
+        for (Log ethLog : logs) {
+            HarvestTx logTx = harvestVaultLogDecoder.decode(ethLog);
+            if (logTx == null) {
+                continue;
+            }
+            long logPlace = harvestTx.getLogId() - logTx.getLogId();
+            if ((logPlace > 3 && harvestTx.getMethodName().toLowerCase().equals("deposit"))
+//                || (logPlace > 11 && harvestTx.getMethodName().toLowerCase().equals("withdraw")) //no limit for withdraw
+                || logPlace <= 0) {
+                continue;
+            }
+            if (!"Transfer".equals(logTx.getMethodName())) {
+                continue;
+            }
+
+            if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs1().getValue())
+                && harvestTx.getMethodName().toLowerCase().equals("deposit")) {
+                harvestTx.setAmount(logTx.getAmount());
+                harvestTx.setfToken(new Address(ethLog.getAddress()));
+                return;
+            } else if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs2().getValue())
+                && harvestTx.getMethodName().toLowerCase().equals("withdraw")) {
+                harvestTx.setAmount(logTx.getAmount());
+                harvestTx.setfToken(new Address(ethLog.getAddress()));
+                return;
+            }
+        }
+        throw new IllegalStateException("Not found transfer value " + harvestTx.getHash());
     }
 
     /**
@@ -269,10 +214,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
-        double sharedPrice = dto.getSharePrice();
-//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
-//            vaultHash);
-        double vaultUnderlyingUnit = 1.0; // currently always 1
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
 
         double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
         dto.setLastTvl(vault);
@@ -284,10 +229,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
-        double sharedPrice = dto.getSharePrice();
-//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
-//            vaultHash);
-        double vaultUnderlyingUnit = 1.0; // currently always 1
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+            vaultHash);
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock().longValue()), lpHash);
         Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock().longValue());
 
@@ -320,20 +265,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double txFraction = (dto.getAmount() / vaultBalance);
         long txUsdAmount = Math.round(vaultUsdAmount * txFraction);
         dto.setUsdAmount(txUsdAmount);
-    }
-
-    private boolean isAllowedMethod(HarvestTx harvestTx) {
-        if (isPs(harvestTx)) {
-            return "staked".equals(harvestTx.getMethodName().toLowerCase())
-                || "Staked#V2".equals(harvestTx.getMethodName())
-                || "withdrawn".equals(harvestTx.getMethodName().toLowerCase());
-        }
-        return allowedMethods.contains(harvestTx.getMethodName().toLowerCase());
-    }
-
-    private boolean isPs(HarvestTx harvestTx) {
-        return Vaults.PS.equals(harvestTx.getVault().getValue())
-            ||  Vaults.PS_V0.equals(harvestTx.getVault().getValue());
     }
 
     @Override

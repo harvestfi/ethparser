@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.harvest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static pro.belbix.ethparser.web3.harvest.HardWorkParser.CONTROLLER;
+import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,13 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -49,11 +49,10 @@ public class DoHardWorkTest {
         assertOnBlock(11299287, "0,000073", "3060,000000");
     }
 
-    private void assertOnBlock(long onBlock,
+    private void assertOnBlock(int onBlock,
                                String sharePrice,
                                String sharePriceUsd) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(Collections.singletonList(CONTROLLER),
-            new DefaultBlockParameterNumber(onBlock), new DefaultBlockParameterNumber(onBlock));
+        List<LogResult> logResults = web3Service.fetchContractLogs(Collections.singletonList(CONTROLLER),onBlock, onBlock);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
         HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0));
