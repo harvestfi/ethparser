@@ -49,8 +49,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
     public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;

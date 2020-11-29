@@ -1,5 +1,30 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUNI_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUNI_ETH_USDC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUNI_ETH_USDT;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUNI_ETH_WBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fWETH;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUSDC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fUSDT;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fDAI;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fWBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fRENBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fCRVRENWBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_WBTC_TBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fYCRV;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.f_3CRV;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fTUSD;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fCRV_TBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fPS;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fPS_V0;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fCRV_CMPND;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fCRV_BUSD;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fCRV_USDN;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_USDC;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_USDT;
+import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_WBTC;
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRVRENWBTC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRVRENWBTC_V0;
@@ -83,7 +108,30 @@ public class SubscriptionsProperties {
         SUSHI_ETH_DAI,
         SUSHI_ETH_USDC,
         SUSHI_ETH_USDT,
-        SUSHI_ETH_WBTC
+        SUSHI_ETH_WBTC,
+        fUNI_ETH_DAI,
+        fUNI_ETH_USDC,
+        fUNI_ETH_USDT,
+        fUNI_ETH_WBTC,
+        fWETH,
+        fUSDC,
+        fUSDT,
+        fDAI,
+        fWBTC,
+        fRENBTC,
+        fCRVRENWBTC,
+        fSUSHI_WBTC_TBTC,
+        fYCRV,
+        f_3CRV,
+        fTUSD,
+        fCRV_TBTC,
+        fCRV_CMPND,
+        fCRV_BUSD,
+        fCRV_USDN,
+        fSUSHI_ETH_DAI,
+        fSUSHI_ETH_USDC,
+        fSUSHI_ETH_USDT,
+        fSUSHI_ETH_WBTC
     );
 
     public List<String> getLogSubscriptions() {

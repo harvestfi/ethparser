@@ -24,10 +24,21 @@ public class AppProperties {
     private boolean parseUniswapLog = true;
     private boolean parseHarvestLog = true;
     private boolean parseHardWorkLog = true;
+    private boolean parseRewardsLog = true;
 
     private String startBlock = "";
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+
+    // ------------------------ GETTERS AND SETTERS ------------------------------
+
+    public boolean isParseRewardsLog() {
+        return parseRewardsLog;
+    }
+
+    public void setParseRewardsLog(boolean parseRewardsLog) {
+        this.parseRewardsLog = parseRewardsLog;
+    }
 
     public String getStartUtil() {
         return startUtil;

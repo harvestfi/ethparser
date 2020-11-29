@@ -28,8 +28,8 @@ public class UniswapLpLogParser implements Web3Parser {
     private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
     private final Web3Service web3Service;
     private long parsedTxCount = 0;
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
 

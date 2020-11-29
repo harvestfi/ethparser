@@ -28,7 +28,7 @@ public class RewardParser implements Web3Parser {
     private static final Logger log = LoggerFactory.getLogger(RewardParser.class);
     private static final long REWARD_DURATION = 604800;
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
 
@@ -59,7 +59,6 @@ public class RewardParser implements Web3Parser {
                 Log ethLog = null;
                 try {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    Thread.sleep(60 * 1000); //wait until new block created
                     RewardDTO dto = parseLog(ethLog);
                     if (dto != null) {
                         boolean saved = rewardsDBService.saveRewardDTO(dto);
@@ -74,7 +73,7 @@ public class RewardParser implements Web3Parser {
         }).start();
     }
 
-    public RewardDTO parseLog(Log ethLog) {
+    public RewardDTO parseLog(Log ethLog) throws InterruptedException {
         if (ethLog == null || !RewardVaults.hashToName.containsKey(ethLog.getAddress())) {
             return null;
         }
@@ -90,7 +89,7 @@ public class RewardParser implements Web3Parser {
             || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-
+        Thread.sleep(60 * 1000); //wait until new block created
         long nextBlock =
             tx.getBlock().longValue() + 1; //todo if it is last block it will be not safe, create another mechanism
         String vault = tx.getVault().getValue();

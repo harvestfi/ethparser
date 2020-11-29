@@ -71,7 +71,7 @@ public class RewardVaults {
         hashToName.put(fCRVRENWBTC, "fCRVRENWBTC");
         hashToName.put(fSUSHI_WBTC_TBTC, "fSUSHI_WBTC_TBTC");
         hashToName.put(fYCRV, "fYCRV");
-        hashToName.put(f_3CRV, "f_3CRV");
+        hashToName.put(f_3CRV, "f3CRV");
         hashToName.put(fTUSD, "fTUSD");
         hashToName.put(fCRV_TBTC, "fCRV_TBTC");
         hashToName.put(fPS, "fPS");

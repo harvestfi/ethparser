@@ -33,8 +33,8 @@ public class UniswapTransactionsParser implements Web3Parser {
     private double lastPrice = 0.0;
     private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
-    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;

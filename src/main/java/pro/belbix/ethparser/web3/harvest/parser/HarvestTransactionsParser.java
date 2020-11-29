@@ -29,8 +29,8 @@ public class HarvestTransactionsParser implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
     private final Web3Service web3Service;
-    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(10_000);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10_000);
+    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private long parsedTxCount = 0;
