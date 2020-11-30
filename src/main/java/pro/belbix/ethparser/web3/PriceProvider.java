@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.PricesDTO;
+import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
 
 @Service
@@ -38,7 +38,7 @@ public class PriceProvider {
     }
 
     public String getAllPrices(long block) throws JsonProcessingException {
-        PricesDTO dto = new PricesDTO();
+        PricesModel dto = new PricesModel();
         dto.setBtc(getPriceForCoin("WBTC", block));
         dto.setEth(getPriceForCoin("WETH", block));
         return objectMapper.writeValueAsString(dto);
@@ -98,7 +98,7 @@ public class PriceProvider {
         log.info("Price {} updated {} on block {}", coinName, price, block);
     }
 
-    private boolean isStableCoin(String name) {
+    private static boolean isStableCoin(String name) {
         return "USD".equals(name)
             || "USDC".equals(name)
             || "USDT".equals(name)
@@ -112,7 +112,7 @@ public class PriceProvider {
             ;
     }
 
-    private String simplifyName(String name) {
+    private static String simplifyName(String name) {
         name = name.replaceFirst("_V0", "");
         if ("WETH".equals(name)) {
             return "ETH";
@@ -140,6 +140,23 @@ public class PriceProvider {
         lastPrices.put("RENBTC", 13673.0);
         lastPrices.put("CRVRENWBTC", 13673.0);
         lastPrices.put("TBTC", 13673.0);
+    }
+
+    public static double readPrice(PricesModel pricesModel, String coinName) {
+        coinName = simplifyName(coinName);
+        if (isStableCoin(coinName)) {
+            return 1.0;
+        }
+        if ("WBTC".equals(coinName)) {
+            return pricesModel.getBtc();
+        } else if ("ETH".equals(coinName)) {
+            return pricesModel.getEth();
+        } else if ("FARM".equals(coinName)) {
+            return 0;
+        } else {
+            log.warn("Not found price for {}", coinName);
+            return 0;
+        }
     }
 
 }

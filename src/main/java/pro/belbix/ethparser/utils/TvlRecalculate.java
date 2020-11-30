@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,24 +25,30 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 public class TvlRecalculate {
 
     private static final Logger log = LoggerFactory.getLogger(TvlRecalculate.class);
-    @Autowired
-    private HarvestRepository harvestRepository;
-    @Autowired
-    private AppProperties appProperties;
-    @Autowired
-    private HarvestTvlRepository harvestTvlRepository;
-    @Autowired
-    private UniswapRepository uniswapRepository;
     private final Map<String, TreeMap<Long, HarvestDTO>> harvestVaults = new HashMap<>();
     private final TreeMap<Long, UniswapDTO> uniswapDTOTreeMap = new TreeMap<>();
+
+    private final HarvestRepository harvestRepository;
+    private final AppProperties appProperties;
+    private final HarvestTvlRepository harvestTvlRepository;
+    private final UniswapRepository uniswapRepository;
+
+    public TvlRecalculate(HarvestRepository harvestRepository,
+                          AppProperties appProperties,
+                          HarvestTvlRepository harvestTvlRepository,
+                          UniswapRepository uniswapRepository) {
+        this.harvestRepository = harvestRepository;
+        this.appProperties = appProperties;
+        this.harvestTvlRepository = harvestTvlRepository;
+        this.uniswapRepository = uniswapRepository;
+    }
 
     public void start() {
         HarvestDBService harvestDBService = new HarvestDBService(
             createHarvestRepository(),
             appProperties,
             harvestTvlRepository,
-            createUniswapRepository()
-        );
+            createUniswapRepository());
 
         List<HarvestDTO> harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
 
