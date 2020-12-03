@@ -17,7 +17,7 @@ public class EthBlockService {
         this.blockCacheRepository = blockCacheRepository;
     }
 
-    public long getTimestampSecForBlock(String blockHash, long blockId) {
+    public synchronized long getTimestampSecForBlock(String blockHash, long blockId) {
         BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
         if (cachedBlock != null) {
             return cachedBlock.getBlockDate();

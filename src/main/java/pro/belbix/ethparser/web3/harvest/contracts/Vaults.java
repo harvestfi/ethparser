@@ -47,6 +47,7 @@ public class Vaults {
     public static final String SUSHI_ETH_USDC = "0x01bd09A1124960d9bE04b638b142Df9DF942b04a".toLowerCase();
     public static final String SUSHI_ETH_USDT = "0x64035b583c8c694627A199243E863Bb33be60745".toLowerCase();
     public static final String SUSHI_ETH_WBTC = "0x5C0A3F55AAC52AA320Ff5F280E77517cbAF85524".toLowerCase();
+    public static final String IDX_ETH_DPI = "0x2a32dcbb121d48c106f6d94cf2b4714c0b4dfe48".toLowerCase();
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
@@ -91,6 +92,7 @@ public class Vaults {
         vaultNames.put(SUSHI_ETH_USDC, "SUSHI_ETH_USDC");
         vaultNames.put(SUSHI_ETH_USDT, "SUSHI_ETH_USDT");
         vaultNames.put(SUSHI_ETH_WBTC, "SUSHI_ETH_WBTC");
+        vaultNames.put(IDX_ETH_DPI, "IDX_ETH_DPI");
 
         vaultDividers.put(YCRV_V0, D18);
         vaultDividers.put(WETH_V0, D18);
@@ -129,6 +131,7 @@ public class Vaults {
         vaultDividers.put(SUSHI_ETH_USDC, D18);
         vaultDividers.put(SUSHI_ETH_USDT, D18);
         vaultDividers.put(SUSHI_ETH_WBTC, D18);
+        vaultDividers.put(IDX_ETH_DPI, D18);
 
         lpTokens.add("UNI_ETH_DAI");
         lpTokens.add("UNI_ETH_USDC");

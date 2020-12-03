@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.FARM_TOKEN_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.UNI_ROUTER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +45,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+    public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
     public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;

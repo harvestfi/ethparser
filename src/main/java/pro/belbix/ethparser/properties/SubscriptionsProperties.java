@@ -61,6 +61,7 @@ import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WETH;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WETH_V0;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.YCRV;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults._3CRV;
+import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_ETH_LP_CONTRACT;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
 
 import java.util.Arrays;
@@ -73,6 +74,7 @@ import org.springframework.validation.annotation.Validated;
 public class SubscriptionsProperties {
     private List<String> logSubscriptions = Arrays.asList(
         FARM_USDC_LP_CONTRACT,
+        FARM_ETH_LP_CONTRACT,
         CONTROLLER,
         WETH_V0,
         USDC_V0,

@@ -74,8 +74,8 @@ public class UtilsStarter {
     }
 
     private void uniswapDownloader() {
-        int step = 10000;
-        for (int blockNum = 11195486; blockNum < 11216385; blockNum += step) {
+        int step = 100000;
+        for (int blockNum = 10765094; blockNum < 11380000; blockNum += step) {
             uniswapLpDownloader.load(blockNum, blockNum + step);
         }
     }

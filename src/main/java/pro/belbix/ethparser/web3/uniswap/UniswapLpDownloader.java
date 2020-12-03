@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_ETH_LP_CONTRACT;
 import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class UniswapLpDownloader {
     }
 
     public void load(Integer from, Integer to) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(FARM_USDC_LP_CONTRACT), from, to);
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(FARM_ETH_LP_CONTRACT), from, to);
         if (logResults == null) {
             logger.error("Log results is null");
             return;
