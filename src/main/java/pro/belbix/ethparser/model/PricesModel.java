@@ -3,14 +3,14 @@ package pro.belbix.ethparser.model;
 public class PricesModel {
     private Double btc;
     private Double eth;
-    private Double idx;
+    private Double dpi;
 
-    public Double getIdx() {
-        return idx;
+    public Double getDpi() {
+        return dpi;
     }
 
-    public void setIdx(Double idx) {
-        this.idx = idx;
+    public void setDpi(Double dpi) {
+        this.dpi = dpi;
     }
 
     public Double getBtc() {

@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3;
 
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DPI;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_IDX;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,7 +42,7 @@ public class PriceProvider {
         PricesModel dto = new PricesModel();
         dto.setBtc(getPriceForCoin("WBTC", block));
         dto.setEth(getPriceForCoin("WETH", block));
-        dto.setIdx(getPriceForCoin("IDX", block));
+        dto.setDpi(getPriceForCoin("DPI", block));
         return objectMapper.writeValueAsString(dto);
     }
 
@@ -78,7 +78,15 @@ public class PriceProvider {
             return;
         }
 
-        String lpName = "UNI_LP_USDC_" + coinName;
+        String lpName;
+        String nonUSD = null;
+        if ("DPI".equals(coinName)) {
+            lpName = "UNI_LP_ETH_DPI";
+            nonUSD = "ETH";
+        } else {
+            lpName = "UNI_LP_USDC_" + coinName;
+        }
+
         String lpHash = LpContracts.lpNameToHash.get(lpName);
         if (lpHash == null) {
             throw new IllegalStateException("Not found hash for " + lpName);
@@ -90,11 +98,15 @@ public class PriceProvider {
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
             || UNI_LP_USDC_FARM.equals(lpHash)
-            || UNI_LP_USDC_IDX.equals(lpHash)
+            || UNI_LP_ETH_DPI.equals(lpHash)
         ) {
             price = reserves.component2() / reserves.component1();
         } else {
             throw new IllegalStateException("Unknown LP");
+        }
+
+        if(nonUSD != null) {
+            price *= getPriceForCoin(nonUSD, block);
         }
 
         lastPrices.put(coinName, price);
@@ -136,6 +148,13 @@ public class PriceProvider {
         return name;
     }
 
+    private String lpForCoin(String coin) {
+        if ("DPI".equals(coin)) {
+            return "UNI_LP_ETH_DPI";
+        }
+        return "UNI_LP_USDC_" + coin;
+    }
+
     private void init() {
         lastPrices.put("ETH", 382.0);
         lastPrices.put("WETH", 382.0);
@@ -155,8 +174,8 @@ public class PriceProvider {
             return pricesModel.getBtc();
         } else if ("ETH".equals(coinName)) {
             return pricesModel.getEth();
-        } else if ("IDX".equals(coinName)) {
-            return pricesModel.getIdx();
+        } else if ("DPI".equals(coinName)) {
+            return pricesModel.getDpi();
         } else if ("FARM".equals(coinName)) {
             return 0;
         } else {
