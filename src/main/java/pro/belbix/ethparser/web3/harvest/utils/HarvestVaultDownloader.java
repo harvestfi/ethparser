@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.utils;
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.*;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
@@ -28,29 +28,32 @@ public class HarvestVaultDownloader {
     private final Web3Service web3Service;
     private final HarvestDBService harvestDBService;
     private final HarvestVaultParserV2 harvestVaultParser;
+    private final PriceProvider priceProvider;
 
     public HarvestVaultDownloader(Web3Service web3Service, HarvestDBService harvestDBService,
-                                  HarvestVaultParserV2 harvestVaultParser) {
+                                  HarvestVaultParserV2 harvestVaultParser,
+                                  PriceProvider priceProvider) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.harvestVaultParser = harvestVaultParser;
+        this.priceProvider = priceProvider;
     }
 
     public void start() {
 
         Set<String> include = new HashSet<>(
             Arrays.asList(
-                WETH_V0,
+//                WETH_V0,
 //                USDC_V0
-                USDT_V0,
-                DAI_V0,
-                WBTC_V0,
-                RENBTC_V0,
-                CRVRENWBTC_V0,
-                UNI_ETH_DAI_V0,
-                UNI_ETH_USDC_V0,
-                UNI_ETH_USDT_V0,
-                UNI_ETH_WBTC_V0
+//                USDT_V0,
+//                DAI_V0,
+//                WBTC_V0,
+//                RENBTC_V0,
+//                CRVRENWBTC_V0,
+//                UNI_ETH_DAI_V0,
+//                UNI_ETH_USDC_V0,
+//                UNI_ETH_USDT_V0,
+//                UNI_ETH_WBTC_V0
 //                UNI_ETH_DAI,
 //                UNI_ETH_USDC,
 //                UNI_ETH_USDT,
@@ -77,6 +80,7 @@ public class HarvestVaultDownloader {
 //                SUSHI_ETH_USDT,
 //                SUSHI_ETH_WBTC
 //                YCRV_V0
+                IDX_ETH_DPI
             )
         );
 
@@ -84,18 +88,10 @@ public class HarvestVaultDownloader {
             if (!include.contains(vaultHash)) {
                 continue;
             }
-            parseVault(vaultHash, 10770000, 11303222);
+
+            LoopUtils.handleLoop(10770000, null, (start, end) -> parse(vaultHash, start, end));
 //            parseVault(vaultHash, 11021480, 11223256);
         }
-    }
-
-    public void parseVault(String vaultHash, Integer from, Integer to) {
-        if (from == null) {
-            BigInteger lastBlock = harvestDBService.lastBlock();
-            from = lastBlock.intValue();
-            logger.info("Use last block " + lastBlock);
-        }
-        LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultHash, start, end));
     }
 
     private void parse(String vaultHash, int start, Integer end) {
@@ -108,6 +104,7 @@ public class HarvestVaultDownloader {
             try {
                 HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResult.get());
                 if (dto != null) {
+                    dto.setPrices(priceProvider.getAllPrices(dto.getBlock().longValue()));
                     harvestDBService.saveHarvestDTO(dto);
                 }
             } catch (Exception e) {

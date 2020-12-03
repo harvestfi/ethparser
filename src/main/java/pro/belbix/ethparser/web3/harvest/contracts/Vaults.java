@@ -146,6 +146,7 @@ public class Vaults {
         lpTokens.add("SUSHI_ETH_USDC");
         lpTokens.add("SUSHI_ETH_USDT");
         lpTokens.add("SUSHI_ETH_WBTC");
+        lpTokens.add("IDX_ETH_DPI");
 
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");

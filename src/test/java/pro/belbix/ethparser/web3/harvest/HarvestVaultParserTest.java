@@ -44,6 +44,25 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultIDX_ETH_DPI() {
+        harvestVaultParseTest(
+            Vaults.IDX_ETH_DPI,
+            11378768,
+            LOG_ID,
+            "0xe4b8c8e33b17ec8517403852d7bb272134a2271a",
+            "Deposit",
+            "IDX_ETH_DPI",
+            "0x35843129de10eead25090075c443b8cb03b35b946f5b777918260973349fbb05_36",
+            "6,08144172",
+            "0",
+            "0",
+            743L,
+            1266L,
+            true
+        );
+    }
+
+    @Test
     public void parseVaultSUSHI_ETH_USDT() {
         harvestVaultParseTest(
             Vaults.SUSHI_ETH_USDT,

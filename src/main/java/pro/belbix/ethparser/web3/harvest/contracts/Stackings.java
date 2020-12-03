@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRVRENWBTC_V0;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRV_TBTC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.DAI_V0;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS_V0;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.RENBTC;
@@ -72,6 +73,7 @@ public class Stackings {
     public static final String SUSHI_ETH_USDC_ST = "0x6B4e1E0656Dd38F36c318b077134487B9b0cf7a6".toLowerCase();
     public static final String SUSHI_ETH_USDT_ST = "0xA56522BCA0A09f57B85C52c0Cc8Ba1B5eDbc64ef".toLowerCase();
     public static final String SUSHI_ETH_WBTC_ST = "0xE2D9FAe95f1e68afca7907dFb36143781f917194".toLowerCase();
+    public static final String IDX_ETH_DPI_ST = "0xad91695b4bec2798829ac7a4797e226c78f22abd".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> vaultHashToStackingHash = new LinkedHashMap<>();
@@ -109,6 +111,7 @@ public class Stackings {
         hashToName.put(SUSHI_ETH_USDC_ST, "SUSHI_ETH_USDC_ST");
         hashToName.put(SUSHI_ETH_USDT_ST, "SUSHI_ETH_USDT_ST");
         hashToName.put(SUSHI_ETH_WBTC_ST, "SUSHI_ETH_WBTC_ST");
+        hashToName.put(IDX_ETH_DPI_ST, "IDX_ETH_DPI_ST");
 
         vaultHashToStackingHash.put(WETH_V0, ST_WETH_V0);
         vaultHashToStackingHash.put(USDC_V0, ST_USDC_V0);
@@ -143,6 +146,7 @@ public class Stackings {
         vaultHashToStackingHash.put(SUSHI_ETH_USDC, SUSHI_ETH_USDC_ST);
         vaultHashToStackingHash.put(SUSHI_ETH_USDT, SUSHI_ETH_USDT_ST);
         vaultHashToStackingHash.put(SUSHI_ETH_WBTC, SUSHI_ETH_WBTC_ST);
+        vaultHashToStackingHash.put(IDX_ETH_DPI, IDX_ETH_DPI_ST);
     }
 
 }

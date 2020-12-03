@@ -25,6 +25,7 @@ import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ET
 import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_USDC;
 import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_USDT;
 import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fSUSHI_ETH_WBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRVRENWBTC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRVRENWBTC_V0;
@@ -111,6 +112,8 @@ public class SubscriptionsProperties {
         SUSHI_ETH_USDC,
         SUSHI_ETH_USDT,
         SUSHI_ETH_WBTC,
+        IDX_ETH_DPI,
+
         fUNI_ETH_DAI,
         fUNI_ETH_USDC,
         fUNI_ETH_USDT,

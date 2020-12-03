@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.uniswap;
 import static pro.belbix.ethparser.web3.ContractMapper.D18;
 import static pro.belbix.ethparser.web3.ContractMapper.D6;
 import static pro.belbix.ethparser.web3.ContractMapper.D8;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDT;
@@ -31,6 +32,8 @@ public class LpContracts {
     public static final String UNI_LP_USDC_ETH = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc".toLowerCase();
     public static final String UNI_LP_USDC_WBTC = "0x004375dff511095cc5a197a54140a24efef3a416".toLowerCase();
     public static final String UNI_LP_USDC_FARM = "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase();
+    public static final String UNI_LP_IDX_ETH = "0x3452a7f30a712e415a0674c0341d44ee9d9786f9".toLowerCase();
+    public static final String UNI_LP_USDC_IDX = "0xc372089019614e5791b08b5036f298d002a8cbef".toLowerCase();
     public static final String SUSHI_LP_ETH_DAI = "0xc3d03e4f041fd4cd388c549ee2a29a9e5075882f".toLowerCase();
     public static final String SUSHI_LP_ETH_USDC = "0x397ff1542f962076d0bfe58ea045ffa2d347aca0".toLowerCase();
     public static final String SUSHI_LP_ETH_USDT = "0x06da0fd433c1a5d7a4faa01111c044910a184553".toLowerCase();
@@ -56,6 +59,7 @@ public class LpContracts {
         harvestStrategyToLp.put(SUSHI_ETH_USDC, SUSHI_LP_ETH_USDC);
         harvestStrategyToLp.put(SUSHI_ETH_USDT, SUSHI_LP_ETH_USDT);
         harvestStrategyToLp.put(SUSHI_ETH_WBTC, SUSHI_LP_ETH_WBTC);
+        harvestStrategyToLp.put(IDX_ETH_DPI, UNI_LP_IDX_ETH);
 
         lpHashToDividers.put(UNI_LP_ETH_DAI, D18);
         lpHashToDividers.put(UNI_LP_ETH_USDC, D18);
@@ -66,6 +70,8 @@ public class LpContracts {
         lpHashToDividers.put(SUSHI_LP_ETH_USDC, D18);
         lpHashToDividers.put(SUSHI_LP_ETH_USDT, D18);
         lpHashToDividers.put(SUSHI_LP_ETH_WBTC, D18);
+        lpHashToDividers.put(UNI_LP_IDX_ETH, D18);
+        lpHashToDividers.put(UNI_LP_USDC_IDX, D18);
 
         lpHashToCoinNames.put(UNI_LP_ETH_DAI, new Tuple2<>("DAI", "ETH"));
         lpHashToCoinNames.put(UNI_LP_ETH_USDC, new Tuple2<>("USDC", "ETH"));
@@ -76,6 +82,8 @@ public class LpContracts {
         lpHashToCoinNames.put(SUSHI_LP_ETH_USDC, new Tuple2<>("USDC", "ETH"));
         lpHashToCoinNames.put(SUSHI_LP_ETH_USDT, new Tuple2<>("ETH", "USDT"));
         lpHashToCoinNames.put(SUSHI_LP_ETH_WBTC, new Tuple2<>("WBTC", "ETH"));
+        lpHashToCoinNames.put(UNI_LP_IDX_ETH, new Tuple2<>("IDX", "ETH"));
+        lpHashToCoinNames.put(UNI_LP_USDC_IDX, new Tuple2<>("IDX", "USDC"));
 
         lpNameToHash.put("UNI_LP_ETH_DAI", UNI_LP_ETH_DAI);
         lpNameToHash.put("UNI_LP_ETH_USDC", UNI_LP_ETH_USDC);
@@ -89,6 +97,8 @@ public class LpContracts {
         lpNameToHash.put("UNI_ETH_USDT_V0", UNI_ETH_USDT_V0);
         lpNameToHash.put("UNI_ETH_WBTC_V0", UNI_ETH_WBTC_V0);
         lpNameToHash.put("UNI_LP_USDC_FARM", UNI_LP_USDC_FARM);
+        lpNameToHash.put("UNI_LP_IDX_ETH", UNI_LP_IDX_ETH);
+        lpNameToHash.put("UNI_LP_USDC_IDX", UNI_LP_USDC_IDX);
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(D6, D18));
@@ -102,6 +112,8 @@ public class LpContracts {
         lpPairsDividers.put(SUSHI_LP_ETH_USDC, new Tuple2<>(D6, D18));
         lpPairsDividers.put(SUSHI_LP_ETH_USDT, new Tuple2<>(D18, D6));
         lpPairsDividers.put(SUSHI_LP_ETH_WBTC, new Tuple2<>(D8, D18));
+        lpPairsDividers.put(UNI_LP_IDX_ETH, new Tuple2<>(D18, D18));
+        lpPairsDividers.put(UNI_LP_USDC_IDX, new Tuple2<>(D18, D6));
     }
 
 }

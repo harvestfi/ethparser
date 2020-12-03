@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_IDX;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +42,7 @@ public class PriceProvider {
         PricesModel dto = new PricesModel();
         dto.setBtc(getPriceForCoin("WBTC", block));
         dto.setEth(getPriceForCoin("WETH", block));
+        dto.setIdx(getPriceForCoin("IDX", block));
         return objectMapper.writeValueAsString(dto);
     }
 
@@ -87,7 +89,9 @@ public class PriceProvider {
         if (UNI_LP_USDC_ETH.equals(lpHash)) {
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
-            || UNI_LP_USDC_FARM.equals(lpHash)) {
+            || UNI_LP_USDC_FARM.equals(lpHash)
+            || UNI_LP_USDC_IDX.equals(lpHash)
+        ) {
             price = reserves.component2() / reserves.component1();
         } else {
             throw new IllegalStateException("Unknown LP");
@@ -151,6 +155,8 @@ public class PriceProvider {
             return pricesModel.getBtc();
         } else if ("ETH".equals(coinName)) {
             return pricesModel.getEth();
+        } else if ("IDX".equals(coinName)) {
+            return pricesModel.getIdx();
         } else if ("FARM".equals(coinName)) {
             return 0;
         } else {
