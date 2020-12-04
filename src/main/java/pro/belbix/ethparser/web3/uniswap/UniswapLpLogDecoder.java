@@ -1,9 +1,12 @@
 package pro.belbix.ethparser.web3.uniswap;
 
-import static pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder.USDC_ADDRESS;
-import static pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder.WETH_ADDRESS;
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.UNI_ROUTER;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.firstCoinIsKey;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.mapLpAddressToCoin;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.mapLpAddressToOtherCoin;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -24,8 +27,6 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class UniswapLpLogDecoder extends MethodDecoder {
 
-    public static final String FARM_USDC_LP_CONTRACT = "0x514906FC121c7878424a5C928cad1852CC545892".toLowerCase();
-    public static final String FARM_ETH_LP_CONTRACT = "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase();
     private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Mint", "Burn", "Swap"));
 
     public void decode(UniswapTx tx, Log log) {
@@ -54,6 +55,8 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         tx.setLogId(log.getLogIndex().longValue());
         tx.setBlock(log.getBlockNumber());
         tx.setSuccess(true);
+        tx.setCoinAddress(keyCoinForLp.get(log.getAddress()));
+        tx.setLpAddress(log.getAddress());
         enrich(types, methodName, tx, log);
     }
 
@@ -61,8 +64,10 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return FARM_USDC_LP_CONTRACT.equals(log.getAddress())
-            || FARM_ETH_LP_CONTRACT.equals(log.getAddress());
+        return UNI_LP_USDC_FARM.equals(log.getAddress())
+            || UNI_LP_WETH_FARM.equals(log.getAddress())
+            || UNI_LP_WBTC_BADGER.equals(log.getAddress())
+            ;
     }
 
     private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {
@@ -90,50 +95,55 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                     throw new IllegalStateException("Zero amountOut for " + tx.getHash());
                 }
 
-//                if (FARM_TOPIC_ADDRESS1.equals(sender)) {
-                if (amount1In.equals(BigInteger.ZERO)) {
+                if (
+                    (amount1In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
+                    || (amount0In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                    ) {
                     tx.setBuy(false);
-                    tx.setCoinIn(new Address(FARM_TOKEN_CONTRACT));
-                    tx.setCoinOut(new Address(mapLpToOtherCoin(log)));
-//                } else if (USDC_TOPIC_ADDRESS1.equals(sender)) {
-                } else if (amount0In.equals(BigInteger.ZERO)) {
+                    tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
+                    tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+                } else if (
+                    (amount0In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
+                    || (amount1In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                ) {
                     tx.setBuy(true);
-                    tx.setCoinIn(new Address(mapLpToOtherCoin(log)));
-                    tx.setCoinOut(new Address(FARM_TOKEN_CONTRACT));
+                    tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+                    tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
                 } else {
-                    throw new IllegalStateException("Unknown sender " + sender);
+                    throw new IllegalStateException("Wrong amount in " + log);
                 }
 
                 return;
             case "Mint":
                 tx.setType(UniswapTx.ADD_LIQ);
                 tx.setBuy(true);
-                tx.setCoinIn(new Address(mapLpToOtherCoin(log)));
-                tx.setCoinOut(new Address(FARM_TOKEN_CONTRACT));
-                tx.setAmountOut((BigInteger) types.get(1).getValue());
-                tx.setAmountIn((BigInteger) types.get(2).getValue());
+                tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+                tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
+                if(firstCoinIsKey(log.getAddress())) {
+                    tx.setAmountOut((BigInteger) types.get(1).getValue());
+                    tx.setAmountIn((BigInteger) types.get(2).getValue());
+                } else {
+                    tx.setAmountIn((BigInteger) types.get(1).getValue());
+                    tx.setAmountOut((BigInteger) types.get(2).getValue());
+                }
 
                 return;
             case "Burn":
                 tx.setType(UniswapTx.REMOVE_LIQ);
                 tx.setBuy(false);
-                tx.setCoinIn(new Address(FARM_TOKEN_CONTRACT));
-                tx.setCoinOut(new Address(mapLpToOtherCoin(log)));
-                tx.setAmountIn((BigInteger) types.get(2).getValue());
-                tx.setAmountOut((BigInteger) types.get(3).getValue());
+                tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
+                tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+                if(firstCoinIsKey(log.getAddress())) {
+                    tx.setAmountIn((BigInteger) types.get(2).getValue());
+                    tx.setAmountOut((BigInteger) types.get(3).getValue());
+                } else {
+                    tx.setAmountOut((BigInteger) types.get(2).getValue());
+                    tx.setAmountIn((BigInteger) types.get(3).getValue());
+                }
 
                 return;
         }
         throw new IllegalStateException("Unknown method " + methodName);
-    }
-
-    private String mapLpToOtherCoin(Log log) {
-        if (FARM_USDC_LP_CONTRACT.equals(log.getAddress())) {
-                return USDC_ADDRESS;
-        } else if (FARM_ETH_LP_CONTRACT.equals(log.getAddress())) {
-            return WETH_ADDRESS;
-        }
-        throw new IllegalStateException("Unknown contract " + log.getAddress());
     }
 
     @Override

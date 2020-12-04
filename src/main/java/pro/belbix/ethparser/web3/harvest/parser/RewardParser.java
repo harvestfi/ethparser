@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.ContractMapper.D18;
+import static pro.belbix.ethparser.web3.ContractConstants.D18;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -13,12 +13,13 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.RewardVaults;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
@@ -37,17 +38,19 @@ public class RewardParser implements Web3Parser {
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final RewardsDBService rewardsDBService;
+    private final AppProperties appProperties;
 
     public RewardParser(PriceProvider priceProvider,
                         Functions functions,
                         Web3Service web3Service,
                         EthBlockService ethBlockService,
-                        RewardsDBService rewardsDBService) {
+                        RewardsDBService rewardsDBService, AppProperties appProperties) {
         this.priceProvider = priceProvider;
         this.functions = functions;
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.rewardsDBService = rewardsDBService;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -74,7 +77,7 @@ public class RewardParser implements Web3Parser {
     }
 
     public RewardDTO parseLog(Log ethLog) throws InterruptedException {
-        if (ethLog == null || !RewardVaults.hashToName.containsKey(ethLog.getAddress())) {
+        if (ethLog == null || !StakeContracts.hashToName.containsKey(ethLog.getAddress())) {
             return null;
         }
 
@@ -89,7 +92,9 @@ public class RewardParser implements Web3Parser {
             || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        Thread.sleep(60 * 1000); //wait until new block created
+        if (!appProperties.isDevMod()) {
+            Thread.sleep(60 * 1000); //wait until new block created
+        }
         long nextBlock =
             tx.getBlock().longValue() + 1; //todo if it is last block it will be not safe, create another mechanism
         String vault = tx.getVault().getValue();
@@ -108,7 +113,7 @@ public class RewardParser implements Web3Parser {
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock().longValue());
         dto.setBlockDate(blockTime);
-        dto.setVault(RewardVaults.hashToName.get(vault).replaceFirst("f", ""));
+        dto.setVault(StakeContracts.hashToName.get(vault).replaceFirst("ST_", ""));
         dto.setReward(farmRewardsForPeriod);
         dto.setPeriodFinish(periodFinish);
         log.info("Parsed " + dto);

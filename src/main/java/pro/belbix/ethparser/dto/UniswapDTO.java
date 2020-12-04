@@ -22,7 +22,6 @@ public class UniswapDTO implements DtoI {
     private double amount;
     private String otherCoin;
     private double otherAmount;
-    private Double ethAmount;
     private String hash;
     private BigInteger block;
     private boolean confirmed = false;
@@ -36,10 +35,10 @@ public class UniswapDTO implements DtoI {
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
             + type + " "
-            + String.format("%.2f", amount) + " "
+            + String.format("%.1f", amount) + " "
             + coin + " for "
             + otherCoin + " "
-            + String.format("%.2f", otherAmount)
+            + String.format("%.6f", otherAmount)
             + " " + hash
             + " " + lastPrice;
     }
@@ -52,7 +51,6 @@ public class UniswapDTO implements DtoI {
             ", amount=" + amount +
             ", otherCoin='" + otherCoin + '\'' +
             ", otherAmount=" + otherAmount +
-            ", ethAmount=" + ethAmount +
             ", hash='" + hash + '\'' +
             ", block=" + block +
             ", confirmed=" + confirmed +
@@ -134,14 +132,6 @@ public class UniswapDTO implements DtoI {
 
     public void setOtherAmount(double otherAmount) {
         this.otherAmount = otherAmount;
-    }
-
-    public Double getEthAmount() {
-        return ethAmount;
-    }
-
-    public void setEthAmount(Double ethAmount) {
-        this.ethAmount = ethAmount;
     }
 
     public String getHash() {

@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.ws;
+package pro.belbix.ethparser.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3;
 
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +15,7 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.web3.uniswap.LpContracts;
@@ -20,6 +23,7 @@ import pro.belbix.ethparser.web3.uniswap.LpContracts;
 @SuppressWarnings("rawtypes")
 @Service
 public class Functions {
+
     public final static double SECONDS_OF_YEAR = 31557600.0;
     private static final Logger log = LoggerFactory.getLogger(Functions.class);
     private final Web3Service web3Service;
@@ -28,18 +32,18 @@ public class Functions {
         this.web3Service = web3Service;
     }
 
-    public BigInteger callPricePerFullShare(String contractAddress, long block) {
+    public BigInteger callPricePerFullShare(String contractAddress, Long block) {
         List<Type> types = web3Service
-            .callMethod(GET_PRICE_PER_FULL_SHARE, contractAddress, new DefaultBlockParameterNumber(block));
+            .callMethod(GET_PRICE_PER_FULL_SHARE, contractAddress, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             return BigInteger.ONE;
         }
         return (BigInteger) types.get(0).getValue();
     }
 
-    public Tuple2<Double, Double> callReserves(String lpAddress, long block) {
+    public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
         List<Type> types = web3Service
-            .callMethod(GET_RESERVES, lpAddress, new DefaultBlockParameterNumber(block));
+            .callMethod(GET_RESERVES, lpAddress, resolveBlock(block));
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + lpAddress);
             return new Tuple2<>(0.0, 0.0);
@@ -57,37 +61,44 @@ public class Functions {
         );
     }
 
-    public BigInteger callErc20TotalSupply(String hash, long block) {
+    public BigInteger callErc20TotalSupply(String hash, Long block) {
         return callUint256Function(ERC_20_TOTAL_SUPPLY, hash, block);
     }
 
-    public BigInteger callUnderlyingUnit(String hash, long block) {
+    public BigInteger callUnderlyingUnit(String hash, Long block) {
         return callUint256Function(UNDERLYING_UNIT, hash, block);
     }
 
-    public BigInteger callRewardPerTokens(String hash, long block) {
+    public BigInteger callRewardPerTokens(String hash, Long block) {
         return callUint256Function(REWARD_PER_TOKEN, hash, block);
     }
 
-    public BigInteger callLastTimeRewardApplicable(String hash, long block) {
+    public BigInteger callLastTimeRewardApplicable(String hash, Long block) {
         return callUint256Function(LAST_TIME_REWARD_APPLICABLE, hash, block);
     }
 
-    public BigInteger callRewardRate(String hash, long block) {
+    public BigInteger callRewardRate(String hash, Long block) {
         return callUint256Function(REWARD_RATE, hash, block);
     }
 
-    public BigInteger callPeriodFinish(String hash, long block) {
+    public BigInteger callPeriodFinish(String hash, Long block) {
         return callUint256Function(PERIOD_FINISH, hash, block);
     }
 
-    private BigInteger callUint256Function(Function function, String hash, long block) {
-        List<Type> types = web3Service.callMethod(function, hash, new DefaultBlockParameterNumber(block));
+    private BigInteger callUint256Function(Function function, String hash, Long block) {
+        List<Type> types = web3Service.callMethod(function, hash, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             log.error("Wrong callback " + hash);
             return BigInteger.ZERO;
         }
         return (BigInteger) types.get(0).getValue();
+    }
+
+    public static DefaultBlockParameter resolveBlock(Long block) {
+        if (block != null) {
+            return new DefaultBlockParameterNumber(block);
+        }
+        return LATEST;
     }
 
     static final Function GET_PRICE_PER_FULL_SHARE = new Function(

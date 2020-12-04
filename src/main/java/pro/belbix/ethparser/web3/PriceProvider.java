@@ -1,9 +1,11 @@
 package pro.belbix.ethparser.web3;
 
+import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DPI;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,10 +26,11 @@ public class PriceProvider {
     private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
     private int updateTimeout = 60;
-    private final Functions functions;
 
     private final Map<String, Double> lastPrices = new HashMap<>();
     private final Map<String, Instant> lastUpdates = new HashMap<>();
+
+    private final Functions functions;
 
     public PriceProvider(Functions functions) {
         init();
@@ -46,7 +49,28 @@ public class PriceProvider {
         return objectMapper.writeValueAsString(dto);
     }
 
-    public Double getPriceForCoin(String name, long block) {
+    public double getLpPositionAmountInUsd(String lpAddress, double amount, Long block) {
+        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpAddress);
+        if (names == null) {
+            throw new IllegalStateException("Not found names for " + lpAddress);
+        }
+        Tuple2<Double, Double> usdPrices = new Tuple2<>(
+            getPriceForCoin(names.component1(), block),
+            getPriceForCoin(names.component2(), block)
+        );
+        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpAddress, block);
+        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpAddress, block), lpAddress);
+        double positionFraction = amount / lpBalance;
+
+        double firstCoin = positionFraction * lpUnderlyingBalances.component1();
+        double secondCoin = positionFraction * lpUnderlyingBalances.component2();
+
+        double firstVaultUsdAmount = firstCoin * usdPrices.component1();
+        double secondVaultUsdAmount = secondCoin * usdPrices.component2();
+        return firstVaultUsdAmount + secondVaultUsdAmount;
+    }
+
+    public Double getPriceForCoin(String name, Long block) {
         String coinNameSimple = simplifyName(name);
         updateUSDCPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
@@ -55,7 +79,7 @@ public class PriceProvider {
         return lastPrices.get(coinNameSimple);
     }
 
-    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash, long block) {
+    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash, Long block) {
         Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(
             LpContracts.harvestStrategyToLp.get(strategyHash));
         if (names == null) {
@@ -67,7 +91,7 @@ public class PriceProvider {
         );
     }
 
-    private void updateUSDCPrice(String coinName, long block) {
+    private void updateUSDCPrice(String coinName, Long block) {
         if (isStableCoin(coinName)) {
             return;
         }
@@ -83,6 +107,9 @@ public class PriceProvider {
         if ("DPI".equals(coinName)) {
             lpName = "UNI_LP_ETH_DPI";
             nonUSD = "ETH";
+        } else if ("BADGER".equals(coinName)) {
+            lpName = "UNI_LP_WBTC_BADGER";
+            nonUSD = "WBTC";
         } else {
             lpName = "UNI_LP_USDC_" + coinName;
         }
@@ -94,7 +121,10 @@ public class PriceProvider {
 
         Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
         double price;
-        if (UNI_LP_USDC_ETH.equals(lpHash)) {
+        if (
+            UNI_LP_USDC_ETH.equals(lpHash)
+                || UNI_LP_WBTC_BADGER.equals(lpHash)
+        ) { //todo create method based on key token
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
             || UNI_LP_USDC_FARM.equals(lpHash)
@@ -102,10 +132,10 @@ public class PriceProvider {
         ) {
             price = reserves.component2() / reserves.component1();
         } else {
-            throw new IllegalStateException("Unknown LP");
+            throw new IllegalStateException("Unknown LP " + lpHash);
         }
 
-        if(nonUSD != null) {
+        if (nonUSD != null) {
             price *= getPriceForCoin(nonUSD, block);
         }
 
@@ -146,13 +176,6 @@ public class PriceProvider {
             return "FARM";
         }
         return name;
-    }
-
-    private String lpForCoin(String coin) {
-        if ("DPI".equals(coin)) {
-            return "UNI_LP_ETH_DPI";
-        }
-        return "UNI_LP_USDC_" + coin;
     }
 
     private void init() {

@@ -26,7 +26,7 @@ select
        FROM_UNIXTIME(block_date) date,
        hash
 from uni_tx
-where owner = '0xbed04c43e74150794f2ff5b62b4f73820edaf661'
+where owner = '0xc54bd1f466f2f4f36de59f4024e86885386d6f1b'
 order by block_date desc;
 
 -- WHO SELL FARM---------------------

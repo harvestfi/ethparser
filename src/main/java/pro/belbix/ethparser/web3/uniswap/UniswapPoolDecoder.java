@@ -15,13 +15,7 @@ import pro.belbix.ethparser.model.UniswapTx;
 public class UniswapPoolDecoder {
 
     public final static BigInteger ZERO = new BigInteger("0");
-    public final static String USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-    public final static String WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
     public final static String SWAP_TOPIC = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
-    public final static String WETH_TOPIC_ADDRESS = "0x000000000000000000000000fed6b9243748e5a5bb5c1f373fd7da9fca235334";
-    public final static String USDC_TOPIC_ADDRESS = "0x000000000000000000000000558806e332b2cdab47d61cf96ef7753d8c97e33b";
-    public final static String USDC_TOPIC_ADDRESS_2 = "0x000000000000000000000000bd33caaedf06e436932522a9284d8312f325cae8";
-    public final static String FARM_TOPIC_ADDRESS = "0x0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d";
 
     private Map<String, List<TypeReference<Type>>> parametersByMethodName;
 
@@ -42,31 +36,6 @@ public class UniswapPoolDecoder {
         enrichPrice(tx, types);
         tx.setEnriched(true);
     }
-
-//    private void mapAddresses(UniswapTx tx, Log log) {
-//        if (log.getTopics().size() == 3) {
-//            String topicAddress1 = log.getTopics().get(1).toLowerCase();
-//            String topicAddress2 = log.getTopics().get(2).toLowerCase();
-//
-//            if (USDC_TOPIC_ADDRESS.equals(topicAddress2)) {
-//                tx.setCoinOut(new Address(USDC_ADDRESS));
-//                tx.assertBuy(false);
-//            }
-//            if (WETH_TOPIC_ADDRESS.equals(topicAddress2)) {
-//                tx.setCoinOut(new Address(WETH_ADDRESS));
-//                tx.assertBuy(false);
-//            }
-//
-//            if (USDC_TOPIC_ADDRESS.equals(topicAddress1)) {
-//                tx.setCoinIn(new Address(USDC_ADDRESS));
-//                tx.assertBuy(true);
-//            }
-//            if (WETH_TOPIC_ADDRESS.equals(topicAddress1)) {
-//                tx.setCoinIn(new Address(WETH_ADDRESS));
-//                tx.assertBuy(true);
-//            }
-//        }
-//    }
 
     public List<Type> decodeSwap(String data) {
         return FunctionReturnDecoder.decode(data, parametersByMethodName.get("Swap"));

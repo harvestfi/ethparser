@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.contracts.RewardVaults.fYCRV;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_YCRV;
 
 import java.util.List;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class RewardVaultParseTest {
 
     @Test
     public void ycrvTest() {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fYCRV), null, null);
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(ST_YCRV), null, null);
         for (LogResult logResult : logResults) {
             Log ethLog = (Log) logResult.get();
             HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);

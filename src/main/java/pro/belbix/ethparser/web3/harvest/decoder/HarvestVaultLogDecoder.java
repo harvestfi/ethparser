@@ -14,7 +14,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.harvest.contracts.RewardVaults;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -55,7 +55,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             return false;
         }
         return Vaults.vaultNames.containsKey(log.getAddress())
-            || RewardVaults.hashToName.containsKey(log.getAddress());
+            || StakeContracts.hashToName.containsKey(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

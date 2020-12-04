@@ -11,7 +11,7 @@ import static pro.belbix.ethparser.web3.Functions.GET_RESERVES;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_WETH_UNI_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -57,7 +57,7 @@ public class Web3ServiceTest {
             System.out.println(log.toString());
         }
         Log lastLog = logs.get(logs.size() - 1);
-        assertEquals(FARM_WETH_UNI_CONTRACT, lastLog.getAddress().toLowerCase());
+        assertEquals(UNI_LP_WETH_FARM, lastLog.getAddress().toLowerCase());
         String data = lastLog.getData();
 
         List<Type> types = FunctionReturnDecoder.decode(data,

@@ -2,12 +2,10 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_ETH_LP_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -39,13 +36,19 @@ public class UniswapLPLogParseTest {
     @Test
     @Ignore
     public void parseFarmLp() {
-        parseLp(FARM_USDC_LP_CONTRACT, 11165610, null);
+        parseLp(UNI_LP_USDC_FARM, 11165610, null);
     }
 
     @Test
     @Ignore
     public void parseEthFarmLp() {
-        parseLp(FARM_ETH_LP_CONTRACT, 11165610, null);
+        parseLp(UNI_LP_WETH_FARM, 11165610, null);
+    }
+
+    @Test
+    @Ignore
+    public void parseBtcBadgerLp() {
+        parseLp(UNI_LP_WBTC_BADGER, 11381099, 11382099);
     }
 
     private void parseLp(String contract, Integer start, Integer end) {
@@ -68,7 +71,7 @@ public class UniswapLPLogParseTest {
                 if (tx.getHash() == null) {
                     continue;
                 }
-                UniswapDTO dto = tx.toDto(FARM_TOKEN_CONTRACT);
+                UniswapDTO dto = tx.toDto();
                 dto.setBlockDate(Instant.now().getEpochSecond());
                 System.out.println(dto.print());
             } catch (Exception e) {

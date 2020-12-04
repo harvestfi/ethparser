@@ -57,7 +57,7 @@ public class UtilsStarter {
         if ("cache_blocks".equals(appProperties.getStartUtil())) {
             cacheBlocks();
         } else if ("uni_download".equals(appProperties.getStartUtil())) {
-            uniswapDownloader();
+            uniswapLpDownloader.start();
         } else if ("harvest_download".equals(appProperties.getStartUtil())) {
             harvestVaultDownloader.start();
         } else if ("tvl_recalculate".equals(appProperties.getStartUtil())) {
@@ -70,13 +70,6 @@ public class UtilsStarter {
             hardWorkRecalculate.start();
         } else if ("reward_download".equals(appProperties.getStartUtil())) {
             rewardDownloader.start();
-        }
-    }
-
-    private void uniswapDownloader() {
-        int step = 100000;
-        for (int blockNum = 10765094; blockNum < 11380000; blockNum += step) {
-            uniswapLpDownloader.load(blockNum, blockNum + step);
         }
     }
 

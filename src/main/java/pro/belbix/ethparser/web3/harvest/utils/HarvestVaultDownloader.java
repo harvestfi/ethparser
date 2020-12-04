@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.utils;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.*;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.TUSD;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,9 +15,9 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -68,7 +68,7 @@ public class HarvestVaultDownloader {
 //                SUSHI_WBTC_TBTC,
 //                YCRV,
 //                _3CRV,
-//                TUSD,
+                TUSD
 //                CRV_TBTC,
 //                PS
 //                CRV_CMPND
@@ -80,7 +80,7 @@ public class HarvestVaultDownloader {
 //                SUSHI_ETH_USDT,
 //                SUSHI_ETH_WBTC
 //                YCRV_V0
-                IDX_ETH_DPI
+//                IDX_ETH_DPI
             )
         );
 

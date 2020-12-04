@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser.FARM_TOKEN_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_TOKEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +31,7 @@ import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.Stackings;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
@@ -147,12 +147,12 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
-        String st = Stackings.vaultHashToStackingHash.get(vaultHash);
+        String st = StakeContracts.vaultHashToStackingHash.get(vaultHash);
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
         double vaultBalance = parseAmount(
             functions.callErc20TotalSupply(st, dto.getBlock().longValue()), vaultHash);
         double allFarm = parseAmount(
-            functions.callErc20TotalSupply(FARM_TOKEN_CONTRACT, dto.getBlock().longValue()), vaultHash)
+            functions.callErc20TotalSupply(FARM_TOKEN, dto.getBlock().longValue()), vaultHash)
             - BURNED_FARM;
         dto.setLastUsdTvl(price * vaultBalance);
         dto.setLastTvl(vaultBalance);
@@ -187,7 +187,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
             harvestTx.setMethodName("Withdraw");
             harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
         } else {
-            if (isMigration(harvestTx, Stackings.vaultHashToStackingHash.get(ethLog.getAddress()))) {
+            if (isMigration(harvestTx, StakeContracts.vaultHashToStackingHash.get(ethLog.getAddress()))) {
                 log.warn("migrate? tx " + harvestTx.toString());
                 harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
                 harvestTx.setMethodName("Withdraw");
@@ -211,13 +211,13 @@ public class HarvestVaultParserV2 implements Web3Parser {
             && !"0x7fe2153de0006d76c85cc04c8ea10bf4546c879e".equals(receipt.getTo()) //swap WETH_V0 uni
             && !"0x494cc492c9f01699bff1449180201dbfbd592ea5".equals(receipt.getTo()) //swap WETH_V0 uni
             && !"0x343e3a490c9251dc0eaa81da146ba6abe6c78b2d".equals(receipt.getTo()) //zapper WETH_V0 uni
-            && !Stackings.hashToName.containsKey(receipt.getTo()) //stacking
+            && !StakeContracts.hashToName.containsKey(receipt.getTo()) //stacking
             && !Vaults.vaultNames.containsKey(receipt.getTo()  //transfer
         );
     }
 
     private boolean isMigration(HarvestTx harvestTx, String currentStackingContract) {
-        return Stackings.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
+        return StakeContracts.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
             && !harvestTx.getAddressFromArgs2().getValue()
             .equals(currentStackingContract); // and it is not current contract
     }

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap;
 
-import static pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser.FARM_TOKEN_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -27,16 +28,18 @@ public class UniswapRouterDecoder extends MethodDecoder {
         tx.setHash(transaction.getHash());
         tx.setOwner(transaction.getFrom());
         tx.setBlock(transaction.getBlockNumber());
+        tx.setCoinAddress(FARM_TOKEN);
+        tx.setLpAddress(UNI_LP_USDC_FARM);
         parseMethod(tx, types, methodName);
 
         //ensure that FARM coin setCorrect
-        if (tx.isContainsAddress(FARM_TOKEN_CONTRACT)) {
-            if (tx.tokenIsFirstOrLast(FARM_TOKEN_CONTRACT)) { //BUY
-                tx.setCoinIn(new Address(FARM_TOKEN_CONTRACT));
+        if (tx.isContainsAddress(FARM_TOKEN)) {
+            if (tx.tokenIsFirstOrLast(FARM_TOKEN)) { //BUY
+                tx.setCoinIn(new Address(FARM_TOKEN));
                 tx.setCoinOut(tx.getAllAddresses()[1]);
                 tx.setBuy(false);
             } else { //SELL
-                tx.setCoinOut(new Address(FARM_TOKEN_CONTRACT));
+                tx.setCoinOut(new Address(FARM_TOKEN));
                 tx.setCoinIn(tx.getAllAddresses()[tx.getAllAddresses().length - 2]);
                 tx.setBuy(true);
             }

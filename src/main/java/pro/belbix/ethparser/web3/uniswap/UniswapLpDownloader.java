@@ -1,18 +1,17 @@
 package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_ETH_LP_CONTRACT;
-import static pro.belbix.ethparser.web3.uniswap.UniswapLpLogDecoder.FARM_USDC_LP_CONTRACT;
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
 
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.utils.LoopUtils;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -30,8 +29,12 @@ public class UniswapLpDownloader {
         this.uniswapLpLogParser = uniswapLpLogParser;
     }
 
-    public void load(Integer from, Integer to) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(FARM_ETH_LP_CONTRACT), from, to);
+    public void start() {
+        LoopUtils.handleLoop(11381099, 11386849, this::load);
+    }
+
+    private void load(Integer from, Integer to) {
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(UNI_LP_WBTC_BADGER), from, to);
         if (logResults == null) {
             logger.error("Log results is null");
             return;

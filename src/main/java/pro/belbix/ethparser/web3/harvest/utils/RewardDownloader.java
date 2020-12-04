@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.utils;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
 import static pro.belbix.ethparser.web3.harvest.utils.LoopUtils.handleLoop;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.RewardVaults;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 
@@ -20,7 +21,6 @@ import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 @SuppressWarnings("rawtypes")
 public class RewardDownloader {
 
-    private static final int BATCH = 10000;
     private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
     private final Web3Service web3Service;
     private final RewardParser rewardParser;
@@ -39,11 +39,13 @@ public class RewardDownloader {
 
     public void start() {
         priceProvider.setUpdateTimeout(0);
-        for (String contract : RewardVaults.hashToName.keySet()) {
-            if (contract == null || contract.isEmpty()) {
+        for (String contract : StakeContracts.hashToName.keySet()) {
+            if (contract == null || contract.isEmpty()
+            || !ST_PS.equals(contract)
+            ) {
                 continue;
             }
-            handleLoop(10770000, null, (from, end) -> parse(from, end, contract));
+            handleLoop(10971000, 11381032, (from, end) -> parse(from, end, contract));
         }
     }
 

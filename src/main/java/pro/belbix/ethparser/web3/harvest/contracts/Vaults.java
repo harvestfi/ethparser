@@ -1,9 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.contracts;
 
-import static pro.belbix.ethparser.web3.ContractMapper.D18;
-import static pro.belbix.ethparser.web3.ContractMapper.D6;
-import static pro.belbix.ethparser.web3.ContractMapper.D8;
+import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.ContractConstants.D6;
+import static pro.belbix.ethparser.web3.ContractConstants.D8;
 
+import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class Vaults {
     public static final String SUSHI_ETH_USDT = "0x64035b583c8c694627A199243E863Bb33be60745".toLowerCase();
     public static final String SUSHI_ETH_WBTC = "0x5C0A3F55AAC52AA320Ff5F280E77517cbAF85524".toLowerCase();
     public static final String IDX_ETH_DPI = "0x2a32dcbb121d48c106f6d94cf2b4714c0b4dfe48".toLowerCase();
+    public static final String CRV_HUSD = "0x29780C39164Ebbd62e9DDDE50c151810070140f2".toLowerCase();
+    public static final String CRV_HBTC = "0xCC775989e76ab386E9253df5B0c0b473E22102E2".toLowerCase();
 
     public final static Map<String, String> vaultNames = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
@@ -55,44 +58,12 @@ public class Vaults {
     public final static Map<String, String> vaultNameToOldVaultName = new LinkedHashMap<>();
 
     static {
-        vaultNames.put(YCRV_V0, "YCRV_V0");
-        vaultNames.put(WETH_V0, "WETH_V0");
-        vaultNames.put(USDC_V0, "USDC_V0");
-        vaultNames.put(USDT_V0, "USDT_V0");
-        vaultNames.put(DAI_V0, "DAI_V0");
-        vaultNames.put(WBTC_V0, "WBTC_V0");
-        vaultNames.put(RENBTC_V0, "RENBTC_V0");
-        vaultNames.put(CRVRENWBTC_V0, "CRVRENWBTC_V0");
-        vaultNames.put(UNI_ETH_DAI_V0, "UNI_ETH_DAI_V0");
-        vaultNames.put(UNI_ETH_USDC_V0, "UNI_ETH_USDC_V0");
-        vaultNames.put(UNI_ETH_USDT_V0, "UNI_ETH_USDT_V0");
-        vaultNames.put(UNI_ETH_WBTC_V0, "UNI_ETH_WBTC_V0");
-        vaultNames.put(UNI_ETH_DAI, "UNI_ETH_DAI");
-        vaultNames.put(UNI_ETH_USDC, "UNI_ETH_USDC");
-        vaultNames.put(UNI_ETH_USDT, "UNI_ETH_USDT");
-        vaultNames.put(UNI_ETH_WBTC, "UNI_ETH_WBTC");
-        vaultNames.put(WETH, "WETH");
-        vaultNames.put(USDC, "USDC");
-        vaultNames.put(USDT, "USDT");
-        vaultNames.put(DAI, "DAI");
-        vaultNames.put(WBTC, "WBTC");
-        vaultNames.put(RENBTC, "RENBTC");
-        vaultNames.put(CRVRENWBTC, "CRVRENWBTC");
-        vaultNames.put(SUSHI_WBTC_TBTC, "SUSHI_WBTC_TBTC");
-        vaultNames.put(YCRV, "YCRV");
-        vaultNames.put(_3CRV, "3CRV");
-        vaultNames.put(TUSD, "TUSD");
-        vaultNames.put(CRV_TBTC, "CRV_TBTC");
-        vaultNames.put(PS, "PS");
-        vaultNames.put(PS_V0, "PS_V0");
-        vaultNames.put(CRV_CMPND, "CRV_CMPND");
-        vaultNames.put(CRV_BUSD, "CRV_BUSD");
-        vaultNames.put(CRV_USDN, "CRV_USDN");
-        vaultNames.put(SUSHI_ETH_DAI, "SUSHI_ETH_DAI");
-        vaultNames.put(SUSHI_ETH_USDC, "SUSHI_ETH_USDC");
-        vaultNames.put(SUSHI_ETH_USDT, "SUSHI_ETH_USDT");
-        vaultNames.put(SUSHI_ETH_WBTC, "SUSHI_ETH_WBTC");
-        vaultNames.put(IDX_ETH_DPI, "IDX_ETH_DPI");
+        try {
+            initMaps();
+        } catch (Exception e) {
+            e.printStackTrace();
+//            throw new RuntimeException(e);
+        }
 
         vaultDividers.put(YCRV_V0, D18);
         vaultDividers.put(WETH_V0, D18);
@@ -132,6 +103,8 @@ public class Vaults {
         vaultDividers.put(SUSHI_ETH_USDT, D18);
         vaultDividers.put(SUSHI_ETH_WBTC, D18);
         vaultDividers.put(IDX_ETH_DPI, D18);
+        vaultDividers.put(CRV_HUSD, D18);
+        vaultDividers.put(CRV_HBTC, D18);
 
         lpTokens.add("UNI_ETH_DAI");
         lpTokens.add("UNI_ETH_USDC");
@@ -160,6 +133,16 @@ public class Vaults {
         vaultNameToOldVaultName.put("RENBTC", "RENBTC_V0");
         vaultNameToOldVaultName.put("CRVRENWBTC", "CRVRENWBTC_V0");
 
+    }
+
+    //dangerous, but useful
+    private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
+        for (Field field : Vaults.class.getDeclaredFields()) {
+            if(!(field.get(null) instanceof String)) {
+                continue;
+            }
+            vaultNames.put((String) field.get(null), field.getName());
+        }
     }
 
 }

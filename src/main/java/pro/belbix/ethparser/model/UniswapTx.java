@@ -1,9 +1,11 @@
 package pro.belbix.ethparser.model;
 
+import static pro.belbix.ethparser.web3.uniswap.LpContracts.amountToDouble;
+import static pro.belbix.ethparser.web3.uniswap.Tokens.findNameForContract;
+
 import java.math.BigInteger;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.web3.ContractMapper;
 
 public class UniswapTx implements EthTransactionI {
 
@@ -26,6 +28,24 @@ public class UniswapTx implements EthTransactionI {
     private boolean enriched;
     private Boolean buy;
     private Address[] allAddresses;
+    private String coinAddress;
+    private String lpAddress;
+
+    public String getLpAddress() {
+        return lpAddress;
+    }
+
+    public void setLpAddress(String lpAddress) {
+        this.lpAddress = lpAddress;
+    }
+
+    public String getCoinAddress() {
+        return coinAddress;
+    }
+
+    public void setCoinAddress(String coinAddress) {
+        this.coinAddress = coinAddress;
+    }
 
     public String getHash() {
         return hash;
@@ -197,8 +217,6 @@ public class UniswapTx implements EthTransactionI {
         throw new IllegalStateException("Token not the last or first for " + hash);
     }
 
-
-
     public void assertBuy(boolean expected) {
         if (buy == null) {
             throw new IllegalStateException("Buy now is null for " + hash);
@@ -208,38 +226,37 @@ public class UniswapTx implements EthTransactionI {
         }
     }
 
-    public UniswapDTO toDto(String contract) {
+    public UniswapDTO toDto() {
         UniswapDTO uniswapDTO = new UniswapDTO();
         uniswapDTO.setId(hash + "_" + logId);
         uniswapDTO.setHash(hash);
         uniswapDTO.setOwner(owner);
         uniswapDTO.setBlock(block);
-        uniswapDTO.setCoin(ContractMapper.findName(contract));
+        uniswapDTO.setCoin(findNameForContract(coinAddress));
         uniswapDTO.setConfirmed(success);
-        uniswapDTO.setEthAmount(amountToDouble(amountEth, coinIn));
 
-        if (contract.equals(coinIn.getValue().toLowerCase())) {
+        if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
             assertBuy(false);
-            uniswapDTO.setAmount(amountToDouble(amountIn, coinIn));
+            uniswapDTO.setAmount(amountToDouble(amountIn, lpAddress, coinIn.getValue()));
             uniswapDTO.setOtherCoin(addrToStr(coinOut));
-            uniswapDTO.setOtherAmount(amountToDouble(amountOut, coinOut));
+            uniswapDTO.setOtherAmount(amountToDouble(amountOut, lpAddress, coinOut.getValue()));
             if (type.equals(SWAP)) {
                 uniswapDTO.setType("SELL");
             } else {
                 uniswapDTO.setType(type);
             }
-        } else if (contract.equals(coinOut.getValue().toLowerCase())) {
+        } else if (coinAddress.equals(coinOut.getValue().toLowerCase())) {
             assertBuy(true);
-            uniswapDTO.setAmount(amountToDouble(amountOut, coinOut));
+            uniswapDTO.setAmount(amountToDouble(amountOut, lpAddress, coinOut.getValue()));
             uniswapDTO.setOtherCoin(addrToStr(coinIn));
-            uniswapDTO.setOtherAmount(amountToDouble(amountIn, coinIn));
+            uniswapDTO.setOtherAmount(amountToDouble(amountIn, lpAddress, coinIn.getValue()));
             if (type.equals(SWAP)) {
                 uniswapDTO.setType("BUY");
             } else {
                 uniswapDTO.setType(type);
             }
         } else {
-            throw new IllegalStateException("Contract not found for " +hash);
+            throw new IllegalStateException("Contract not found for " + hash);
         }
 
         if (uniswapDTO.getOtherCoin().equals("USDC")) {
@@ -250,19 +267,6 @@ public class UniswapTx implements EthTransactionI {
     }
 
     private static String addrToStr(Address adr) {
-        return ContractMapper.findName(adr.getValue());
+        return findNameForContract(adr.getValue());
     }
-
-    private static double amountToDouble(BigInteger amount, Address coin) {
-        //really, it is totally unclear for me how it's work
-        String divider = "1000000000000000000";
-        if (!"0xa0246c9032bc3a600820415ae600c6388619a14d".equals(coin.getValue())) {
-            if (amount.toString().length() < 16) {
-                divider = "1000000";
-            }
-        }
-        return amount.doubleValue() / new BigInteger(divider).doubleValue();
-    }
-
-    
 }

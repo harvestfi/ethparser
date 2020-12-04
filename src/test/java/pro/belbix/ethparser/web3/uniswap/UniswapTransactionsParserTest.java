@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class UniswapTransactionsParserTest {
     private UniswapTransactionsParser uniswapTransactionsParser;
 
     @Test
+    @Ignore
     public void shouldEnrichUniTxCorrect_swapExactTokensForTokensSupportingFeeOnTransferTokens() throws IOException {
         Transaction tx = web3Service
             .findTransaction("0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
@@ -88,6 +90,7 @@ public class UniswapTransactionsParserTest {
     }
 
     @Test
+    @Ignore
     public void parse_swapTokensForExactTokens_fail() throws IOException {
         Transaction tx = web3Service
             .findTransaction("0x5a9d8fa3fb5097ba4a75aad475497fab49b67efb31f3dc248e66fdab578b6208");

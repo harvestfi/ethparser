@@ -23,10 +23,8 @@ public class UniswapLpLogParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(UniswapLpLogParser.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    public static final String FARM_TOKEN_CONTRACT = "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase();
     private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
     private final Web3Service web3Service;
-    private long parsedTxCount = 0;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final UniswapDbService uniswapDbService;
@@ -72,7 +70,7 @@ public class UniswapLpLogParser implements Web3Parser {
             return null;
         }
 
-        UniswapDTO dto = tx.toDto(FARM_TOKEN_CONTRACT);
+        UniswapDTO dto = tx.toDto();
 
         //enrich owner
         TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
