@@ -150,11 +150,13 @@ public class PriceProvider {
             || "USDT".equals(name)
             || "YCRV".equals(name)
             || "3CRV".equals(name)
+            || "_3CRV".equals(name)
             || "TUSD".equals(name)
             || "DAI".equals(name)
             || "CRV_CMPND".equals(name)
             || "CRV_BUSD".equals(name)
             || "CRV_USDN".equals(name)
+            || "HUSD".equals(name)
             ;
     }
 
@@ -171,6 +173,8 @@ public class PriceProvider {
         } else if ("BTC".equals(name)) {
             return "WBTC";
         } else if ("CRV_TBTC".equals(name)) {
+            return "WBTC";
+        } else if ("HBTC".equals(name)) {
             return "WBTC";
         } else if ("PS".equals(name)) {
             return "FARM";

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Vaults {
+
     public static final String YCRV_V0 = "0xF2B223Eb3d2B382Ead8D85f3c1b7eF87c1D35f3A".toLowerCase();
     public static final String WETH_V0 = "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase();
     public static final String USDC_V0 = "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f".toLowerCase();
@@ -138,10 +139,14 @@ public class Vaults {
     //dangerous, but useful
     private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
         for (Field field : Vaults.class.getDeclaredFields()) {
-            if(!(field.get(null) instanceof String)) {
+            if (!(field.get(null) instanceof String)) {
                 continue;
             }
-            vaultNames.put((String) field.get(null), field.getName());
+            String vaultName = field.getName();
+            if (vaultName.startsWith("_")) {
+                vaultName = vaultName.replaceFirst("_", "");
+            }
+            vaultNames.put((String) field.get(null), vaultName);
         }
     }
 

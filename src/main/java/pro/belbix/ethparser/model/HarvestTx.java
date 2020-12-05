@@ -38,7 +38,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block);
-        dto.setVault(Vaults.vaultNames.get(vault.getValue()));
+        dto.setVault(removeBracers(Vaults.vaultNames.get(vault.getValue())));
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
@@ -49,6 +49,13 @@ public class HarvestTx implements EthTransactionI {
 
         enrichMethodDepend(dto);
         return dto;
+    }
+
+    private String removeBracers(String s) {
+        if (s.equals("_3CRV")) {
+            return "3CRV";
+        }
+        return s;
     }
 
     public static double parseAmount(BigInteger amount, String address) {
