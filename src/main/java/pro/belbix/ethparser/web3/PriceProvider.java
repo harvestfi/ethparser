@@ -157,6 +157,7 @@ public class PriceProvider {
             || "CRV_BUSD".equals(name)
             || "CRV_USDN".equals(name)
             || "HUSD".equals(name)
+            || "CRV_HUSD".equals(name)
             ;
     }
 
@@ -175,6 +176,8 @@ public class PriceProvider {
         } else if ("CRV_TBTC".equals(name)) {
             return "WBTC";
         } else if ("HBTC".equals(name)) {
+            return "WBTC";
+        } else if ("CRV_HBTC".equals(name)) {
             return "WBTC";
         } else if ("PS".equals(name)) {
             return "FARM";

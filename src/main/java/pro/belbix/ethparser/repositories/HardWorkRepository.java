@@ -24,6 +24,13 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
                                        Pageable pageable);
 
     @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
+        + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
+    List<Double> fetchProfitForPeriod(@Param("vault") String vault,
+                                       @Param("from") long from,
+                                       @Param("to") long to,
+                                       Pageable pageable);
+
+    @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
         + "t.blockDate <= :to")
     List<Double> fetchAllProfitForPeriod(@Param("to") long to,
                                        Pageable pageable);

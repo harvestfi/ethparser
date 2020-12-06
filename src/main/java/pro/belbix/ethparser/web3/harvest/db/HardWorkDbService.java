@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.Functions.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
 
 import java.util.List;
@@ -59,35 +61,54 @@ public class HardWorkDbService {
     }
 
     private void calculateVaultApr(HardWorkDTO dto) {
-        HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate());
-        if (harvestDTO != null) {
-            dto.setTvl(harvestDTO.getLastUsdTvl());
-            if (dto.getTvl() != 0.0) {
-                dto.setPerc((dto.getShareChangeUsd() / dto.getTvl()) * 100);
-            } else {
-                dto.setPerc(0.0);
-            }
-
-            List<Double> sumOfPercL = hardWorkRepository
-                .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate(), limitOne);
-            if (sumOfPercL != null && !sumOfPercL.isEmpty() && sumOfPercL.get(0) != null) {
-                double sumOfPerc = sumOfPercL.get(0);
-                sumOfPerc += dto.getPerc();
-                List<Long> periodL = harvestRepository
-                    .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne);
-                if (periodL != null && !periodL.isEmpty() && periodL.get(0) != null) {
-                    double period = (double) periodL.get(0);
-                    dto.setPeriodOfWork(periodL.get(0));
-                    if (period != 0.0) {
-                        double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
-                        dto.setApr(apr);
-                    }
+        silentCall(() -> harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate()))
+            .ifPresentOrElse(harvestDTO -> {
+                dto.setTvl(harvestDTO.getLastUsdTvl());
+                if (dto.getTvl() != 0.0) {
+                    dto.setPerc((dto.getShareChangeUsd() / dto.getTvl()) * 100);
+                } else {
+                    dto.setPerc(0.0);
                 }
-            }
 
-        } else {
-            log.warn("Not found harvest for " + dto.print());
-        }
+                silentCall(() -> hardWorkRepository
+                    .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate(), limitOne))
+                    .filter(sumOfPercL -> !sumOfPercL.isEmpty() && sumOfPercL.get(0) != null)
+                    .ifPresentOrElse(sumOfPercL -> {
+                        final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
+
+                        silentCall(() -> harvestRepository
+                            .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne))
+                            .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
+                            .ifPresentOrElse(periodL -> {
+                                double period = (double) periodL.get(0);
+                                dto.setPeriodOfWork(periodL.get(0));
+                                if (period != 0.0) {
+                                    double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
+                                    dto.setApr(apr);
+                                }
+                            }, () -> log.warn("Not found period for " + dto.print()));
+
+                        List<Long> periodL = harvestRepository
+                            .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne);
+                        if (periodL != null && !periodL.isEmpty() && periodL.get(0) != null) {
+
+                        }
+                    }, () -> log.warn("Not found profit for period for " + dto.print()));
+
+                silentCall(() -> hardWorkRepository
+                    .fetchProfitForPeriod(
+                        dto.getVault(),
+                        dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+                        dto.getBlockDate(),
+                        limitOne))
+                    .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
+                    .ifPresentOrElse(sumOfProfitL -> {
+                        double sumOfProfit = sumOfProfitL.get(0) + dto.getShareChangeUsd();
+
+//                        double weekApr = (SECONDS_OF_YEAR / SECONDS_IN_WEEK) * ((sumOfProfit / dto.getTvl()) * 100.0);
+                        dto.setWeeklyProfit(sumOfProfit);
+                    }, () -> log.warn("Not found profit for period for " + dto.print()));
+            }, () -> log.warn("Not found harvest for " + dto.print()));
     }
 
     private void calculatePsApr(HardWorkDTO dto) {

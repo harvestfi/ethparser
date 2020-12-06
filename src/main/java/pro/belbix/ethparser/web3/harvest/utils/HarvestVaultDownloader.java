@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.utils;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRV_HBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRV_HUSD;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.TUSD;
 
 import java.util.Arrays;
@@ -43,44 +45,7 @@ public class HarvestVaultDownloader {
 
         Set<String> include = new HashSet<>(
             Arrays.asList(
-//                WETH_V0,
-//                USDC_V0
-//                USDT_V0,
-//                DAI_V0,
-//                WBTC_V0,
-//                RENBTC_V0,
-//                CRVRENWBTC_V0,
-//                UNI_ETH_DAI_V0,
-//                UNI_ETH_USDC_V0,
-//                UNI_ETH_USDT_V0,
-//                UNI_ETH_WBTC_V0
-//                UNI_ETH_DAI,
-//                UNI_ETH_USDC,
-//                UNI_ETH_USDT,
-//                UNI_ETH_WBTC,
-//                WETH,
-//                USDC,
-//                USDT,
-//                DAI,
-//                WBTC,
-//                RENBTC,
-//                CRVRENWBTC,
-//                SUSHI_WBTC_TBTC,
-//                YCRV,
-//                _3CRV,
-                TUSD
-//                CRV_TBTC,
-//                PS
-//                CRV_CMPND
-//                CRV_BUSD
-//                CRV_USDN
-//                PS_V0
-//                SUSHI_ETH_DAI,
-//                SUSHI_ETH_USDC,
-//                SUSHI_ETH_USDT,
-//                SUSHI_ETH_WBTC
-//                YCRV_V0
-//                IDX_ETH_DPI
+                CRV_HBTC
             )
         );
 

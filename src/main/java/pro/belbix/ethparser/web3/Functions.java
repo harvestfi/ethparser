@@ -25,6 +25,7 @@ import pro.belbix.ethparser.web3.uniswap.LpContracts;
 public class Functions {
 
     public final static double SECONDS_OF_YEAR = 31557600.0;
+    public final static double SECONDS_IN_WEEK = 604800.0;
     private static final Logger log = LoggerFactory.getLogger(Functions.class);
     private final Web3Service web3Service;
 
