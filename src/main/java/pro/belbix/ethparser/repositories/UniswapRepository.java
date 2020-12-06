@@ -11,20 +11,22 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     @Query(nativeQuery = true, value = ""
         + "select count(*) from ("
-        + "select t.owner from uni_tx t group by t.owner) tt"
+        + "select t.owner from uni_tx t where coin = 'FARM' group by t.owner) tt"
     )
     Integer fetchOwnerCount();
 
-    UniswapDTO findFirstByOrderByBlockDesc();
+    UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
 
-    UniswapDTO findFirstByBlockDateBeforeOrderByBlockDesc(long blockDate);
+    UniswapDTO findFirstByBlockDateAndCoinBeforeOrderByBlockDesc(long blockDate, String coin);
 
-    @Query("select sum(t.amount) from UniswapDTO t where t.owner = :owner and t.blockDate <= :from")
+    @Query("select sum(t.amount) from UniswapDTO t "
+        + "where t.coin = 'FARM' and t.owner = :owner and t.blockDate <= :from")
     List<Double> fetchAmountSum(@Param("from") long from, @Param("owner") String owner, Pageable pageable);
 
-    @Query("select sum(t.otherAmount) from UniswapDTO t where t.owner = :owner and t.blockDate <= :from")
+    @Query("select sum(t.otherAmount) from UniswapDTO t "
+        + "where t.coin = 'FARM' and t.owner = :owner and t.blockDate <= :from")
     List<Double> fetchAmountSumUsd(@Param("from") long from, @Param("owner") String owner, Pageable pageable);
 
-    List<UniswapDTO> findAllByOwnerOrderByBlockDate(String owner);
+    List<UniswapDTO> findAllByOwnerAndCoinOrderByBlockDate(String owner, String coin);
 
 }

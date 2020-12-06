@@ -23,7 +23,7 @@ public class DownloadIncome {
     }
 
     public void start() {
-        List<UniswapDTO> trades = uniswapRepository.findAllByOwnerOrderByBlockDate(DO_HARD_WORK);
+        List<UniswapDTO> trades = uniswapRepository.findAllByOwnerAndCoinOrderByBlockDate(DO_HARD_WORK, "FARM");
         for (UniswapDTO trade : trades) {
             uniswapDbService.saveIncome(trade);
             log.info("Save income for " + trade.print());

@@ -90,13 +90,9 @@ public class TvlRecalculate {
                 return null;
             }
 
-            @Override
-            public UniswapDTO findFirstByOrderByBlockDesc() {
-                return null;
-            }
 
             @Override
-            public UniswapDTO findFirstByBlockDateBeforeOrderByBlockDesc(long blockDate) {
+            public UniswapDTO findFirstByBlockDateAndCoinBeforeOrderByBlockDesc(long blockDate, String coin) {
                 Entry<Long, UniswapDTO> entry = uniswapDTOTreeMap.lowerEntry(blockDate);
                 if (entry == null) {
                     return null;
@@ -114,8 +110,15 @@ public class TvlRecalculate {
                 return null;
             }
 
+
+
             @Override
-            public List<UniswapDTO> findAllByOwnerOrderByBlockDate(String owner) {
+            public UniswapDTO findFirstByCoinOrderByBlockDesc(String coin) {
+                return null;
+            }
+
+            @Override
+            public List<UniswapDTO> findAllByOwnerAndCoinOrderByBlockDate(String owner, String coin) {
                 return null;
             }
 

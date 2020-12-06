@@ -121,7 +121,7 @@ public class UniswapDbService {
     }
 
     public BigInteger lastBlock() {
-        UniswapDTO dto = uniswapRepository.findFirstByOrderByBlockDesc();
+        UniswapDTO dto = uniswapRepository.findFirstByCoinOrderByBlockDesc("FARM");
         if (dto == null) {
             return BigInteger.ONE;
         }
