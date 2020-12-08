@@ -17,7 +17,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
 
-    UniswapDTO findFirstByBlockDateAndCoinBeforeOrderByBlockDesc(long blockDate, String coin);
+    UniswapDTO findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(long blockDate, String coin);
 
     @Query("select sum(t.amount) from UniswapDTO t "
         + "where t.coin = 'FARM' and t.owner = :owner and t.blockDate <= :from")

@@ -63,7 +63,7 @@ public class HarvestDBService {
         int owners = 0;
         Double farmPrice = 0.0;
         UniswapDTO uniswapDTO = uniswapRepository
-            .findFirstByBlockDateAndCoinBeforeOrderByBlockDesc(dto.getBlockDate(), "FARM");
+            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }

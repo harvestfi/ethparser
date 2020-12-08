@@ -212,7 +212,8 @@ public class Web3Service {
             if (error != null) {
                 log.error("Got " + error.getCode() + " " + error.getMessage() + " " + error.getData());
             } else {
-                return ethGetTransactionReceipt.getTransactionReceipt().orElse(null);
+                return ethGetTransactionReceipt.getTransactionReceipt()
+                    .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
             }
         } catch (IOException e) {
             log.error("", e);

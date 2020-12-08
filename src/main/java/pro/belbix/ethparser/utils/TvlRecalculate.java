@@ -79,7 +79,9 @@ public class TvlRecalculate {
 
     private void uniDtosToMap(List<UniswapDTO> uniswapDTOS) {
         for (UniswapDTO dto : uniswapDTOS) {
-            uniswapDTOTreeMap.put(dto.getBlockDate(), dto);
+            if("FARM".equals(dto.getCoin())) {
+                uniswapDTOTreeMap.put(dto.getBlockDate(), dto);
+            }
         }
     }
 
@@ -92,7 +94,7 @@ public class TvlRecalculate {
 
 
             @Override
-            public UniswapDTO findFirstByBlockDateAndCoinBeforeOrderByBlockDesc(long blockDate, String coin) {
+            public UniswapDTO findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(long blockDate, String coin) {
                 Entry<Long, UniswapDTO> entry = uniswapDTOTreeMap.lowerEntry(blockDate);
                 if (entry == null) {
                     return null;
