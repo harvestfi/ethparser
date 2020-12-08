@@ -14,23 +14,38 @@ import javax.persistence.Table;
 })
 @Cacheable(false)
 public class UniswapDTO implements DtoI {
+
     @Id
     private String id;
+    private String hash;
+    private BigInteger block;
+    private Long blockDate;
+    private String owner;
+    private boolean confirmed = false;
     private String type;
     private String coin;
-    private String owner;
     private double amount;
     private String otherCoin;
     private double otherAmount;
-    private String hash;
-    private BigInteger block;
-    private boolean confirmed = false;
     private Double lastPrice;
     private Double lastGas;
-    private Long blockDate;
+    // ---- ADDITIONAL STATISTIC INFO ----
     private Integer ownerCount;
     private Double psWeekApy;
     private Double psIncomeUsd;
+
+    public void setPrice(double price) {
+        double fee = (price * 0.003);
+        if (isBuy()) {
+            lastPrice = price - fee;
+        } else {
+            lastPrice = price + fee;
+        }
+    }
+
+    public boolean isBuy() {
+        return "BUY".equals(type);
+    }
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -160,10 +175,6 @@ public class UniswapDTO implements DtoI {
 
     public Double getLastPrice() {
         return lastPrice;
-    }
-
-    public void setLastPrice(Double lastPrice) {
-        this.lastPrice = lastPrice;
     }
 
     public Double getLastGas() {
