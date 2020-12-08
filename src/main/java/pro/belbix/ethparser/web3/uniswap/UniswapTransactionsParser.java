@@ -168,7 +168,7 @@ public class UniswapTransactionsParser implements Web3Parser {
     private void saveLastPrice(UniswapDTO uniswapDTO) {
         if (uniswapDTO.isConfirmed() && "USDC".equals(uniswapDTO.getOtherCoin())) {
             lastPrice = uniswapDTO.getOtherAmount() / uniswapDTO.getAmount();
-            uniswapDTO.setPrice(lastPrice);
+            uniswapDTO.setLastPrice(lastPrice);
         }
     }
 

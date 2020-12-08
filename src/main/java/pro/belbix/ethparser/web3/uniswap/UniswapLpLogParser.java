@@ -82,7 +82,7 @@ public class UniswapLpLogParser implements Web3Parser {
         if(dto.getLastPrice() == null) {
             Double otherCoinPrice = priceProvider.getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue());
             if(otherCoinPrice != null) {
-                dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
+                dto.setLastPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
             } else {
                 throw new IllegalStateException("Price not found " + dto.print());
             }

@@ -261,7 +261,7 @@ public class UniswapTx implements EthTransactionI {
 
         if (uniswapDTO.getOtherCoin().equals("USDC")) {
             double price = (uniswapDTO.getOtherAmount() / uniswapDTO.getAmount());
-            uniswapDTO.setPrice(price);
+            uniswapDTO.setLastPrice(price);
         }
         return uniswapDTO;
     }
