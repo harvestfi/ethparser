@@ -112,6 +112,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             case "exit":
             case "Migrated":
             case "SmartContractRecorded":
+            case "RewardDenied":
                 return;
         }
         throw new IllegalStateException("Unknown method " + methodName);
@@ -131,130 +132,5 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
     @Override
     public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void initParameters() {
-        if (parametersByMethodId.isEmpty()) {
-            Map<String, List<TypeReference<Type>>> parameters = new HashMap<>();
-            try {
-                parameters.put("addVaultAndStrategy",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address")
-
-                    ));
-                parameters.put("exit", Collections.emptyList());
-                parameters.put("stake",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-
-                    ));
-                parameters.put("depositAll",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("uint256[]"),
-                        TypeReference.makeTypeReference("address[]")
-
-                    ));
-                parameters.put("migrateInOneTx",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address")
-
-                    ));
-                parameters.put("withdraw",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-
-                    ));
-                //EVENTS--------------------**************************
-                parameters.put("Withdraw",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Deposit",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Invest",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("StrategyAnnounced",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("StrategyChanged",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address")
-                    ));
-                parameters.put("Transfer",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Approval",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Staked",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Withdrawn",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("RewardPaid",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("RewardAdded",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Migrated",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("OwnershipTransferred",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false)
-                    ));
-                parameters.put("Staked#V2",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("SmartContractRecorded",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false)
-                    ));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            writeParameters(parameters);
-        }
     }
 }
