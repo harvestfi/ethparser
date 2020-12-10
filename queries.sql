@@ -67,3 +67,10 @@ select
        vault
 from hard_work
 order by block_date desc;
+
+-- UNIQUE USERS ------------
+select count(owner) from (
+                             select owner
+                             from harvest_tx
+                             group by owner
+                         ) t;

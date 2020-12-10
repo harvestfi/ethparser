@@ -27,6 +27,7 @@ public class HardWorkDTO implements DtoI {
     private double perc;
     private double apr;
     private double weeklyProfit;
+    private double weeklyAllProfit;
     private double psTvlUsd;
     private double psApr;
 
@@ -37,6 +38,14 @@ public class HardWorkDTO implements DtoI {
             + shareUsdTotal + " "
             + id;
 
+    }
+
+    public double getWeeklyAllProfit() {
+        return weeklyAllProfit;
+    }
+
+    public void setWeeklyAllProfit(double weeklyAllProfit) {
+        this.weeklyAllProfit = weeklyAllProfit;
     }
 
     public double getWeeklyProfit() {

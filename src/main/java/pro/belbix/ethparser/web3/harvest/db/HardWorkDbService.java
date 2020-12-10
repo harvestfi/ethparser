@@ -54,13 +54,13 @@ public class HardWorkDbService {
         }
         dto.setShareUsdTotal(all);
 
-        calculateVaultApr(dto);
-        calculatePsApr(dto);
+        calculateVaultProfits(dto);
+        calculatePsProfits(dto);
 
         hardWorkRepository.save(dto);
     }
 
-    private void calculateVaultApr(HardWorkDTO dto) {
+    private void calculateVaultProfits(HardWorkDTO dto) {
         silentCall(() -> harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate()))
             .ifPresentOrElse(harvestDTO -> {
                 dto.setTvl(harvestDTO.getLastUsdTvl());
@@ -87,12 +87,6 @@ public class HardWorkDbService {
                                     dto.setApr(apr);
                                 }
                             }, () -> log.warn("Not found period for " + dto.print()));
-
-                        List<Long> periodL = harvestRepository
-                            .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne);
-                        if (periodL != null && !periodL.isEmpty() && periodL.get(0) != null) {
-
-                        }
                     }, () -> log.warn("Not found profit for period for " + dto.print()));
 
                 silentCall(() -> hardWorkRepository
@@ -109,9 +103,16 @@ public class HardWorkDbService {
                         dto.setWeeklyProfit(sumOfProfit);
                     }, () -> log.warn("Not found profit for period for " + dto.print()));
             }, () -> log.warn("Not found harvest for " + dto.print()));
+
+        silentCall(() -> hardWorkRepository
+            .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK, dto.getBlockDate(), limitOne))
+            .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
+            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0)),
+                () -> log.warn("Not found weekly profits for all vaults for " + dto.print()));
+
     }
 
-    private void calculatePsApr(HardWorkDTO dto) {
+    private void calculatePsProfits(HardWorkDTO dto) {
         HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS", dto.getBlockDate());
         if (harvestDTO == null) {
             harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS_V0", dto.getBlockDate());
@@ -119,7 +120,7 @@ public class HardWorkDbService {
         if (harvestDTO != null) {
             dto.setPsTvlUsd(harvestDTO.getLastUsdTvl());
 
-            List<Double> allProfitL = hardWorkRepository.fetchAllProfitForPeriod(dto.getBlockDate(), limitOne);
+            List<Double> allProfitL = hardWorkRepository.fetchAllProfitAtDate(dto.getBlockDate(), limitOne);
             if (allProfitL != null && !allProfitL.isEmpty() && allProfitL.get(0) != null) {
                 double allProfit = allProfitL.get(0);
                 dto.setAllProfit(allProfit);
