@@ -6,7 +6,7 @@ import java.util.Map;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public class HarvestTx implements EthTransactionI {
 

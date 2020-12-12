@@ -55,7 +55,7 @@ import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.SubscriptionsProperties;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.uniswap.UniswapDbService;
+import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
 @SuppressWarnings("rawtypes")
 @Service

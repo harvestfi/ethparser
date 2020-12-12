@@ -18,7 +18,7 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.uniswap.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @SuppressWarnings("rawtypes")
 @Service

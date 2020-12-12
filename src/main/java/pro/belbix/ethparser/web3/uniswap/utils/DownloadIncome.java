@@ -1,6 +1,6 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.utils;
 
-import static pro.belbix.ethparser.web3.uniswap.UniswapDbService.DO_HARD_WORK;
+import static pro.belbix.ethparser.web3.uniswap.db.UniswapDbService.DO_HARD_WORK;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
 @Service
 public class DownloadIncome {

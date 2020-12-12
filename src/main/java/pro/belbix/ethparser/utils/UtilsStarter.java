@@ -13,8 +13,8 @@ import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.web3.harvest.utils.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.utils.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.utils.RewardDownloader;
-import pro.belbix.ethparser.web3.uniswap.DownloadIncome;
-import pro.belbix.ethparser.web3.uniswap.UniswapLpDownloader;
+import pro.belbix.ethparser.web3.uniswap.utils.DownloadIncome;
+import pro.belbix.ethparser.web3.uniswap.utils.UniswapLpDownloader;
 
 @Service
 public class UtilsStarter {

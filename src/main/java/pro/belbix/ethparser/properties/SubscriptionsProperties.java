@@ -1,8 +1,9 @@
 package pro.belbix.ethparser.properties;
 
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class SubscriptionsProperties {
         //FARM prices
         contracts.add(UNI_LP_USDC_FARM);
         contracts.add(UNI_LP_WETH_FARM);
+        contracts.add(UNI_LP_GRAIN_FARM);
 
         //hard work parsing
         contracts.add(CONTROLLER);

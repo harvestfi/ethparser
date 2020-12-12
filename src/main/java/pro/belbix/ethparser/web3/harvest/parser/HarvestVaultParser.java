@@ -34,7 +34,7 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
-import pro.belbix.ethparser.web3.uniswap.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 @Deprecated

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
-import pro.belbix.ethparser.web3.uniswap.DownloadIncome;
+import pro.belbix.ethparser.web3.uniswap.utils.DownloadIncome;
 
 @Service
 public class HardWorkRecalculate {

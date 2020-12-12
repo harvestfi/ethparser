@@ -1,8 +1,8 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.parser;
 
 import static pro.belbix.ethparser.model.UniswapTx.SWAP;
 import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -20,6 +20,9 @@ import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
+import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
+import pro.belbix.ethparser.web3.uniswap.decoder.UniswapRouterDecoder;
 
 @Service
 public class UniswapTransactionsParser implements Web3Parser {
@@ -70,7 +73,7 @@ public class UniswapTransactionsParser implements Web3Parser {
         }).start();
     }
 
-    UniswapDTO parseUniswapTransaction(Transaction tx) {
+    public UniswapDTO parseUniswapTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
             return null;

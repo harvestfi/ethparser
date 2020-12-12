@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.parser;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -17,6 +17,8 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
+import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
 @Service
 public class UniswapLpLogParser implements Web3Parser {

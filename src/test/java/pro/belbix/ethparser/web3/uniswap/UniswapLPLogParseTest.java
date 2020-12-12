@@ -2,9 +2,9 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -23,6 +23,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)

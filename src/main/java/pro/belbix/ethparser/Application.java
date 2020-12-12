@@ -32,8 +32,8 @@ import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
-import pro.belbix.ethparser.web3.uniswap.UniswapLpLogParser;
-import pro.belbix.ethparser.web3.uniswap.UniswapTransactionsParser;
+import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
+import pro.belbix.ethparser.web3.uniswap.parser.UniswapTransactionsParser;
 import pro.belbix.ethparser.ws.WsService;
 
 @SpringBootApplication

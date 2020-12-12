@@ -10,8 +10,8 @@ import static pro.belbix.ethparser.web3.Functions.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.Functions.GET_RESERVES;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -36,7 +36,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.UniswapPoolDecoder;
+import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)

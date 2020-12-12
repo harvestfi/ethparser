@@ -6,12 +6,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.USDC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.WBTC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.USDC_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import org.junit.Before;
@@ -27,6 +29,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -45,6 +48,21 @@ public class UniswapParserTest {
     @Before
     public void setUp() throws Exception {
         priceProvider.setUpdateTimeout(0);
+    }
+
+    @Test
+    public void parseUNI_LP_GRAIN_FARM_BUY() {
+        uniswapParseTest(UNI_LP_GRAIN_FARM,
+            11420092,
+            1,
+            "0x1248c50025f40dcb1df7af6d1d96cbf744a59ef56f210f2415498fa04854458d_79",
+            "0x2b01755949aec1c8479b4d6dd1ea1e725091b21e",
+            "1784,61622059",
+            "BUY",
+            FARM_NAME,
+            "2,02599871",
+            "0,11354850"
+        );
     }
 
     @Test

@@ -1,9 +1,8 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.contracts;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDC;
@@ -18,23 +17,27 @@ import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.UNI_ETH_USDT;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.UNI_ETH_USDT_V0;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.UNI_ETH_WBTC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.UNI_ETH_WBTC_V0;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.BADGER_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.BADGER_TOKEN;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.DAI_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.DPI_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.IDX_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.TBTC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.USDC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.USDT_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.WBTC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.WETH_NAME;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.WETH_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.BADGER_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.BADGER_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DAI_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DPI_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.IDX_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.TBTC_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.USDC_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.USDT_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_TOKEN;
 
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.web3j.tuples.generated.Tuple2;
 
 public class LpContracts {
@@ -56,6 +59,7 @@ public class LpContracts {
     public static final String SUSHI_LP_ETH_USDC = "0x397ff1542f962076d0bfe58ea045ffa2d347aca0".toLowerCase();
     public static final String SUSHI_LP_ETH_USDT = "0x06da0fd433c1a5d7a4faa01111c044910a184553".toLowerCase();
     public static final String SUSHI_LP_ETH_WBTC = "0xceff51756c56ceffca006cd410b03ffc46dd3a58".toLowerCase();
+    public static final String UNI_LP_GRAIN_FARM = "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase();
 
     public static final Map<String, String> harvestStrategyToLp = new LinkedHashMap<>();
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
@@ -63,6 +67,7 @@ public class LpContracts {
     public static final Map<String, Tuple2<String, String>> lpHashToCoinNames = new LinkedHashMap<>();
     public final static Map<String, Tuple2<Double, Double>> lpPairsDividers = new LinkedHashMap<>();
     public static final Map<String, String> keyCoinForLp = new LinkedHashMap<>();
+    public static final Set<String> parsable = new HashSet<>();
 
     static {
         harvestStrategyToLp.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
@@ -93,6 +98,7 @@ public class LpContracts {
         lpHashToDividers.put(UNI_LP_USDC_IDX, D18);
         lpHashToDividers.put(UNI_LP_ETH_DPI, D18);
         lpHashToDividers.put(UNI_LP_WBTC_BADGER, D18);
+        lpHashToDividers.put(UNI_LP_GRAIN_FARM, D18);
 
         lpHashToCoinNames.put(UNI_LP_ETH_DAI, new Tuple2<>(DAI_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_ETH_USDC, new Tuple2<>(USDC_NAME, WETH_NAME));
@@ -109,6 +115,7 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_WBTC_BADGER, new Tuple2<>(WBTC_NAME, BADGER_NAME));
         lpHashToCoinNames.put(UNI_LP_WETH_FARM, new Tuple2<>(FARM_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_USDC_FARM, new Tuple2<>(FARM_NAME, USDC_NAME));
+        lpHashToCoinNames.put(UNI_LP_GRAIN_FARM, new Tuple2<>(GRAIN_NAME, FARM_NAME));
 
         lpNameToHash.put("UNI_LP_ETH_DAI", UNI_LP_ETH_DAI);
         lpNameToHash.put("UNI_LP_ETH_USDC", UNI_LP_ETH_USDC);
@@ -126,6 +133,7 @@ public class LpContracts {
         lpNameToHash.put("UNI_LP_USDC_IDX", UNI_LP_USDC_IDX);
         lpNameToHash.put("UNI_LP_ETH_DPI", UNI_LP_ETH_DPI);
         lpNameToHash.put("UNI_LP_WBTC_BADGER", UNI_LP_WBTC_BADGER);
+        lpNameToHash.put("UNI_LP_GRAIN_FARM", UNI_LP_GRAIN_FARM);
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(D6, D18));
@@ -144,11 +152,18 @@ public class LpContracts {
         lpPairsDividers.put(UNI_LP_ETH_DPI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_WBTC_BADGER, new Tuple2<>(D8, D18));
         lpPairsDividers.put(UNI_LP_WETH_FARM, new Tuple2<>(D18, D18));
+        lpPairsDividers.put(UNI_LP_GRAIN_FARM, new Tuple2<>(D18, D18));
 
         keyCoinForLp.put(UNI_LP_USDC_FARM, FARM_TOKEN);
         keyCoinForLp.put(UNI_LP_WETH_FARM, FARM_TOKEN);
         keyCoinForLp.put(UNI_LP_WBTC_BADGER, BADGER_TOKEN);
         keyCoinForLp.put(UNI_LP_USDC_ETH, WETH_TOKEN);
+        keyCoinForLp.put(UNI_LP_GRAIN_FARM, GRAIN_TOKEN);
+
+        parsable.add(UNI_LP_USDC_FARM);
+        parsable.add(UNI_LP_WETH_FARM);
+        parsable.add(UNI_LP_WBTC_BADGER);
+        parsable.add(UNI_LP_GRAIN_FARM);
     }
 
     public static double amountToDouble(BigInteger amount, String lpAddress, String coinAddress) {

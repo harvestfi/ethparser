@@ -1,19 +1,18 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WETH_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.firstCoinIsKey;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.mapLpAddressToCoin;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.mapLpAddressToOtherCoin;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.parsable;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.firstCoinIsKey;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.mapLpAddressToCoin;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.mapLpAddressToOtherCoin;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -64,17 +63,13 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return UNI_LP_USDC_FARM.equals(log.getAddress())
-            || UNI_LP_WETH_FARM.equals(log.getAddress())
-            || UNI_LP_WBTC_BADGER.equals(log.getAddress())
-            ;
+        return parsable.contains(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {
         switch (methodName) {
             case "Swap":
                 tx.setType(UniswapTx.SWAP);
-                String sender = (String) types.get(0).getValue();
                 BigInteger amount0In = (BigInteger) types.get(2).getValue();
                 BigInteger amount1In = (BigInteger) types.get(3).getValue();
                 BigInteger amount0Out = (BigInteger) types.get(4).getValue();
