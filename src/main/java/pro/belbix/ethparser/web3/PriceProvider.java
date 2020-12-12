@@ -1,11 +1,11 @@
 package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_ETH_DPI;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_ETH;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_USDC_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
-import pro.belbix.ethparser.web3.uniswap.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 public class PriceProvider {

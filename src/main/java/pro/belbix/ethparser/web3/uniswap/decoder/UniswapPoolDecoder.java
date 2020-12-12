@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap;
+package pro.belbix.ethparser.web3.uniswap.decoder;
 
 import java.math.BigInteger;
 import java.util.Arrays;

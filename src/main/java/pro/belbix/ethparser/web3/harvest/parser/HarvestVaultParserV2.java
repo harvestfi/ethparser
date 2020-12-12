@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,7 @@ import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
-import pro.belbix.ethparser.web3.uniswap.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 public class HarvestVaultParserV2 implements Web3Parser {

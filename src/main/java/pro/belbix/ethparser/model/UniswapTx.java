@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.web3.uniswap.LpContracts.amountToDouble;
-import static pro.belbix.ethparser.web3.uniswap.Tokens.findNameForContract;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.amountToDouble;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.findNameForContract;
 
 import java.math.BigInteger;
 import org.web3j.abi.datatypes.Address;
@@ -256,7 +256,7 @@ public class UniswapTx implements EthTransactionI {
                 uniswapDTO.setType(type);
             }
         } else {
-            throw new IllegalStateException("Contract not found for " + hash);
+            throw new IllegalStateException("Contract can't identified " + toString());
         }
 
         if (uniswapDTO.getOtherCoin().equals("USDC")) {

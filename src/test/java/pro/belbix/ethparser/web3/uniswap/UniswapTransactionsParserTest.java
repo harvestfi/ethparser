@@ -17,6 +17,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.uniswap.parser.UniswapTransactionsParser;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
