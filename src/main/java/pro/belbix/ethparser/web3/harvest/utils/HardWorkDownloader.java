@@ -37,7 +37,7 @@ public class HardWorkDownloader {
 
     public void start() {
         priceProvider.setUpdateTimeout(0);
-        LoopUtils.handleLoop(10770000, null, this::parse);
+        LoopUtils.handleLoop(11425200, null, this::parse);
 
     }
 

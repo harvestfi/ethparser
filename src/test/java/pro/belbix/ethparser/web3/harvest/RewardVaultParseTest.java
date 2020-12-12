@@ -4,6 +4,7 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_YCRV;
 
 import java.util.List;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class RewardVaultParseTest {
     private HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
 
     @Test
+    @Ignore
     public void ycrvTest() {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(ST_YCRV), null, null);
         for (LogResult logResult : logResults) {
@@ -36,6 +38,15 @@ public class RewardVaultParseTest {
             if("RewardAdded".equals(tx.getMethodName())) {
                 System.out.println(ethLog);
             }
+        }
+    }
+
+    @Test
+    public void ycrvTest_RewardDenied() {
+        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(ST_YCRV), 11413701, 11413701);
+        for (LogResult logResult : logResults) {
+            Log ethLog = (Log) logResult.get();
+            harvestVaultLogDecoder.decode(ethLog);
         }
     }
 }

@@ -38,13 +38,19 @@ public class UniswapDTO implements DtoI {
         double fee = (price * 0.003);
         if (isBuy()) {
             lastPrice = price - fee;
-        } else {
+        } else if (isSell()) {
             lastPrice = price + fee;
+        } else {
+            lastPrice = price;
         }
     }
 
     public boolean isBuy() {
         return "BUY".equals(type);
+    }
+
+    public boolean isSell() {
+        return "SELL".equals(type);
     }
 
     public String print() {
