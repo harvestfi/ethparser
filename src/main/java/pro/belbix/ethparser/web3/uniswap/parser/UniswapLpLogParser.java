@@ -17,6 +17,7 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
@@ -32,13 +33,18 @@ public class UniswapLpLogParser implements Web3Parser {
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
+    private final UniToHarvestConverter uniToHarvestConverter;
 
-    public UniswapLpLogParser(Web3Service web3Service, UniswapDbService uniswapDbService,
-                              EthBlockService ethBlockService, PriceProvider priceProvider) {
+    public UniswapLpLogParser(Web3Service web3Service,
+                              UniswapDbService uniswapDbService,
+                              EthBlockService ethBlockService,
+                              PriceProvider priceProvider,
+                              UniToHarvestConverter uniToHarvestConverter) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
+        this.uniToHarvestConverter = uniToHarvestConverter;
     }
 
     @Override
@@ -53,6 +59,7 @@ public class UniswapLpLogParser implements Web3Parser {
                     UniswapDTO dto = parseUniswapLog(log);
                     if (dto != null) {
                         enrichDto(dto);
+                        uniToHarvestConverter.addDtoToQueue(dto);
                         boolean success = uniswapDbService.saveUniswapDto(dto);
                         if (success) {
                             output.put(dto);

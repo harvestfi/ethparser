@@ -2,10 +2,15 @@ package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DPI_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,11 +84,14 @@ public class PriceProvider {
         return lastPrices.get(coinNameSimple);
     }
 
-    public Tuple2<Double, Double> getPriceForUniPair(String strategyHash, Long block) {
-        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(
-            LpContracts.harvestStrategyToLp.get(strategyHash));
+    public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
+        return getPairPriceForLpHash(LpContracts.harvestStrategyToLp.get(strategyHash), block);
+    }
+
+    public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {
+        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpHash);
         if (names == null) {
-            throw new IllegalStateException("Not found names for " + strategyHash);
+            throw new IllegalStateException("Not found names for " + lpHash);
         }
         return new Tuple2<>(
             getPriceForCoin(names.component1(), block),
@@ -104,9 +112,12 @@ public class PriceProvider {
 
         String lpName;
         String nonUSD = null;
-        if ("DPI".equals(coinName)) {
+        if (DPI_NAME.equals(coinName)) {
             lpName = "UNI_LP_ETH_DPI";
-            nonUSD = "ETH";
+            nonUSD = WETH_NAME;
+        } else if (GRAIN_NAME.equals(coinName)) {
+            lpName = "UNI_LP_GRAIN_FARM";
+            nonUSD = FARM_NAME;
         } else if ("BADGER".equals(coinName)) {
             lpName = "UNI_LP_WBTC_BADGER";
             nonUSD = "WBTC";
@@ -129,6 +140,7 @@ public class PriceProvider {
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
             || UNI_LP_USDC_FARM.equals(lpHash)
             || UNI_LP_ETH_DPI.equals(lpHash)
+            || UNI_LP_GRAIN_FARM.equals(lpHash)
         ) {
             price = reserves.component2() / reserves.component1();
         } else {

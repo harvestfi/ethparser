@@ -32,6 +32,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
+import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapTransactionsParser;
 import pro.belbix.ethparser.ws.WsService;
@@ -53,6 +54,7 @@ public class Application {
         HarvestVaultParserV2 harvestVaultParser = context.getBean(HarvestVaultParserV2.class);
         RewardParser rewardParser = context.getBean(RewardParser.class);
         HardWorkParser hardWorkParser = context.getBean(HardWorkParser.class);
+        UniToHarvestConverter uniToHarvestConverter = context.getBean(UniToHarvestConverter.class);
         WsService ws = context.getBean(WsService.class);
         AppProperties conf = context.getBean(AppProperties.class);
 
@@ -79,8 +81,8 @@ public class Application {
                 startParse(web3Service, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
             }
 
-            if (conf.isParseRewardsLog()) {
-                startParse(web3Service, rewardParser, ws, REWARDS_TOPIC_NAME, true);
+            if (conf.isConvertUniToHarvest()) {
+                startParse(web3Service, uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
         }
     }

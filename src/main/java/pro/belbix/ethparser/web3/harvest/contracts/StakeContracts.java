@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.contracts;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @SuppressWarnings("unused")
 public class StakeContracts {
@@ -35,17 +36,19 @@ public class StakeContracts {
     public static final String ST_CRV_USDN = "0xef4Da1CE3f487DA2Ed0BE23173F76274E0D47579".toLowerCase();
     public static final String ST_CRV_HUSD = "0x72C50e6FD8cC5506E166c273b6E814342Aa0a3c1".toLowerCase();
     public static final String ST_CRV_HBTC = "0x01f9CAaD0f9255b0C0Aa2fBD1c1aA06ad8Af7254".toLowerCase();
+    public static final String ST_UNI_LP_USDC_FARM = "0x99b0d6641A63Ce173E6EB063b3d3AED9A35Cf9bf".toLowerCase();
+    public static final String ST_UNI_LP_WETH_FARM = "0x6555c79a8829b793F332f1535B0eFB1fE4C11958".toLowerCase();
+    public static final String ST_UNI_LP_GRAIN_FARM = "0xe58f0d2956628921cdEd2eA6B195Fc821c3a2b16".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> nameToHash = new LinkedHashMap<>();
-    public static final Map<String, String> vaultHashToStackingHash = new LinkedHashMap<>();
+    public static final Map<String, String> vaultHashToStakeHash = new LinkedHashMap<>();
 
     static {
         try {
             initMaps();
         } catch (Exception e) {
             e.printStackTrace();
-//            throw new RuntimeException(e);
         }
     }
 
@@ -57,8 +60,19 @@ public class StakeContracts {
             }
             hashToName.put((String) field.get(null), field.getName());
             nameToHash.put(field.getName(), (String) field.get(null));
-            Field vault = Vaults.class.getDeclaredField(field.getName().replaceFirst("ST_", ""));
-            vaultHashToStackingHash.put((String) vault.get(null), (String) field.get(null));
+            String baseName = field.getName().replaceFirst("ST_", "");
+
+            Field vault = null;
+            try {
+                vault = Vaults.class.getDeclaredField(baseName);
+            } catch (NoSuchFieldException ignored) {
+            }
+            if(vault != null) {
+                vaultHashToStakeHash.put((String) vault.get(null), (String) field.get(null));
+            } else {
+                Field lp = LpContracts.class.getDeclaredField(baseName);
+                vaultHashToStakeHash.put((String) lp.get(null), (String) field.get(null));
+            }
         }
     }
 

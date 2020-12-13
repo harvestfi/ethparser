@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -147,7 +146,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
-        String st = StakeContracts.vaultHashToStackingHash.get(vaultHash);
+        String st = StakeContracts.vaultHashToStakeHash.get(vaultHash);
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
         double vaultBalance = parseAmount(
             functions.callErc20TotalSupply(st, dto.getBlock().longValue()), vaultHash);
@@ -187,7 +186,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
             harvestTx.setMethodName("Withdraw");
             harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
         } else {
-            if (isMigration(harvestTx, StakeContracts.vaultHashToStackingHash.get(ethLog.getAddress()))) {
+            if (isMigration(harvestTx, StakeContracts.vaultHashToStakeHash.get(ethLog.getAddress()))) {
                 log.warn("migrate? tx " + harvestTx.toString());
                 harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
                 harvestTx.setMethodName("Withdraw");
@@ -284,7 +283,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
     }
 
-    private void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
+    public void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
@@ -298,23 +297,12 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double vaultSharedBalance = (vaultBalance * sharedPrice);
         double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpBalance;
 
-        Tuple2<Double, Double> uniPrices = priceProvider.getPriceForUniPair(vaultHash, dto.getBlock().longValue());
+        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dto.getBlock().longValue());
 
         double firstVault = vaultFraction * lpUnderlyingBalances.component1();
         double secondVault = vaultFraction * lpUnderlyingBalances.component2();
 
-        try {
-            Tuple2<String, String> coinNames =
-                LpContracts.lpHashToCoinNames.get(LpContracts.harvestStrategyToLp.get(vaultHash));
-            LpStat lpStat = new LpStat();
-            lpStat.setCoin1(coinNames.component1());
-            lpStat.setCoin2(coinNames.component2());
-            lpStat.setAmount1(firstVault);
-            lpStat.setAmount2(secondVault);
-            dto.setLpStat(OBJECT_MAPPER.writeValueAsString(lpStat));
-        } catch (JsonProcessingException e) {
-            log.error("Error write lp stat", e);
-        }
+        dto.setLpStat(LpStat.createJson(lpHash, firstVault, secondVault));
 
         Long firstVaultUsdAmount = Math.round(firstVault * uniPrices.component1());
         Long secondVaultUsdAmount = Math.round(secondVault * uniPrices.component2());

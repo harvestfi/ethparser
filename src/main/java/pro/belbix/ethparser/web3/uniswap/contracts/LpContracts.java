@@ -32,11 +32,14 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.USDT_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.findNameForContract;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.web3j.tuples.generated.Tuple2;
 
@@ -64,12 +67,19 @@ public class LpContracts {
     public static final Map<String, String> harvestStrategyToLp = new LinkedHashMap<>();
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
     public static final Map<String, Double> lpHashToDividers = new LinkedHashMap<>();
+    private static final Map<String, String> lpHashToName = new LinkedHashMap<>();
     public static final Map<String, Tuple2<String, String>> lpHashToCoinNames = new LinkedHashMap<>();
     public final static Map<String, Tuple2<Double, Double>> lpPairsDividers = new LinkedHashMap<>();
     public static final Map<String, String> keyCoinForLp = new LinkedHashMap<>();
     public static final Set<String> parsable = new HashSet<>();
 
     static {
+        try {
+            initMaps();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         harvestStrategyToLp.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
         harvestStrategyToLp.put(UNI_ETH_USDC, UNI_LP_ETH_USDC);
         harvestStrategyToLp.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
@@ -97,8 +107,10 @@ public class LpContracts {
         lpHashToDividers.put(UNI_LP_IDX_ETH, D18);
         lpHashToDividers.put(UNI_LP_USDC_IDX, D18);
         lpHashToDividers.put(UNI_LP_ETH_DPI, D18);
+        lpHashToDividers.put(UNI_LP_USDC_FARM, D18);
         lpHashToDividers.put(UNI_LP_WBTC_BADGER, D18);
         lpHashToDividers.put(UNI_LP_GRAIN_FARM, D18);
+        lpHashToDividers.put(UNI_LP_WETH_FARM, D18);
 
         lpHashToCoinNames.put(UNI_LP_ETH_DAI, new Tuple2<>(DAI_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_ETH_USDC, new Tuple2<>(USDC_NAME, WETH_NAME));
@@ -116,24 +128,6 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_WETH_FARM, new Tuple2<>(FARM_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_USDC_FARM, new Tuple2<>(FARM_NAME, USDC_NAME));
         lpHashToCoinNames.put(UNI_LP_GRAIN_FARM, new Tuple2<>(GRAIN_NAME, FARM_NAME));
-
-        lpNameToHash.put("UNI_LP_ETH_DAI", UNI_LP_ETH_DAI);
-        lpNameToHash.put("UNI_LP_ETH_USDC", UNI_LP_ETH_USDC);
-        lpNameToHash.put("UNI_LP_ETH_USDT", UNI_LP_ETH_USDT);
-        lpNameToHash.put("UNI_LP_ETH_WBTC", UNI_LP_ETH_WBTC);
-        lpNameToHash.put("SUSHI_LP_WBTC_TBTC", SUSHI_LP_WBTC_TBTC);
-        lpNameToHash.put("UNI_LP_USDC_ETH", UNI_LP_USDC_ETH);
-        lpNameToHash.put("UNI_LP_USDC_WBTC", UNI_LP_USDC_WBTC);
-        lpNameToHash.put("UNI_ETH_DAI_V0", UNI_ETH_DAI_V0);
-        lpNameToHash.put("UNI_ETH_USDC_V0", UNI_ETH_USDC_V0);
-        lpNameToHash.put("UNI_ETH_USDT_V0", UNI_ETH_USDT_V0);
-        lpNameToHash.put("UNI_ETH_WBTC_V0", UNI_ETH_WBTC_V0);
-        lpNameToHash.put("UNI_LP_USDC_FARM", UNI_LP_USDC_FARM);
-        lpNameToHash.put("UNI_LP_IDX_ETH", UNI_LP_IDX_ETH);
-        lpNameToHash.put("UNI_LP_USDC_IDX", UNI_LP_USDC_IDX);
-        lpNameToHash.put("UNI_LP_ETH_DPI", UNI_LP_ETH_DPI);
-        lpNameToHash.put("UNI_LP_WBTC_BADGER", UNI_LP_WBTC_BADGER);
-        lpNameToHash.put("UNI_LP_GRAIN_FARM", UNI_LP_GRAIN_FARM);
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(D6, D18));
@@ -166,15 +160,33 @@ public class LpContracts {
         parsable.add(UNI_LP_GRAIN_FARM);
     }
 
+    public static String findNameForLpHash(String lpHash) {
+        String lpName = lpHashToName.get(lpHash);
+        if (lpName == null) {
+            throw new IllegalStateException("Not found LP name for " + lpHash);
+        }
+        return lpName;
+    }
+
+    public static String findLpForCoins(String coin1, String coin2) {
+        for (Entry<String, Tuple2<String, String>> entry : lpHashToCoinNames.entrySet()) {
+            Tuple2<String, String> coinNames = entry.getValue();
+            if (
+                (coinNames.component1().equals(coin1) || coinNames.component2().equals(coin1))
+                    && (coinNames.component1().equals(coin2) || coinNames.component2().equals(coin2))
+            ) {
+                return entry.getKey();
+            }
+        }
+        throw new IllegalStateException("Not found LP for " + coin1 + " " + coin2);
+    }
+
     public static double amountToDouble(BigInteger amount, String lpAddress, String coinAddress) {
         Tuple2<String, String> names = lpHashToCoinNames.get(lpAddress);
         if (names == null) {
             throw new IllegalStateException("Not found names for " + lpAddress);
         }
-        String coinName = Tokens.findNameForContract(coinAddress);
-        if (coinName == null) {
-            throw new IllegalStateException("Not found name for " + coinAddress);
-        }
+        String coinName = findNameForContract(coinAddress);
         Tuple2<Double, Double> dividers = lpPairsDividers.get(lpAddress);
         if (dividers == null) {
             throw new IllegalStateException("Not found dividers for " + lpAddress);
@@ -189,6 +201,19 @@ public class LpContracts {
         }
 
         return amount.doubleValue() / divider;
+    }
+
+    //dangerous, but useful
+    private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
+        for (Field field : LpContracts.class.getDeclaredFields()) {
+            if (!(field.get(null) instanceof String)) {
+                continue;
+            }
+            String lpName = field.getName();
+            String lpHash = (String) field.get(null);
+            lpHashToName.put(lpHash, lpName);
+            lpNameToHash.put(lpName, lpHash);
+        }
     }
 
 }

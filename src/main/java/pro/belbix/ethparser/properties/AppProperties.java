@@ -28,6 +28,7 @@ public class AppProperties {
     private boolean parseHarvestLog = true;
     private boolean parseHardWorkLog = true;
     private boolean parseRewardsLog = true;
+    private boolean convertUniToHarvest = true;
 
     private String startBlock = "";
     private boolean parseTransactions = false;

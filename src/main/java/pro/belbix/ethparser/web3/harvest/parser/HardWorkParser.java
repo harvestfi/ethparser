@@ -153,7 +153,7 @@ public class HardWorkParser implements Web3Parser {
         double vaultSharedBalance = (vaultBalance * sharedPrice);
         double vaultFraction = vaultSharedBalance / lpBalance;
 
-        Tuple2<Double, Double> uniPrices = priceProvider.getPriceForUniPair(vaultHash, dto.getBlock());
+        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dto.getBlock());
 
         double firstVault = vaultFraction * lpUnderlyingBalances.component1();
         double secondVault = vaultFraction * lpUnderlyingBalances.component2();

@@ -74,3 +74,18 @@ select count(owner) from (
                              from harvest_tx
                              group by owner
                          ) t;
+
+-- last rewards ---------------------
+select
+    FROM_UNIXTIME(block_date) date,
+    round(reward, 0) vault_income,
+    vault
+from rewards
+order by block_date desc;
+
+-- UNIQUE USERS ------------
+select count(owner) from (
+                             select owner
+                             from harvest_tx
+                             group by owner
+                         ) t;
