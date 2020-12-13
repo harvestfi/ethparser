@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.time.Instant;
@@ -128,7 +127,7 @@ public class Application {
 
     private static void startFakeDataForWebSocket(WsService ws, int rate) {
         int count = 0;
-        List<String> vaults = new ArrayList<>(Vaults.vaultNames.values());
+        List<String> vaults = new ArrayList<>(Vaults.vaultHashToName.values());
         HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
         List<String> harvestMethods = new ArrayList<>(harvestVaultLogDecoder.getMethodNamesByMethodId().values());
         while (true) {

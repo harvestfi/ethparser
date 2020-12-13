@@ -87,7 +87,7 @@ public class Web3ServiceTest {
     @Test
     @Ignore
     public void checkLogsForAllVaults() {
-        for (String hash : Vaults.vaultNames.keySet()) {
+        for (String hash : Vaults.vaultHashToName.keySet()) {
             List<LogResult> logs = web3Service
                 .fetchContractLogs(singletonList(hash), null, null);
             assertNotNull(logs);

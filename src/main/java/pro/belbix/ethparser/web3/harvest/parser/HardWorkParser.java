@@ -91,7 +91,7 @@ public class HardWorkParser implements Web3Parser {
             throw new IllegalStateException("Unknown method " + tx.getMethodName());
         }
 
-        if (!Vaults.vaultNames.containsKey(tx.getVault())) {
+        if (!Vaults.vaultHashToName.containsKey(tx.getVault())) {
             log.warn("Unknown vault " + tx.getVault());
             return null;
         }
@@ -100,7 +100,7 @@ public class HardWorkParser implements Web3Parser {
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock());
         dto.setBlockDate(tx.getBlockDate());
-        dto.setVault(Vaults.vaultNames.get(tx.getVault()));
+        dto.setVault(Vaults.vaultHashToName.get(tx.getVault()));
         dto.setShareChange(parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
         fillUsdValues(dto, tx.getVault());

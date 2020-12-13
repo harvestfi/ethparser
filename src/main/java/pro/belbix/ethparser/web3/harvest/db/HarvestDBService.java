@@ -67,7 +67,7 @@ public class HarvestDBService {
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }
-        for (String vaultName : Vaults.vaultNames.values()) {
+        for (String vaultName : Vaults.vaultHashToName.values()) {
             HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
             if (lastHarvest == null) {
                 continue;

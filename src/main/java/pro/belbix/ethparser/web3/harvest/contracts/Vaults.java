@@ -53,7 +53,7 @@ public class Vaults {
     public static final String CRV_HUSD = "0x29780C39164Ebbd62e9DDDE50c151810070140f2".toLowerCase();
     public static final String CRV_HBTC = "0xCC775989e76ab386E9253df5B0c0b473E22102E2".toLowerCase();
 
-    public final static Map<String, String> vaultNames = new LinkedHashMap<>();
+    public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
     public final static Set<String> lpTokens = new LinkedHashSet<>();
     public final static Map<String, String> vaultNameToOldVaultName = new LinkedHashMap<>();
@@ -146,7 +146,7 @@ public class Vaults {
             if (vaultName.startsWith("_")) {
                 vaultName = vaultName.replaceFirst("_", "");
             }
-            vaultNames.put((String) field.get(null), vaultName);
+            vaultHashToName.put((String) field.get(null), vaultName);
         }
     }
 

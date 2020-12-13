@@ -211,7 +211,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
             && !"0x494cc492c9f01699bff1449180201dbfbd592ea5".equals(receipt.getTo()) //swap WETH_V0 uni
             && !"0x343e3a490c9251dc0eaa81da146ba6abe6c78b2d".equals(receipt.getTo()) //zapper WETH_V0 uni
             && !StakeContracts.hashToName.containsKey(receipt.getTo()) //stacking
-            && !Vaults.vaultNames.containsKey(receipt.getTo()  //transfer
+            && !Vaults.vaultHashToName.containsKey(receipt.getTo()  //transfer
         );
     }
 

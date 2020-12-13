@@ -103,7 +103,7 @@ public class HarvestTransactionsParser implements Web3Parser {
                 return null;
             }
 
-            if (!harvestTx.isContainsAddress(Vaults.vaultNames)) {
+            if (!harvestTx.isContainsAddress(Vaults.vaultHashToName)) {
                 return null;
             }
             TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
@@ -135,7 +135,7 @@ public class HarvestTransactionsParser implements Web3Parser {
             //it is contract deploy
             return false;
         }
-        return Vaults.vaultNames.containsKey(tx.getTo().toLowerCase());
+        return Vaults.vaultHashToName.containsKey(tx.getTo().toLowerCase());
     }
 
     private void incrementAndPrintCount(Transaction tx) {

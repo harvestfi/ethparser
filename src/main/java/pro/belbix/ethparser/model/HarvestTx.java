@@ -38,7 +38,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block);
-        dto.setVault(removeBracers(Vaults.vaultNames.get(vault.getValue())));
+        dto.setVault(removeBracers(Vaults.vaultHashToName.get(vault.getValue())));
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));

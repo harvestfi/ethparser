@@ -1,15 +1,7 @@
 package pro.belbix.ethparser.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.entity.BlockCacheEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.BlockCacheRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.web3.harvest.utils.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.utils.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.utils.RewardDownloader;
@@ -19,10 +11,7 @@ import pro.belbix.ethparser.web3.uniswap.utils.UniswapLpDownloader;
 @Service
 public class UtilsStarter {
 
-    private static final Logger log = LoggerFactory.getLogger(UtilsStarter.class);
     private final AppProperties appProperties;
-    private final HarvestRepository harvestRepository;
-    private final BlockCacheRepository blockCacheRepository;
     private final UniswapLpDownloader uniswapLpDownloader;
     private final HarvestVaultDownloader harvestVaultDownloader;
     private final TvlRecalculate tvlRecalculate;
@@ -30,20 +19,17 @@ public class UtilsStarter {
     private final HardWorkDownloader hardWorkDownloader;
     private final HardWorkRecalculate hardWorkRecalculate;
     private final RewardDownloader rewardDownloader;
+    private final BlockCacher blockCacher;
 
     public UtilsStarter(AppProperties appProperties,
-                        HarvestRepository harvestRepository,
-                        BlockCacheRepository blockCacheRepository,
                         UniswapLpDownloader uniswapLpDownloader,
                         HarvestVaultDownloader harvestVaultDownloader,
                         TvlRecalculate tvlRecalculate,
                         DownloadIncome downloadIncome,
                         HardWorkDownloader hardWorkDownloader,
                         HardWorkRecalculate hardWorkRecalculate,
-                        RewardDownloader rewardDownloader) {
+                        RewardDownloader rewardDownloader, BlockCacher blockCacher) {
         this.appProperties = appProperties;
-        this.harvestRepository = harvestRepository;
-        this.blockCacheRepository = blockCacheRepository;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
         this.tvlRecalculate = tvlRecalculate;
@@ -51,50 +37,29 @@ public class UtilsStarter {
         this.hardWorkDownloader = hardWorkDownloader;
         this.hardWorkRecalculate = hardWorkRecalculate;
         this.rewardDownloader = rewardDownloader;
+        this.blockCacher = blockCacher;
     }
 
     public void startUtils() {
-        if ("cache_blocks".equals(appProperties.getStartUtil())) {
-            cacheBlocks();
-        } else if ("uni_download".equals(appProperties.getStartUtil())) {
+        if ("cache-blocks".equals(appProperties.getStartUtil())) {
+            blockCacher.cacheBlocks();
+        } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
             uniswapLpDownloader.start();
-        } else if ("harvest_download".equals(appProperties.getStartUtil())) {
+        } else if ("harvest-download".equals(appProperties.getStartUtil())) {
             harvestVaultDownloader.start();
-        } else if ("tvl_recalculate".equals(appProperties.getStartUtil())) {
+        } else if ("tvl-recalculate".equals(appProperties.getStartUtil())) {
             tvlRecalculate.start();
-        } else if ("income_download".equals(appProperties.getStartUtil())) {
+        } else if ("income-download".equals(appProperties.getStartUtil())) {
             downloadIncome.start();
-        } else if ("hardwork_download".equals(appProperties.getStartUtil())) {
+        } else if ("hardwork-download".equals(appProperties.getStartUtil())) {
             hardWorkDownloader.start();
-        } else if ("hardwork_recalculate".equals(appProperties.getStartUtil())) {
+        } else if ("hardwork-recalculate".equals(appProperties.getStartUtil())) {
             hardWorkRecalculate.start();
-        } else if ("reward_download".equals(appProperties.getStartUtil())) {
+        } else if ("reward-download".equals(appProperties.getStartUtil())) {
             rewardDownloader.start();
         }
     }
 
-    private void cacheBlocks() {
 
-        List<HarvestDTO> harvestDTOS = harvestRepository.findAll();
-        List<BlockCacheEntity> blockCacheEntities = new ArrayList<>();
-        int count = 0;
-        int bulkSize = 100;
-        for (HarvestDTO dto : harvestDTOS) {
-            count++;
-            long block = dto.getBlock().longValue();
-            if (!blockCacheRepository.existsById(block)) {
-                BlockCacheEntity blockCacheEntity = new BlockCacheEntity();
-                blockCacheEntity.setBlock(block);
-                blockCacheEntity.setBlockDate(dto.getBlockDate());
-                blockCacheEntities.add(blockCacheEntity);
-            }
-            if (blockCacheEntities.size() % bulkSize == 0) {
-                log.info("Save block caches " + (count * bulkSize));
-                blockCacheRepository.saveAll(blockCacheEntities);
-                blockCacheEntities.clear();
-            }
-        }
-
-    }
 
 }
