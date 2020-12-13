@@ -51,6 +51,7 @@ public class PriceProvider {
         dto.setBtc(getPriceForCoin("WBTC", block));
         dto.setEth(getPriceForCoin("WETH", block));
         dto.setDpi(getPriceForCoin("DPI", block));
+        dto.setGrain(getPriceForCoin("GRAIN", block));
         return objectMapper.writeValueAsString(dto);
     }
 
