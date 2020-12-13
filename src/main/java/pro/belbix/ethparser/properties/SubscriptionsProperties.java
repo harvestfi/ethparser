@@ -30,7 +30,7 @@ public class SubscriptionsProperties {
         contracts.add(CONTROLLER);
 
         //harvest events
-        contracts.addAll(Vaults.vaultNames.keySet());
+        contracts.addAll(Vaults.vaultHashToName.keySet());
         contracts.addAll(StakeContracts.hashToName.keySet());
         return contracts;
     }

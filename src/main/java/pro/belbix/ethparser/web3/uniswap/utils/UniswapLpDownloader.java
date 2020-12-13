@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.utils;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpNameToHash;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.utils.LoopUtils;
+import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
@@ -26,11 +25,11 @@ public class UniswapLpDownloader {
     private final UniswapDbService saveHarvestDTO;
     private final UniswapLpLogParser uniswapLpLogParser;
 
-    @Value("${uniswap-downloader.contract}")
-    private String contractAddress;
-    @Value("${uniswap-downloader.from}")
+    @Value("${uniswap-download.contract:}")
+    private String contractName;
+    @Value("${uniswap-download.from:}")
     private Integer from;
-    @Value("${uniswap-downloader.to}")
+    @Value("${uniswap-download.to:}")
     private Integer to;
 
     public UniswapLpDownloader(Web3Service web3Service,
@@ -47,7 +46,7 @@ public class UniswapLpDownloader {
 
     private void load(Integer from, Integer to) {
         List<LogResult> logResults = web3Service
-            .fetchContractLogs(singletonList(lpNameToHash.get(contractAddress)), from, to);
+            .fetchContractLogs(singletonList(lpNameToHash.get(contractName)), from, to);
         if (logResults == null) {
             logger.error("Log results is null");
             return;

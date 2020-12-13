@@ -1,5 +1,8 @@
 package pro.belbix.ethparser.dto;
 
+import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+
 import java.math.BigInteger;
 import java.time.Instant;
 import javax.persistence.Cacheable;
@@ -52,6 +55,11 @@ public class UniswapDTO implements DtoI {
     public boolean isSell() {
         return "SELL".equals(type);
     }
+
+    public boolean isLiquidity() {
+        return ADD_LIQ.equals(type) || REMOVE_LIQ.equals(type);
+    }
+
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

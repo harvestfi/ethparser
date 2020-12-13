@@ -41,7 +41,7 @@ public class UniswapDbService {
         }
         dto.setOwnerCount(ownerCount);
         if (!appProperties.isOverrideDuplicates() && uniswapRepository.existsById(dto.getId())) {
-            log.info("Duplicate tx " + dto.getId());
+            log.warn("Duplicate tx " + dto.getId());
             return false;
         }
         uniswapRepository.save(dto);

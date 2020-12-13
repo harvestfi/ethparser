@@ -1,12 +1,13 @@
 package pro.belbix.ethparser.web3.harvest.utils;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.harvest.utils.LoopUtils.handleLoop;
+import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -27,6 +28,13 @@ public class RewardDownloader {
     private final PriceProvider priceProvider;
     private final RewardsDBService rewardsDBService;
 
+    @Value("${reward-download.contract:}")
+    private String contractName;
+    @Value("${reward-download.from:}")
+    private Integer from;
+    @Value("${reward-download.to:}")
+    private Integer to;
+
     public RewardDownloader(Web3Service web3Service,
                             RewardParser rewardParser,
                             PriceProvider priceProvider,
@@ -39,17 +47,15 @@ public class RewardDownloader {
 
     public void start() {
         priceProvider.setUpdateTimeout(0);
-        for (String contract : StakeContracts.hashToName.keySet()) {
-            if (contract == null || contract.isEmpty()
-            || !ST_PS.equals(contract)
-            ) {
+        for (Entry<String, String> entry : StakeContracts.hashToName.entrySet()) {
+            if (contractName != null && !contractName.equals(entry.getValue())) {
                 continue;
             }
-            handleLoop(10971000, 11381032, (from, end) -> parse(from, end, contract));
+            handleLoop(from, to, (from, end) -> parse(from, end, entry.getKey()));
         }
     }
 
-    private void parse(int start, Integer end, String contract) {
+    private void parse(Integer start, Integer end, String contract) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), start, end);
         if (logResults.isEmpty()) {
             logger.info("Empty log {} {}", start, end);

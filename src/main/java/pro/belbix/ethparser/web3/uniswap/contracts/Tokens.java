@@ -77,7 +77,11 @@ public class Tokens {
     }
 
     public static String findNameForContract(String contract) {
-        return tokenHashToName.getOrDefault(contract, contract);
+        String name = tokenHashToName.get(contract);
+        if(name == null) {
+            throw new IllegalStateException("Name not found for " + contract);
+        }
+        return name;
     }
 
     public static String mapLpAddressToCoin(String address) {

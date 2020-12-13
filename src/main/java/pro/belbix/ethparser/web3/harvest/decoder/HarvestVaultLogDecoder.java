@@ -1,11 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.decoder;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -54,7 +50,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return Vaults.vaultNames.containsKey(log.getAddress())
+        return Vaults.vaultHashToName.containsKey(log.getAddress())
             || StakeContracts.hashToName.containsKey(log.getAddress());
     }
 

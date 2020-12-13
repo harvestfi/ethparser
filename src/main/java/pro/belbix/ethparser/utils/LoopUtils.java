@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.utils;
+package pro.belbix.ethparser.utils;
 
 import java.util.function.BiConsumer;
 

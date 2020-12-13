@@ -1,20 +1,34 @@
--- HOLDERS---------------
-select * from (
-                  select deposit.owner owner, deposit.d_amnt, withdraw.w_amnt, (deposit.d_amnt - withdraw.w_amnt) result from
-                      (select owner, sum(usd_amount) d_amnt
-                       from harvest_tx
-                       where method_name = 'Deposit'
-                         and vault = 'CRVRENWBTC'
-                       group by owner) deposit
-                          left join
-                      (select owner, sum(usd_amount) w_amnt from harvest_tx
-                       where method_name = 'Withdraw'
-                         and vault = 'CRVRENWBTC'
-                       group by owner) withdraw ON deposit.owner = withdraw.owner
-              ) t
-# where t.result < 0
-#    or t.result > 0
-order by t.result desc;
+-- HOLDERS
+select count(*) from (
+ select owner, sum(result) result
+ from (
+          select *
+          from (
+                   select deposit.vault                                   vault,
+                          deposit.owner                                   owner,
+                          deposit.d_amnt                                  d_amnt,
+                          coalesce(withdraw.w_amnt, 0)                    w_amnt,
+                          (deposit.d_amnt - coalesce(withdraw.w_amnt, 0)) result
+                   from (select vault, owner, sum(usd_amount) d_amnt
+                         from harvest_tx
+                         where method_name = 'Deposit'
+                         group by vault, owner) deposit
+                            left join
+                        (select vault, owner, sum(usd_amount) w_amnt
+                         from harvest_tx
+                         where method_name = 'Withdraw'
+                         group by vault, owner) withdraw
+                        ON deposit.owner = withdraw.owner
+                            and deposit.vault = withdraw.vault
+               ) t1
+          where t1.result > 0
+          order by t1.result desc
+      ) t2
+ group by owner
+ order by result desc
+) t3
+where result > 1000000
+;
 
 
 -- WALLET HISTORY---------------------
@@ -66,6 +80,21 @@ select
        round((share_change_usd / 0.7) * 0.3, 0) ps_income,
        vault
 from hard_work
+order by block_date desc;
+
+-- UNIQUE USERS ------------
+select count(owner) from (
+                             select owner
+                             from harvest_tx
+                             group by owner
+                         ) t;
+
+-- last rewards ---------------------
+select
+    FROM_UNIXTIME(block_date) date,
+    round(reward, 0) vault_income,
+    vault
+from rewards
 order by block_date desc;
 
 -- UNIQUE USERS ------------

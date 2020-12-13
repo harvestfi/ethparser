@@ -26,9 +26,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
 @RunWith(SpringRunner.class)
@@ -44,6 +46,8 @@ public class UniswapParserTest {
     private Web3Service web3Service;
     @Autowired
     private PriceProvider priceProvider;
+    @Autowired
+    private UniToHarvestConverter uniToHarvestConverter;
 
     @Before
     public void setUp() throws Exception {
@@ -76,7 +80,7 @@ public class UniswapParserTest {
             "SELL",
             WBTC_NAME,
             "0,06232325",
-            "3,84574305"
+            "3,85728028"
         );
     }
 
@@ -106,10 +110,9 @@ public class UniswapParserTest {
             "BUY",
             WBTC_NAME,
             "0,00001290",
-            "0,12481171"
+            "0,12443727"
         );
     }
-
 
     @Test
     public void parseUNI_LP_WETH_FARM_SELL() {
@@ -122,7 +125,7 @@ public class UniswapParserTest {
             "SELL",
             WETH_NAME,
             "0,14924968",
-            "91,11346064"
+            "91,38680102"
         );
     }
 
@@ -137,7 +140,89 @@ public class UniswapParserTest {
             "BUY",
             USDC_NAME,
             "891,77695300",
-            "89,17769530"
+            "88,91016221"
+        );
+    }
+
+    @Test
+    public void parseUNI_LP_USDC_FARM_ADD() {
+        UniswapDTO dto = uniswapParseTest(UNI_LP_USDC_FARM,
+            10826472,
+            3,
+            "0x00088d2d18d024d462e3fc9e513063eff1545c10b43678e6bf605d08bddce0d2_243",
+            "0x0d089508d5fcdc92363fe84c84a44738863d9201",
+            "4,02461788",
+            "ADD",
+            USDC_NAME,
+            "941,51653400",
+            "233,93936051"
+        );
+
+        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        assertNotNull(harvestDTO);
+        assertAll(
+            () -> assertEquals("Amount", "0,00005882", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
+            () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
+            () -> assertEquals("UsdAmount", "1883", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "9657721", String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.504241330007,\"amount2\":4828860.303375672}",
+                harvestDTO.getLpStat()),
+            () -> assertEquals("LastTvl", "0,30169333", String.format("%.8f",  harvestDTO.getLastTvl()))
+        );
+    }
+
+    @Test
+    public void parseUNI_LP_WETH_FARM_ADD() {
+        UniswapDTO dto = uniswapParseTest(UNI_LP_WETH_FARM,
+            11414884,
+            2,
+            "0x0c3805658bbad43cfa7745ec749f35479364e857dddc57517b7a2932becf6228_284",
+            "0x51d2c880493ac63140ffe0e645cc99afc228ab59",
+            "250,00000000",
+            "ADD",
+            WETH_NAME,
+            "44,45189785",
+            "99,88726471"
+        );
+        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        assertNotNull(harvestDTO);
+        assertAll(
+            () -> assertEquals("Amount", "92,94539587", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
+            () -> assertEquals("Vault", "UNI_LP_WETH_FARM", harvestDTO.getVault()),
+            () -> assertEquals("UsdAmount", "50220", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "282796", String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227604,\"amount2\":251.00578046192655}",
+                harvestDTO.getLpStat()),
+            () -> assertEquals("LastTvl", "523,39010775", String.format("%.8f",  harvestDTO.getLastTvl()))
+        );
+    }
+
+    @Test
+    public void parseUNI_LP_GRAIN_FARM_ADD() {
+        UniswapDTO dto = uniswapParseTest(UNI_LP_GRAIN_FARM,
+            11417637,
+            2,
+            "0x072a25cbdc61c4302483593044c536055f7ddd9dcca48fc25c66af1d4f56edfb_104",
+            "0xbb830af11a5bf085e63ee04bf4f3da50955e8eb5",
+            "127744,24825310",
+            "ADD",
+            FARM_NAME,
+            "140,02624240",
+            "0,10707515"
+        );
+        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        assertNotNull(harvestDTO);
+        assertAll(
+            () -> assertEquals("Amount", "4170,06518775", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
+            () -> assertEquals("Vault", "UNI_LP_GRAIN_FARM", harvestDTO.getVault()),
+            () -> assertEquals("UsdAmount", "27356", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "219248", String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat", "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.5470726851,\"amount2\":1122.239518907442}",
+                harvestDTO.getLpStat()),
+            () -> assertEquals("LastTvl", "33420,96359919", String.format("%.8f",  harvestDTO.getLastTvl()))
         );
     }
 
@@ -148,7 +233,7 @@ public class UniswapParserTest {
         assertNull(dto);
     }
 
-    private void uniswapParseTest(
+    private UniswapDTO uniswapParseTest(
         String contract,
         int onBlock,
         int logId,
@@ -172,6 +257,7 @@ public class UniswapParserTest {
             otherAmount,
             lastPrice
         );
+        return dto;
     }
 
     private void assertDto(UniswapDTO dto,

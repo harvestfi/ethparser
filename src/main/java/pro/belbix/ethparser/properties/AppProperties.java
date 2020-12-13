@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "web3")
+@ConfigurationProperties(prefix = "ethparser")
 @Getter
 @Setter
 public class AppProperties {
@@ -28,6 +28,7 @@ public class AppProperties {
     private boolean parseHarvestLog = true;
     private boolean parseHardWorkLog = true;
     private boolean parseRewardsLog = true;
+    private boolean convertUniToHarvest = true;
 
     private String startBlock = "";
     private boolean parseTransactions = false;

@@ -6,10 +6,12 @@ import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HardWorkDTO;
+import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
@@ -26,6 +28,11 @@ public class HardWorkDownloader {
     private final HardWorkParser hardWorkParser;
     private final PriceProvider priceProvider;
 
+    @Value("${hardwork-download.from:}")
+    private Integer from;
+    @Value("${hardwork-download.to:}")
+    private Integer to;
+
     public HardWorkDownloader(Web3Service web3Service,
                               HardWorkDbService hardWorkDbService,
                               HardWorkParser hardWorkParser, PriceProvider priceProvider) {
@@ -37,11 +44,11 @@ public class HardWorkDownloader {
 
     public void start() {
         priceProvider.setUpdateTimeout(0);
-        LoopUtils.handleLoop(11425200, null, this::parse);
+        LoopUtils.handleLoop(from, to, this::parse);
 
     }
 
-    private void parse(int start, Integer end) {
+    private void parse(Integer start, Integer end) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(CONTROLLER), start, end);
         if (logResults.isEmpty()) {
             logger.info("Empty log {} {}", start, end);
