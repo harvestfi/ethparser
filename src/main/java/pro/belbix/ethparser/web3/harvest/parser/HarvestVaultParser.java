@@ -28,6 +28,7 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -49,24 +50,30 @@ public class HarvestVaultParser implements Web3Parser {
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private Instant lastTx = Instant.now();
+
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
     private final Functions functions;
+    private final ParserInfo parserInfo;
 
     public HarvestVaultParser(Web3Service web3Service,
                               HarvestDBService harvestDBService,
-                              EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions) {
+                              EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions,
+                              ParserInfo parserInfo) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
         this.functions = functions;
+        this.parserInfo = parserInfo;
     }
 
     @Override
     public void startParse() {
         log.info("Start parse Harvest vaults logs");
+        parserInfo.addParser(this);
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
@@ -75,6 +82,7 @@ public class HarvestVaultParser implements Web3Parser {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
                     HarvestDTO dto = parseVaultLog(ethLog);
                     if (dto != null) {
+                        lastTx = Instant.now();
                         enrichDto(dto);
                         boolean success = true;
                         if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
@@ -279,6 +287,11 @@ public class HarvestVaultParser implements Web3Parser {
     @PreDestroy
     public void stop() {
         run.set(false);
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 
 }

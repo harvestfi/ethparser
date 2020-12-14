@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -33,26 +35,30 @@ public class HardWorkParser implements Web3Parser {
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
+    private Instant lastTx = Instant.now();
 
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final Web3Service web3Service;
     private final HardWorkDbService hardWorkDbService;
+    private final ParserInfo parserInfo;
 
     public HardWorkParser(PriceProvider priceProvider,
                           Functions functions,
                           Web3Service web3Service,
-                          HardWorkDbService hardWorkDbService) {
+                          HardWorkDbService hardWorkDbService, ParserInfo parserInfo) {
         this.priceProvider = priceProvider;
         this.functions = functions;
         this.web3Service = web3Service;
         this.hardWorkDbService = hardWorkDbService;
+        this.parserInfo = parserInfo;
     }
 
     @Override
     public void startParse() {
         log.info("Start parse Hard work logs");
         web3Service.subscribeOnLogs(logs);
+        parserInfo.addParser(this);
         new Thread(() -> {
             while (run.get()) {
                 Log ethLog = null;
@@ -60,6 +66,7 @@ public class HardWorkParser implements Web3Parser {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
                     HardWorkDTO dto = parseLog(ethLog);
                     if (dto != null) {
+                        lastTx = Instant.now();
                         boolean saved = hardWorkDbService.save(dto);
                         if(saved) {
                             output.put(dto);
@@ -167,5 +174,10 @@ public class HardWorkParser implements Web3Parser {
     @Override
     public BlockingQueue<DtoI> getOutput() {
         return output;
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
@@ -33,18 +35,22 @@ public class HarvestTransactionsParser implements Web3Parser {
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
+    private final ParserInfo parserInfo;
     private long parsedTxCount = 0;
+    private Instant lastTx = Instant.now();
 
     public HarvestTransactionsParser(Web3Service web3Service,
                                      HarvestDBService harvestDBService,
-                                     EthBlockService ethBlockService) {
+                                     EthBlockService ethBlockService, ParserInfo parserInfo) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
+        this.parserInfo = parserInfo;
     }
 
     public void startParse() {
         log.info("Start parse Harvest");
+        parserInfo.addParser(this);
         web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
             while (run.get()) {
@@ -55,6 +61,7 @@ public class HarvestTransactionsParser implements Web3Parser {
                 }
                 HarvestDTO dto = parseHarvestTransaction(transaction);
                 if (dto != null) {
+                    lastTx = Instant.now();
                     try {
                         boolean success = harvestDBService.saveHarvestDTO(dto);
                         if (success) {
@@ -148,5 +155,10 @@ public class HarvestTransactionsParser implements Web3Parser {
     @PreDestroy
     public void stop() {
         run.set(false);
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

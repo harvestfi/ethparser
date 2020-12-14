@@ -271,7 +271,7 @@ public class Web3Service {
         checkInit();
         DefaultBlockParameter fromBlock;
         DefaultBlockParameter toBlock;
-        if(start == null) {
+        if (start == null) {
             fromBlock = EARLIEST;
         } else {
             fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
@@ -345,14 +345,14 @@ public class Web3Service {
         try {
             ethCall = web3.ethCall(transaction, block).send();
         } catch (IOException e) {
-            log.error("Error call", e);
+            log.error("Error call " + function.getName(), e);
         }
         if (ethCall == null) {
-            log.error("Eth call is null");
+            log.error("Eth call is null " + function.getName());
             return null;
         }
         if (ethCall.getError() != null) {
-            log.error("Eth call callback is error " + ethCall.getError().getMessage());
+            log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
             return null;
         }
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());

@@ -35,7 +35,7 @@ public class RewardVaultParseTest {
         for (LogResult logResult : logResults) {
             Log ethLog = (Log) logResult.get();
             HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
-            if("RewardAdded".equals(tx.getMethodName())) {
+            if ("RewardAdded".equals(tx.getMethodName())) {
                 System.out.println(ethLog);
             }
         }

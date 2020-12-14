@@ -89,13 +89,24 @@ select count(owner) from (
                              group by owner
                          ) t;
 
--- last rewards ---------------------
+-- rewards order by date
 select
     FROM_UNIXTIME(block_date) date,
     round(reward, 0) vault_income,
     vault
 from rewards
 order by block_date desc;
+
+-- last rewards group by vaults
+select FROM_UNIXTIME(max(block_date))                                             date,
+       vault                                                                vault,
+       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', reward)), '_', -1)     reward,
+       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_finish)), '_', -1)     period_finish
+
+from rewards
+where period_finish > (UNIX_TIMESTAMP() - 604800)
+group by vault
+order by date desc;
 
 -- UNIQUE USERS ------------
 select count(owner) from (

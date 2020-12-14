@@ -10,6 +10,7 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findLpForC
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findNameForLpHash;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +26,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -41,21 +43,25 @@ public class UniToHarvestConverter implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private Instant lastTx = Instant.now();
 
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final HarvestDBService harvestDBService;
+    private final ParserInfo parserInfo;
 
     public UniToHarvestConverter(PriceProvider priceProvider, Functions functions,
-                                 HarvestDBService harvestDBService) {
+                                 HarvestDBService harvestDBService, ParserInfo parserInfo) {
         this.priceProvider = priceProvider;
         this.functions = functions;
         this.harvestDBService = harvestDBService;
+        this.parserInfo = parserInfo;
     }
 
     @Override
     public void startParse() {
         log.info("Start UniToHarvestConverter");
+        parserInfo.addParser(this);
         new Thread(() -> {
             while (run.get()) {
                 UniswapDTO uniswapDTO = null;
@@ -63,6 +69,7 @@ public class UniToHarvestConverter implements Web3Parser {
                     uniswapDTO = uniswapDTOS.poll(1, TimeUnit.SECONDS);
                     HarvestDTO dto = convert(uniswapDTO);
                     if (dto != null) {
+                        lastTx = Instant.now();
                         boolean success = harvestDBService.saveHarvestDTO(dto);
                         if (success) {
                             output.put(dto);
@@ -151,5 +158,10 @@ public class UniToHarvestConverter implements Web3Parser {
     @Override
     public BlockingQueue<DtoI> getOutput() {
         return output;
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

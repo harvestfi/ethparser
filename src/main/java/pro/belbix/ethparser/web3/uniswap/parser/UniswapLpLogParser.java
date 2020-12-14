@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.parser;
 
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +15,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -30,26 +32,32 @@ public class UniswapLpLogParser implements Web3Parser {
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private Instant lastTx = Instant.now();
+
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
     private final UniToHarvestConverter uniToHarvestConverter;
+    private final ParserInfo parserInfo;
 
     public UniswapLpLogParser(Web3Service web3Service,
                               UniswapDbService uniswapDbService,
                               EthBlockService ethBlockService,
                               PriceProvider priceProvider,
-                              UniToHarvestConverter uniToHarvestConverter) {
+                              UniToHarvestConverter uniToHarvestConverter,
+                              ParserInfo parserInfo) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
         this.uniToHarvestConverter = uniToHarvestConverter;
+        this.parserInfo = parserInfo;
     }
 
     @Override
     public void startParse() {
         log.info("Start parse Uniswap logs");
+        parserInfo.addParser(this);
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
@@ -58,6 +66,7 @@ public class UniswapLpLogParser implements Web3Parser {
                     log = logs.poll(1, TimeUnit.SECONDS);
                     UniswapDTO dto = parseUniswapLog(log);
                     if (dto != null) {
+                        lastTx = Instant.now();
                         enrichDto(dto);
                         uniToHarvestConverter.addDtoToQueue(dto);
                         boolean success = uniswapDbService.saveUniswapDto(dto);
@@ -114,5 +123,10 @@ public class UniswapLpLogParser implements Web3Parser {
     @PreDestroy
     public void stop() {
         run.set(false);
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

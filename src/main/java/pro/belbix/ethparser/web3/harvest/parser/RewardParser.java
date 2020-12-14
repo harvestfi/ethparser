@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,7 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
@@ -27,35 +28,36 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 public class RewardParser implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(RewardParser.class);
-    private static final long REWARD_DURATION = 604800;
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+    private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+    private Instant lastTx = Instant.now();
 
-    private final PriceProvider priceProvider;
     private final Functions functions;
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final RewardsDBService rewardsDBService;
     private final AppProperties appProperties;
+    private final ParserInfo parserInfo;
 
-    public RewardParser(PriceProvider priceProvider,
-                        Functions functions,
+    public RewardParser(Functions functions,
                         Web3Service web3Service,
                         EthBlockService ethBlockService,
-                        RewardsDBService rewardsDBService, AppProperties appProperties) {
-        this.priceProvider = priceProvider;
+                        RewardsDBService rewardsDBService, AppProperties appProperties,
+                        ParserInfo parserInfo) {
         this.functions = functions;
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.rewardsDBService = rewardsDBService;
         this.appProperties = appProperties;
+        this.parserInfo = parserInfo;
     }
 
     @Override
     public void startParse() {
         log.info("Start parse Rewards logs");
+        parserInfo.addParser(this);
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
@@ -64,13 +66,14 @@ public class RewardParser implements Web3Parser {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
                     RewardDTO dto = parseLog(ethLog);
                     if (dto != null) {
+                        lastTx = Instant.now();
                         boolean saved = rewardsDBService.saveRewardDTO(dto);
                         if (saved) {
                             output.put(dto);
                         }
                     }
                 } catch (Exception e) {
-                    log.error("Can't save " + ethLog, e);
+                    log.error("Error parse reward from " + ethLog, e);
                 }
             }
         }).start();
@@ -123,5 +126,10 @@ public class RewardParser implements Web3Parser {
     @Override
     public BlockingQueue<DtoI> getOutput() {
         return output;
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

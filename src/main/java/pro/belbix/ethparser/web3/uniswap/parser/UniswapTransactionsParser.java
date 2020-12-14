@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.model.UniswapTx.SWAP;
 import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
@@ -33,23 +35,27 @@ public class UniswapTransactionsParser implements Web3Parser {
     private final UniswapRouterDecoder uniswapRouterDecoder = new UniswapRouterDecoder();
     private final Web3Service web3Service;
     private double lastPrice = 0.0;
-    private final static double ETH_PRICE = 390.0; //shortcut for pending transactions
     private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private Instant lastTx = Instant.now();
+
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
+    private final ParserInfo parserInfo;
 
     public UniswapTransactionsParser(Web3Service web3Service, UniswapDbService uniswapDbService,
-                                     EthBlockService ethBlockService) {
+                                     EthBlockService ethBlockService, ParserInfo parserInfo) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
+        this.parserInfo = parserInfo;
     }
 
     public void startParse() {
         log.info("Start parse Uniswap transactions");
+        parserInfo.addParser(this);
         web3Service.subscribeOnTransactions(transactions);
         new Thread(() -> {
             while (run.get()) {
@@ -60,6 +66,7 @@ public class UniswapTransactionsParser implements Web3Parser {
                 }
                 UniswapDTO dto = parseUniswapTransaction(transaction);
                 if (dto != null) {
+                    lastTx = Instant.now();
                     try {
                         boolean success = uniswapDbService.saveUniswapDto(dto);
                         if (success) {
@@ -182,5 +189,10 @@ public class UniswapTransactionsParser implements Web3Parser {
     @PreDestroy
     public void stop() {
         run.set(false);
+    }
+
+    @Override
+    public Instant getLastTx() {
+        return lastTx;
     }
 }

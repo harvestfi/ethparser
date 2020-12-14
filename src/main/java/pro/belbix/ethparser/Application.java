@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.time.Instant;
@@ -78,6 +79,10 @@ public class Application {
 
             if (conf.isParseHardWorkLog()) {
                 startParse(web3Service, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+            }
+
+            if (conf.isParseRewardsLog()) {
+                startParse(web3Service, rewardParser, ws, REWARDS_TOPIC_NAME, true);
             }
 
             if (conf.isConvertUniToHarvest()) {
