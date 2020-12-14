@@ -11,6 +11,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
     List<HarvestDTO> findAllByOrderByBlockDate();
 
+    List<HarvestDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long blockDate);
+
     @Query(nativeQuery = true, value = ""
         + "select (coalesce(deposit.d, 0) - coalesce(withdraw.w, 0)) result from (  "
         + "                  (select SUM(amount) d  "

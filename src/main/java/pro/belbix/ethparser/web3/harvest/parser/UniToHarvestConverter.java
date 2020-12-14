@@ -35,7 +35,7 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 @Log4j2
 public class UniToHarvestConverter implements Web3Parser {
 
-    private static final Set<String> allowContracts = new HashSet<>(Arrays.asList(
+    public static final Set<String> allowContracts = new HashSet<>(Arrays.asList(
         UNI_LP_USDC_FARM,
         UNI_LP_WETH_FARM,
         UNI_LP_GRAIN_FARM
@@ -104,7 +104,7 @@ public class UniToHarvestConverter implements Web3Parser {
         } catch (JsonProcessingException e) {
             log.info("Error parse prices");
         }
-
+        log.info(harvestDTO.print());
         return harvestDTO;
     }
 
@@ -131,7 +131,6 @@ public class UniToHarvestConverter implements Web3Parser {
 
         double usdAmount = uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
         harvestDTO.setUsdAmount(Math.round(usdAmount));
-
 
         double fraction = usdAmount / (vaultUsdAmount / stFraction);
         harvestDTO.setAmount(lpBalance * fraction); //not accurate

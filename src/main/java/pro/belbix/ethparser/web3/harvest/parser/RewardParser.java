@@ -105,6 +105,10 @@ public class RewardParser implements Web3Parser {
             .longValue();
         double rewardRate = functions.callRewardRate(vault, nextBlock)
             .doubleValue();
+        if (periodFinish == 0 || rewardRate == 0) {
+            log.error("Wrong values for " + ethLog);
+            return null;
+        }
         long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), nextBlock);
 
         double farmRewardsForPeriod = 0.0;

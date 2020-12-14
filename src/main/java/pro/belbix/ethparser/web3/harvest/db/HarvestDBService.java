@@ -1,7 +1,13 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,6 +22,7 @@ import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 public class HarvestDBService {
@@ -67,7 +74,11 @@ public class HarvestDBService {
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }
-        for (String vaultName : Vaults.vaultHashToName.values()) {
+        List<String> contracts = new ArrayList<>(Vaults.vaultHashToName.values());
+        allowContracts.stream()
+            .map(LpContracts.lpHashToName::get)
+            .forEach(contracts::add);
+        for (String vaultName : contracts) {
             HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
             if (lastHarvest == null) {
                 continue;
@@ -121,8 +132,20 @@ public class HarvestDBService {
             } else {
                 LpStat lpStat = objectMapper.readValue(lpStatStr, LpStat.class);
 
-                double coin1Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin1());
-                double coin2Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin2());
+                double coin1Price;
+                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
+                    coin1Price = farmPrice;
+                } else {
+                    coin1Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin1());
+                }
+
+                double coin2Price;
+                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
+                    coin2Price = farmPrice;
+                } else {
+                    coin2Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin2());
+                }
+
                 tvl = (lpStat.getAmount1() * coin1Price) + (lpStat.getAmount2() * coin2Price);
             }
         } catch (Exception ignored) {

@@ -67,7 +67,7 @@ public class LpContracts {
     public static final Map<String, String> harvestStrategyToLp = new LinkedHashMap<>();
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
     public static final Map<String, Double> lpHashToDividers = new LinkedHashMap<>();
-    private static final Map<String, String> lpHashToName = new LinkedHashMap<>();
+    public static final Map<String, String> lpHashToName = new LinkedHashMap<>();
     public static final Map<String, Tuple2<String, String>> lpHashToCoinNames = new LinkedHashMap<>();
     public final static Map<String, Tuple2<Double, Double>> lpPairsDividers = new LinkedHashMap<>();
     public static final Map<String, String> keyCoinForLp = new LinkedHashMap<>();

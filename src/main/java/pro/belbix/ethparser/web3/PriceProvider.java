@@ -10,6 +10,7 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBT
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DPI_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -213,17 +214,18 @@ public class PriceProvider {
         if (isStableCoin(coinName)) {
             return 1.0;
         }
-        if ("WBTC".equals(coinName)) {
-            return pricesModel.getBtc();
-        } else if ("ETH".equals(coinName)) {
-            return pricesModel.getEth();
-        } else if ("DPI".equals(coinName)) {
-            return pricesModel.getDpi();
-        } else if ("FARM".equals(coinName)) {
-            return 0;
-        } else {
-            log.warn("Not found price for {}", coinName);
-            return 0;
+        switch (coinName) {
+            case WBTC_NAME:
+                return pricesModel.getBtc();
+            case WETH_NAME:
+                return pricesModel.getEth();
+            case DPI_NAME:
+                return pricesModel.getDpi();
+            case GRAIN_NAME:
+                return pricesModel.getGrain();
+            default:
+                log.warn("Not found price for {}", coinName);
+                return 0;
         }
     }
 

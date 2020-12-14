@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,9 @@ public class TvlRecalculate {
     private final HarvestTvlRepository harvestTvlRepository;
     private final UniswapRepository uniswapRepository;
 
+    @Value("${tvl-recalculate.from:}")
+    private Integer from;
+
     public TvlRecalculate(HarvestRepository harvestRepository,
                           AppProperties appProperties,
                           HarvestTvlRepository harvestTvlRepository,
@@ -50,7 +54,12 @@ public class TvlRecalculate {
             harvestTvlRepository,
             createUniswapRepository());
 
-        List<HarvestDTO> harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+        List<HarvestDTO> harvestDTOList;
+        if (from == null) {
+            harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+        } else {
+            harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+        }
 
         harvestDtosToMap(harvestDTOList);
         uniDtosToMap(uniswapRepository.findAll());
@@ -79,7 +88,7 @@ public class TvlRecalculate {
 
     private void uniDtosToMap(List<UniswapDTO> uniswapDTOS) {
         for (UniswapDTO dto : uniswapDTOS) {
-            if("FARM".equals(dto.getCoin())) {
+            if ("FARM".equals(dto.getCoin())) {
                 uniswapDTOTreeMap.put(dto.getBlockDate(), dto);
             }
         }
@@ -91,7 +100,6 @@ public class TvlRecalculate {
             public Integer fetchOwnerCount() {
                 return null;
             }
-
 
             @Override
             public UniswapDTO findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(long blockDate, String coin) {
@@ -111,8 +119,6 @@ public class TvlRecalculate {
             public List<Double> fetchAmountSumUsd(long from, String owner, Pageable pageable) {
                 return null;
             }
-
-
 
             @Override
             public UniswapDTO findFirstByCoinOrderByBlockDesc(String coin) {
@@ -250,6 +256,11 @@ public class TvlRecalculate {
         return new HarvestRepository() {
             @Override
             public List<HarvestDTO> findAllByOrderByBlockDate() {
+                return null;
+            }
+
+            @Override
+            public List<HarvestDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long blockDate) {
                 return null;
             }
 
