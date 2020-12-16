@@ -89,7 +89,7 @@ public class Functions {
     private BigInteger callUint256Function(Function function, String hash, Long block) {
         List<Type> types = web3Service.callMethod(function, hash, resolveBlock(block));
         if (types == null || types.isEmpty()) {
-            log.error(function.getName() + " Wrong callback " + hash);
+            log.error("Wrong callback " + hash);
             return BigInteger.ZERO;
         }
         return (BigInteger) types.get(0).getValue();
