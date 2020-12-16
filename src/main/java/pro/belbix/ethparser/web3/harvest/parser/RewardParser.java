@@ -96,7 +96,7 @@ public class RewardParser implements Web3Parser {
             return null;
         }
         if (!appProperties.isDevMod()) {
-            Thread.sleep(60 * 1000); //wait until new block created
+            Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
         long nextBlock =
             tx.getBlock().longValue() + 1; //todo if it is last block it will be not safe, create another mechanism

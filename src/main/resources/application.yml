@@ -1,0 +1,24 @@
+spring:
+  jpa:
+    #    open-in-view: false
+    database: h2
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties.hibernate:
+      dialect: org.hibernate.dialect.H2Dialect
+      jdbc.lob.non_contextual_creation: true
+
+  datasource:
+    platform: h2
+    url: jdbc:h2:mem:harvest
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+local.server.port: 4142
+
+server:
+  port: 4142
+  ssl:
+    enabled: false
