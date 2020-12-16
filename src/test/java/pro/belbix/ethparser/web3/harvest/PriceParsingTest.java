@@ -28,7 +28,7 @@ public class PriceParsingTest {
         dto.setBlock(new BigInteger("11203037"));
         harvestVaultParser.enrichDto(dto);
         assertNotNull(dto.getPrices());
-        assertEquals("{\"btc\":15388.4822454613,\"eth\":429.5548615484777,\"dpi\":65.97087400036581}",
+        assertEquals("{\"btc\":15388.4822454613,\"eth\":429.5548615484777,\"dpi\":65.97087400036581,\"grain\":\"NaN\"}",
             dto.getPrices());
     }
 }

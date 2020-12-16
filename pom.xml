@@ -17,6 +17,7 @@
 
   <properties>
     <web3j>4.6.3</web3j>
+    <argLine>-Duser.language=de -Duser.region=DE</argLine>
   </properties>
 
   <repositories>
