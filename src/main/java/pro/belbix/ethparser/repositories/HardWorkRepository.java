@@ -42,7 +42,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
                                       Pageable pageable);
 
     @Query("select sum(t.farmBuyback) from HardWorkDTO t where "
-        + " t.blockDate <= :to")
+        + " t.blockDate < :to")
     List<Double> fetchAllBuybacksAtDate(@Param("to") long to,
                                          Pageable pageable);
 }

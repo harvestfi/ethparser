@@ -178,7 +178,7 @@ public class HardWorkDbService {
             return;
         }
 
-        dto.setFarmBuyback(dto.getShareChangeUsd() / farmPrice);
+        dto.setFarmBuyback(((dto.getShareChangeUsd() / 0.7) * 0.3) / farmPrice);
         silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate(), limitOne))
             .filter(l -> !l.isEmpty() && l.get(0) != null)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
