@@ -30,6 +30,8 @@ public class HardWorkDTO implements DtoI {
     private double weeklyAllProfit;
     private double psTvlUsd;
     private double psApr;
+    private double farmBuyback;
+    private double farmBuybackSum;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -38,6 +40,22 @@ public class HardWorkDTO implements DtoI {
             + shareUsdTotal + " "
             + id;
 
+    }
+
+    public double getFarmBuybackSum() {
+        return farmBuybackSum;
+    }
+
+    public void setFarmBuybackSum(double farmBuybackSum) {
+        this.farmBuybackSum = farmBuybackSum;
+    }
+
+    public double getFarmBuyback() {
+        return farmBuyback;
+    }
+
+    public void setFarmBuyback(double farmBuyback) {
+        this.farmBuyback = farmBuyback;
     }
 
     public double getWeeklyAllProfit() {
