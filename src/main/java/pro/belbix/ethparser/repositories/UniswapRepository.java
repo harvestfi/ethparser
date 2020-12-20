@@ -29,4 +29,8 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     List<UniswapDTO> findAllByOwnerAndCoinOrderByBlockDate(String owner, String coin);
 
+    List<UniswapDTO> findAllByOrderByBlockDate();
+
+    List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from);
+
 }

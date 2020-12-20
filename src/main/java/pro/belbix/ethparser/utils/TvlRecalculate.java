@@ -249,6 +249,17 @@ public class TvlRecalculate {
             public <S extends UniswapDTO> boolean exists(Example<S> example) {
                 return false;
             }
+            
+            @Override
+            public List<UniswapDTO> findAllByOrderByBlockDate() {
+                return null;
+            };
+            
+            @Override
+            public List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from) {
+                return null;
+            };
+        
         };
     }
 
