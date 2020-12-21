@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,7 +53,6 @@ public class WsServiceTest {
     }
 
     @Test
-    @Ignore("Don't work on GitHub Action, should be investigated")
     public void testWs() throws InterruptedException {
         final CountDownLatch latchReceive = new CountDownLatch(1);
         final CountDownLatch latchSubscribe = new CountDownLatch(1);
@@ -89,7 +88,7 @@ public class WsServiceTest {
 
         this.stompClient.connect("ws://localhost:{port}/stomp", this.headers, handler, this.port);
 
-        if (latchSubscribe.await(3, TimeUnit.SECONDS)) {
+        if (latchSubscribe.await(30, TimeUnit.SECONDS)) {
             UniswapDTO uniswapDTO = new UniswapDTO();
             uniswapDTO.setType("test");
             wsService.send(UNI_TRANSACTIONS_TOPIC_NAME, uniswapDTO);

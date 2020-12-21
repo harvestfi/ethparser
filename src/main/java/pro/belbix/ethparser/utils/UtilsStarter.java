@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.utils;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.harvest.utils.HardWorkDownloader;
@@ -9,6 +10,7 @@ import pro.belbix.ethparser.web3.uniswap.utils.DownloadIncome;
 import pro.belbix.ethparser.web3.uniswap.utils.UniswapLpDownloader;
 
 @Service
+@Log4j2
 public class UtilsStarter {
 
     private final AppProperties appProperties;
@@ -41,6 +43,7 @@ public class UtilsStarter {
     }
 
     public void startUtils() {
+        log.info("Start utils");
         if ("cache-blocks".equals(appProperties.getStartUtil())) {
             blockCacher.cacheBlocks();
         } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
@@ -58,6 +61,8 @@ public class UtilsStarter {
         } else if ("reward-download".equals(appProperties.getStartUtil())) {
             rewardDownloader.start();
         }
+        log.info("Utils completed");
+        System.exit(0);
     }
 
 
