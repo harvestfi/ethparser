@@ -258,12 +258,12 @@ public class TvlRecalculate {
             @Override
             public List<UniswapDTO> findAllByOrderByBlockDate() {
                 return null;
-            };
+            }
             
             @Override
             public List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from) {
                 return null;
-            };
+            }
         
         };
     }

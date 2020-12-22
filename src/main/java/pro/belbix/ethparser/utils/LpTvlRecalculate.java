@@ -20,7 +20,7 @@ public class LpTvlRecalculate {
     private final UniToHarvestConverter uniToHarvestConverter;
     private final HarvestDBService harvestDBService;
 
-    @Value("${tvl-recalculate.from:}")
+    @Value("${lp-tvl-recalculate.from:}")
     private Integer from;
 
     public LpTvlRecalculate(UniswapRepository uniswapRepository,
