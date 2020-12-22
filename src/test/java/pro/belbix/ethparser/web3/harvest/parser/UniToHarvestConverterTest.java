@@ -31,7 +31,6 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
-
 public class UniToHarvestConverterTest {
 
     @Autowired

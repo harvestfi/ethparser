@@ -53,7 +53,7 @@ public class LpTvlRecalculate {
                     }
                 }
             } catch (Exception e) {
-                log.error("Error " + dto, e);
+                log.error("Error " + dto.print(), e);
             }
         }
     }
