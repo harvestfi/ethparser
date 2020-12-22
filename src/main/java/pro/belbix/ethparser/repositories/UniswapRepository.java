@@ -29,6 +29,10 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     List<UniswapDTO> findAllByOwnerAndCoinOrderByBlockDate(String owner, String coin);
 
+    @Query("select t from UniswapDTO t where "
+        + "t.owner = :owner and t.coin = 'FARM' and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
+    List<UniswapDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);
+
     List<UniswapDTO> findAllByOrderByBlockDate();
 
     List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from);

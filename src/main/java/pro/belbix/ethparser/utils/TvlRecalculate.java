@@ -131,6 +131,11 @@ public class TvlRecalculate {
             }
 
             @Override
+            public List<UniswapDTO> fetchAllByOwner(String owner, long from, long to) {
+                return null;
+            }
+
+            @Override
             public List<UniswapDTO> findAll() {
                 return null;
             }
@@ -332,6 +337,11 @@ public class TvlRecalculate {
 
             @Override
             public List<Long> fetchPeriodOfWork(String vault, long to, Pageable pageable) {
+                return null;
+            }
+
+            @Override
+            public List<HarvestDTO> fetchAllByOwner(String owner, long from, long to) {
                 return null;
             }
 
