@@ -41,13 +41,19 @@ public class LpTvlRecalculate {
         }
 
         for (UniswapDTO dto : dtos) {
-            HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
-                        
-            boolean success = harvestDBService.saveHarvestDTO(harvestDto);
-            if (success) {
-                log.info("Save for " + harvestDto.print());
-            } else {
-                log.warn("Save failed for " + harvestDto.print());
+            try {
+                HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
+                
+                if (harvestDto != null) {
+                    
+                    boolean success = harvestDBService.saveHarvestDTO(harvestDto);
+                
+                    if (!success) {
+                        log.warn("Save failed for " + harvestDto.print());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error " + dto, e);
             }
         }
     }
