@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class WsServiceTest {
     }
 
     @Test
-    @Ignore("Don't work on GitHub Action, should be investigated")
+    @Disabled("Don't work on GitHub Action, should be investigated")
     public void testWs() throws InterruptedException {
         final CountDownLatch latchReceive = new CountDownLatch(1);
         final CountDownLatch latchSubscribe = new CountDownLatch(1);
