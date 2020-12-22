@@ -26,15 +26,15 @@ public class AddressHistoryController {
 
     @GetMapping("harvest/{address}")
     public List<HarvestDTO> addressHistoryHarvest(@PathVariable("address") String address,
-                                                  @RequestParam("from") String from,
-                                                  @RequestParam("to") String to) {
+                                                  @RequestParam(value = "from", required = false) String from,
+                                                  @RequestParam(value = "to", required = false) String to) {
         return harvestRepository.fetchAllByOwner(address, parseFrom(from), parseTo(to));
     }
 
     @GetMapping("uni/{address}")
     public List<UniswapDTO> addressHistoryUni(@PathVariable("address") String address,
-                                              @RequestParam("from") String from,
-                                              @RequestParam("to") String to) {
+                                              @RequestParam(value = "from", required = false) String from,
+                                              @RequestParam(value = "to", required = false) String to) {
         return uniswapRepository.fetchAllByOwner(address, parseFrom(from), parseTo(to));
     }
 
