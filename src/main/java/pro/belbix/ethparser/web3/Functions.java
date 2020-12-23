@@ -37,7 +37,7 @@ public class Functions {
         List<Type> types = web3Service
             .callMethodWithRetry(GET_PRICE_PER_FULL_SHARE, contractAddress, resolveBlock(block));
         if (types == null || types.isEmpty()) {
-            return BigInteger.ONE;
+            return null;
         }
         return (BigInteger) types.get(0).getValue();
     }
@@ -47,7 +47,7 @@ public class Functions {
             .callMethodWithRetry(GET_RESERVES, lpAddress, resolveBlock(block));
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + lpAddress);
-            return new Tuple2<>(0.0, 0.0);
+            return null;
         }
 
         Tuple2<Double, Double> dividers = LpContracts.lpPairsDividers.get(lpAddress);
@@ -106,7 +106,7 @@ public class Functions {
         List<Type> types = web3Service.callMethodWithRetry(function, hash, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             log.error(function.getName() + " Wrong callback " + hash);
-            return BigInteger.ZERO;
+            return null;
         }
         return (BigInteger) types.get(0).getValue();
     }

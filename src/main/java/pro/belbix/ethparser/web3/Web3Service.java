@@ -353,10 +353,10 @@ public class Web3Service {
             return null;
         }
         if (ethCall.getError() != null) {
+            log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
             if(ethCall.getError().getMessage().contains("Disabled in this strategy")) {
                 throw new IllegalStateException(ethCall.getError().getMessage());
             }
-            log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
             return null;
         }
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
@@ -365,7 +365,6 @@ public class Web3Service {
     public List<Type> callMethodWithRetry(Function function, String contractAddress, DefaultBlockParameter block) {
         int count = 0;
         do {
-
             List<Type> result;
             try {
                 result = callMethod(function, contractAddress, block);
