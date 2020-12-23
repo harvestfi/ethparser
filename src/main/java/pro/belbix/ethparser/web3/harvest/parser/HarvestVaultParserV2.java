@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Collections;
@@ -31,6 +30,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.OwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -41,7 +41,6 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 public class HarvestVaultParserV2 implements Web3Parser {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestVaultParserV2.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
     public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -58,17 +57,22 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final ParserInfo parserInfo;
+    private final OwnerBalanceCalculator ownerBalanceCalculator;
 
     public HarvestVaultParserV2(Web3Service web3Service,
                                 HarvestDBService harvestDBService,
-                                EthBlockService ethBlockService, PriceProvider priceProvider, Functions functions,
-                                ParserInfo parserInfo) {
+                                EthBlockService ethBlockService,
+                                PriceProvider priceProvider,
+                                Functions functions,
+                                ParserInfo parserInfo,
+                                OwnerBalanceCalculator ownerBalanceCalculator) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
         this.functions = functions;
         this.parserInfo = parserInfo;
+        this.ownerBalanceCalculator = ownerBalanceCalculator;
     }
 
     @Override
@@ -85,6 +89,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
                     if (dto != null) {
                         lastTx = Instant.now();
                         enrichDto(dto);
+                        ownerBalanceCalculator.fillBalance(dto);
                         boolean success = true;
                         if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
                             success = harvestDBService.saveHarvestDTO(dto);
@@ -168,7 +173,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private boolean parsePs(HarvestTx harvestTx) {
-        if("Staked".equals(harvestTx.getMethodName())) {
+        if ("Staked".equals(harvestTx.getMethodName())) {
             harvestTx.setMethodName("Deposit");
         } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
             harvestTx.setMethodName("Deposit");
@@ -199,32 +204,15 @@ public class HarvestVaultParserV2 implements Web3Parser {
                 harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
                 harvestTx.setMethodName("Withdraw");
             } else {
-                //test purpose
-//                if(checkTransactionStructure(harvestTx)) {
-//                    return null; //it's normal
-//                }
-//                log.error("unknown tx " + harvestTx.toString());
                 return false;
             }
         }
         return true;
     }
 
-    private boolean checkTransactionStructure(HarvestTx harvestTx) {
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
-        return !UNI_ROUTER.equals(receipt.getTo())
-            && !"0xebb4d6cfc2b538e2a7969aa4187b1c00b2762108".equals(receipt.getTo()) //?
-            && !"0x743dd3139c6b70f664ab4329b2cde646f0bac99a".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x7fe2153de0006d76c85cc04c8ea10bf4546c879e".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x494cc492c9f01699bff1449180201dbfbd592ea5".equals(receipt.getTo()) //swap WETH_V0 uni
-            && !"0x343e3a490c9251dc0eaa81da146ba6abe6c78b2d".equals(receipt.getTo()) //zapper WETH_V0 uni
-            && !StakeContracts.hashToName.containsKey(receipt.getTo()) //stacking
-            && !Vaults.vaultHashToName.containsKey(receipt.getTo()  //transfer
-        );
-    }
-
     private boolean isMigration(HarvestTx harvestTx, String currentStackingContract) {
-        return StakeContracts.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue()) //it is transfer to stacking
+        return StakeContracts.hashToName.containsKey(harvestTx.getAddressFromArgs2().getValue())
+            //it is transfer to stacking
             && !harvestTx.getAddressFromArgs2().getValue()
             .equals(currentStackingContract); // and it is not current contract
     }
@@ -265,7 +253,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
-        if (Vaults.lpTokens.contains(dto.getVault())) {
+        if (Vaults.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
         } else {
             fillUsdValues(dto, strategyHash);
@@ -305,7 +293,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double vaultSharedBalance = (vaultBalance * sharedPrice);
         double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpBalance;
 
-        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dto.getBlock().longValue());
+        Tuple2<Double, Double> uniPrices = priceProvider
+            .getPairPriceForStrategyHash(vaultHash, dto.getBlock().longValue());
 
         double firstVault = vaultFraction * lpUnderlyingBalances.component1();
         double secondVault = vaultFraction * lpUnderlyingBalances.component2();
@@ -324,16 +313,16 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private boolean isAllowedMethod(HarvestTx harvestTx) {
         if (isPs(harvestTx)) {
-            return "staked".equals(harvestTx.getMethodName().toLowerCase())
-                || "Staked#V2".equals(harvestTx.getMethodName())
-                || "withdrawn".equals(harvestTx.getMethodName().toLowerCase());
+            return "staked".equalsIgnoreCase(harvestTx.getMethodName())
+                || "Staked#V2".equalsIgnoreCase(harvestTx.getMethodName())
+                || "withdrawn".equalsIgnoreCase(harvestTx.getMethodName());
         }
         return allowedMethods.contains(harvestTx.getMethodName().toLowerCase());
     }
 
     private boolean isPs(HarvestTx harvestTx) {
         return Vaults.PS.equals(harvestTx.getVault().getValue())
-            ||  Vaults.PS_V0.equals(harvestTx.getVault().getValue());
+            || Vaults.PS_V0.equals(harvestTx.getVault().getValue());
     }
 
     @Override

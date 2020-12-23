@@ -37,6 +37,8 @@ public class HarvestVaultParserTest {
     private Web3Service web3Service;
     @Autowired
     private PriceProvider priceProvider;
+    @Autowired
+    private OwnerBalanceCalculator ownerBalanceCalculator;
 
     @Before
     public void setUp() throws Exception {
@@ -45,7 +47,7 @@ public class HarvestVaultParserTest {
 
     @Test
     public void parseVaultIDX_ETH_DPI() {
-        harvestVaultParseTest(
+        HarvestDTO dto = harvestVaultParseTest(
             Vaults.IDX_ETH_DPI,
             11378768,
             LOG_ID,
@@ -59,6 +61,12 @@ public class HarvestVaultParserTest {
             3353L,
             5712L,
             true
+        );
+
+        ownerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "6,08144172", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "3352,40976906", String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -706,7 +714,7 @@ public class HarvestVaultParserTest {
         assertNull(dto);
     }
 
-    private void harvestVaultParseTest(
+    private HarvestDTO harvestVaultParseTest(
         String fromVault,
         int onBlock,
         int logId,
@@ -736,6 +744,7 @@ public class HarvestVaultParserTest {
             usdTvl,
             confirmed
         );
+        return dto;
     }
 
     private void assertDto(HarvestDTO dto,

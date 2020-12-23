@@ -130,7 +130,7 @@ public class HardWorkParser implements Web3Parser {
     }
 
     private void fillUsdValues(HardWorkDTO dto, String vaultHash) {
-        if (Vaults.lpTokens.contains(dto.getVault())) {
+        if (Vaults.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto, vaultHash);
         } else {
             fillUsdValuesForRegular(dto, vaultHash);

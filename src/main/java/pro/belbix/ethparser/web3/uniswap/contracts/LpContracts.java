@@ -160,6 +160,15 @@ public class LpContracts {
         parsable.add(UNI_LP_GRAIN_FARM);
     }
 
+    public static String findVaultHashByLpHash(String lpHash) {
+        for (Entry<String, String> entry : harvestStrategyToLp.entrySet()) {
+            if (entry.getValue().equalsIgnoreCase(lpHash)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public static String findNameForLpHash(String lpHash) {
         String lpName = lpHashToName.get(lpHash);
         if (lpName == null) {

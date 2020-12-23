@@ -346,6 +346,11 @@ public class TvlRecalculate {
             }
 
             @Override
+            public List<HarvestDTO> fetchAllWithoutOwnerBalance() {
+                return null;
+            }
+
+            @Override
             public List<HarvestDTO> findAll() {
                 return null;
             }

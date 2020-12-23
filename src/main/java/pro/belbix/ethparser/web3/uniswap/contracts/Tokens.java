@@ -35,6 +35,7 @@ public class Tokens {
 
     private final static Map<String, String> tokenHashToName = new HashMap<>();
     private final static Map<String, String> tokenNameToHash = new HashMap<>();
+    public final static Map<String, Tuple2<String, String>> specificLpForCoin = new HashMap<>();
 
     static {
         tokenHashToName.put(WETH_TOKEN, WETH_NAME);
@@ -51,7 +52,9 @@ public class Tokens {
         tokenNameToHash.put(WBTC_NAME, WBTC_TOKEN);
         tokenNameToHash.put(GRAIN_NAME, GRAIN_TOKEN);
 
-
+        specificLpForCoin.put(DPI_NAME, new Tuple2<>("UNI_LP_ETH_DPI", WETH_NAME));
+        specificLpForCoin.put(GRAIN_NAME, new Tuple2<>("UNI_LP_GRAIN_FARM", FARM_NAME));
+        specificLpForCoin.put(BADGER_NAME, new Tuple2<>("UNI_LP_WBTC_BADGER", WBTC_NAME));
     }
 
     public static boolean firstCoinIsKey(String lpAddress) {

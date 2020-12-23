@@ -61,6 +61,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Service
 public class Web3Service {
 
+    public final static int RETRY_COUNT = 10;
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
     public static final long MAX_DELAY_BETWEEN_TX = 60 * 10;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
@@ -356,6 +357,19 @@ public class Web3Service {
             return null;
         }
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
+    }
+
+    public List<Type> callMethodWithRetry(Function function, String contractAddress, DefaultBlockParameter block) {
+        int count = 0;
+        do {
+            List<Type> result = callMethod(function, contractAddress, block);
+            if (result != null) {
+                return result;
+            }
+            count++;
+            log.warn("Fail call eth function, retry " + count);
+        } while (count <= RETRY_COUNT);
+        return null;
     }
 
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {

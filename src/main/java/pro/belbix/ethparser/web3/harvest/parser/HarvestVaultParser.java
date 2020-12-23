@@ -207,7 +207,7 @@ public class HarvestVaultParser implements Web3Parser {
     }
 
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
-        if (Vaults.lpTokens.contains(dto.getVault())) {
+        if (Vaults.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
         } else {
             fillUsdValues(dto, strategyHash);

@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USD
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DPI_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
@@ -25,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.uniswap.contracts.Tokens;
 
 @Service
 public class PriceProvider {
@@ -77,8 +77,8 @@ public class PriceProvider {
         return firstVaultUsdAmount + secondVaultUsdAmount;
     }
 
-    public Double getPriceForCoin(String name, Long block) {
-        String coinNameSimple = simplifyName(name);
+    public Double getPriceForCoin(String vaultName, Long block) {
+        String coinNameSimple = simplifyName(vaultName);
         updateUSDCPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
             return 1.0;
@@ -114,15 +114,9 @@ public class PriceProvider {
 
         String lpName;
         String nonUSD = null;
-        if (DPI_NAME.equals(coinName)) {
-            lpName = "UNI_LP_ETH_DPI";
-            nonUSD = WETH_NAME;
-        } else if (GRAIN_NAME.equals(coinName)) {
-            lpName = "UNI_LP_GRAIN_FARM";
-            nonUSD = FARM_NAME;
-        } else if ("BADGER".equals(coinName)) {
-            lpName = "UNI_LP_WBTC_BADGER";
-            nonUSD = "WBTC";
+        if (Tokens.specificLpForCoin.containsKey(coinName)) {
+            lpName = Tokens.specificLpForCoin.get(coinName).component1();
+            nonUSD = Tokens.specificLpForCoin.get(coinName).component2();
         } else {
             lpName = "UNI_LP_USDC_" + coinName;
         }
