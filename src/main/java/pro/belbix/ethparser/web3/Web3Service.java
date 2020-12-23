@@ -61,7 +61,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Service
 public class Web3Service {
 
-    public final static int RETRY_COUNT = 10;
+    public final static int RETRY_COUNT = 2;
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
     public static final long MAX_DELAY_BETWEEN_TX = 60 * 10;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
@@ -353,6 +353,9 @@ public class Web3Service {
             return null;
         }
         if (ethCall.getError() != null) {
+            if(ethCall.getError().getMessage().contains("Disabled in this strategy")) {
+                throw new IllegalStateException(ethCall.getError().getMessage());
+            }
             log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
             return null;
         }
@@ -362,13 +365,20 @@ public class Web3Service {
     public List<Type> callMethodWithRetry(Function function, String contractAddress, DefaultBlockParameter block) {
         int count = 0;
         do {
-            List<Type> result = callMethod(function, contractAddress, block);
+
+            List<Type> result;
+            try {
+                result = callMethod(function, contractAddress, block);
+            } catch (IllegalStateException e) {
+                return null;
+            }
+
             if (result != null) {
                 return result;
             }
             count++;
             log.warn("Fail call eth function, retry " + count);
-        } while (count <= RETRY_COUNT);
+        } while (count < RETRY_COUNT);
         return null;
     }
 

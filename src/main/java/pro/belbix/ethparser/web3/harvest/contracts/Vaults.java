@@ -128,6 +128,10 @@ public class Vaults {
        return LpContracts.harvestStrategyToLp.containsKey(vaultHash);
     }
 
+    public static boolean isPs(String vaultName) {
+        return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);
+    }
+
     //dangerous, but useful
     private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
         for (Field field : Vaults.class.getDeclaredFields()) {

@@ -25,6 +25,10 @@ public class OwnerBalanceCalculator {
 
     public boolean fillBalance(HarvestDTO dto) {
         try {
+            if(Vaults.isPs(dto.getVault())) {
+                //ignore PS
+                return false;
+            }
             String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
             double balance;
             if (vaultHash == null) {
