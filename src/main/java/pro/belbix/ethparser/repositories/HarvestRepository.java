@@ -85,8 +85,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<HarvestDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);
 
     @Query("select t from HarvestDTO t where "
-        + "t.ownerBalance is null or t.ownerBalance = 0 "
-        + "or t.ownerBalanceUsd is null or t.ownerBalanceUsd = 0 "
+        + "t.ownerBalance is null "
+        + "or t.ownerBalanceUsd is null "
         + "order by t.blockDate asc")
     List<HarvestDTO> fetchAllWithoutOwnerBalance();
 

@@ -25,60 +25,81 @@ public class OwnerBalanceCalculator {
 
     public boolean fillBalance(HarvestDTO dto) {
         try {
-            if(Vaults.isPs(dto.getVault())) {
-                //ignore PS
-                return false;
-            }
-            String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-            double balance;
-            if (vaultHash == null) {
-                //get balance from LP
-                String lpHash = LpContracts.lpNameToHash.get(dto.getVault());
-                if (lpHash == null) {
-                    log.error("Not found vault/lp hash for " + dto.getVault());
-                    return false;
+            if (Vaults.vaultNameToHash.containsKey(dto.getVault())) {
+                if (Vaults.isPs(dto.getVault())) {
+                    return balanceForPs(dto);
                 }
-                BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock().longValue());
-                if (balanceI == null) {
-                    log.warn("Can reach lp balance for " + dto.print());
-                    return false;
-                }
-                balance = parseAmount(balanceI, lpHash);
-                dto.setOwnerBalance(balance);
-
-                //fill USD value
-                double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
-                dto.setOwnerBalanceUsd(amountUsd);
+                return balanceForVault(dto);
             } else {
-                //get balance from vault
-                BigInteger balanceI = functions
-                    .callUnderlyingBalance(dto.getOwner(), vaultHash, dto.getBlock().longValue());
-                if (balanceI == null) {
-                    log.warn("Can reach vault balance for " + dto.print());
-                    return false;
-                }
-
-                balance = parseAmount(balanceI, vaultHash);
-                dto.setOwnerBalance(balance);
-
-                //fill USD value
-                if (Vaults.isLp(dto.getVault())) {
-                    String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
-                    if (lpHash == null) {
-                        throw new IllegalStateException("Not found lp hash for " + vaultHash);
-                    }
-                    double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
-                    dto.setOwnerBalanceUsd(amountUsd);
-                } else {
-                    double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
-                    dto.setOwnerBalanceUsd(balance * price);
-                }
+                return balanceForNonVaultLp(dto);
             }
-            return true;
         } catch (Exception e) {
             log.error("Can't fill balance for " + dto.print(), e);
         }
         return false;
+    }
+
+    private boolean balanceForPs(HarvestDTO dto) {
+        String psHash = Vaults.vaultNameToHash.get(dto.getVault());
+        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), psHash, dto.getBlock().longValue());
+        if (balanceI == null) {
+            log.warn("Can reach ps balance for " + dto.print());
+            return false;
+        }
+        double balance = parseAmount(balanceI, psHash);
+        dto.setOwnerBalance(balance);
+
+        double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        dto.setOwnerBalanceUsd(balance * price);
+        return true;
+    }
+
+    private boolean balanceForVault(HarvestDTO dto) {
+        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+        BigInteger balanceI = functions
+            .callUnderlyingBalance(dto.getOwner(), vaultHash, dto.getBlock().longValue());
+        if (balanceI == null) {
+            log.warn("Can reach vault balance for " + dto.print());
+            return false;
+        }
+
+        double balance = parseAmount(balanceI, vaultHash);
+        dto.setOwnerBalance(balance);
+
+        //fill USD value
+        if (Vaults.isLp(dto.getVault())) {
+            String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
+            if (lpHash == null) {
+                throw new IllegalStateException("Not found lp hash for " + vaultHash);
+            }
+            double amountUsd = priceProvider
+                .getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+            dto.setOwnerBalanceUsd(amountUsd);
+        } else {
+            double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+            dto.setOwnerBalanceUsd(balance * price);
+        }
+        return true;
+    }
+
+    private boolean balanceForNonVaultLp(HarvestDTO dto) {
+        String lpHash = LpContracts.lpNameToHash.get(dto.getVault());
+        if (lpHash == null) {
+            log.error("Not found vault/lp hash for " + dto.getVault());
+            return false;
+        }
+        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock().longValue());
+        if (balanceI == null) {
+            log.warn("Can reach lp balance for " + dto.print());
+            return false;
+        }
+        double balance = parseAmount(balanceI, lpHash);
+        dto.setOwnerBalance(balance);
+
+        //fill USD value
+        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+        dto.setOwnerBalanceUsd(amountUsd);
+        return true;
     }
 
 }

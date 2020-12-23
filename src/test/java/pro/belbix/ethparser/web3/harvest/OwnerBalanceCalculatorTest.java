@@ -47,6 +47,17 @@ public class OwnerBalanceCalculatorTest {
         );
     }
 
+    @Test
+    public void shouldCalculateForDAI_V0() {
+        assertHarvest(
+            Vaults.DAI_V0,
+            10780382,
+            0,
+            "0,00000000",
+            "0,00000000"
+        );
+    }
+
     private HarvestDTO assertHarvest(String fromVault,
                                      int onBlock,
                                      int logId,
@@ -57,7 +68,8 @@ public class OwnerBalanceCalculatorTest {
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertNotNull("Dto is null", dto);
-        ownerBalanceCalculator.fillBalance(dto);
+        boolean result = ownerBalanceCalculator.fillBalance(dto);
+        assertTrue(result);
         assertAll(
             () -> assertEquals("owner balance", ownerBalance, String.format("%.8f", dto.getOwnerBalance())),
             () -> assertEquals("owner balance usd", ownerBalanceUsd, String.format("%.8f", dto.getOwnerBalanceUsd()))
