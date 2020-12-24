@@ -17,6 +17,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @Service
 public class HardWorkDbService {
@@ -62,10 +63,19 @@ public class HardWorkDbService {
         calculateVaultProfits(dto);
         calculatePsProfits(dto);
         calculateFarmBuyback(dto);
-
-        dto.setCallsQuantity((int) hardWorkRepository.count());
+        fillExtraInfo(dto);
 
         hardWorkRepository.save(dto);
+    }
+
+    public void fillExtraInfo(HardWorkDTO dto) {
+        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate());
+        dto.setCallsQuantity(count + 1);
+        int owners = harvestRepository.fetchActualOwnerQuantity(
+            dto.getVault(),
+            Vaults.vaultNameToOldVaultName.get(dto.getVault()),
+            dto.getBlockDate());
+        dto.setPoolUsers(owners);
     }
 
     private void calculateVaultProfits(HardWorkDTO dto) {
