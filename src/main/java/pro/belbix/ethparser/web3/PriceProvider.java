@@ -180,7 +180,7 @@ public class PriceProvider {
             ;
     }
 
-    private static String simplifyName(String name) {
+    public static String simplifyName(String name) {
         name = name.replaceFirst("_V0", "");
         if ("WETH".equals(name)) {
             return "ETH";

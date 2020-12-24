@@ -63,6 +63,8 @@ public class HardWorkDbService {
         calculatePsProfits(dto);
         calculateFarmBuyback(dto);
 
+        dto.setCallsQuantity((int) hardWorkRepository.count());
+
         hardWorkRepository.save(dto);
     }
 
