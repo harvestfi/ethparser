@@ -65,6 +65,15 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "     ) t2")
     Integer fetchAllUsersCount();
 
+    @Query(nativeQuery = true, value = ""
+        + "select count(owner) owners from ( "
+        + "         select distinct owner from ( "
+        + "                  select owner from harvest_tx where "
+        + "          vault in :vaults"
+        + "              ) t "
+        + "     ) t2")
+    Integer fetchAllPoolsUsersCount(@Param("vaults") List<String> vaults);
+
     HarvestDTO findFirstByOrderByBlockDesc();
 
     HarvestDTO findFirstByVaultAndBlockDateLessThanEqualAndIdNotOrderByBlockDateDesc(String vault, long date,

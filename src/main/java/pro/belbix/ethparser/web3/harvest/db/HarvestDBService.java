@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -69,11 +70,20 @@ public class HarvestDBService {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
+
         Integer allOwnersCount = harvestRepository.fetchAllUsersCount();
         if (allOwnersCount == null) {
             allOwnersCount = 0;
         }
         dto.setAllOwnersCount(allOwnersCount);
+
+        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersCount(Vaults.vaultNameToHash.keySet().stream()
+            .filter(v -> !Vaults.isPs(v))
+            .collect(Collectors.toList()));
+        if (allPoolsOwnerCount == null) {
+            allPoolsOwnerCount = 0;
+        }
+        dto.setAllPoolsOwnersCount(allPoolsOwnerCount);
     }
 
     public void saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {

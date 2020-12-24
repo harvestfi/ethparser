@@ -25,8 +25,8 @@ public class OwnerCountRecalculate {
             harvestDBService.fillOwnersCount(harvestDTO);
             harvestRepository.save(harvestDTO);
             count++;
-            if (count % 1000 == 0) {
-                log.info("Recalculated " + count);
+            if (count % 100 == 0) {
+                log.info("Recalculated " + count + ", last " + harvestDTO.print());
             }
         }
     }

@@ -319,6 +319,11 @@ public class TvlRecalculate {
             }
 
             @Override
+            public Integer fetchAllPoolsUsersCount(List<String> vaults) {
+                return null;
+            }
+
+            @Override
             public HarvestDTO findFirstByOrderByBlockDesc() {
                 return null;
             }
