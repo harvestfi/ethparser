@@ -30,6 +30,17 @@ select count(*) from (
 where result > 1000000
 ;
 
+-- USERS COUNT
+select vault, count(owner) from (
+                  select vault,
+                         owner,
+                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance
+                  from harvest_tx
+                  group by vault, owner, owner_balance_usd
+              ) t
+where balance > 0
+group by vault;
+
 
 -- WALLET HISTORY---------------------
 select

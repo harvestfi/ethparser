@@ -40,6 +40,7 @@ public class HarvestDTO implements DtoI {
     private Double lastAllUsdTvl;
     private Double ownerBalance;
     private Double ownerBalanceUsd;
+    private Integer allOwnersCount;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

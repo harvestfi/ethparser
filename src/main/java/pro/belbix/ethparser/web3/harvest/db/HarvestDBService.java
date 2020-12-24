@@ -6,7 +6,6 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,18 +50,27 @@ public class HarvestDBService {
             return false;
         }
 
+        harvestRepository.save(dto);
+        harvestRepository.flush();
+
+        fillOwnersCount(dto);
+        saveHarvestTvl(dto, true);
+        harvestRepository.save(dto);
+        return true;
+    }
+
+    public void fillOwnersCount(HarvestDTO dto) {
         Integer ownerCount = harvestRepository.fetchActualOwnerCount(dto.getVault(),
             Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
-
-        harvestRepository.save(dto);
-        harvestRepository.flush();
-        saveHarvestTvl(dto, true);
-        harvestRepository.save(dto);
-        return true;
+        Integer allOwnersCount = harvestRepository.fetchAllUsersCount();
+        if (allOwnersCount == null) {
+            allOwnersCount = 0;
+        }
+        dto.setAllOwnersCount(allOwnersCount);
     }
 
     public void saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {

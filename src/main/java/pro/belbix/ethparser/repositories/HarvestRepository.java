@@ -43,25 +43,27 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Integer fetchOwnerCount(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
-        + "select count(t.owner) from ( "
-        + "select deposit.owner owner, deposit.d_amnt, withdraw.w_amnt, (deposit.d_amnt - withdraw.w_amnt) result from "
-        + "    (select owner, sum(amount) d_amnt "
-        + "     from harvest_tx "
-        + "     where method_name = 'Deposit' "
-        + "       and (vault = :vault or vault = :oldVault /*previous version*/) "
-        + "       and block_date <= :block_date "
-        + "     group by owner) deposit "
-        + "        left join "
-        + "    (select owner, sum(amount) w_amnt from harvest_tx "
-        + "     where method_name = 'Withdraw' "
-        + "       and (vault = :vault or vault = :oldVault /*previous version*/) "
-        + "       and block_date <= :block_date "
-        + "     group by owner) withdraw ON deposit.owner = withdraw.owner "
-        + "    ) t "
-        + "where t.result is null or t.result > 0")
+        + "select count(owner) from ( "
+        + "                  select owner, "
+        + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
+        + "                  from harvest_tx "
+        + "                  where vault in (:vault, :oldVault) and block_date <= :block_date "
+        + "                  group by owner, owner_balance_usd "
+        + "              ) t "
+        + "where balance > 0 ")
     Integer fetchActualOwnerCount(@Param("vault") String vault,
                                   @Param("oldVault") String oldVault,
                                   @Param("block_date") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select count(owner) owners from ( "
+        + "         select distinct owner from ( "
+        + "                  select owner from harvest_tx "
+        + "                  union all "
+        + "                  select owner from uni_tx "
+        + "              ) t "
+        + "     ) t2")
+    Integer fetchAllUsersCount();
 
     HarvestDTO findFirstByOrderByBlockDesc();
 

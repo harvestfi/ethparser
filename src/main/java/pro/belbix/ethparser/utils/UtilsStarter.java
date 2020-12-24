@@ -24,6 +24,7 @@ public class UtilsStarter {
     private final BlockCacher blockCacher;
     private final LpTvlRecalculate lpTvlRecalculate;
     private final OwnerBalanceRecalculate ownerBalanceRecalculate;
+    private final OwnerCountRecalculate ownerCountRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -34,7 +35,8 @@ public class UtilsStarter {
                         HardWorkRecalculate hardWorkRecalculate,
                         RewardDownloader rewardDownloader, BlockCacher blockCacher,
                         LpTvlRecalculate lpTvlRecalculate,
-                        OwnerBalanceRecalculate ownerBalanceRecalculate) {
+                        OwnerBalanceRecalculate ownerBalanceRecalculate,
+                        OwnerCountRecalculate ownerCountRecalculate) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -46,6 +48,7 @@ public class UtilsStarter {
         this.blockCacher = blockCacher;
         this.lpTvlRecalculate = lpTvlRecalculate;
         this.ownerBalanceRecalculate = ownerBalanceRecalculate;
+        this.ownerCountRecalculate = ownerCountRecalculate;
     }
 
     public void startUtils() {
@@ -68,13 +71,14 @@ public class UtilsStarter {
             rewardDownloader.start();
         } else if ("lp-tvl-recalculate".equals(appProperties.getStartUtil())) {
             lpTvlRecalculate.start();
-        }else if ("balances-recalculate".equals(appProperties.getStartUtil())) {
+        } else if ("balances-recalculate".equals(appProperties.getStartUtil())) {
             ownerBalanceRecalculate.start();
+        } else if ("owners-count-recalculate".equals(appProperties.getStartUtil())) {
+            ownerCountRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);
     }
-
 
 
 }
