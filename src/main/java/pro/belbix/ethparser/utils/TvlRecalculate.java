@@ -314,6 +314,11 @@ public class TvlRecalculate {
             }
 
             @Override
+            public Integer fetchAllUsersCount() {
+                return null;
+            }
+
+            @Override
             public HarvestDTO findFirstByOrderByBlockDesc() {
                 return null;
             }
