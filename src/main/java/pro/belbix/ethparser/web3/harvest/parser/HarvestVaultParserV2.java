@@ -89,9 +89,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
                     if (dto != null) {
                         lastTx = Instant.now();
                         enrichDto(dto);
-                        ownerBalanceCalculator.fillBalance(dto);
                         boolean success = true;
                         if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
+                            ownerBalanceCalculator.fillBalance(dto);
                             success = harvestDBService.saveHarvestDTO(dto);
                         } else {
                             log.info("Last prices send " + dto.getPrices() + " " + dto.getLastGas());
