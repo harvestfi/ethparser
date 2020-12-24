@@ -48,12 +48,12 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
         + "                  from harvest_tx "
         + "                  where vault in (:vault, :oldVault) and block_date <= :block_date "
-        + "                  group by owner, owner_balance_usd "
+        + "                  group by owner "
         + "              ) t "
-        + "where balance > 0 ")
-    Integer fetchActualOwnerCount(@Param("vault") String vault,
-                                  @Param("oldVault") String oldVault,
-                                  @Param("block_date") long blockDate);
+        + "where balance > 10 ")
+    Integer fetchActualOwnerQuantity(@Param("vault") String vault,
+                                     @Param("oldVault") String oldVault,
+                                     @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
         + "select count(owner) owners from ( "
@@ -63,16 +63,18 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                  select owner from uni_tx "
         + "              ) t "
         + "     ) t2")
-    Integer fetchAllUsersCount();
+    Integer fetchAllUsersQuantity();
 
     @Query(nativeQuery = true, value = ""
-        + "select count(owner) owners from ( "
-        + "         select distinct owner from ( "
-        + "                  select owner from harvest_tx where "
-        + "          vault in :vaults"
+        + "select count(owner) owners "
+        + "from (select owner, "
+        + "                      SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
+        + "               from harvest_tx "
+        + "               where vault not in ('PS', 'PS_V0') "
+        + "               group by owner "
         + "              ) t "
-        + "     ) t2")
-    Integer fetchAllPoolsUsersCount(@Param("vaults") List<String> vaults);
+        + "    where balance > 10")
+    Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults);
 
     HarvestDTO findFirstByOrderByBlockDesc();
 

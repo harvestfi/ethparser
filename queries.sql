@@ -30,7 +30,7 @@ select count(*) from (
 where result > 1000000
 ;
 
--- USERS COUNT
+-- USERS QUANTITY BY POOLS
 select vault, count(owner) from (
                   select vault,
                          owner,
@@ -40,6 +40,46 @@ select vault, count(owner) from (
               ) t
 where balance > 0
 group by vault;
+
+-- ALL USERS QUANTITY
+select count(owner) owners
+from (
+         select distinct owner
+         from (
+                  select owner
+                  from harvest_tx
+                  union all
+                  select owner
+                  from uni_tx
+              ) t
+     ) t2;
+
+-- USERS QUANTITY ALL POOLS
+select count(owner) owners from (
+         select distinct owner from (
+                  select owner from harvest_tx
+                  where vault not in ('PS', 'PS_V0')
+              ) t
+     ) t2;
+
+-- USERS QUANTITY WITH POSITIVE BALANCE FOR ALL POOLS
+select count(owner) owners
+from (select owner,
+                      SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance
+               from harvest_tx
+               where vault not in ('PS', 'PS_V0')
+               group by owner
+              ) t
+    where balance > 10;
+
+-- USERS QUANTITY FARM HOLDERS
+select count(owner) from (
+                             select owner,
+                                    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance
+                             from uni_tx
+                             group by owner
+                         ) t
+where balance > 10;
 
 
 -- WALLET HISTORY---------------------

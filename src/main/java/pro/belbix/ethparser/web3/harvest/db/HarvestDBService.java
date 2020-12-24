@@ -64,20 +64,20 @@ public class HarvestDBService {
     }
 
     public void fillOwnersCount(HarvestDTO dto) {
-        Integer ownerCount = harvestRepository.fetchActualOwnerCount(dto.getVault(),
+        Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
             Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
 
-        Integer allOwnersCount = harvestRepository.fetchAllUsersCount();
+        Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity();
         if (allOwnersCount == null) {
             allOwnersCount = 0;
         }
         dto.setAllOwnersCount(allOwnersCount);
 
-        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersCount(Vaults.vaultNameToHash.keySet().stream()
+        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(Vaults.vaultNameToHash.keySet().stream()
             .filter(v -> !Vaults.isPs(v))
             .collect(Collectors.toList()));
         if (allPoolsOwnerCount == null) {
@@ -104,11 +104,14 @@ public class HarvestDBService {
             if (lastHarvest == null) {
                 continue;
             }
+            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                lastHarvest = dto; // for avoiding JPA wrong synchronisation
+            }
             tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
             if (lastHarvest.getOwnerCount() != null) {
                 owners += lastHarvest.getOwnerCount();
             } else {
-                log.warn("Owner count is null for " + lastHarvest.print());
+                log.warn("Owners quantity is null for " + lastHarvest.print());
             }
         }
 

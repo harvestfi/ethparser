@@ -314,17 +314,17 @@ public class TvlRecalculate {
             }
 
             @Override
-            public Integer fetchActualOwnerCount(String vault, String oldVault, long blockDate) {
+            public Integer fetchActualOwnerQuantity(String vault, String oldVault, long blockDate) {
                 return null;
             }
 
             @Override
-            public Integer fetchAllUsersCount() {
+            public Integer fetchAllUsersQuantity() {
                 return null;
             }
 
             @Override
-            public Integer fetchAllPoolsUsersCount(List<String> vaults) {
+            public Integer fetchAllPoolsUsersQuantity(List<String> vaults) {
                 return null;
             }
 
