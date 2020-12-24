@@ -54,6 +54,9 @@ public class HarvestDBService {
         harvestRepository.flush();
 
         fillOwnersCount(dto);
+        harvestRepository.save(dto);
+        harvestRepository.flush();
+
         saveHarvestTvl(dto, true);
         harvestRepository.save(dto);
         return true;
@@ -92,7 +95,11 @@ public class HarvestDBService {
                 continue;
             }
             tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
-            owners += lastHarvest.getOwnerCount();
+            if (lastHarvest.getOwnerCount() != null) {
+                owners += lastHarvest.getOwnerCount();
+            } else {
+                log.warn("Owner count is null for " + lastHarvest.print());
+            }
         }
 
         HarvestTvlEntity newTvl = new HarvestTvlEntity();
