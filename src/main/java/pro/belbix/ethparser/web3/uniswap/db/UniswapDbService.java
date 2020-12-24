@@ -53,7 +53,7 @@ public class UniswapDbService {
     }
 
     public void fillOwnersCount(UniswapDTO dto) {
-        Integer ownerCount = uniswapRepository.fetchOwnerCount();
+        Integer ownerCount = uniswapRepository.fetchOwnerCount(dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }

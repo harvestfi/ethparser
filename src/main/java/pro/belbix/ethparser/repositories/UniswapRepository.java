@@ -14,10 +14,11 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         + "                  select owner, "
         + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
         + "                  from uni_tx "
+        + "                   where block_date <= :block_date "
         + "                  group by owner "
         + "              ) t "
         + "where balance > 10 ")
-    Integer fetchOwnerCount();
+    Integer fetchOwnerCount(@Param("block_date") long blockDate);
 
     UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
 

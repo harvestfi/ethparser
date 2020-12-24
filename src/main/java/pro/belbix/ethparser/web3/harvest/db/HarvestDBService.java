@@ -71,15 +71,17 @@ public class HarvestDBService {
         }
         dto.setOwnerCount(ownerCount);
 
-        Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity();
+        Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity(dto.getBlockDate());
         if (allOwnersCount == null) {
             allOwnersCount = 0;
         }
         dto.setAllOwnersCount(allOwnersCount);
 
-        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(Vaults.vaultNameToHash.keySet().stream()
-            .filter(v -> !Vaults.isPs(v))
-            .collect(Collectors.toList()));
+        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
+            Vaults.vaultNameToHash.keySet().stream()
+                .filter(v -> !Vaults.isPs(v))
+                .collect(Collectors.toList()),
+            dto.getBlockDate());
         if (allPoolsOwnerCount == null) {
             allPoolsOwnerCount = 0;
         }

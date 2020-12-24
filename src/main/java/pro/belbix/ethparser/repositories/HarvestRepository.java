@@ -59,22 +59,24 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "select count(owner) owners from ( "
         + "         select distinct owner from ( "
         + "                  select owner from harvest_tx "
+        + "                   where harvest_tx.block_date <= :block_date "
         + "                  union all "
         + "                  select owner from uni_tx "
+        + "                   where uni_tx.block_date <= :block_date "
         + "              ) t "
         + "     ) t2")
-    Integer fetchAllUsersQuantity();
+    Integer fetchAllUsersQuantity(@Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
         + "select count(owner) owners "
         + "from (select owner, "
         + "                      SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
         + "               from harvest_tx "
-        + "               where vault not in ('PS', 'PS_V0') "
+        + "               where vault in :vaults and block_date < :block_date"
         + "               group by owner "
         + "              ) t "
         + "    where balance > 10")
-    Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults);
+    Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults, @Param("block_date") long blockDate);
 
     HarvestDTO findFirstByOrderByBlockDesc();
 
