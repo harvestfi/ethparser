@@ -30,7 +30,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.OwnerBalanceCalculator;
+import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -57,7 +57,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final ParserInfo parserInfo;
-    private final OwnerBalanceCalculator ownerBalanceCalculator;
+    private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
 
     public HarvestVaultParserV2(Web3Service web3Service,
                                 HarvestDBService harvestDBService,
@@ -65,14 +65,14 @@ public class HarvestVaultParserV2 implements Web3Parser {
                                 PriceProvider priceProvider,
                                 Functions functions,
                                 ParserInfo parserInfo,
-                                OwnerBalanceCalculator ownerBalanceCalculator) {
+                                HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
         this.functions = functions;
         this.parserInfo = parserInfo;
-        this.ownerBalanceCalculator = ownerBalanceCalculator;
+        this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
                         enrichDto(dto);
                         boolean success = true;
                         if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
-                            ownerBalanceCalculator.fillBalance(dto);
+                            harvestOwnerBalanceCalculator.fillBalance(dto);
                             success = harvestDBService.saveHarvestDTO(dto);
                         } else {
                             log.info("Last prices send " + dto.getPrices() + " " + dto.getLastGas());

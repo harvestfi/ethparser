@@ -25,7 +25,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
-public class OwnerBalanceCalculatorTest {
+public class HarvestOwnerBalanceCalculatorTest {
 
     @Autowired
     private HarvestVaultParserV2 harvestVaultParser;
@@ -34,7 +34,7 @@ public class OwnerBalanceCalculatorTest {
     @Autowired
     private PriceProvider priceProvider;
     @Autowired
-    private OwnerBalanceCalculator ownerBalanceCalculator;
+    private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
 
     @Test
     public void shouldCalculateForUSDT_V0() {
@@ -68,7 +68,7 @@ public class OwnerBalanceCalculatorTest {
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertNotNull("Dto is null", dto);
-        boolean result = ownerBalanceCalculator.fillBalance(dto);
+        boolean result = harvestOwnerBalanceCalculator.fillBalance(dto);
         assertTrue(result);
         assertAll(
             () -> assertEquals("owner balance", ownerBalance, String.format("%.8f", dto.getOwnerBalance())),

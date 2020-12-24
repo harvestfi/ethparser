@@ -38,7 +38,7 @@ public class HarvestVaultParserTest {
     @Autowired
     private PriceProvider priceProvider;
     @Autowired
-    private OwnerBalanceCalculator ownerBalanceCalculator;
+    private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
 
     @Before
     public void setUp() throws Exception {
@@ -63,7 +63,7 @@ public class HarvestVaultParserTest {
             true
         );
 
-        ownerBalanceCalculator.fillBalance(dto);
+        harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
             () -> assertEquals("owner balance", "6,08144172", String.format("%.8f", dto.getOwnerBalance())),
             () -> assertEquals("owner balance usd", "3352,40976906", String.format("%.8f", dto.getOwnerBalanceUsd()))

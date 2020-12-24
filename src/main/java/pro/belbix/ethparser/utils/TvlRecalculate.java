@@ -264,7 +264,12 @@ public class TvlRecalculate {
             public List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from) {
                 return null;
             }
-        
+
+            @Override
+            public List<UniswapDTO> fetchAllWithoutOwnerBalance() {
+                return null;
+            }
+
         };
     }
 

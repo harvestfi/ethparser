@@ -13,12 +13,12 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 @Log4j2
-public class OwnerBalanceCalculator {
+public class HarvestOwnerBalanceCalculator {
 
     private final Functions functions;
     private final PriceProvider priceProvider;
 
-    public OwnerBalanceCalculator(Functions functions, PriceProvider priceProvider) {
+    public HarvestOwnerBalanceCalculator(Functions functions, PriceProvider priceProvider) {
         this.functions = functions;
         this.priceProvider = priceProvider;
     }
