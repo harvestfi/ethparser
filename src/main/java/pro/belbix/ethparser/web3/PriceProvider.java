@@ -66,6 +66,9 @@ public class PriceProvider {
             getPriceForCoin(names.component2(), block)
         );
         Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpAddress, block);
+        if (lpUnderlyingBalances == null) {
+            throw new IllegalStateException("Can't reach reserves for " + lpAddress);
+        }
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpAddress, block), lpAddress);
         double positionFraction = amount / lpBalance;
 
@@ -79,7 +82,7 @@ public class PriceProvider {
 
     public Double getPriceForCoin(String vaultName, Long block) {
         String coinNameSimple = simplifyName(vaultName);
-        updateUSDCPrice(coinNameSimple, block);
+        updateUSDPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
             return 1.0;
         }
@@ -101,7 +104,12 @@ public class PriceProvider {
         );
     }
 
-    private void updateUSDCPrice(String coinName, Long block) {
+    private void updateUSDPrice(String coinName, Long block) {
+        if(block != null && !Tokens.isCreated(coinName, block.intValue())){
+            lastPrices.put(coinName, 0.0);
+            lastUpdates.put(coinName, Instant.now());
+            return;
+        }
         if (isStableCoin(coinName)) {
             return;
         }
@@ -127,6 +135,9 @@ public class PriceProvider {
         }
 
         Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
+        if (reserves == null) {
+            throw new IllegalStateException("Can't reach reserves for " + coinName);
+        }
         double price;
         if (
             UNI_LP_USDC_ETH.equals(lpHash)

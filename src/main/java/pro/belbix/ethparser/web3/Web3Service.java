@@ -354,7 +354,7 @@ public class Web3Service {
         }
         if (ethCall.getError() != null) {
             log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
-            if(ethCall.getError().getMessage().contains("Disabled in this strategy")) {
+            if (ethCall.getError().getMessage().contains("Disabled in this strategy")) {
                 throw new IllegalStateException(ethCall.getError().getMessage());
             }
             return null;
@@ -369,6 +369,7 @@ public class Web3Service {
             try {
                 result = callMethod(function, contractAddress, block);
             } catch (IllegalStateException e) {
+                log.warn("Got not retryable error for " + function.getName() + " " + contractAddress);
                 return null;
             }
 
