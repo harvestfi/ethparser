@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
@@ -113,16 +115,19 @@ public class HardWorkParser implements Web3Parser {
 
         fillUsdValues(dto, tx.getVault());
 
-        parseReceipt(dto);
+        parseFee(dto, tx.getHash());
         log.info(dto.print());
         return dto;
     }
 
-    private void parseReceipt(HardWorkDTO dto) {
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getId());
-        double gas = (receipt.getGasUsed().doubleValue() / D18);
+    private void parseFee(HardWorkDTO dto, String hash) {
+        Transaction transaction = web3Service.findTransaction(hash);
+        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(hash);
+        double gas = (receipt.getGasUsed().doubleValue());
+        double gasPrice = transaction.getGasPrice().doubleValue() / 1000_000_000 / 1000_000_000;
         double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
-        dto.setFee(gas * ethPrice);
+        double feeUsd = gas * gasPrice * ethPrice;
+        dto.setFee(feeUsd);
     }
 
     private void fillUsdValues(HardWorkDTO dto, String vaultHash) {

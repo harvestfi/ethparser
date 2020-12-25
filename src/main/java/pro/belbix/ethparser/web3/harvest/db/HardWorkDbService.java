@@ -77,9 +77,12 @@ public class HardWorkDbService {
             dto.getBlockDate());
         dto.setPoolUsers(owners);
 
-        dto.setSavedGasFees(((double) owners) * dto.getFee());
+        dto.setSavedGasFees(((double) owners) * 0.1);
 
         Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
+        if(feesSum == null) {
+            feesSum = 0.0;
+        }
         dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
     }
 

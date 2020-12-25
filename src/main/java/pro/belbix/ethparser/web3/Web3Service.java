@@ -223,9 +223,14 @@ public class Web3Service {
         return null;
     }
 
-    public Transaction findTransaction(String hash) throws IOException {
+    public Transaction findTransaction(String hash) {
         checkInit();
-        return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
+        try {
+            return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
+        } catch (IOException e) {
+            log.error("Error get transaction by hash " + hash);
+        }
+        return null;
     }
 
     public Block findBlock(String blockHash) {
