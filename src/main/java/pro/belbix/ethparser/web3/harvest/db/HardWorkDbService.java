@@ -76,6 +76,11 @@ public class HardWorkDbService {
             Vaults.vaultNameToOldVaultName.get(dto.getVault()),
             dto.getBlockDate());
         dto.setPoolUsers(owners);
+
+        dto.setSavedGasFees(((double) owners) * dto.getFee());
+
+        Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
+        dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
     }
 
     private void calculateVaultProfits(HardWorkDTO dto) {

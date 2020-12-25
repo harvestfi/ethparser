@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.utils;
 
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
@@ -18,6 +20,9 @@ public class OwnerCountRecalculate {
     private final UniswapDbService uniswapDbService;
     private final UniswapRepository uniswapRepository;
 
+    @Value("${owners-count-recalculate.from:}")
+    private Integer from;
+
     public OwnerCountRecalculate(HarvestRepository harvestRepository,
                                  HarvestDBService harvestDBService,
                                  UniswapDbService uniswapDbService,
@@ -30,7 +35,13 @@ public class OwnerCountRecalculate {
 
     public void start() {
         int count = 0;
-        for (HarvestDTO harvestDTO : harvestRepository.findAllByOrderByBlockDate()) {
+        List<HarvestDTO> harvestDTOList;
+        if (from == null) {
+            harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+        } else {
+            harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+        }
+        for (HarvestDTO harvestDTO : harvestDTOList) {
             harvestDBService.fillOwnersCount(harvestDTO);
             harvestRepository.save(harvestDTO);
             count++;
@@ -39,8 +50,15 @@ public class OwnerCountRecalculate {
             }
         }
 
+        List<UniswapDTO> uniswapDTOS;
+        if (from == null) {
+            uniswapDTOS = uniswapRepository.findAllByOrderByBlockDate();
+        } else {
+            uniswapDTOS = uniswapRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+        }
+
         count = 0;
-        for (UniswapDTO uniswapDTO : uniswapRepository.findAllByOrderByBlockDate()) {
+        for (UniswapDTO uniswapDTO : uniswapDTOS) {
             uniswapDbService.fillOwnersCount(uniswapDTO);
             uniswapRepository.save(uniswapDTO);
             count++;

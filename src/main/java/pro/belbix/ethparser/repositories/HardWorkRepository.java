@@ -51,4 +51,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     @Query(nativeQuery = true, value = ""
         + "select count(*) from hard_work where vault = :vault and block_date < :blockDate")
     Integer countAtBlockDate(@Param("vault") String vault, @Param("blockDate") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select sum(saved_gas_fees) from hard_work where vault = :vault and block_date < :blockDate")
+    Double sumSavedGasFees(@Param("vault") String vault, @Param("blockDate") long blockDate);
 }

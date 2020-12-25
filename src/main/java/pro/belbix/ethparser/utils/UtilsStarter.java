@@ -3,11 +3,11 @@ package pro.belbix.ethparser.utils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.harvest.utils.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.utils.HarvestVaultDownloader;
-import pro.belbix.ethparser.web3.harvest.utils.RewardDownloader;
-import pro.belbix.ethparser.web3.uniswap.utils.DownloadIncome;
-import pro.belbix.ethparser.web3.uniswap.utils.UniswapLpDownloader;
+import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
+import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
+import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
+import pro.belbix.ethparser.web3.uniswap.downloader.DownloadIncome;
+import pro.belbix.ethparser.web3.uniswap.downloader.UniswapLpDownloader;
 
 @Service
 @Log4j2
@@ -25,6 +25,7 @@ public class UtilsStarter {
     private final LpTvlRecalculate lpTvlRecalculate;
     private final OwnerBalanceRecalculate ownerBalanceRecalculate;
     private final OwnerCountRecalculate ownerCountRecalculate;
+    private final MigrationRecalculate migrationRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -36,7 +37,8 @@ public class UtilsStarter {
                         RewardDownloader rewardDownloader, BlockCacher blockCacher,
                         LpTvlRecalculate lpTvlRecalculate,
                         OwnerBalanceRecalculate ownerBalanceRecalculate,
-                        OwnerCountRecalculate ownerCountRecalculate) {
+                        OwnerCountRecalculate ownerCountRecalculate,
+                        MigrationRecalculate migrationRecalculate) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -49,6 +51,7 @@ public class UtilsStarter {
         this.lpTvlRecalculate = lpTvlRecalculate;
         this.ownerBalanceRecalculate = ownerBalanceRecalculate;
         this.ownerCountRecalculate = ownerCountRecalculate;
+        this.migrationRecalculate = migrationRecalculate;
     }
 
     public void startUtils() {
@@ -75,6 +78,8 @@ public class UtilsStarter {
             ownerBalanceRecalculate.start();
         } else if ("owners-count-recalculate".equals(appProperties.getStartUtil())) {
             ownerCountRecalculate.start();
+        } else if ("migration-recalculate".equals(appProperties.getStartUtil())) {
+            migrationRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);

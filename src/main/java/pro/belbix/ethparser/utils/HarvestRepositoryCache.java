@@ -111,6 +111,11 @@ public class HarvestRepositoryCache implements HarvestRepository {
     }
 
     @Override
+    public List<HarvestDTO> fetchAllMigration() {
+        return null;
+    }
+
+    @Override
     public List<HarvestDTO> findAll() {
         return null;
     }

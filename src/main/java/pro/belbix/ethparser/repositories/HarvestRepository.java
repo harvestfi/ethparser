@@ -105,4 +105,9 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by t.blockDate asc")
     List<HarvestDTO> fetchAllWithoutOwnerBalance();
 
+    @Query("select t from HarvestDTO t where "
+        + "t.sharePrice = 0.00000000000000001"
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllMigration();
+
 }

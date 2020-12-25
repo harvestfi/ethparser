@@ -3,11 +3,13 @@ package pro.belbix.ethparser.model;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Map;
+import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
+@Data
 public class HarvestTx implements EthTransactionI {
 
     private long logId;
@@ -28,6 +30,7 @@ public class HarvestTx implements EthTransactionI {
     private BigInteger intFromArgs2;
     private boolean success = false;
     private boolean enriched;
+    private boolean migration = false;
 
     public boolean isContainsAddress(Map<String, String> addresses) {
         return addresses.containsKey(vault.getValue().toLowerCase());
@@ -51,7 +54,7 @@ public class HarvestTx implements EthTransactionI {
         return dto;
     }
 
-    private String removeBracers(String s) {
+    public static String removeBracers(String s) {
         if (s.equals("_3CRV")) {
             return "3CRV";
         }
@@ -97,171 +100,5 @@ public class HarvestTx implements EthTransactionI {
             case "rebalance":
                 break;
         }
-    }
-
-    @Override
-    public String toString() {
-        return "HarvestTx{" +
-            "hash='" + hash + '\'' +
-            ", methodName='" + methodName + '\'' +
-            ", owner='" + owner + '\'' +
-            ", block=" + block +
-            ", amount=" + amount +
-            ", vault=" + vault +
-            ", addressFromArgs=" + Arrays.toString(addressFromArgs) +
-            ", addressFromArgs1=" + addressFromArgs1 +
-            ", addressFromArgs2=" + addressFromArgs2 +
-            ", intFromArgs=" + Arrays.toString(intFromArgs) +
-            ", intFromArgs1=" + intFromArgs1 +
-            ", intFromArgs2=" + intFromArgs2 +
-            ", success=" + success +
-            ", enriched=" + enriched +
-            '}';
-    }
-
-    //------------- GETTERS & SETTERS -------------------------
-
-    public Address getfToken() {
-        return fToken;
-    }
-
-    public void setfToken(Address fToken) {
-        this.fToken = fToken;
-    }
-
-    public BigInteger getAmountIn() {
-        return amountIn;
-    }
-
-    public void setAmountIn(BigInteger amountIn) {
-        this.amountIn = amountIn;
-    }
-
-    public String getBlockHash() {
-        return blockHash;
-    }
-
-    public void setBlockHash(String blockHash) {
-        this.blockHash = blockHash;
-    }
-
-    public long getLogId() {
-        return logId;
-    }
-
-    public void setLogId(long logId) {
-        this.logId = logId;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public BigInteger getBlock() {
-        return block;
-    }
-
-    public void setBlock(BigInteger block) {
-        this.block = block;
-    }
-
-    public BigInteger getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigInteger amount) {
-        this.amount = amount;
-    }
-
-    public Address getVault() {
-        return vault;
-    }
-
-    public void setVault(Address vault) {
-        this.vault = vault;
-    }
-
-    public Address[] getAddressFromArgs() {
-        return addressFromArgs;
-    }
-
-    public void setAddressFromArgs(Address[] addressFromArgs) {
-        this.addressFromArgs = addressFromArgs;
-    }
-
-    public Address getAddressFromArgs1() {
-        return addressFromArgs1;
-    }
-
-    public void setAddressFromArgs1(Address addressFromArgs1) {
-        this.addressFromArgs1 = addressFromArgs1;
-    }
-
-    public Address getAddressFromArgs2() {
-        return addressFromArgs2;
-    }
-
-    public void setAddressFromArgs2(Address addressFromArgs2) {
-        this.addressFromArgs2 = addressFromArgs2;
-    }
-
-    public BigInteger[] getIntFromArgs() {
-        return intFromArgs;
-    }
-
-    public void setIntFromArgs(BigInteger[] intFromArgs) {
-        this.intFromArgs = intFromArgs;
-    }
-
-    public BigInteger getIntFromArgs1() {
-        return intFromArgs1;
-    }
-
-    public void setIntFromArgs1(BigInteger intFromArgs1) {
-        this.intFromArgs1 = intFromArgs1;
-    }
-
-    public BigInteger getIntFromArgs2() {
-        return intFromArgs2;
-    }
-
-    public void setIntFromArgs2(BigInteger intFromArgs2) {
-        this.intFromArgs2 = intFromArgs2;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public boolean isEnriched() {
-        return enriched;
-    }
-
-    public void setEnriched(boolean enriched) {
-        this.enriched = enriched;
     }
 }

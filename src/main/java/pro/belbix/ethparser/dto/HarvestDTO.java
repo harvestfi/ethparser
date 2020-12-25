@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import lombok.Data;
 
 @Entity
@@ -42,6 +43,10 @@ public class HarvestDTO implements DtoI {
     private Double ownerBalanceUsd;
     private Integer allOwnersCount;
     private Integer allPoolsOwnersCount;
+    private boolean migrated;
+    @Transient
+    private HarvestDTO migration;
+
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

@@ -7,6 +7,7 @@ import static pro.belbix.ethparser.web3.ContractConstants.D8;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public class Vaults {
@@ -118,6 +119,15 @@ public class Vaults {
         vaultNameToOldVaultName.put("RENBTC", "RENBTC_V0");
         vaultNameToOldVaultName.put("CRVRENWBTC", "CRVRENWBTC_V0");
 
+    }
+
+    public static String oldVaultToNew(String oldName) {
+        for(Entry<String, String> entry : vaultNameToOldVaultName.entrySet()) {
+            if(entry.getValue().equalsIgnoreCase(oldName)) {
+                return entry.getKey();
+            }
+        }
+        throw new IllegalStateException("Not found vault for " + oldName);
     }
 
     public static boolean isLp(String vaultName) {

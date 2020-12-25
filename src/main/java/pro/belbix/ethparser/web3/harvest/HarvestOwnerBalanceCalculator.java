@@ -5,9 +5,12 @@ import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.generated.Uint256;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
@@ -55,9 +58,20 @@ public class HarvestOwnerBalanceCalculator {
     }
 
     private boolean balanceForVault(HarvestDTO dto) {
+        long block = dto.getBlock().longValue();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        BigInteger balanceI = functions
-            .callUnderlyingBalance(dto.getOwner(), vaultHash, dto.getBlock().longValue());
+        BigInteger balanceI;
+        if (dto.isMigrated()) {
+            //migration process broken UnderlyingBalance for vault
+            //but we have shortcut - after migration we can check balanceOf
+            String stHash = StakeContracts.vaultHashToStakeHash.get(vaultHash);
+            if(vaultHash == null) {
+                throw new IllegalStateException("Not found st for " + dto.getVault());
+            }
+            balanceI = functions.callBalanceOf(dto.getOwner(), stHash, block);
+        } else {
+            balanceI = functions.callUnderlyingBalance(dto.getOwner(), vaultHash, block);
+        }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
             return false;
@@ -73,10 +87,10 @@ public class HarvestOwnerBalanceCalculator {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
             double amountUsd = priceProvider
-                .getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+                .getLpPositionAmountInUsd(lpHash, balance, block);
             dto.setOwnerBalanceUsd(amountUsd);
         } else {
-            double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+            double price = priceProvider.getPriceForCoin(dto.getVault(), block);
             dto.setOwnerBalanceUsd(balance * price);
         }
         return true;

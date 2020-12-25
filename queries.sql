@@ -36,9 +36,9 @@ select vault, count(owner) from (
                          owner,
                          SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance
                   from harvest_tx
-                  group by vault, owner, owner_balance_usd
+                  group by vault, owner
               ) t
-where balance > 0
+where balance > 10
 group by vault;
 
 -- ALL USERS QUANTITY
@@ -55,12 +55,14 @@ from (
      ) t2;
 
 -- USERS QUANTITY ALL POOLS
-select count(owner) owners from (
-         select distinct owner from (
-                  select owner from harvest_tx
-                  where vault not in ('PS', 'PS_V0')
-              ) t
-     ) t2;
+select count(owner) owners
+from (select owner,
+             SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance
+      from harvest_tx
+      where vault not in ('PS', 'PS_V0', 'UNI_LP_USDC_FARM', 'UNI_LP_WETH_FARM', 'UNI_LP_WBTC_BADGER','UNI_LP_GRAIN_FARM')
+      group by owner
+     ) t
+where balance > 10;
 
 -- USERS QUANTITY WITH POSITIVE BALANCE FOR ALL POOLS
 select count(owner) owners
