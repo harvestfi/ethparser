@@ -46,6 +46,26 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultUNI_ETH_WBTC2() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.UNI_ETH_WBTC,
+            11082567,
+            LOG_ID,
+            "0x15e7e224dcfa4dba59f342f01c70007b8a8f4aa0",
+            "Deposit",
+            "UNI_ETH_WBTC",
+            "0xf280ca6140b715d268c206196313d03ee157c02595699c1221724fe85a72f7b8_11",
+            "0,00175897",
+            "",
+            "",
+            795004L,
+            61485661L,
+            true
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
     public void parseVaultUNI_ETH_DAI_V0_migration() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.UNI_ETH_DAI_V0,

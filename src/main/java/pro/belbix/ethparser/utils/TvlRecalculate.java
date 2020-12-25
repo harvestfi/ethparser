@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
@@ -64,13 +66,18 @@ public class TvlRecalculate {
         harvestDtosToMap(harvestDTOList);
         uniDtosToMap(uniswapRepository.findAll());
         int count = 0;
+        List<HarvestTvlEntity> tvls = new ArrayList<>();
         for (HarvestDTO harvestDTO : harvestDTOList) {
             count++;
-            harvestDBService.saveHarvestTvl(harvestDTO, false);
+            HarvestTvlEntity tvl = harvestDBService.saveHarvestTvl(harvestDTO, false);
+            tvls.add(tvl);
             if (count % 10000 == 0) {
+                harvestTvlRepository.saveAll(tvls);
                 log.info("Save for " + harvestDTO.print());
+                tvls.clear();
             }
         }
+        harvestTvlRepository.saveAll(tvls);
     }
 
     private void harvestDtosToMap(List<HarvestDTO> harvestDTOList) {

@@ -51,14 +51,14 @@ public class HarvestDBService {
             return false;
         }
 
-        harvestRepository.save(dto);
-        harvestRepository.flush();
+        harvestRepository.saveAndFlush(dto);
 
         fillOwnersCount(dto);
-        harvestRepository.save(dto);
-        harvestRepository.flush();
+        harvestRepository.saveAndFlush(dto);
 
-        saveHarvestTvl(dto, true);
+        HarvestTvlEntity harvestTvl = saveHarvestTvl(dto, true);
+        harvestTvlRepository.save(harvestTvl);
+
         harvestRepository.save(dto);
         return true;
     }
@@ -88,9 +88,8 @@ public class HarvestDBService {
         dto.setAllPoolsOwnersCount(allPoolsOwnerCount);
     }
 
-    public void saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    public HarvestTvlEntity saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
         double tvl = 0.0;
-        int owners = 0;
         Double farmPrice = 0.0;
         UniswapDTO uniswapDTO = uniswapRepository
             .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
@@ -110,29 +109,24 @@ public class HarvestDBService {
                 lastHarvest = dto; // for avoiding JPA wrong synchronisation
             }
             tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
-            if (lastHarvest.getOwnerCount() != null) {
-                owners += lastHarvest.getOwnerCount();
-            } else {
-                log.warn("Owners quantity is null for " + lastHarvest.print());
-            }
         }
 
-        HarvestTvlEntity newTvl = new HarvestTvlEntity();
-        newTvl.setCalculateTime(dto.getBlockDate());
-        newTvl.setLastTvl(tvl);
-        newTvl.setLastOwnersCount(owners);
-        newTvl.setCalculateHash(dto.getHash());
-        newTvl.setLastPrice(farmPrice);
+        HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+        harvestTvl.setCalculateTime(dto.getBlockDate());
+        harvestTvl.setLastTvl(tvl);
+        harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
+        harvestTvl.setCalculateHash(dto.getHash());
+        harvestTvl.setLastPrice(farmPrice);
 
         if (uniswapDTO != null) {
-            newTvl.setLastPrice(uniswapDTO.getLastPrice());
+            harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
         }
 
         if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
             log.info("Found the same (" + tvl + ") last TVL record for " + dto);
         }
         dto.setLastAllUsdTvl(tvl);
-        harvestTvlRepository.save(newTvl);
+        return harvestTvl;
     }
 
     public BigInteger lastBlock() {
@@ -182,6 +176,9 @@ public class HarvestDBService {
         }
         if (tvl == 0.0) {
             return dto.getLastUsdTvl();
+        }
+        if(Double.isInfinite(tvl)) {
+            throw new IllegalStateException("TVL is infinity for " + dto);
         }
         return tvl;
     }
