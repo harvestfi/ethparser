@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @Service
 public class HardWorkDbService {
@@ -25,20 +28,23 @@ public class HardWorkDbService {
     private final Pageable limitOne = PageRequest.of(0, 1);
     private final static long PS_DEPLOYED = 1601389313;
     private final static long PS_OLD_DEPLOYED = 1599258042;
+    private final static double HARD_WORK_COST = 0.1;
 
     private final HardWorkRepository hardWorkRepository;
     private final HarvestRepository harvestRepository;
     private final UniswapRepository uniswapRepository;
     private final AppProperties appProperties;
+    private final PriceProvider priceProvider;
 
     public HardWorkDbService(HardWorkRepository hardWorkRepository,
                              HarvestRepository harvestRepository,
                              UniswapRepository uniswapRepository,
-                             AppProperties appProperties) {
+                             AppProperties appProperties, PriceProvider priceProvider) {
         this.hardWorkRepository = hardWorkRepository;
         this.harvestRepository = harvestRepository;
         this.uniswapRepository = uniswapRepository;
         this.appProperties = appProperties;
+        this.priceProvider = priceProvider;
     }
 
     public boolean save(HardWorkDTO dto) {
@@ -62,8 +68,29 @@ public class HardWorkDbService {
         calculateVaultProfits(dto);
         calculatePsProfits(dto);
         calculateFarmBuyback(dto);
+        fillExtraInfo(dto);
 
         hardWorkRepository.save(dto);
+    }
+
+    public void fillExtraInfo(HardWorkDTO dto) {
+        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate());
+        dto.setCallsQuantity(count + 1);
+        int owners = harvestRepository.fetchActualOwnerQuantity(
+            dto.getVault(),
+            Vaults.vaultNameToOldVaultName.get(dto.getVault()),
+            dto.getBlockDate());
+        dto.setPoolUsers(owners);
+
+        double ethPrice = priceProvider.getPriceForCoin(WETH_NAME, dto.getBlock());
+
+        dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
+
+        Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
+        if (feesSum == null) {
+            feesSum = 0.0;
+        }
+        dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
     }
 
     private void calculateVaultProfits(HardWorkDTO dto) {

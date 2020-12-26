@@ -10,10 +10,15 @@ import pro.belbix.ethparser.dto.UniswapDTO;
 public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     @Query(nativeQuery = true, value = ""
-        + "select count(*) from ("
-        + "select t.owner from uni_tx t where coin = 'FARM' group by t.owner) tt"
-    )
-    Integer fetchOwnerCount();
+        + "select count(owner) from ( "
+        + "                  select owner, "
+        + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
+        + "                  from uni_tx "
+        + "                   where block_date <= :block_date "
+        + "                  group by owner "
+        + "              ) t "
+        + "where balance > 10 ")
+    Integer fetchOwnerCount(@Param("block_date") long blockDate);
 
     UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
 
@@ -36,5 +41,11 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     List<UniswapDTO> findAllByOrderByBlockDate();
 
     List<UniswapDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long from);
+
+    @Query("select t from UniswapDTO t where "
+        + "t.ownerBalance is null "
+        + "or t.ownerBalanceUsd is null "
+        + "order by t.blockDate asc")
+    List<UniswapDTO> fetchAllWithoutOwnerBalance();
 
 }

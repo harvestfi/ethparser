@@ -95,7 +95,7 @@ public class RewardParser implements Web3Parser {
             || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        if (!appProperties.isDevMod()) {
+        if (!"reward-download".equalsIgnoreCase(appProperties.getStartUtil())) {
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
         long nextBlock =

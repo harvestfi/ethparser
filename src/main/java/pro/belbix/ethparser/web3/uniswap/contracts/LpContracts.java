@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.uniswap.contracts;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
+import static pro.belbix.ethparser.web3.PriceProvider.simplifyName;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDC;
@@ -160,6 +161,15 @@ public class LpContracts {
         parsable.add(UNI_LP_GRAIN_FARM);
     }
 
+    public static String findVaultHashByLpHash(String lpHash) {
+        for (Entry<String, String> entry : harvestStrategyToLp.entrySet()) {
+            if (entry.getValue().equalsIgnoreCase(lpHash)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public static String findNameForLpHash(String lpHash) {
         String lpName = lpHashToName.get(lpHash);
         if (lpName == null) {
@@ -169,11 +179,17 @@ public class LpContracts {
     }
 
     public static String findLpForCoins(String coin1, String coin2) {
+        coin1 = simplifyName(coin1);
+        coin2 = simplifyName(coin2);
         for (Entry<String, Tuple2<String, String>> entry : lpHashToCoinNames.entrySet()) {
             Tuple2<String, String> coinNames = entry.getValue();
             if (
-                (coinNames.component1().equals(coin1) || coinNames.component2().equals(coin1))
-                    && (coinNames.component1().equals(coin2) || coinNames.component2().equals(coin2))
+                (coinNames.component1().equalsIgnoreCase(coin1)
+                    || coinNames.component2().equalsIgnoreCase(coin1))
+                    && (
+                    coinNames.component1().equalsIgnoreCase(coin2)
+                        || coinNames.component2().equalsIgnoreCase(coin2)
+                )
             ) {
                 return entry.getKey();
             }

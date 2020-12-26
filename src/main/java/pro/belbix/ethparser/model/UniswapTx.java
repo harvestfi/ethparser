@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.findNameForCont
 import java.math.BigInteger;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public class UniswapTx implements EthTransactionI {
 
@@ -234,6 +235,7 @@ public class UniswapTx implements EthTransactionI {
         uniswapDTO.setBlock(block);
         uniswapDTO.setCoin(findNameForContract(coinAddress));
         uniswapDTO.setConfirmed(success);
+        uniswapDTO.setLp(LpContracts.findNameForLpHash(lpAddress));
 
         if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
             assertBuy(false);

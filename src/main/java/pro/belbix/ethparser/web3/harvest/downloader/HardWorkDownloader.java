@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.utils;
+package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;

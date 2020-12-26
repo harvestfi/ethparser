@@ -14,6 +14,10 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<HarvestDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long blockDate);
 
     @Query(nativeQuery = true, value = ""
+        + "select * from harvest_tx where all_pools_owners_count is null order by block_date;")
+    List<HarvestDTO> fetchAllWithoutCounts();
+
+    @Query(nativeQuery = true, value = ""
         + "select (coalesce(deposit.d, 0) - coalesce(withdraw.w, 0)) result from (  "
         + "                  (select SUM(amount) d  "
         + "                  from harvest_tx t  "
@@ -43,25 +47,40 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Integer fetchOwnerCount(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
-        + "select count(t.owner) from ( "
-        + "select deposit.owner owner, deposit.d_amnt, withdraw.w_amnt, (deposit.d_amnt - withdraw.w_amnt) result from "
-        + "    (select owner, sum(amount) d_amnt "
-        + "     from harvest_tx "
-        + "     where method_name = 'Deposit' "
-        + "       and (vault = :vault or vault = :oldVault /*previous version*/) "
-        + "       and block_date <= :block_date "
-        + "     group by owner) deposit "
-        + "        left join "
-        + "    (select owner, sum(amount) w_amnt from harvest_tx "
-        + "     where method_name = 'Withdraw' "
-        + "       and (vault = :vault or vault = :oldVault /*previous version*/) "
-        + "       and block_date <= :block_date "
-        + "     group by owner) withdraw ON deposit.owner = withdraw.owner "
-        + "    ) t "
-        + "where t.result is null or t.result > 0")
-    Integer fetchActualOwnerCount(@Param("vault") String vault,
-                                  @Param("oldVault") String oldVault,
-                                  @Param("block_date") long blockDate);
+        + "select count(owner) from ( "
+        + "                  select owner, "
+        + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
+        + "                  from harvest_tx "
+        + "                  where vault in (:vault, :oldVault) and block_date <= :block_date "
+        + "                  group by owner "
+        + "              ) t "
+        + "where balance > 10 ")
+    Integer fetchActualOwnerQuantity(@Param("vault") String vault,
+                                     @Param("oldVault") String oldVault,
+                                     @Param("block_date") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select count(owner) owners from ( "
+        + "         select distinct owner from ( "
+        + "                  select owner from harvest_tx "
+        + "                   where harvest_tx.block_date <= :block_date "
+        + "                  union all "
+        + "                  select owner from uni_tx "
+        + "                   where uni_tx.block_date <= :block_date "
+        + "              ) t "
+        + "     ) t2")
+    Integer fetchAllUsersQuantity(@Param("block_date") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select count(owner) owners "
+        + "from (select owner, "
+        + "                      SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
+        + "               from harvest_tx "
+        + "               where vault in :vaults and block_date < :block_date"
+        + "               group by owner "
+        + "              ) t "
+        + "    where balance > 10")
+    Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults, @Param("block_date") long blockDate);
 
     HarvestDTO findFirstByOrderByBlockDesc();
 
@@ -83,5 +102,16 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     @Query("select t from HarvestDTO t where "
         + "t.owner = :owner and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
     List<HarvestDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);
+
+    @Query("select t from HarvestDTO t where "
+        + "t.ownerBalance is null "
+        + "or t.ownerBalanceUsd is null "
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllWithoutOwnerBalance();
+
+    @Query("select t from HarvestDTO t where "
+        + "t.sharePrice = 0.00000000000000001"
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllMigration();
 
 }

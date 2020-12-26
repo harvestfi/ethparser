@@ -146,6 +146,8 @@ public class UniToHarvestConverter implements Web3Parser {
         harvestDTO.setVault(findNameForLpHash(lpHash));
         harvestDTO.setLastGas(uniswapDTO.getLastGas());
         harvestDTO.setSharePrice(1.0);
+        harvestDTO.setOwnerBalance(uniswapDTO.getOwnerBalance());
+        harvestDTO.setOwnerBalanceUsd(uniswapDTO.getOwnerBalanceUsd());
 
         if (ADD_LIQ.equals(uniswapDTO.getType())) {
             harvestDTO.setMethodName("Deposit");

@@ -20,6 +20,7 @@ import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
@@ -39,19 +40,22 @@ public class UniswapLpLogParser implements Web3Parser {
     private final PriceProvider priceProvider;
     private final UniToHarvestConverter uniToHarvestConverter;
     private final ParserInfo parserInfo;
+    private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
 
     public UniswapLpLogParser(Web3Service web3Service,
                               UniswapDbService uniswapDbService,
                               EthBlockService ethBlockService,
                               PriceProvider priceProvider,
                               UniToHarvestConverter uniToHarvestConverter,
-                              ParserInfo parserInfo) {
+                              ParserInfo parserInfo,
+                              UniOwnerBalanceCalculator uniOwnerBalanceCalculator) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
         this.uniToHarvestConverter = uniToHarvestConverter;
         this.parserInfo = parserInfo;
+        this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
     }
 
     @Override
@@ -68,6 +72,7 @@ public class UniswapLpLogParser implements Web3Parser {
                     if (dto != null) {
                         lastTx = Instant.now();
                         enrichDto(dto);
+                        uniOwnerBalanceCalculator.fillBalance(dto);
                         uniToHarvestConverter.addDtoToQueue(dto);
                         boolean success = uniswapDbService.saveUniswapDto(dto);
                         if (success) {

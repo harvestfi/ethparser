@@ -28,9 +28,9 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
         + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchProfitForPeriod(@Param("vault") String vault,
-                                       @Param("from") long from,
-                                       @Param("to") long to,
-                                       Pageable pageable);
+                                      @Param("from") long from,
+                                      @Param("to") long to,
+                                      Pageable pageable);
 
     @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
         + "t.blockDate <= :to")
@@ -41,10 +41,18 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchAllProfitForPeriod(@Param("from") long from,
                                          @Param("to") long to,
-                                      Pageable pageable);
+                                         Pageable pageable);
 
     @Query("select sum(t.farmBuyback) from HardWorkDTO t where "
         + " t.blockDate < :to")
     List<Double> fetchAllBuybacksAtDate(@Param("to") long to,
-                                         Pageable pageable);
+                                        Pageable pageable);
+
+    @Query(nativeQuery = true, value = ""
+        + "select count(*) from hard_work where vault = :vault and block_date < :blockDate")
+    Integer countAtBlockDate(@Param("vault") String vault, @Param("blockDate") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select sum(saved_gas_fees) from hard_work where vault = :vault and block_date < :blockDate")
+    Double sumSavedGasFees(@Param("vault") String vault, @Param("blockDate") long blockDate);
 }
