@@ -5,8 +5,6 @@ import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.generated.Uint256;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.PriceProvider;
@@ -65,7 +63,7 @@ public class HarvestOwnerBalanceCalculator {
             //migration process broken UnderlyingBalance for vault
             //but we have shortcut - after migration we can check balanceOf
             String stHash = StakeContracts.vaultHashToStakeHash.get(vaultHash);
-            if(vaultHash == null) {
+            if (vaultHash == null) {
                 throw new IllegalStateException("Not found st for " + dto.getVault());
             }
             balanceI = functions.callBalanceOf(dto.getOwner(), stHash, block);
@@ -74,7 +72,11 @@ public class HarvestOwnerBalanceCalculator {
         }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
-            return false;
+            //maybe strategy disabled? try balanceOf
+            balanceI = functions.callBalanceOf(dto.getOwner(), vaultHash, block);
+            if (balanceI == null) {
+                return false;
+            }
         }
 
         double balance = parseAmount(balanceI, vaultHash);

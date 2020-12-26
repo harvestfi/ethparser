@@ -22,6 +22,8 @@ public class OwnerCountRecalculate {
 
     @Value("${owners-count-recalculate.from:}")
     private Integer from;
+    @Value("${owners-count-recalculate.empty:}")
+    private Boolean empty;
 
     public OwnerCountRecalculate(HarvestRepository harvestRepository,
                                  HarvestDBService harvestDBService,
@@ -36,7 +38,9 @@ public class OwnerCountRecalculate {
     public void start() {
         int count = 0;
         List<HarvestDTO> harvestDTOList;
-        if (from == null) {
+        if (empty != null) {
+            harvestDTOList = harvestRepository.fetchAllWithoutCounts();
+        } else if (from == null) {
             harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
         } else {
             harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);

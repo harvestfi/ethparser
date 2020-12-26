@@ -114,7 +114,11 @@ public class HarvestDBService {
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
         harvestTvl.setCalculateTime(dto.getBlockDate());
         harvestTvl.setLastTvl(tvl);
-        harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
+        if (dto.getAllPoolsOwnersCount() != null) {
+            harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
         harvestTvl.setCalculateHash(dto.getHash());
         harvestTvl.setLastPrice(farmPrice);
 
@@ -177,7 +181,7 @@ public class HarvestDBService {
         if (tvl == 0.0) {
             return dto.getLastUsdTvl();
         }
-        if(Double.isInfinite(tvl)) {
+        if (Double.isInfinite(tvl)) {
             throw new IllegalStateException("TVL is infinity for " + dto);
         }
         return tvl;

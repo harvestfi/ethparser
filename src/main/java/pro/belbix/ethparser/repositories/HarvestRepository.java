@@ -14,6 +14,10 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<HarvestDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long blockDate);
 
     @Query(nativeQuery = true, value = ""
+        + "select * from harvest_tx where all_pools_owners_count is null order by block_date;")
+    List<HarvestDTO> fetchAllWithoutCounts();
+
+    @Query(nativeQuery = true, value = ""
         + "select (coalesce(deposit.d, 0) - coalesce(withdraw.w, 0)) result from (  "
         + "                  (select SUM(amount) d  "
         + "                  from harvest_tx t  "

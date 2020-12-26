@@ -31,6 +31,11 @@ public class HarvestRepositoryCache implements HarvestRepository {
     }
 
     @Override
+    public List<HarvestDTO> fetchAllWithoutCounts() {
+        return null;
+    }
+
+    @Override
     public Double fetchTVL(String vault, long blockDate) {
         return null;
     }
