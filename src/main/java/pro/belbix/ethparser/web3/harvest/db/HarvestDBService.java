@@ -119,6 +119,11 @@ public class HarvestDBService {
         } else {
             log.warn("Empty AllPoolsOwnersCount " + dto.print());
         }
+        if (dto.getAllOwnersCount() != null) {
+            harvestTvl.setLastAllOwnersCount(dto.getAllOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
         harvestTvl.setCalculateHash(dto.getHash());
         harvestTvl.setLastPrice(farmPrice);
 
