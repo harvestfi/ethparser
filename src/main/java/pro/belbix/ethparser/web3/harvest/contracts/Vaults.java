@@ -6,9 +6,9 @@ import static pro.belbix.ethparser.web3.ContractConstants.D8;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public class Vaults {
 
@@ -54,8 +54,8 @@ public class Vaults {
     public static final String CRV_HBTC = "0xCC775989e76ab386E9253df5B0c0b473E22102E2".toLowerCase();
 
     public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
+    public final static Map<String, String> vaultNameToHash = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
-    public final static Set<String> lpTokens = new LinkedHashSet<>();
     public final static Map<String, String> vaultNameToOldVaultName = new LinkedHashMap<>();
 
     static {
@@ -107,21 +107,6 @@ public class Vaults {
         vaultDividers.put(CRV_HUSD, D18);
         vaultDividers.put(CRV_HBTC, D18);
 
-        lpTokens.add("UNI_ETH_DAI");
-        lpTokens.add("UNI_ETH_USDC");
-        lpTokens.add("UNI_ETH_USDT");
-        lpTokens.add("UNI_ETH_WBTC");
-        lpTokens.add("SUSHI_WBTC_TBTC");
-        lpTokens.add("UNI_ETH_DAI_V0");
-        lpTokens.add("UNI_ETH_USDC_V0");
-        lpTokens.add("UNI_ETH_USDT_V0");
-        lpTokens.add("UNI_ETH_WBTC_V0");
-        lpTokens.add("SUSHI_ETH_DAI");
-        lpTokens.add("SUSHI_ETH_USDC");
-        lpTokens.add("SUSHI_ETH_USDT");
-        lpTokens.add("SUSHI_ETH_WBTC");
-        lpTokens.add("IDX_ETH_DPI");
-
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDT", "UNI_ETH_USDT_V0");
@@ -136,6 +121,27 @@ public class Vaults {
 
     }
 
+    public static String oldVaultToNew(String oldName) {
+        for(Entry<String, String> entry : vaultNameToOldVaultName.entrySet()) {
+            if(entry.getValue().equalsIgnoreCase(oldName)) {
+                return entry.getKey();
+            }
+        }
+        throw new IllegalStateException("Not found vault for " + oldName);
+    }
+
+    public static boolean isLp(String vaultName) {
+        String vaultHash = Vaults.vaultNameToHash.get(vaultName);
+        if(vaultHash == null) {
+            throw new IllegalStateException("Vault hash not found for " + vaultName);
+        }
+       return LpContracts.harvestStrategyToLp.containsKey(vaultHash);
+    }
+
+    public static boolean isPs(String vaultName) {
+        return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);
+    }
+
     //dangerous, but useful
     private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
         for (Field field : Vaults.class.getDeclaredFields()) {
@@ -147,6 +153,7 @@ public class Vaults {
                 vaultName = vaultName.replaceFirst("_", "");
             }
             vaultHashToName.put((String) field.get(null), vaultName);
+            vaultNameToHash.put(vaultName, (String) field.get(null));
         }
     }
 

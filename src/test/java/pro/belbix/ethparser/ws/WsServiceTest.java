@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.ws;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
@@ -11,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -74,7 +74,7 @@ public class WsServiceTest {
                     @Override
                     public void handleFrame(StompHeaders headers, Object payload) {
                         try {
-                            assertEquals("test", ((UniswapDTO) payload).getType());
+                            Assertions.assertEquals("test", ((UniswapDTO) payload).getType());
                         } catch (Throwable t) {
                             failure.set(t);
                         } finally {

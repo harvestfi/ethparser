@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap.utils;
+package pro.belbix.ethparser.web3.uniswap.downloader;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpNameToHash;

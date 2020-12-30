@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap.utils;
+package pro.belbix.ethparser.web3.uniswap.downloader;
 
 import static pro.belbix.ethparser.web3.uniswap.db.UniswapDbService.DO_HARD_WORK;
 
