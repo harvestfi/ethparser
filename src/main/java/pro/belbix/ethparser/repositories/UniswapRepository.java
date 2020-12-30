@@ -47,5 +47,5 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         + "or t.ownerBalanceUsd is null "
         + "order by t.blockDate asc")
     List<UniswapDTO> fetchAllWithoutOwnerBalance();
-    
+
 }
