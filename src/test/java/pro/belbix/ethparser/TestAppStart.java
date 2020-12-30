@@ -7,12 +7,15 @@ import pro.belbix.ethparser.properties.AppProperties;
 
 @SpringBootTest(classes = Application.class)
 public class TestAppStart {
+
     @Autowired
     private AppProperties appProperties;
 
     @Test
     public void startTest() throws InterruptedException {
-        Application.main(new String[]{});
+        if (appProperties.isDevMod()) {
+            Application.main(new String[]{});
+        }
         while (appProperties.isDevMod()) {
             Thread.sleep(1000);
         }

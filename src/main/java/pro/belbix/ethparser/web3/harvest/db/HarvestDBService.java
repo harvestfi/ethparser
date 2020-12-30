@@ -6,8 +6,8 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -51,23 +51,45 @@ public class HarvestDBService {
             return false;
         }
 
-        Integer ownerCount = harvestRepository.fetchActualOwnerCount(dto.getVault(),
+        harvestRepository.saveAndFlush(dto);
+
+        fillOwnersCount(dto);
+        harvestRepository.saveAndFlush(dto);
+
+        HarvestTvlEntity harvestTvl = saveHarvestTvl(dto, true);
+        harvestTvlRepository.save(harvestTvl);
+
+        harvestRepository.save(dto);
+        return true;
+    }
+
+    public void fillOwnersCount(HarvestDTO dto) {
+        Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
             Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
         dto.setOwnerCount(ownerCount);
 
-        harvestRepository.save(dto);
-        harvestRepository.flush();
-        saveHarvestTvl(dto, true);
-        harvestRepository.save(dto);
-        return true;
+        Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity(dto.getBlockDate());
+        if (allOwnersCount == null) {
+            allOwnersCount = 0;
+        }
+        dto.setAllOwnersCount(allOwnersCount);
+
+        Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
+            Vaults.vaultNameToHash.keySet().stream()
+                .filter(v -> !Vaults.isPs(v))
+                .collect(Collectors.toList()),
+            dto.getBlockDate());
+        if (allPoolsOwnerCount == null) {
+            allPoolsOwnerCount = 0;
+        }
+        dto.setAllPoolsOwnersCount(allPoolsOwnerCount);
     }
 
-    public void saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    public HarvestTvlEntity saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
         double tvl = 0.0;
-        int owners = 0;
         Double farmPrice = 0.0;
         UniswapDTO uniswapDTO = uniswapRepository
             .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
@@ -83,26 +105,37 @@ public class HarvestDBService {
             if (lastHarvest == null) {
                 continue;
             }
+            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                lastHarvest = dto; // for avoiding JPA wrong synchronisation
+            }
             tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
-            owners += lastHarvest.getOwnerCount();
         }
 
-        HarvestTvlEntity newTvl = new HarvestTvlEntity();
-        newTvl.setCalculateTime(dto.getBlockDate());
-        newTvl.setLastTvl(tvl);
-        newTvl.setLastOwnersCount(owners);
-        newTvl.setCalculateHash(dto.getHash());
-        newTvl.setLastPrice(farmPrice);
+        HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+        harvestTvl.setCalculateTime(dto.getBlockDate());
+        harvestTvl.setLastTvl(tvl);
+        if (dto.getAllPoolsOwnersCount() != null) {
+            harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
+        if (dto.getAllOwnersCount() != null) {
+            harvestTvl.setLastAllOwnersCount(dto.getAllOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
+        harvestTvl.setCalculateHash(dto.getHash());
+        harvestTvl.setLastPrice(farmPrice);
 
         if (uniswapDTO != null) {
-            newTvl.setLastPrice(uniswapDTO.getLastPrice());
+            harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
         }
 
         if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
             log.info("Found the same (" + tvl + ") last TVL record for " + dto);
         }
         dto.setLastAllUsdTvl(tvl);
-        harvestTvlRepository.save(newTvl);
+        return harvestTvl;
     }
 
     public BigInteger lastBlock() {
@@ -152,6 +185,9 @@ public class HarvestDBService {
         }
         if (tvl == 0.0) {
             return dto.getLastUsdTvl();
+        }
+        if (Double.isInfinite(tvl)) {
+            throw new IllegalStateException("TVL is infinity for " + dto);
         }
         return tvl;
     }

@@ -35,21 +35,29 @@ public class UniswapDbService {
     }
 
     public boolean saveUniswapDto(UniswapDTO dto) {
-        Integer ownerCount = uniswapRepository.fetchOwnerCount();
-        if (ownerCount == null) {
-            ownerCount = 0;
-        }
-        dto.setOwnerCount(ownerCount);
         if (!appProperties.isOverrideDuplicates() && uniswapRepository.existsById(dto.getId())) {
             log.warn("Duplicate tx " + dto.getId());
             return false;
         }
         uniswapRepository.save(dto);
         uniswapRepository.flush();
+
+        fillOwnersCount(dto);
+        uniswapRepository.save(dto);
+        uniswapRepository.flush();
+
         if (saveIncome(dto)) {
             uniswapRepository.save(dto);
         }
         return true;
+    }
+
+    public void fillOwnersCount(UniswapDTO dto) {
+        Integer ownerCount = uniswapRepository.fetchOwnerCount(dto.getBlockDate());
+        if (ownerCount == null) {
+            ownerCount = 0;
+        }
+        dto.setOwnerCount(ownerCount);
     }
 
     public boolean saveIncome(UniswapDTO dto) {

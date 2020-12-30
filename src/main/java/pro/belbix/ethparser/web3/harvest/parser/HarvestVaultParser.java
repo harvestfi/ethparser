@@ -179,12 +179,12 @@ public class HarvestVaultParser implements Web3Parser {
             if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs1().getValue())
                 && harvestTx.getMethodName().toLowerCase().equals("deposit")) {
                 harvestTx.setAmount(logTx.getAmount());
-                harvestTx.setfToken(new Address(ethLog.getAddress()));
+                harvestTx.setFToken(new Address(ethLog.getAddress()));
                 return;
             } else if (ZERO_ADDRESS.equals(logTx.getAddressFromArgs2().getValue())
                 && harvestTx.getMethodName().toLowerCase().equals("withdraw")) {
                 harvestTx.setAmount(logTx.getAmount());
-                harvestTx.setfToken(new Address(ethLog.getAddress()));
+                harvestTx.setFToken(new Address(ethLog.getAddress()));
                 return;
             }
         }
@@ -207,7 +207,7 @@ public class HarvestVaultParser implements Web3Parser {
     }
 
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
-        if (Vaults.lpTokens.contains(dto.getVault())) {
+        if (Vaults.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
         } else {
             fillUsdValues(dto, strategyHash);

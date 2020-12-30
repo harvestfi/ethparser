@@ -1,13 +1,9 @@
-package pro.belbix.ethparser.web3.harvest.utils;
+package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.CRV_HBTC;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

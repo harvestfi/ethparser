@@ -5,11 +5,13 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "hard_work", indexes = {
     @Index(name = "idx_hard_work", columnList = "blockDate")
 })
+@Data
 public class HardWorkDTO implements DtoI {
 
     @Id
@@ -32,6 +34,11 @@ public class HardWorkDTO implements DtoI {
     private double psApr;
     private double farmBuyback;
     private double farmBuybackSum;
+    private int callsQuantity;
+    private int poolUsers;
+    private double savedGasFees;
+    private double savedGasFeesSum;
+    private double fee;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -40,157 +47,5 @@ public class HardWorkDTO implements DtoI {
             + shareUsdTotal + " "
             + id;
 
-    }
-
-    public double getFarmBuybackSum() {
-        return farmBuybackSum;
-    }
-
-    public void setFarmBuybackSum(double farmBuybackSum) {
-        this.farmBuybackSum = farmBuybackSum;
-    }
-
-    public double getFarmBuyback() {
-        return farmBuyback;
-    }
-
-    public void setFarmBuyback(double farmBuyback) {
-        this.farmBuyback = farmBuyback;
-    }
-
-    public double getWeeklyAllProfit() {
-        return weeklyAllProfit;
-    }
-
-    public void setWeeklyAllProfit(double weeklyAllProfit) {
-        this.weeklyAllProfit = weeklyAllProfit;
-    }
-
-    public double getWeeklyProfit() {
-        return weeklyProfit;
-    }
-
-    public void setWeeklyProfit(double weeklyProfit) {
-        this.weeklyProfit = weeklyProfit;
-    }
-
-    public long getPsPeriodOfWork() {
-        return psPeriodOfWork;
-    }
-
-    public void setPsPeriodOfWork(long psPeriodOfWork) {
-        this.psPeriodOfWork = psPeriodOfWork;
-    }
-
-    public long getPeriodOfWork() {
-        return periodOfWork;
-    }
-
-    public void setPeriodOfWork(long periodOfWork) {
-        this.periodOfWork = periodOfWork;
-    }
-
-    public double getAllProfit() {
-        return allProfit;
-    }
-
-    public void setAllProfit(double allProfit) {
-        this.allProfit = allProfit;
-    }
-
-    public double getPsTvlUsd() {
-        return psTvlUsd;
-    }
-
-    public void setPsTvlUsd(double psTvl) {
-        this.psTvlUsd = psTvl;
-    }
-
-    public double getPsApr() {
-        return psApr;
-    }
-
-    public void setPsApr(double psApr) {
-        this.psApr = psApr;
-    }
-
-    public double getPerc() {
-        return perc;
-    }
-
-    public void setPerc(double perc) {
-        this.perc = perc;
-    }
-
-    public double getApr() {
-        return apr;
-    }
-
-    public void setApr(double apr) {
-        this.apr = apr;
-    }
-
-    public double getTvl() {
-        return tvl;
-    }
-
-    public void setTvl(double tvl) {
-        this.tvl = tvl;
-    }
-
-    public double getShareUsdTotal() {
-        return shareUsdTotal;
-    }
-
-    public void setShareUsdTotal(double shareUsdTotal) {
-        this.shareUsdTotal = shareUsdTotal;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getVault() {
-        return vault;
-    }
-
-    public void setVault(String vault) {
-        this.vault = vault;
-    }
-
-    public long getBlock() {
-        return block;
-    }
-
-    public void setBlock(long block) {
-        this.block = block;
-    }
-
-    public long getBlockDate() {
-        return blockDate;
-    }
-
-    public void setBlockDate(long blockDate) {
-        this.blockDate = blockDate;
-    }
-
-    public double getShareChange() {
-        return shareChange;
-    }
-
-    public void setShareChange(double shareChange) {
-        this.shareChange = shareChange;
-    }
-
-    public double getShareChangeUsd() {
-        return shareChangeUsd;
-    }
-
-    public void setShareChangeUsd(double shareChangeUsd) {
-        this.shareChangeUsd = shareChangeUsd;
     }
 }

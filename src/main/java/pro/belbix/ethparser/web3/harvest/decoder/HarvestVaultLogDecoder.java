@@ -105,8 +105,14 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
                 args[4] = (BigInteger) types.get(5).getValue();
                 tx.setIntFromArgs(args);
                 return;
-            case "exit":
             case "Migrated":
+                tx.setOwner((String) types.get(0).getValue());
+                args = new BigInteger[2];
+                args[0] = (BigInteger) types.get(1).getValue();
+                args[1] = (BigInteger) types.get(2).getValue();
+                tx.setIntFromArgs(args);
+                return;
+            case "exit":
             case "SmartContractRecorded":
             case "RewardDenied":
                 return;
