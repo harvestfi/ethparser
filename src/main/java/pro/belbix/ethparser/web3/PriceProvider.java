@@ -136,7 +136,7 @@ public class PriceProvider {
 
         Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
         if (reserves == null) {
-            throw new IllegalStateException("Can't reach reserves for " + coinName);
+            throw new IllegalStateException("Can't reach reserves for " + coinName + " " + lpName);
         }
         double price;
         if (

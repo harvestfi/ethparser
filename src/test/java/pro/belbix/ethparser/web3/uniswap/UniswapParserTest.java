@@ -55,6 +55,33 @@ public class UniswapParserTest {
     }
 
     @Test
+    public void parseUNI_LP_USDC_FARM_ADD2() {
+        UniswapDTO dto = uniswapParseTest(UNI_LP_USDC_FARM,
+            10777202,
+            2,
+            "0x2b9e215b27dea420509c81a218119a77bc91931d017cc6eb9f00a090d5ba1eb6_27",
+            "0xe2a6b5d2c244b0f9ba4c4abe8ed3d3ef0a89bfeb",
+            "4,08147853",
+            "ADD",
+            USDC_NAME,
+            "945,85450400",
+            "231,74310394"
+        );
+        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        assertNotNull(harvestDTO);
+        assertAll(
+            () -> assertEquals("Amount", "0,00000000", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
+            () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
+            () -> assertEquals("UsdAmount", "1892", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "0", String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":0.0,\"amount2\":0.0}",
+                harvestDTO.getLpStat()),
+            () -> assertEquals("LastTvl", "0,00000000", String.format("%.8f",  harvestDTO.getLastTvl()))
+        );
+    }
+
+    @Test
     public void parseUNI_LP_GRAIN_FARM_BUY() {
         uniswapParseTest(UNI_LP_GRAIN_FARM,
             11420092,

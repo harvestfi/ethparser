@@ -1,19 +1,14 @@
 package pro.belbix.ethparser.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
@@ -22,6 +17,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 
 @Service
@@ -35,6 +31,7 @@ public class TvlRecalculate {
     private final AppProperties appProperties;
     private final HarvestTvlRepository harvestTvlRepository;
     private final UniswapRepository uniswapRepository;
+    private final PriceProvider priceProvider;
 
     @Value("${tvl-recalculate.from:}")
     private Integer from;
@@ -42,11 +39,12 @@ public class TvlRecalculate {
     public TvlRecalculate(HarvestRepository harvestRepository,
                           AppProperties appProperties,
                           HarvestTvlRepository harvestTvlRepository,
-                          UniswapRepository uniswapRepository) {
+                          UniswapRepository uniswapRepository, PriceProvider priceProvider) {
         this.harvestRepository = harvestRepository;
         this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
         this.uniswapRepository = uniswapRepository;
+        this.priceProvider = priceProvider;
     }
 
     public void start() {
@@ -69,7 +67,15 @@ public class TvlRecalculate {
         List<HarvestTvlEntity> tvls = new ArrayList<>();
         for (HarvestDTO harvestDTO : harvestDTOList) {
             count++;
-            HarvestTvlEntity tvl = harvestDBService.saveHarvestTvl(harvestDTO, false);
+            if (harvestDTO.getPrices() == null || harvestDTO.getPrices().contains("NaN")) {
+                try {
+                    harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock().longValue()));
+                } catch (JsonProcessingException e) {
+                    log.error("Error parse prices", e);
+                }
+                harvestRepository.save(harvestDTO);
+            }
+            HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(harvestDTO, false);
             tvls.add(tvl);
             if (count % 10000 == 0) {
                 harvestTvlRepository.saveAll(tvls);
