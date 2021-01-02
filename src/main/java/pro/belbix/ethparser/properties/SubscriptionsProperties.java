@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
@@ -28,6 +29,9 @@ public class SubscriptionsProperties {
 
         //hard work parsing
         contracts.add(CONTROLLER);
+
+        //transfers parsing
+        contracts.add(FARM_TOKEN);
 
         //harvest events
         contracts.addAll(Vaults.vaultHashToName.keySet());

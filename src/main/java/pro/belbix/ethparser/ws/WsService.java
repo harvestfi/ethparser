@@ -9,6 +9,7 @@ public class WsService {
     public final static String HARVEST_TRANSACTIONS_TOPIC_NAME = "/topic/harvest";
     public final static String HARDWORK_TOPIC_NAME = "/topic/hardwork";
     public final static String REWARDS_TOPIC_NAME = "/topic/rewards";
+    public final static String TRANSFERS_TOPIC_NAME = "/topic/transfers";
 
     private final SimpMessagingTemplate messagingTemplate;
 

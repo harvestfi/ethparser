@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.time.Instant;
@@ -26,6 +27,7 @@ import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -55,6 +57,7 @@ public class Application {
         RewardParser rewardParser = context.getBean(RewardParser.class);
         HardWorkParser hardWorkParser = context.getBean(HardWorkParser.class);
         UniToHarvestConverter uniToHarvestConverter = context.getBean(UniToHarvestConverter.class);
+        TransferParser transferParser = context.getBean(TransferParser.class);
         WsService ws = context.getBean(WsService.class);
         AppProperties conf = context.getBean(AppProperties.class);
 
@@ -87,6 +90,9 @@ public class Application {
 
             if (conf.isConvertUniToHarvest()) {
                 startParse(web3Service, uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            }
+            if (conf.isParseTransfers()) {
+                startParse(web3Service, transferParser, ws, TRANSFERS_TOPIC_NAME, true);
             }
         }
     }

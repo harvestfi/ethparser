@@ -10,7 +10,8 @@ import lombok.Data;
 @Entity
 @Table(name = "transfers", indexes = {
     @Index(name = "idx_transfers_date", columnList = "blockDate"),
-    @Index(name = "idx_transfers_owner", columnList = "owner")
+    @Index(name = "idx_transfers_owner", columnList = "owner"),
+    @Index(name = "idx_transfers_name", columnList = "name")
 })
 @Data
 public class TransferDTO implements DtoI {
