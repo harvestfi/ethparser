@@ -4,11 +4,13 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "rewards", indexes = {
     @Index(name = "idx_rewards", columnList = "blockDate")
 })
+@Data
 public class RewardDTO implements DtoI{
 
     @Id
@@ -29,53 +31,5 @@ public class RewardDTO implements DtoI{
             ", reward=" + reward +
             ", periodFinish=" + periodFinish +
             '}';
-    }
-
-    public long getPeriodFinish() {
-        return periodFinish;
-    }
-
-    public void setPeriodFinish(long periodFinish) {
-        this.periodFinish = periodFinish;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getVault() {
-        return vault;
-    }
-
-    public void setVault(String vault) {
-        this.vault = vault;
-    }
-
-    public long getBlock() {
-        return block;
-    }
-
-    public void setBlock(long block) {
-        this.block = block;
-    }
-
-    public long getBlockDate() {
-        return blockDate;
-    }
-
-    public void setBlockDate(long blockDate) {
-        this.blockDate = blockDate;
-    }
-
-    public double getReward() {
-        return reward;
-    }
-
-    public void setReward(double reward) {
-        this.reward = reward;
     }
 }

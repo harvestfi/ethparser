@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3;
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
 
 import java.lang.reflect.ParameterizedType;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,9 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
+import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
@@ -73,6 +77,17 @@ public abstract class MethodDecoder {
 
     public String createMethodFullHex(String name, List<TypeReference<Type>> parameters) {
         return methodSignatureToFullHex(createMethodSignature(name, parameters));
+    }
+
+    public static BigInteger[] parseInts(Type type) {
+        List values = ((List) type.getValue());
+        BigInteger[] integers = new BigInteger[values.size()];
+        int i = 0;
+        for (Object v : values) {
+            integers[i] = (BigInteger) v;
+            i++;
+        }
+        return integers;
     }
 
     public static String methodSignatureToFullHex(String methodSignature) {
@@ -151,6 +166,22 @@ public abstract class MethodDecoder {
         } else {
             return simpleName;
         }
+    }
+
+    public static double parseAmount(BigInteger amount, String address) {
+        if (amount == null) {
+            return 0.0;
+        }
+        Map<String, Double> dividers = new HashMap<>();
+        dividers.putAll(Vaults.vaultDividers);
+        dividers.putAll(LpContracts.lpHashToDividers);
+        dividers.putAll(Tokens.tokenDividers);
+        Double divider = dividers.get(address);
+        if (divider == null) {
+            throw new IllegalStateException("Divider not found for " + address);
+        }
+        return amount.doubleValue() / divider;
+        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
     }
 
     @SuppressWarnings("unchecked")

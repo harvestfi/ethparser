@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 
 import java.util.List;
 import org.slf4j.Logger;

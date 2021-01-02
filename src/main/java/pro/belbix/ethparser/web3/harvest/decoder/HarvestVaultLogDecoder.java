@@ -120,17 +120,6 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         throw new IllegalStateException("Unknown method " + methodName);
     }
 
-    private static BigInteger[] parseInts(Type type) {
-        List values = ((List) type.getValue());
-        BigInteger[] integers = new BigInteger[values.size()];
-        int i = 0;
-        for (Object v : values) {
-            integers[i] = (BigInteger) v;
-            i++;
-        }
-        return integers;
-    }
-
     @Override
     public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
         throw new UnsupportedOperationException();

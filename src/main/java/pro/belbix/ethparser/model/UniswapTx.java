@@ -1,13 +1,15 @@
 package pro.belbix.ethparser.model;
 
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.amountToDouble;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.findNameForContract;
+import static pro.belbix.ethparser.web3.erc20.Tokens.findNameForContract;
 
 import java.math.BigInteger;
+import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
+@Data
 public class UniswapTx implements EthTransactionI {
 
     public static final String SWAP = "SWAP";
@@ -31,167 +33,6 @@ public class UniswapTx implements EthTransactionI {
     private Address[] allAddresses;
     private String coinAddress;
     private String lpAddress;
-
-    public String getLpAddress() {
-        return lpAddress;
-    }
-
-    public void setLpAddress(String lpAddress) {
-        this.lpAddress = lpAddress;
-    }
-
-    public String getCoinAddress() {
-        return coinAddress;
-    }
-
-    public void setCoinAddress(String coinAddress) {
-        this.coinAddress = coinAddress;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public long getLogId() {
-        return logId;
-    }
-
-    public void setLogId(long logId) {
-        this.logId = logId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public BigInteger getBlock() {
-        return block;
-    }
-
-    public void setBlock(BigInteger block) {
-        this.block = block;
-    }
-
-    public BigInteger getAmountIn() {
-        return amountIn;
-    }
-
-    public void setAmountIn(BigInteger amountIn) {
-        this.amountIn = amountIn;
-    }
-
-    public Address getCoinIn() {
-        return coinIn;
-    }
-
-    public void setCoinIn(Address coinIn) {
-        this.coinIn = coinIn;
-    }
-
-    public BigInteger getAmountOut() {
-        return amountOut;
-    }
-
-    public void setAmountOut(BigInteger amountOut) {
-        this.amountOut = amountOut;
-    }
-
-    public BigInteger getAmountEth() {
-        return amountEth;
-    }
-
-    public void setAmountEth(BigInteger amountEth) {
-        this.amountEth = amountEth;
-    }
-
-    public Address getCoinOut() {
-        return coinOut;
-    }
-
-    public void setCoinOut(Address coinOut) {
-        this.coinOut = coinOut;
-    }
-
-    public BigInteger getLiquidity() {
-        return liquidity;
-    }
-
-    public void setLiquidity(BigInteger liquidity) {
-        this.liquidity = liquidity;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public boolean isEnriched() {
-        return enriched;
-    }
-
-    public void setEnriched(boolean enriched) {
-        this.enriched = enriched;
-    }
-
-    public Boolean getBuy() {
-        return buy;
-    }
-
-    public void setBuy(Boolean buy) {
-        this.buy = buy;
-    }
-
-    public Address[] getAllAddresses() {
-        return allAddresses;
-    }
-
-    public void setAllAddresses(Address[] allAddresses) {
-        this.allAddresses = allAddresses;
-    }
-
-    public boolean isBuy() {
-        return buy;
-    }
-
-    public void setBuy(boolean buy) {
-        this.buy = buy;
-    }
-
-    @Override
-    public String toString() {
-        return "UniswapTx{" +
-            "hash='" + hash + '\'' +
-            ", type='" + type + '\'' +
-            ", owner='" + owner + '\'' +
-            ", block='" + block + '\'' +
-            ", amountIn=" + amountIn +
-            ", coinIn=" + coinIn +
-            ", amountOut=" + amountOut +
-            ", coinOut=" + coinOut +
-            ", liquidity=" + liquidity +
-            ", success=" + success +
-            ", enriched=" + enriched +
-            '}';
-    }
 
     public boolean isContainsAddress(String address) {
         for (Address a : allAddresses) {

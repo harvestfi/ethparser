@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest;
 
-import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;

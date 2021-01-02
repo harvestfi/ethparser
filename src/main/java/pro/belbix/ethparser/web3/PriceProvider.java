@@ -1,16 +1,16 @@
 package pro.belbix.ethparser.web3;
 
-import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.DPI_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.GRAIN_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WBTC_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.WETH_NAME;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
+import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
-import pro.belbix.ethparser.web3.uniswap.contracts.Tokens;
 
 @Service
 public class PriceProvider {

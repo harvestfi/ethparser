@@ -1,13 +1,10 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.parsable;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.firstCoinIsKey;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.mapLpAddressToCoin;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.mapLpAddressToOtherCoin;
+import static pro.belbix.ethparser.web3.erc20.Tokens.firstCoinIsKey;
+import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToCoin;
+import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToOtherCoin;
 
 import java.math.BigInteger;
 import java.util.Arrays;

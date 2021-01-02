@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.util.List;

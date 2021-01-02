@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
@@ -26,6 +27,7 @@ public class UtilsStarter {
     private final OwnerBalanceRecalculate ownerBalanceRecalculate;
     private final OwnerCountRecalculate ownerCountRecalculate;
     private final MigrationRecalculate migrationRecalculate;
+    private final TransferDownloader transferDownloader;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -38,7 +40,8 @@ public class UtilsStarter {
                         LpTvlRecalculate lpTvlRecalculate,
                         OwnerBalanceRecalculate ownerBalanceRecalculate,
                         OwnerCountRecalculate ownerCountRecalculate,
-                        MigrationRecalculate migrationRecalculate) {
+                        MigrationRecalculate migrationRecalculate,
+                        TransferDownloader transferDownloader) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -52,6 +55,7 @@ public class UtilsStarter {
         this.ownerBalanceRecalculate = ownerBalanceRecalculate;
         this.ownerCountRecalculate = ownerCountRecalculate;
         this.migrationRecalculate = migrationRecalculate;
+        this.transferDownloader = transferDownloader;
     }
 
     public void startUtils() {
@@ -80,6 +84,8 @@ public class UtilsStarter {
             ownerCountRecalculate.start();
         } else if ("migration-recalculate".equals(appProperties.getStartUtil())) {
             migrationRecalculate.start();
+        } else if ("transfer-download".equals(appProperties.getStartUtil())) {
+            transferDownloader.start();
         }
         log.info("Utils completed");
         System.exit(0);

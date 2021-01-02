@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap;
 
-import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.util.List;
