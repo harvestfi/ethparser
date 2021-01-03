@@ -33,6 +33,7 @@ public class TransferDTO implements DtoI {
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
             + type + " "
+            + methodName + " "
             + value + " "
             + name + " "
             + balanceUsd + " "

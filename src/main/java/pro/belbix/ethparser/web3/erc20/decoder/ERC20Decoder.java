@@ -53,15 +53,14 @@ public class ERC20Decoder extends MethodDecoder {
         }
     }
 
-    public String decodeMethodName(Transaction transaction) {
-        if (transaction == null) {
+    public String decodeMethodName(String input) {
+        if (input == null) {
             return null;
         }
-        String data = transaction.getInput();
-        if (data.length() < 10) {
+        if (input.length() < 10) {
             return null;
         }
-        String methodID = data.substring(0, 10);
+        String methodID = input.substring(0, 10);
 
         List<TypeReference<Type>> parameters = parametersByMethodId.get(methodID);
         if (parameters == null) {

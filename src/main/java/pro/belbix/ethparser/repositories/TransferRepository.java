@@ -29,4 +29,8 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
     Double getBalanceForOwner(@Param("address") String address, @Param("before") long before);
 
     List<TransferDTO> getAllByOrderByBlockDate();
+
+    @Query(nativeQuery = true, value = ""
+        + "select * from transfers where method_name is null or method_name like '0x%' order by block_date")
+    List<TransferDTO> fetchAllWithoutMethods();
 }

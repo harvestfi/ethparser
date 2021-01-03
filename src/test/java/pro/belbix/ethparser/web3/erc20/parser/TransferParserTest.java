@@ -40,6 +40,141 @@ public class TransferParserTest {
     }
 
     @Test
+    public void testParseFARM_exit1() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337723,
+            0,
+            "FARM",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "180981,24181470",
+            "REWARD",
+            "exit"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_exit2() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337723,
+            1,
+            "FARM",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "2,07976153",
+            "REWARD",
+            "exit"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_exit3() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337723,
+            2,
+            "FARM",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "0x27c7e3758983f00085c5bbc91ecf0c91baae7146",
+            "1,06503922",
+            "COMMON",
+            "exit"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_exit4() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337723,
+            5,
+            "FARM",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "180982,25653701",
+            "NOTIFY",
+            "exit"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_stake1() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337691,
+            0,
+            "FARM",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "180905,75962281",
+            "REWARD",
+            "stake"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_stake2() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337691,
+            1,
+            "FARM",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "10,56597522",
+            "REWARD",
+            "stake"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_stake3() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11337691,
+            6,
+            "FARM",
+            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "180981,24181470",
+            "NOTIFY",
+            "stake"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_balancer() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            10777054,
+            1,
+            "FARM",
+            "0x3e66b66fd1d0b02fda6c811da9e0547970db2f21",
+            "0xefd0199657b444856e3259ed8e3c39ee43cf51dc",
+            "101,21369473",
+            "COMMON",
+            "0xe2b39746"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_swap() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11055960,
+            0,
+            "FARM",
+            "0x8d98f2bcaf61811a2cc813a4db65286b5db785f6",
+            "0x11111254369792b2ca5d084ab5eea397ca8fa48b",
+            "1,58631881",
+            "COMMON",
+            "swap"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
     public void testParseFARM_addLiquidity() {
         TransferDTO dto = parserTest(FARM_TOKEN,
             11362801,
@@ -48,7 +183,7 @@ public class TransferParserTest {
             "0xc3aee7f07034e846243c60acbe8cf5b8a71e4584",
             "0x514906fc121c7878424a5c928cad1852cc545892",
             "9,64157915",
-            "LP_SEND",
+            "LP_ADD",
             "addLiquidity"
         );
         assertNotNull(dto);
