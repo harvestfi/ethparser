@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -13,18 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
-
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsTx;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
-import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.uniswap.contracts.Tokens;
 
 @Service
 public class ImportantEventsParser implements Web3Parser {
@@ -42,10 +41,10 @@ public class ImportantEventsParser implements Web3Parser {
     private final EthBlockService ethBlockService;
 
     public ImportantEventsParser(
-                          Web3Service web3Service,
-                          ImportantEventsDbService importantEventsDbService, 
-                          ParserInfo parserInfo,
-                          EthBlockService ethBlockService) {
+        Web3Service web3Service,
+        ImportantEventsDbService importantEventsDbService,
+        ParserInfo parserInfo,
+        EthBlockService ethBlockService) {
         this.web3Service = web3Service;
         this.importantEventsDbService = importantEventsDbService;
         this.parserInfo = parserInfo;
@@ -61,7 +60,7 @@ public class ImportantEventsParser implements Web3Parser {
             while (run.get()) {
                 Log ethLog = null;
                 try {
-                    ethLog = logs.poll(1, TimeUnit.SECONDS);                    
+                    ethLog = logs.poll(1, TimeUnit.SECONDS);
                     ImportantEventsDTO dto = parseLog(ethLog);
                     if (dto != null) {
                         lastTx = Instant.now();
@@ -78,8 +77,8 @@ public class ImportantEventsParser implements Web3Parser {
     }
 
     public ImportantEventsDTO parseLog(Log ethLog) {
-        if (ethLog == null || 
-        (!FARM_TOKEN.equals(ethLog.getAddress()) && !Vaults.vaultHashToName.containsKey(ethLog.getAddress()))
+        if (ethLog == null ||
+            (!FARM_TOKEN.equals(ethLog.getAddress()) && !Vaults.vaultHashToName.containsKey(ethLog.getAddress()))
         ) {
             return null;
         }
@@ -101,12 +100,12 @@ public class ImportantEventsParser implements Web3Parser {
         dto.setOldStrategy(tx.getOldStrategy());
         dto.setNewStrategy(tx.getNewStrategy());
         dto.setHash(tx.getHash());
-           
+
         //enrich date
         dto.setBlockDate(
             ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
-        parseEvent(dto, tx.getMethodName()); 
+        parseEvent(dto, tx.getMethodName());
         parseVault(dto, tx.getVault());
         parseMintAmount(dto, tx.getMintAmount());
         log.info(dto.print());
@@ -116,13 +115,13 @@ public class ImportantEventsParser implements Web3Parser {
     private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
         if (!mintAmount.equals(BigInteger.ZERO)) {
             dto.setMintAmount(mintAmount.doubleValue() / D18);
-        }          
+        }
     }
 
     private void parseEvent(ImportantEventsDTO dto, String methodName) {
-         // ERC20 token Mint function emits Transfer event
-         if ("Transfer".equals(methodName)) {
-            dto.setEvent("TokenMinted"); 
+        // ERC20 token Mint function emits Transfer event
+        if ("Transfer".equals(methodName)) {
+            dto.setEvent("TokenMinted");
         } else {
             dto.setEvent(methodName);
         }
@@ -130,11 +129,11 @@ public class ImportantEventsParser implements Web3Parser {
 
     private void parseVault(ImportantEventsDTO dto, String vault) {
         dto.setVault(
-            Vaults.vaultHashToName.containsKey(vault) 
-            ? Vaults.vaultHashToName.get(vault) 
-            : Tokens.findNameForContract(vault)
-            );
-    } 
+            Vaults.vaultHashToName.containsKey(vault)
+                ? Vaults.vaultHashToName.get(vault)
+                : Tokens.findNameForContract(vault)
+        );
+    }
 
     @Override
     public BlockingQueue<DtoI> getOutput() {
