@@ -57,6 +57,7 @@ public class Tokens {
 
         tokenDividers.put(FARM_TOKEN, D18);
 
+        tokenCreated.put(FARM_NAME, 10777280);
         tokenCreated.put(GRAIN_NAME, 11408083);
         tokenCreated.put(BADGER_NAME, 11381233);
         tokenCreated.put(DPI_NAME, 10868422);

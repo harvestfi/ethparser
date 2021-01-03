@@ -40,14 +40,31 @@ public class TransferParserTest {
     }
 
     @Test
-    public void testParseFARM() {
+    public void testParseFARM_addLiquidity() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11362801,
+            1,
+            "FARM",
+            "0xc3aee7f07034e846243c60acbe8cf5b8a71e4584",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "9,64157915",
+            "LP_SEND",
+            "addLiquidity"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_transfer() {
         parserTest(FARM_TOKEN,
             11571359,
             0,
             "FARM",
             "0xa910f92acdaf488fa6ef02174fb86208ad7722ba",
             "0x7a77784d32fef468c2a46cdf4ef2e15ef2cb2226",
-            "4,25506623"
+            "4,25506623",
+            "COMMON",
+            "transfer"
         );
     }
 
@@ -58,22 +75,27 @@ public class TransferParserTest {
         String name,
         String owner,
         String recipient,
-        String value
+        String value,
+        String type,
+        String methodName
     ) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contractHash), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         TransferDTO dto = transferParser.parseLog((Log) logResults.get(logId).get());
-        assertDto(dto, name, owner, recipient, value);
+        assertDto(dto, name, owner, recipient, value, type, methodName);
         return dto;
     }
 
-    private void assertDto(TransferDTO dto, String name, String owner, String recipient, String value) {
+    private void assertDto(TransferDTO dto, String name, String owner,
+                           String recipient, String value, String type, String methodName) {
         assertNotNull("Dto is null", dto);
         assertAll(
             () -> assertEquals("name", name, dto.getName()),
             () -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("recipient", recipient, dto.getRecipient()),
-            () -> assertEquals("value", value, String.format("%.8f", dto.getValue()))
+            () -> assertEquals("value", value, String.format("%.8f", dto.getValue())),
+            () -> assertEquals("type", type, dto.getType()),
+            () -> assertEquals("methodName", methodName, dto.getMethodName())
         );
     }
 

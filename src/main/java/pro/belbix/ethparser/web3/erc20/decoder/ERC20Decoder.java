@@ -53,6 +53,23 @@ public class ERC20Decoder extends MethodDecoder {
         }
     }
 
+    public String decodeMethodName(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+        String data = transaction.getInput();
+        if (data.length() < 10) {
+            return null;
+        }
+        String methodID = data.substring(0, 10);
+
+        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodID);
+        if (parameters == null) {
+            return null;
+        }
+        return methodNamesByMethodId.get(methodID);
+    }
+
     @Override
     public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
         throw new UnsupportedOperationException();

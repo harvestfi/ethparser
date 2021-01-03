@@ -628,6 +628,50 @@ public abstract class MethodDecoder {
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("uint256")
                     ));
+                parameters.put("transfer",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("mint",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("execute",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("bytes")
+                    ));
+                parameters.put("addMinter",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put("allowance",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put("transferFrom",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("increaseAllowance",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("decreaseAllowance",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("setStorage",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }

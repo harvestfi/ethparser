@@ -24,11 +24,18 @@ public class TransferDTO implements DtoI {
     private String owner;
     private String recipient;
     private double value;
+    private double balance;
+    private double balanceUsd;
+    private double price;
+    private String type;
+    private String methodName;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
+            + type + " "
             + value + " "
             + name + " "
+            + balanceUsd + " "
             + " " + id;
     }
 
