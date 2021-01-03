@@ -13,14 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
@@ -39,17 +36,16 @@ public class ImportantEventsParser implements Web3Parser {
     private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
     private Instant lastTx = Instant.now();
 
-    private final PriceProvider priceProvider;
     private final Web3Service web3Service;
     private final ImportantEventsDbService importantEventsDbService;
     private final ParserInfo parserInfo;
     private final EthBlockService ethBlockService;
 
-    public ImportantEventsParser(PriceProvider priceProvider,
+    public ImportantEventsParser(
                           Web3Service web3Service,
-                          ImportantEventsDbService importantEventsDbService, ParserInfo parserInfo,
+                          ImportantEventsDbService importantEventsDbService, 
+                          ParserInfo parserInfo,
                           EthBlockService ethBlockService) {
-        this.priceProvider = priceProvider;
         this.web3Service = web3Service;
         this.importantEventsDbService = importantEventsDbService;
         this.parserInfo = parserInfo;
@@ -112,27 +108,15 @@ public class ImportantEventsParser implements Web3Parser {
 
         parseEvent(dto, tx.getMethodName()); 
         parseVault(dto, tx.getVault());
-        parseFee(dto, tx.getHash());
         parseMintAmount(dto, tx.getMintAmount());
         log.info(dto.print());
         return dto;
     }
 
-    private void parseFee(ImportantEventsDTO dto, String hash) {
-        Transaction transaction = web3Service.findTransaction(hash);
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(hash);
-        double gas = (receipt.getGasUsed().doubleValue());
-        double gasPrice = transaction.getGasPrice().doubleValue() / 1000_000_000 / 1000_000_000;
-        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
-        double feeUsd = gas * gasPrice * ethPrice;
-        dto.setFee(feeUsd);
-    }
-
     private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
         if (!mintAmount.equals(BigInteger.ZERO)) {
             dto.setMintAmount(mintAmount.doubleValue() / D18);
-        }   
-        
+        }          
     }
 
     private void parseEvent(ImportantEventsDTO dto, String methodName) {

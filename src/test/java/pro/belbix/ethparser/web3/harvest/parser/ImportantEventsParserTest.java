@@ -51,7 +51,7 @@ public class ImportantEventsParserTest {
             "0x5DB1B2128bCCC5B49f9cA7E3086b14fd4cf2ef64",
             "0x93cee333c690cb91c39ac7b3294740651dc79c3d",
             "2020-12-25T07:12:19Z",
-            String.valueOf("null")
+            "null"
         );
     }
     
@@ -62,9 +62,9 @@ public class ImportantEventsParserTest {
             11517785,
             0,
             "0x180c496709023CE8952003A9FF385a3bBEB8b2C3",
-            String.valueOf("null"),
+            "null",
             "2020-12-24T17:55:58Z",
-            String.valueOf("null")
+            "null"
         );
     }
 
@@ -74,8 +74,8 @@ public class ImportantEventsParserTest {
             FARM_TOKEN,
             10776715, 
             0, 
-            String.valueOf("null"),
-            String.valueOf("null"), 
+            "null",
+            "null", 
             "2020-09-01T17:41:09Z",
             "11513,82000000"
             );

@@ -10,8 +10,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "events_tx", indexes = {
-    @Index(name = "idx_events_tx", columnList = "blockDate"),
-    @Index(name = "idx_events_tx2", columnList = "event, vault")
+    @Index(name = "idx_events_tx", columnList = "blockDate")
 })
 @Cacheable(false)
 @Data
@@ -25,7 +24,6 @@ public class ImportantEventsDTO implements DtoI {
     private String event;
     private String oldStrategy;
     private String newStrategy;
-    private Double fee;
     private String vault;
     private Double mintAmount;
 
