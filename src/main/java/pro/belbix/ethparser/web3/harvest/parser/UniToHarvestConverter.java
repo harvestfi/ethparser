@@ -116,6 +116,9 @@ public class UniToHarvestConverter implements Web3Parser {
         double stBalance = parseAmount(functions.callErc20TotalSupply(stakeHash, block), lpHash);
         harvestDTO.setLastTvl(stBalance);
         double stFraction = stBalance / lpBalance;
+        if(Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
+            stFraction = 0;
+        }
 
         Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, block);
         double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
@@ -133,6 +136,9 @@ public class UniToHarvestConverter implements Web3Parser {
         harvestDTO.setUsdAmount(Math.round(usdAmount));
 
         double fraction = usdAmount / (vaultUsdAmount / stFraction);
+        if(Double.isNaN(fraction) || Double.isInfinite(fraction)) {
+            fraction = 0;
+        }
         harvestDTO.setAmount(lpBalance * fraction); //not accurate
     }
 

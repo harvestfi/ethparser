@@ -160,10 +160,3 @@ from rewards
 where period_finish > (UNIX_TIMESTAMP() - 604800)
 group by vault
 order by date desc;
-
--- UNIQUE USERS ------------
-select count(owner) from (
-                             select owner
-                             from harvest_tx
-                             group by owner
-                         ) t;

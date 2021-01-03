@@ -53,9 +53,9 @@ public class Tokens {
         tokenNameToHash.put(WBTC_NAME, WBTC_TOKEN);
         tokenNameToHash.put(GRAIN_NAME, GRAIN_TOKEN);
 
-        tokenCreated.put(GRAIN_NAME, 11342057);
-        tokenCreated.put(BADGER_NAME, 11381099);
-        tokenCreated.put(DPI_NAME, 10836220);
+        tokenCreated.put(GRAIN_NAME, 11408083);
+        tokenCreated.put(BADGER_NAME, 11381233);
+        tokenCreated.put(DPI_NAME, 10868422);
 
         specificLpForCoin.put(DPI_NAME, new Tuple2<>("UNI_LP_ETH_DPI", WETH_NAME));
         specificLpForCoin.put(GRAIN_NAME, new Tuple2<>("UNI_LP_GRAIN_FARM", FARM_NAME));
