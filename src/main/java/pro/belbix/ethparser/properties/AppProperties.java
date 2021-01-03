@@ -28,10 +28,13 @@ public class AppProperties {
     private boolean parseHarvestLog = true;
     private boolean parseHardWorkLog = true;
     private boolean parseRewardsLog = true;
+    private boolean parseImportantEvents = true;
     private boolean convertUniToHarvest = true;
     private boolean parseTransfers = true;
 
     private String startBlock = "";
     private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+
+    private boolean parseLog = true;
 }

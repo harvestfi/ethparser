@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ public class SubscriptionsProperties {
         //harvest events
         contracts.addAll(Vaults.vaultHashToName.keySet());
         contracts.addAll(StakeContracts.hashToName.keySet());
+
+        // FARM token Mint event parsing
+        contracts.add(FARM_TOKEN);
         return contracts;
     }
 
