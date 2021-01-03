@@ -13,7 +13,6 @@ public class ImportantEventsTx {
     private long blockDate;
     private BigInteger feeAmount;
     private BigInteger mintAmount = BigInteger.ZERO;
-    private long earliestEffective;
 
     public String getLogId() {
         return logId;
@@ -38,7 +37,6 @@ public class ImportantEventsTx {
     public void setMintAmount(BigInteger mintAmount) {
         this.mintAmount = mintAmount;
     }
-
 
     public String getHash() {
         return hash;
@@ -95,14 +93,5 @@ public class ImportantEventsTx {
     public void setMethodName(String methodName) {
         this.methodName = methodName;
     }
-
-    public long getearliestEffective() {
-        return earliestEffective;
-    }
-
-    public void setEarliestEffective(long earliestEffective) {
-        this.earliestEffective = earliestEffective;
-    }
-
 
 }

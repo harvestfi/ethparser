@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.USDC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_TOKEN;
 
 import java.util.List;
 import java.time.Instant;
@@ -49,28 +50,44 @@ public class ImportantEventsParserTest {
             0,
             "0x5DB1B2128bCCC5B49f9cA7E3086b14fd4cf2ef64",
             "0x93cee333c690cb91c39ac7b3294740651dc79c3d",
-            "2020-12-25T07:12:19Z"
+            "2020-12-25T07:12:19Z",
+            String.valueOf("null")
         );
     }
     
     @Test
-    public void shouldParseStrategyAnnouced() {
+    public void shouldParseStrategyAnnounce() {
         parserTest(
             DAI,
             11517785,
             0,
             "0x180c496709023CE8952003A9FF385a3bBEB8b2C3",
             String.valueOf("null"),
-            "2020-12-24T17:55:58Z"
+            "2020-12-24T17:55:58Z",
+            String.valueOf("null")
         );
     }
+
+    @Test
+    public void shouldParseMint() {
+        parserTest(
+            FARM_TOKEN,
+            10776715, 
+            0, 
+            String.valueOf("null"),
+            String.valueOf("null"), 
+            "2020-09-01T17:41:09Z",
+            "11513,82000000"
+            );
+    }    
     private void parserTest(
         String contract,
         int onBlock,
         int logId,
         String newStrategy,
         String oldStrategy,
-        String blockDate
+        String blockDate,
+        String mintAmount
     ) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
@@ -80,15 +97,16 @@ public class ImportantEventsParserTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        assertDto(dto, newStrategy, oldStrategy, blockDate);
+        assertDto(dto, newStrategy, oldStrategy, blockDate, mintAmount);
     }
 
-    private void assertDto(ImportantEventsDTO dto, String newStrategy, String oldStrategy, String blockDate) {
+    private void assertDto(ImportantEventsDTO dto, String newStrategy, String oldStrategy, String blockDate, String mintAmount) {
         assertNotNull("Dto is null", dto);
         assertAll(
-            () -> assertEquals("newStrategy", newStrategy.toLowerCase(), dto.getNewStrategy()),
+            () -> assertEquals("newStrategy", newStrategy.toLowerCase(), String.valueOf(dto.getNewStrategy())),
             () -> assertEquals("oldStrategy", oldStrategy.toLowerCase(), String.valueOf(dto.getOldStrategy())),
-            () -> assertEquals("blockDate",blockDate, Instant.ofEpochSecond(dto.getBlockDate()).toString())
+            () -> assertEquals("blockDate",blockDate, Instant.ofEpochSecond(dto.getBlockDate()).toString()),
+            () -> assertEquals("mintAmount", mintAmount, String.format("%.8f", dto.getMintAmount()))
         );
     }
 }

@@ -5,9 +5,6 @@ import static pro.belbix.ethparser.web3.ContractConstants.D18;
 
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +27,7 @@ import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.uniswap.contracts.Tokens;
 
 @Service
 public class ImportantEventsParser implements Web3Parser {
@@ -46,10 +44,6 @@ public class ImportantEventsParser implements Web3Parser {
     private final ImportantEventsDbService importantEventsDbService;
     private final ParserInfo parserInfo;
     private final EthBlockService ethBlockService;
-
-    private static final Set<String> allowedMethods = new HashSet<>(
-        Arrays.asList("StrategyChanged", "StrategyAnnounced", "Mint")
-        );
 
     public ImportantEventsParser(PriceProvider priceProvider,
                           Web3Service web3Service,
@@ -104,23 +98,20 @@ public class ImportantEventsParser implements Web3Parser {
         if (tx == null) {
             return null;
         }
-        if (!allowedMethods.contains(tx.getMethodName())) {
-            //throw new IllegalStateException("Unknown method " + tx.getMethodName());
-            return null;
-        }
 
         ImportantEventsDTO dto = new ImportantEventsDTO();
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock());
-        dto.setVault(Vaults.vaultHashToName.get(tx.getVault()));
         dto.setOldStrategy(tx.getOldStrategy());
         dto.setNewStrategy(tx.getNewStrategy());
-        dto.setMethodName(tx.getMethodName());
-      
+        dto.setHash(tx.getHash());
+           
         //enrich date
         dto.setBlockDate(
             ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
+        parseEvent(dto, tx.getMethodName()); 
+        parseVault(dto, tx.getVault());
         parseFee(dto, tx.getHash());
         parseMintAmount(dto, tx.getMintAmount());
         log.info(dto.print());
@@ -138,13 +129,28 @@ public class ImportantEventsParser implements Web3Parser {
     }
 
     private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
-        Double _mintAmount;
         if (!mintAmount.equals(BigInteger.ZERO)) {
-            _mintAmount = mintAmount.doubleValue() / D18;
-            dto.setMintAmount(_mintAmount);    
+            dto.setMintAmount(mintAmount.doubleValue() / D18);
         }   
         
     }
+
+    private void parseEvent(ImportantEventsDTO dto, String methodName) {
+         // ERC20 token Mint function emits Transfer event
+         if ("Transfer".equals(methodName)) {
+            dto.setEvent("TokenMinted"); 
+        } else {
+            dto.setEvent(methodName);
+        }
+    }
+
+    private void parseVault(ImportantEventsDTO dto, String vault) {
+        dto.setVault(
+            Vaults.vaultHashToName.containsKey(vault) 
+            ? Vaults.vaultHashToName.get(vault) 
+            : Tokens.findNameForContract(vault)
+            );
+    } 
 
     @Override
     public BlockingQueue<DtoI> getOutput() {
