@@ -156,7 +156,7 @@ public class Web3Service {
     }
 
     public void subscribeLogFlowable() {
-        if (!appProperties.isParseUniswapLog() && !appProperties.isParseHarvestLog()) {
+        if (!appProperties.isParseLog()) {
             return;
         }
         checkInit();
