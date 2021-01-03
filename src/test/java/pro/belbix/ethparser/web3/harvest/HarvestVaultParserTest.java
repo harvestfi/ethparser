@@ -19,9 +19,11 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
 @RunWith(SpringRunner.class)
@@ -39,10 +41,34 @@ public class HarvestVaultParserTest {
     private PriceProvider priceProvider;
     @Autowired
     private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
+    @Autowired
+    private HarvestDBService harvestDBService;
 
     @Before
     public void setUp() throws Exception {
         priceProvider.setUpdateTimeout(0);
+    }
+
+    @Test
+    public void parseVaultWETH_V02() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.WETH_V0,
+            11289211,
+            LOG_ID,
+            "0xe4b73f379705eac71bf2dc17e33e069a90a4041d",
+            "Withdraw",
+            "WETH_V0",
+            "0x4ccb569444c5d3eb1cd4fa39d8ac9e78a616c2e96c4badc3468b8b53a34e264e_250",
+            "4,54399269",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
     }
 
     @Test

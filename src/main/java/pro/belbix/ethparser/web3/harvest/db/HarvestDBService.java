@@ -56,7 +56,7 @@ public class HarvestDBService {
         fillOwnersCount(dto);
         harvestRepository.saveAndFlush(dto);
 
-        HarvestTvlEntity harvestTvl = saveHarvestTvl(dto, true);
+        HarvestTvlEntity harvestTvl = calculateHarvestTvl(dto, true);
         harvestTvlRepository.save(harvestTvl);
 
         harvestRepository.save(dto);
@@ -88,7 +88,7 @@ public class HarvestDBService {
         dto.setAllPoolsOwnersCount(allPoolsOwnerCount);
     }
 
-    public HarvestTvlEntity saveHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
         double tvl = 0.0;
         Double farmPrice = 0.0;
         UniswapDTO uniswapDTO = uniswapRepository
@@ -108,7 +108,11 @@ public class HarvestDBService {
             if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
                 lastHarvest = dto; // for avoiding JPA wrong synchronisation
             }
-            tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
+            if (dto.getPrices() != null && !dto.getPrices().contains("NaN")) {
+                tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
+            } else {
+                log.warn("Wrong prices " + dto);
+            }
         }
 
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
@@ -186,8 +190,8 @@ public class HarvestDBService {
         if (tvl == 0.0) {
             return dto.getLastUsdTvl();
         }
-        if (Double.isInfinite(tvl)) {
-            throw new IllegalStateException("TVL is infinity for " + dto);
+        if (Double.isInfinite(tvl) || Double.isNaN(tvl)) {
+            throw new IllegalStateException("TVL is wrong for " + dto);
         }
         return tvl;
     }
