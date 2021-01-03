@@ -27,7 +27,7 @@ public class HarvestOwnerBalanceCalculator {
     public boolean fillBalance(HarvestDTO dto) {
         try {
             if (Vaults.vaultNameToHash.containsKey(dto.getVault())) {
-                if (Vaults.isPs(dto.getVault())) {
+                if (Vaults.isPsName(dto.getVault())) {
                     return balanceForPs(dto);
                 }
                 return balanceForVault(dto);

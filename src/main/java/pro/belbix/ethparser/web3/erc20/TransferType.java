@@ -43,7 +43,7 @@ public enum TransferType {
         String owner = dto.getOwner().toLowerCase();
         String methodName = dto.getMethodName();
 
-        if (Vaults.isPs(recipient)) {
+        if (Vaults.isPsHash(recipient)) {
             if (StakeContracts.isST_PS(owner)) {
                 return PS_INTERNAL.name();
             } else {
@@ -51,7 +51,7 @@ public enum TransferType {
             }
         }
 
-        if (Vaults.isPs(owner)) {
+        if (Vaults.isPsHash(owner)) {
             if (StakeContracts.isST_PS(recipient)) {
                 return PS_INTERNAL.name();
             } else {

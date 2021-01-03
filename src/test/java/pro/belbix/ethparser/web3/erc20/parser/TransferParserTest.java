@@ -48,7 +48,7 @@ public class TransferParserTest {
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "180981,24181470",
-            "REWARD",
+            "PS_INTERNAL",
             "exit"
         );
         assertNotNull(dto);
@@ -63,7 +63,7 @@ public class TransferParserTest {
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "2,07976153",
-            "REWARD",
+            "PS_INTERNAL",
             "exit"
         );
         assertNotNull(dto);
@@ -78,7 +78,7 @@ public class TransferParserTest {
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "0x27c7e3758983f00085c5bbc91ecf0c91baae7146",
             "1,06503922",
-            "COMMON",
+            "PS_EXIT",
             "exit"
         );
         assertNotNull(dto);
@@ -93,7 +93,7 @@ public class TransferParserTest {
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "180982,25653701",
-            "NOTIFY",
+            "PS_INTERNAL",
             "exit"
         );
         assertNotNull(dto);
@@ -108,7 +108,7 @@ public class TransferParserTest {
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "180905,75962281",
-            "REWARD",
+            "PS_INTERNAL",
             "stake"
         );
         assertNotNull(dto);
@@ -123,7 +123,7 @@ public class TransferParserTest {
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "10,56597522",
-            "REWARD",
+            "PS_INTERNAL",
             "stake"
         );
         assertNotNull(dto);
@@ -138,7 +138,7 @@ public class TransferParserTest {
             "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "180981,24181470",
-            "NOTIFY",
+            "PS_INTERNAL",
             "stake"
         );
         assertNotNull(dto);
