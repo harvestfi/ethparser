@@ -40,6 +40,96 @@ public class TransferParserTest {
     }
 
     @Test
+    public void testParseFARM_firstMint() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            10776698 ,
+            0,
+            "FARM",
+            "0x0000000000000000000000000000000000000000",
+            "0xf00dd244228f51547f0563e60bca65a30fbf5f7f",
+            "40298,37000000",
+            "MINT",
+            "mint"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_LP_REM2() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11558046 ,
+            0,
+            "FARM",
+            "0x56feaccb7f750b997b36a68625c7c596f0b41a58",
+            "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+            "123,30207029",
+            "LP_REM",
+            "removeLiquidityETH"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_LP_REM() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            10931588,
+            0,
+            "FARM",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "0xe8615e363d10660f939e9bc979255ca9a2799077",
+            "455,86301384",
+            "LP_REM",
+            "removeLiquidityWithPermit"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_LP_ADD() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            10997139,
+            0,
+            "FARM",
+            "0x152ee76773492c2d9e996a3212bd26fa8f9366ec",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "28,00000000",
+            "LP_ADD",
+            "addLiquidity"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_LP_BUY() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11366155,
+            0,
+            "FARM",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "0x05f8fa4430a899dbdb3aef05f436a613d2f2a6b3",
+            "11,00000000",
+            "LP_BUY",
+            "swapTokensForExactTokens"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_LP_SELL() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11373041,
+            0,
+            "FARM",
+            "0xec8fd26fe6583b4e78c63aa8cf0b7c1835950b6a",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "50,00000000",
+            "LP_SELL",
+            "swapExactTokensForTokens"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
     public void testParseFARM_exit1() {
         TransferDTO dto = parserTest(FARM_TOKEN,
             11337723,
@@ -153,8 +243,23 @@ public class TransferParserTest {
             "0x3e66b66fd1d0b02fda6c811da9e0547970db2f21",
             "0xefd0199657b444856e3259ed8e3c39ee43cf51dc",
             "101,21369473",
-            "COMMON",
+            "BAL_TX",
             "0xe2b39746"
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void testParseFARM_bot() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            10850197,
+            1,
+            "FARM",
+            "0x7da20beeb68f40181418c5e58127ee4e7cd12f62",
+            "0xb39ce7fa5953bebc6697112e88cd11579cbca579",
+            "5,68416749",
+            "BOT",
+            "0x375e243b"
         );
         assertNotNull(dto);
     }
@@ -200,6 +305,34 @@ public class TransferParserTest {
             "4,25506623",
             "COMMON",
             "transfer"
+        );
+    }
+
+    @Test
+    public void testParseFARM_HARD_WORK() {
+        parserTest(FARM_TOKEN,
+            11045532,
+            0,
+            "FARM",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "0xef08a639cac2009fdad3773cc9f56d6a8feb1153",
+            "5,85376525",
+            "HARD_WORK",
+            "doHardWork#V2"
+        );
+    }
+
+    @Test
+    public void testParseFARM_HARD_WORK2() {
+        parserTest(FARM_TOKEN,
+            11045532,
+            1,
+            "FARM",
+            "0xef08a639cac2009fdad3773cc9f56d6a8feb1153",
+            "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
+            "5,85376525",
+            "HARD_WORK",
+            "doHardWork#V2"
         );
     }
 

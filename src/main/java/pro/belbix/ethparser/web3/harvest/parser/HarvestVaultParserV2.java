@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
@@ -47,8 +48,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private static final Logger log = LoggerFactory.getLogger(HarvestVaultParserV2.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
-    public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-    public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
     public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;

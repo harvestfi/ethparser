@@ -795,6 +795,86 @@ public abstract class MethodDecoder {
                         TypeReference.makeTypeReference("address"),
                         TypeReference.makeTypeReference("uint")
                     ));
+                parameters.put("doHardWork#V2",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put("viewSplitExactOut",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("viewSplitExactIn",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("smartSwapExactOut",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("smartSwapExactIn",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("multihopBatchSwapExactOut",
+                    Arrays.asList(
+                        DynamicStructures.swapTypeReferenceDoubleArray(),
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("multihopBatchSwapExactIn",
+                    Arrays.asList(
+                        DynamicStructures.swapTypeReferenceDoubleArray(),
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("address"), //TokenInterface
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+                parameters.put("notifyPoolsIncludingProfitShare",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("uint256[]"),
+                        TypeReference.makeTypeReference("address[]"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("notifyProfitSharing", Collections.emptyList());
+                parameters.put("provideLoan", Collections.emptyList());
+                parameters.put("withdrawAllToVault", Collections.emptyList());
+                parameters.put("tend", Collections.emptyList());
+                parameters.put("harvest", Collections.emptyList());
+                parameters.put("notifyPools",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("uint256[]"),
+                        TypeReference.makeTypeReference("address[]"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("poolNotifyFixedTarget",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put("sellToUniswap",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address[]"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("uint256"),
+                        TypeReference.makeTypeReference("bool")
+                    ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }

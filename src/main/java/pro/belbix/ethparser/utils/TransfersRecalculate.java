@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
+import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 
@@ -21,6 +22,9 @@ public class TransfersRecalculate {
     @Value("${transfer-recalculate.onlyType:false}")
     private boolean onlyType = false;
 
+    @Value("${transfer-recalculate.balances:true}")
+    private boolean balances = true;
+
     public TransfersRecalculate(TransferDBService transferDBService,
                                 TransferRepository transferRepository,
                                 TransferParser transferParser) {
@@ -30,14 +34,33 @@ public class TransfersRecalculate {
     }
 
     public void start() {
+        if (balances) {
+            recalculateBalances();
+        } else {
+            reparseEmptyMethods();
+        }
+    }
+
+    private void recalculateBalances() {
         List<TransferDTO> dtos = transferRepository.getAllByOrderByBlockDate();
         List<TransferDTO> result = new ArrayList<>();
         for (TransferDTO dto : dtos) {
             try {
-                if (!onlyType) {
-                    transferDBService.fillBalance(dto);
+                if (onlyType) {
+                    TransferParser.fillTransferType(dto);
+                } else {
+                    transferParser.fillMethodName(dto);
+                    TransferParser.fillTransferType(dto);
+                    if (TransferType.valueOf(dto.getType()).isUser()) {
+                        transferParser.fillBalance(dto);
+                        boolean balanceOk = transferDBService.checkBalance(dto);
+                        if (!balanceOk) {
+                            throw new IllegalStateException("Balance is not ok");
+                        }
+                    }
+                    transferDBService.fillProfit(dto);
                 }
-                TransferParser.fillTransferType(dto);
+
                 if (onlyType) {
                     result.add(dto);
                     if (result.size() % 10000 == 0) {
@@ -54,9 +77,12 @@ public class TransfersRecalculate {
                 throw e;
             }
         }
+        if (!result.isEmpty()) {
+            transferRepository.saveAll(result);
+        }
     }
 
-    public void reparseEmptyMethods() {
+    private void reparseEmptyMethods() {
         List<TransferDTO> dtos = transferRepository.fetchAllWithoutMethods();
         log.info("Events for reparsing " + dtos.size());
         for (TransferDTO dto : dtos) {

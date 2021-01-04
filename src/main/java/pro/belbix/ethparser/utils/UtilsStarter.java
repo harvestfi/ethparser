@@ -90,7 +90,7 @@ public class UtilsStarter {
         } else if ("transfer-download".equals(appProperties.getStartUtil())) {
             transferDownloader.start();
         } else if ("transfer-recalculate".equals(appProperties.getStartUtil())) {
-            transfersRecalculate.reparseEmptyMethods();
+            transfersRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);

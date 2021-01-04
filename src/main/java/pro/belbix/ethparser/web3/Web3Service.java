@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParser.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;

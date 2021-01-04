@@ -164,7 +164,11 @@ order by date desc;
 -- TOKEN BALANCE
 select  coalesce(buy, 0) - coalesce(sell, 0) sum from
 (select sum(value) buy from transfers
-where block_date <= 99999999999 and recipient = '0xB7c70bA79a694A520d870a28A5105c4e802dc805' and type = '') buys
+where block_date <= 99999999999
+  and recipient = :address
+    ) buys
     left join
 (select sum(value) sell from transfers
-where block_date <= 99999999999 and owner = '0xB7c70bA79a694A520d870a28A5105c4e802dc805') sells on 1=1
+where block_date <= 99999999999
+  and owner = :address
+    ) sells on 1=1

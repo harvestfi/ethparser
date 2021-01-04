@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.erc20.parser;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -16,7 +17,10 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.erc20.Tokens;
@@ -38,15 +42,21 @@ public class TransferParser implements Web3Parser {
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
     private final TransferDBService transferDBService;
+    private final PriceProvider priceProvider;
+    private final Functions functions;
 
     public TransferParser(Web3Service web3Service,
                           EthBlockService ethBlockService,
                           ParserInfo parserInfo,
-                          TransferDBService transferDBService) {
+                          TransferDBService transferDBService,
+                          PriceProvider priceProvider,
+                          Functions functions) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.transferDBService = transferDBService;
+        this.priceProvider = priceProvider;
+        this.functions = functions;
     }
 
     @Override
@@ -105,9 +115,20 @@ public class TransferParser implements Web3Parser {
 
         fillMethodName(dto);
         fillTransferType(dto);
+        fillBalance(dto);
 
         log.info(dto.print());
         return dto;
+    }
+
+    public void fillBalance(TransferDTO dto) {
+        String tokenAddress = Tokens.findContractForName(dto.getName());
+        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), tokenAddress, dto.getBlock());
+        double balance = MethodDecoder.parseAmount(balanceI, tokenAddress);
+        dto.setBalance(balance);
+        double price = priceProvider.getPriceForCoin(dto.getName(), dto.getBlock());
+        dto.setPrice(price);
+        dto.setBalanceUsd(balance * price);
     }
 
     public void fillMethodName(TransferDTO dto) {
@@ -127,7 +148,7 @@ public class TransferParser implements Web3Parser {
                 if (name != null) {
                     methodName = name;
                 } else {
-                    log.warn("Still can't parse " + methodName + " for " + dto.getId());
+                    log.warn("Still can't parse method " + methodName + " for " + dto.getId());
                 }
             }
         }
@@ -136,7 +157,8 @@ public class TransferParser implements Web3Parser {
     }
 
     public static void fillTransferType(TransferDTO dto) {
-        dto.setType(TransferType.mapType(dto));
+        TransferType type = TransferType.getType(dto);
+        dto.setType(type.name());
     }
 
     @Override

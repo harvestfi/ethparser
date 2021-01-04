@@ -11,6 +11,7 @@ import lombok.Data;
 @Table(name = "transfers", indexes = {
     @Index(name = "idx_transfers_date", columnList = "blockDate"),
     @Index(name = "idx_transfers_owner", columnList = "owner"),
+    @Index(name = "idx_transfers_type", columnList = "type"),
     @Index(name = "idx_transfers_name", columnList = "name")
 })
 @Data
@@ -29,6 +30,7 @@ public class TransferDTO implements DtoI {
     private double price;
     private String type;
     private String methodName;
+    private Double profit;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -36,7 +38,7 @@ public class TransferDTO implements DtoI {
             + methodName + " "
             + value + " "
             + name + " "
-            + balanceUsd + " "
+            + balance + " "
             + " " + id;
     }
 

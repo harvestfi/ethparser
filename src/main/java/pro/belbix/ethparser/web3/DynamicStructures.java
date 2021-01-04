@@ -2,13 +2,14 @@ package pro.belbix.ethparser.web3;
 
 import java.math.BigInteger;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.DynamicStruct;
+import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.StaticStruct;
 
 @SuppressWarnings("rawtypes")
 public class DynamicStructures {
 
     //balancer
-    public static class Swap extends DynamicStruct {
+    public static class Swap extends StaticStruct {
 
         public String pool;
         public BigInteger tokenInParam;
@@ -54,6 +55,11 @@ public class DynamicStructures {
 
     public static TypeReference swapTypeReference() {
         return new TypeReference<Swap>() {
+        };
+    }
+
+    public static TypeReference swapTypeReferenceDoubleArray() {
+        return new TypeReference<DynamicArray<Swap>>() {
         };
     }
 
