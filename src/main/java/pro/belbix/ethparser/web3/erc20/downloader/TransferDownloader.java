@@ -46,7 +46,7 @@ public class TransferDownloader {
         if (contractName == null) {
             throw new IllegalStateException("Empty contract");
         }
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateTimeout(30);
         handleLoop(from, to, (from, end) -> parse(from, end, Tokens.findContractForName(contractName)));
     }
 

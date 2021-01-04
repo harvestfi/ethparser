@@ -123,12 +123,14 @@ public class TransferParser implements Web3Parser {
 
     public void fillBalance(TransferDTO dto) {
         String tokenAddress = Tokens.findContractForName(dto.getName());
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), tokenAddress, dto.getBlock());
-        double balance = MethodDecoder.parseAmount(balanceI, tokenAddress);
-        dto.setBalance(balance);
-        double price = priceProvider.getPriceForCoin(dto.getName(), dto.getBlock());
-        dto.setPrice(price);
-        dto.setBalanceUsd(balance * price);
+        dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
+        dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
+        dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock()));
+    }
+
+    private double getBalance(String holder, String tokenAddress, long block) {
+        BigInteger balanceI = functions.callBalanceOf(holder, tokenAddress, block);
+        return MethodDecoder.parseAmount(balanceI, tokenAddress);
     }
 
     public void fillMethodName(TransferDTO dto) {

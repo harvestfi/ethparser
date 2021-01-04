@@ -25,8 +25,8 @@ public class TransferDTO implements DtoI {
     private String owner;
     private String recipient;
     private double value;
-    private double balance;
-    private double balanceUsd;
+    private double balanceOwner;
+    private double balanceRecipient;
     private double price;
     private String type;
     private String methodName;
@@ -38,7 +38,6 @@ public class TransferDTO implements DtoI {
             + methodName + " "
             + value + " "
             + name + " "
-            + balance + " "
             + " " + id;
     }
 

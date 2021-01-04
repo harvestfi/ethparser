@@ -19,6 +19,9 @@ public class TransfersRecalculate {
     private final TransferRepository transferRepository;
     private final TransferParser transferParser;
 
+    @Value("${transfer-recalculate.from:0}")
+    private long from = 0;
+
     @Value("${transfer-recalculate.onlyType:false}")
     private boolean onlyType = false;
 
@@ -42,7 +45,7 @@ public class TransfersRecalculate {
     }
 
     private void recalculateBalances() {
-        List<TransferDTO> dtos = transferRepository.getAllByOrderByBlockDate();
+        List<TransferDTO> dtos = transferRepository.fetchAllFromBlock(from);
         List<TransferDTO> result = new ArrayList<>();
         for (TransferDTO dto : dtos) {
             try {
@@ -53,7 +56,7 @@ public class TransfersRecalculate {
                     TransferParser.fillTransferType(dto);
                     if (TransferType.valueOf(dto.getType()).isUser()) {
                         transferParser.fillBalance(dto);
-                        boolean balanceOk = transferDBService.checkBalance(dto);
+                        boolean balanceOk = transferDBService.checkBalances(dto);
                         if (!balanceOk) {
                             throw new IllegalStateException("Balance is not ok");
                         }

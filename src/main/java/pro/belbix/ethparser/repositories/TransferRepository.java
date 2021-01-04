@@ -28,7 +28,8 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
         + "where block_date <= :before and owner = :address) sells on 1=1")
     Double getBalanceForOwner(@Param("address") String address, @Param("before") long before);
 
-    List<TransferDTO> getAllByOrderByBlockDate();
+    @Query("select t from TransferDTO t  where t.blockDate > :date order by t.blockDate")
+    List<TransferDTO> fetchAllFromBlock(@Param("date") long date);
 
     @Query(nativeQuery = true, value = ""
         + "select * from transfers where method_name is null or method_name like '0x%' order by block_date")

@@ -29,22 +29,27 @@ public class TransferDBService {
             return false;
         }
         transferRepository.saveAndFlush(dto);
-        checkBalance(dto);
+        checkBalances(dto);
         fillProfit(dto);
         transferRepository.save(dto);
         return true;
     }
 
-    public boolean checkBalance(TransferDTO dto) {
-        if (ZERO_ADDRESS.equals(dto.getOwner())) {
+    public boolean checkBalances(TransferDTO dto) {
+        return checkBalance(dto.getOwner(), dto.getBalanceOwner(), dto.getBlockDate())
+            && checkBalance(dto.getRecipient(), dto.getBalanceRecipient(), dto.getBlockDate());
+    }
+
+    private boolean checkBalance(String holder, double expectedBalance, long blockDate) {
+        if (ZERO_ADDRESS.equals(holder)) {
             return true;
         }
-        Double balance = transferRepository.getBalanceForOwner(dto.getOwner(), dto.getBlockDate());
+        Double balance = transferRepository.getBalanceForOwner(holder, blockDate);
         if (balance == null) {
             balance = 0.0;
         }
-        if (Math.abs(balance - dto.getBalance()) > 1) {
-            log.error("WRONG BALANCE! dbBalance: " + balance + " != " + dto.getBalance());
+        if (Math.abs(balance - expectedBalance) > 1) {
+            log.error("WRONG BALANCE for " + holder + " dbBalance: " + balance + " != " + expectedBalance);
             return false;
         }
         return true;
