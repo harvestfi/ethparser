@@ -55,6 +55,21 @@ public class TransferDBService {
         return true;
     }
 
+    // used only for recalculation
+    public void fillBalances(TransferDTO dto) {
+        Double balanceOwner = transferRepository.getBalanceForOwner(dto.getOwner(), dto.getBlockDate());
+        if (balanceOwner == null) {
+            balanceOwner = 0.0;
+        }
+        dto.setBalanceOwner(balanceOwner);
+
+        Double balanceRecipient = transferRepository.getBalanceForOwner(dto.getRecipient(), dto.getBlockDate());
+        if (balanceRecipient == null) {
+            balanceRecipient = 0.0;
+        }
+        dto.setBalanceRecipient(balanceRecipient);
+    }
+
     public void fillProfit(TransferDTO dto) {
         //TODO later
         if (PS_STAKE.name().equals(dto.getType()) || PS_EXIT.name().equals(dto.getType())) {

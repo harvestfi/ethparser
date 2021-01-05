@@ -54,13 +54,7 @@ public class TransfersRecalculate {
                 } else {
                     transferParser.fillMethodName(dto);
                     TransferParser.fillTransferType(dto);
-                    if (TransferType.valueOf(dto.getType()).isUser()) {
-                        transferParser.fillBalance(dto);
-                        boolean balanceOk = transferDBService.checkBalances(dto);
-                        if (!balanceOk) {
-                            throw new IllegalStateException("Balance is not ok");
-                        }
-                    }
+                    transferDBService.fillBalances(dto);
                     transferDBService.fillProfit(dto);
                 }
 
