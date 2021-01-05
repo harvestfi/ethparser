@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
-import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 
@@ -19,8 +18,8 @@ public class TransfersRecalculate {
     private final TransferRepository transferRepository;
     private final TransferParser transferParser;
 
-    @Value("${transfer-recalculate.from:0}")
-    private long from = 0;
+    @Value("${transfer-recalculate.fromBlockDate:0}")
+    private long fromBlockDate = 0;
 
     @Value("${transfer-recalculate.onlyType:false}")
     private boolean onlyType = false;
@@ -45,7 +44,7 @@ public class TransfersRecalculate {
     }
 
     private void recalculateBalances() {
-        List<TransferDTO> dtos = transferRepository.fetchAllFromBlock(from);
+        List<TransferDTO> dtos = transferRepository.fetchAllFromBlockDate(fromBlockDate);
         List<TransferDTO> result = new ArrayList<>();
         for (TransferDTO dto : dtos) {
             try {
