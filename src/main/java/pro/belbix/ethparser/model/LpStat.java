@@ -2,9 +2,11 @@ package pro.belbix.ethparser.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
+@Data
 public class LpStat {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -26,37 +28,5 @@ public class LpStat {
         } catch (JsonProcessingException ignored) {
         }
         return null;
-    }
-
-    public String getCoin1() {
-        return coin1;
-    }
-
-    public void setCoin1(String coin1) {
-        this.coin1 = coin1;
-    }
-
-    public String getCoin2() {
-        return coin2;
-    }
-
-    public void setCoin2(String coin2) {
-        this.coin2 = coin2;
-    }
-
-    public Double getAmount1() {
-        return amount1;
-    }
-
-    public void setAmount1(Double amount1) {
-        this.amount1 = amount1;
-    }
-
-    public Double getAmount2() {
-        return amount2;
-    }
-
-    public void setAmount2(Double amount2) {
-        this.amount2 = amount2;
     }
 }

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.Functions.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.Functions.GET_RESERVES;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DAI;
@@ -107,7 +108,7 @@ public class Web3ServiceTest {
         List<Type> types = web3Service.callMethodWithRetry(GET_PRICE_PER_FULL_SHARE, WBTC, LATEST);
         assertNotNull(types);
         assertFalse(types.isEmpty());
-        assertTrue(HarvestTx.parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
+        assertTrue(parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
     }
 
     @Test

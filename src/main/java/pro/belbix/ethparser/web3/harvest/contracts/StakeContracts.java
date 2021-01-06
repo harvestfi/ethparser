@@ -52,6 +52,10 @@ public class StakeContracts {
         }
     }
 
+    public static boolean isST_PS(String contract) {
+        return StakeContracts.ST_PS.equalsIgnoreCase(contract) || StakeContracts.ST_PS_V0.equalsIgnoreCase(contract);
+    }
+
     //dangerous, but useful
     private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
         for (Field field : StakeContracts.class.getDeclaredFields()) {

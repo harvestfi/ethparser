@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.model;
 
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Map;
@@ -59,21 +61,6 @@ public class HarvestTx implements EthTransactionI {
             return "3CRV";
         }
         return s;
-    }
-
-    public static double parseAmount(BigInteger amount, String address) {
-        if (amount == null) {
-            return 0.0;
-        }
-        Double divider = Vaults.vaultDividers.get(address);
-        if (divider == null) {
-            divider = LpContracts.lpHashToDividers.get(address);
-            if (divider == null) {
-                throw new IllegalStateException("Divider not found for " + address);
-            }
-        }
-        return amount.doubleValue() / divider;
-        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
     }
 
     private void enrichMethodDepend(HarvestDTO dto) {

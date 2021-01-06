@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest;
 
-import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +27,7 @@ public class HarvestOwnerBalanceCalculator {
     public boolean fillBalance(HarvestDTO dto) {
         try {
             if (Vaults.vaultNameToHash.containsKey(dto.getVault())) {
-                if (Vaults.isPs(dto.getVault())) {
+                if (Vaults.isPsName(dto.getVault())) {
                     return balanceForPs(dto);
                 }
                 return balanceForVault(dto);

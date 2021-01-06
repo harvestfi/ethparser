@@ -160,3 +160,15 @@ from rewards
 where period_finish > (UNIX_TIMESTAMP() - 604800)
 group by vault
 order by date desc;
+
+-- TOKEN BALANCE
+select  coalesce(buy, 0) - coalesce(sell, 0) sum from
+(select sum(value) buy from transfers
+where block_date <= 99999999999
+  and recipient = :address
+    ) buys
+    left join
+(select sum(value) sell from transfers
+where block_date <= 99999999999
+  and owner = :address
+    ) sells on 1=1

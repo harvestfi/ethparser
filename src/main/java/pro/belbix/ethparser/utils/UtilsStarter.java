@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
@@ -26,6 +27,8 @@ public class UtilsStarter {
     private final OwnerBalanceRecalculate ownerBalanceRecalculate;
     private final OwnerCountRecalculate ownerCountRecalculate;
     private final MigrationRecalculate migrationRecalculate;
+    private final TransferDownloader transferDownloader;
+    private final TransfersRecalculate transfersRecalculate;
     private final RewardRecalculate rewardRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
@@ -40,6 +43,8 @@ public class UtilsStarter {
                         OwnerBalanceRecalculate ownerBalanceRecalculate,
                         OwnerCountRecalculate ownerCountRecalculate,
                         MigrationRecalculate migrationRecalculate,
+                        TransferDownloader transferDownloader,
+                        TransfersRecalculate transfersRecalculate,
                         RewardRecalculate rewardRecalculate) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
@@ -54,6 +59,8 @@ public class UtilsStarter {
         this.ownerBalanceRecalculate = ownerBalanceRecalculate;
         this.ownerCountRecalculate = ownerCountRecalculate;
         this.migrationRecalculate = migrationRecalculate;
+        this.transferDownloader = transferDownloader;
+        this.transfersRecalculate = transfersRecalculate;
         this.rewardRecalculate = rewardRecalculate;
     }
 
@@ -85,6 +92,10 @@ public class UtilsStarter {
             migrationRecalculate.start();
         } else if ("rewards-recalculate".equals(appProperties.getStartUtil())) {
             rewardRecalculate.start();
+        }else if ("transfer-download".equals(appProperties.getStartUtil())) {
+            transferDownloader.start();
+        } else if ("transfer-recalculate".equals(appProperties.getStartUtil())) {
+            transfersRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);

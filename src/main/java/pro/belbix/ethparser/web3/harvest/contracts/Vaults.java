@@ -138,8 +138,12 @@ public class Vaults {
        return LpContracts.harvestStrategyToLp.containsKey(vaultHash);
     }
 
-    public static boolean isPs(String vaultName) {
+    public static boolean isPsName(String vaultName) {
         return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);
+    }
+
+    public static boolean isPsHash(String hash) {
+        return isPsName(Vaults.vaultHashToName.get(hash));
     }
 
     //dangerous, but useful

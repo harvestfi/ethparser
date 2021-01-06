@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.model.HarvestTx.parseAmount;
+import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,7 +46,6 @@ public class HarvestVaultParser implements Web3Parser {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
-    public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);

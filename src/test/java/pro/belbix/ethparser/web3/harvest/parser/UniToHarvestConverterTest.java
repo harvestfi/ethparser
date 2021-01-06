@@ -7,8 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.USDC_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.USDC_NAME;
 
 import java.util.List;
 import org.junit.Before;

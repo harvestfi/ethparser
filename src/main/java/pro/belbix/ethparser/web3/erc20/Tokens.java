@@ -1,5 +1,6 @@
-package pro.belbix.ethparser.web3.uniswap.contracts;
+package pro.belbix.ethparser.web3.erc20;
 
+import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpHashToCoinNames;
 
@@ -36,6 +37,7 @@ public class Tokens {
     private final static Map<String, String> tokenHashToName = new HashMap<>();
     private final static Map<String, String> tokenNameToHash = new HashMap<>();
     private final static Map<String, Integer> tokenCreated = new HashMap<>();
+    public final static Map<String, Double> tokenDividers = new HashMap<>();
     public final static Map<String, Tuple2<String, String>> specificLpForCoin = new HashMap<>();
 
     static {
@@ -53,6 +55,9 @@ public class Tokens {
         tokenNameToHash.put(WBTC_NAME, WBTC_TOKEN);
         tokenNameToHash.put(GRAIN_NAME, GRAIN_TOKEN);
 
+        tokenDividers.put(FARM_TOKEN, D18);
+
+        tokenCreated.put(FARM_NAME, 10777280);
         tokenCreated.put(GRAIN_NAME, 11408083);
         tokenCreated.put(BADGER_NAME, 11381233);
         tokenCreated.put(DPI_NAME, 10868422);
@@ -64,7 +69,7 @@ public class Tokens {
 
     public static boolean isCreated(String tokenName, int block) {
         Integer created = tokenCreated.get(tokenName);
-        if(created == null) {
+        if (created == null) {
             return true;
         }
         return created < block;
@@ -94,10 +99,18 @@ public class Tokens {
 
     public static String findNameForContract(String contract) {
         String name = tokenHashToName.get(contract);
-        if(name == null) {
+        if (name == null) {
             throw new IllegalStateException("Name not found for " + contract);
         }
         return name;
+    }
+
+    public static String findContractForName(String name) {
+        String contract = tokenNameToHash.get(name);
+        if (contract == null) {
+            throw new IllegalStateException("Contract not found for " + name);
+        }
+        return contract;
     }
 
     public static String mapLpAddressToCoin(String address) {

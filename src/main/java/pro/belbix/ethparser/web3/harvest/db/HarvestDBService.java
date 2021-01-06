@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
-import static pro.belbix.ethparser.web3.uniswap.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -79,7 +79,7 @@ public class HarvestDBService {
 
         Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
             Vaults.vaultNameToHash.keySet().stream()
-                .filter(v -> !Vaults.isPs(v))
+                .filter(v -> !Vaults.isPsName(v))
                 .collect(Collectors.toList()),
             dto.getBlockDate());
         if (allPoolsOwnerCount == null) {

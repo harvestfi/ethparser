@@ -10,6 +10,7 @@ public class WsService {
     public final static String HARDWORK_TOPIC_NAME = "/topic/hardwork";
     public final static String IMPORTANT_EVENTS_TOPIC_NAME = "/topic/events";
     public final static String REWARDS_TOPIC_NAME = "/topic/rewards";
+    public final static String TRANSFERS_TOPIC_NAME = "/topic/transfers";
 
     private final SimpMessagingTemplate messagingTemplate;
 

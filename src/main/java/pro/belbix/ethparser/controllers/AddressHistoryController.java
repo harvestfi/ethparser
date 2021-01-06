@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.TransferRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 
 @RestController
@@ -17,11 +19,14 @@ public class AddressHistoryController {
 
     private final HarvestRepository harvestRepository;
     private final UniswapRepository uniswapRepository;
+    private final TransferRepository transferRepository;
 
     public AddressHistoryController(HarvestRepository harvestRepository,
-                                    UniswapRepository uniswapRepository) {
+                                    UniswapRepository uniswapRepository,
+                                    TransferRepository transferRepository) {
         this.harvestRepository = harvestRepository;
         this.uniswapRepository = uniswapRepository;
+        this.transferRepository = transferRepository;
     }
 
     @GetMapping("harvest/{address}")
@@ -36,6 +41,13 @@ public class AddressHistoryController {
                                               @RequestParam(value = "from", required = false) String from,
                                               @RequestParam(value = "to", required = false) String to) {
         return uniswapRepository.fetchAllByOwner(address, parseFrom(from), parseTo(to));
+    }
+
+    @GetMapping("transfer/{address}")
+    public List<TransferDTO> addressHistoryTransfers(@PathVariable("address") String address,
+                                                     @RequestParam(value = "from", required = false) String from,
+                                                     @RequestParam(value = "to", required = false) String to) {
+        return transferRepository.fetchAllByOwnerAndRecipient(address, address, parseFrom(from), parseTo(to));
     }
 
     private long parseFrom(String from) {
