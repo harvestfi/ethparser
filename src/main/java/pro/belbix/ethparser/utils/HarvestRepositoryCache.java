@@ -121,6 +121,11 @@ public class HarvestRepositoryCache implements HarvestRepository {
     }
 
     @Override
+    public HarvestDTO findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(String vault, long blockDate) {
+        return null;
+    }
+
+    @Override
     public List<HarvestDTO> findAll() {
         return null;
     }

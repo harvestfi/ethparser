@@ -114,4 +114,6 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by t.blockDate asc")
     List<HarvestDTO> fetchAllMigration();
 
+    HarvestDTO findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(String vault, long blockDate);
+
 }

@@ -26,6 +26,7 @@ public class UtilsStarter {
     private final OwnerBalanceRecalculate ownerBalanceRecalculate;
     private final OwnerCountRecalculate ownerCountRecalculate;
     private final MigrationRecalculate migrationRecalculate;
+    private final RewardRecalculate rewardRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -38,7 +39,8 @@ public class UtilsStarter {
                         LpTvlRecalculate lpTvlRecalculate,
                         OwnerBalanceRecalculate ownerBalanceRecalculate,
                         OwnerCountRecalculate ownerCountRecalculate,
-                        MigrationRecalculate migrationRecalculate) {
+                        MigrationRecalculate migrationRecalculate,
+                        RewardRecalculate rewardRecalculate) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -52,6 +54,7 @@ public class UtilsStarter {
         this.ownerBalanceRecalculate = ownerBalanceRecalculate;
         this.ownerCountRecalculate = ownerCountRecalculate;
         this.migrationRecalculate = migrationRecalculate;
+        this.rewardRecalculate = rewardRecalculate;
     }
 
     public void startUtils() {
@@ -80,6 +83,8 @@ public class UtilsStarter {
             ownerCountRecalculate.start();
         } else if ("migration-recalculate".equals(appProperties.getStartUtil())) {
             migrationRecalculate.start();
+        } else if ("rewards-recalculate".equals(appProperties.getStartUtil())) {
+            rewardRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);
