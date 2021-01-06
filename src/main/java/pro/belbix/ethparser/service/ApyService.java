@@ -14,7 +14,7 @@ import pro.belbix.ethparser.repositories.RewardsRepository;
 public class ApyService {
 
     private RewardDTO lastReward;
-    private Map<String, Map<Integer, Double>> apyCache = new HashMap<>();
+    private final Map<String, Map<Integer, Double>> apyCache = new HashMap<>();
     private final RewardsRepository rewardsRepository;
 
     public ApyService(RewardsRepository rewardsRepository) {
@@ -29,9 +29,9 @@ public class ApyService {
                 return apy;
             }
         }
-
+        lastReward = reward;
         List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(pool,
-            Instant.ofEpochSecond(reward.getBlockDate()).minus(days, ChronoUnit.DAYS).getEpochSecond());
+            Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond());
         double averageApy = calculateAverageApy(rewards.stream()
             .map(RewardDTO::getApy)
             .mapToDouble(Double::doubleValue).toArray());
