@@ -26,7 +26,7 @@ public class HistoryController {
     @GetMapping(value = "/rewards/{pool}")
     List<RewardDTO> rewardsHistory(@PathVariable("pool") String pool,
                                    @RequestParam(value = "days", required = false) String days) {
-        int daysI = 10;
+        int daysI = 7;
         if(days != null) {
             daysI = Integer.parseInt(days);
         }
