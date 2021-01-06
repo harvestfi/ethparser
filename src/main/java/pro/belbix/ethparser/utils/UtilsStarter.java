@@ -44,8 +44,7 @@ public class UtilsStarter {
                         OwnerCountRecalculate ownerCountRecalculate,
                         MigrationRecalculate migrationRecalculate,
                         TransferDownloader transferDownloader,
-                        TransfersRecalculate transfersRecalculate) {
-                        MigrationRecalculate migrationRecalculate,
+                        TransfersRecalculate transfersRecalculate,
                         RewardRecalculate rewardRecalculate) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
