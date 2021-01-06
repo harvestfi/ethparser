@@ -47,7 +47,7 @@ public class RewardsDBService {
         }
         Double tvl;
         double reward;
-        if (Vaults.isPs(dto.getVault())) {
+        if (Vaults.isPsName(dto.getVault())) {
             tvl = harvest.getLastTvl();
             reward = dto.getReward();
         } else {

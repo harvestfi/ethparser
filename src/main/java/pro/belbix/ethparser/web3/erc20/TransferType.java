@@ -1,9 +1,11 @@
 package pro.belbix.ethparser.web3.erc20;
 
+import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+
 import pro.belbix.ethparser.dto.TransferDTO;
+import pro.belbix.ethparser.web3.MethodMapper;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.MethodMapper;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public enum TransferType {
@@ -49,10 +51,10 @@ public enum TransferType {
     public boolean isUser() {
         return !(
             this == NOTIFY
-            || this == MINT
-            || this == HARD_WORK
-            || this == PS_INTERNAL
-            || this == BOT
+                || this == MINT
+                || this == HARD_WORK
+                || this == PS_INTERNAL
+                || this == BOT
         );
     }
 
@@ -60,6 +62,10 @@ public enum TransferType {
         String recipient = dto.getRecipient().toLowerCase();
         String owner = dto.getOwner().toLowerCase();
         String methodName = dto.getMethodName();
+
+        if (ZERO_ADDRESS.equals(owner)) {
+            return MINT;
+        }
 
         if (MethodMapper.isBadger(methodName)) {
             return BADGER;
@@ -87,7 +93,7 @@ public enum TransferType {
 
         if (Vaults.isPsHash(owner)) {
             // V0 reward
-            if("getReward".equalsIgnoreCase(methodName)) {
+            if ("getReward".equalsIgnoreCase(methodName)) {
                 return REWARD;
             }
             if (StakeContracts.isST_PS(recipient)) {
@@ -131,10 +137,6 @@ public enum TransferType {
 
         if (FEE_REWARD_FORWARDER.equals(recipient) || FEE_REWARD_FORWARDER.equals(owner)) {
             return HARD_WORK;
-        }
-
-        if ("mint".equals(methodName)) {
-            return MINT;
         }
 
         if (MethodMapper.isBot(methodName)) {

@@ -3,8 +3,16 @@ package pro.belbix.ethparser.web3.erc20.db;
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_EXIT;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS_V0;
 
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
@@ -14,21 +22,30 @@ import pro.belbix.ethparser.web3.PriceProvider;
 @Log4j2
 public class TransferDBService {
 
-    private final TransferRepository transferRepository;
-    private final PriceProvider priceProvider;
+    private static final Set<String> notCheckableAddresses = new HashSet<>();
 
-    public TransferDBService(TransferRepository transferRepository,
-                             PriceProvider priceProvider) {
-        this.transferRepository = transferRepository;
-        this.priceProvider = priceProvider;
+    static {
+        notCheckableAddresses.add(ST_PS);
+        notCheckableAddresses.add(PS);
+        notCheckableAddresses.add(PS_V0);
+        notCheckableAddresses.add(ZERO_ADDRESS);
     }
 
+    private final TransferRepository transferRepository;
+    private final EntityManager entityManager;
+
+    public TransferDBService(TransferRepository transferRepository, EntityManager entityManager) {
+        this.transferRepository = transferRepository;
+        this.entityManager = entityManager;
+    }
+
+    @Transactional
     public boolean saveDto(TransferDTO dto) {
         if (transferRepository.existsById(dto.getId())) {
             log.warn("Duplicate transfer info " + dto);
             return false;
         }
-        transferRepository.saveAndFlush(dto);
+        entityManager.persist(dto);
         checkBalances(dto);
         fillProfit(dto);
         transferRepository.save(dto);
@@ -41,7 +58,7 @@ public class TransferDBService {
     }
 
     private boolean checkBalance(String holder, double expectedBalance, long blockDate) {
-        if (ZERO_ADDRESS.equals(holder)) {
+        if (notCheckableAddresses.contains(holder.toLowerCase())) {
             return true;
         }
         Double balance = transferRepository.getBalanceForOwner(holder, blockDate);
@@ -49,7 +66,7 @@ public class TransferDBService {
             balance = 0.0;
         }
         if (Math.abs(balance - expectedBalance) > 1) {
-            log.error("WRONG BALANCE for " + holder + " dbBalance: " + balance + " != " + expectedBalance);
+            log.info("Wrong balance for " + holder + " dbBalance: " + balance + " != " + expectedBalance);
             return false;
         }
         return true;

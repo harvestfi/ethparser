@@ -875,6 +875,10 @@ public abstract class MethodDecoder {
                         TypeReference.makeTypeReference("uint256"),
                         TypeReference.makeTypeReference("bool")
                     ));
+                parameters.put("executeMint",
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
+                    ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
