@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.IMPORTANT_EVENTS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.time.Instant;
@@ -32,6 +33,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
+import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapTransactionsParser;
@@ -54,6 +56,7 @@ public class Application {
         HarvestVaultParserV2 harvestVaultParser = context.getBean(HarvestVaultParserV2.class);
         RewardParser rewardParser = context.getBean(RewardParser.class);
         HardWorkParser hardWorkParser = context.getBean(HardWorkParser.class);
+        ImportantEventsParser importantEventsParser = context.getBean(ImportantEventsParser.class);
         UniToHarvestConverter uniToHarvestConverter = context.getBean(UniToHarvestConverter.class);
         WsService ws = context.getBean(WsService.class);
         AppProperties conf = context.getBean(AppProperties.class);
@@ -83,6 +86,10 @@ public class Application {
 
             if (conf.isParseRewardsLog()) {
                 startParse(web3Service, rewardParser, ws, REWARDS_TOPIC_NAME, true);
+            }
+
+            if (conf.isParseImportantEvents()) {
+                startParse(web3Service, importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
             }
 
             if (conf.isConvertUniToHarvest()) {
