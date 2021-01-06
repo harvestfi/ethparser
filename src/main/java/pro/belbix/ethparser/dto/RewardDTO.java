@@ -11,7 +11,7 @@ import lombok.Data;
     @Index(name = "idx_rewards", columnList = "blockDate")
 })
 @Data
-public class RewardDTO implements DtoI{
+public class RewardDTO implements DtoI {
 
     @Id
     private String id;
@@ -20,16 +20,7 @@ public class RewardDTO implements DtoI{
     private long blockDate;
     private double reward;
     private long periodFinish;
+    private double apy;
+    private double tvl;
 
-    @Override
-    public String toString() {
-        return "RewardDTO{" +
-            "id='" + id + '\'' +
-            ", vault='" + vault + '\'' +
-            ", block=" + block +
-            ", blockDate=" + blockDate +
-            ", reward=" + reward +
-            ", periodFinish=" + periodFinish +
-            '}';
-    }
 }
