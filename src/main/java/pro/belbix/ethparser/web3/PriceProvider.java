@@ -5,12 +5,16 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
+import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.erc20.TokenInfo;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
@@ -105,12 +110,13 @@ public class PriceProvider {
     }
 
     private void updateUSDPrice(String coinName, Long block) {
-        if(block != null && !Tokens.isCreated(coinName, block.intValue())){
+        if (block != null && !Tokens.isCreated(coinName, block.intValue())) {
             lastPrices.put(coinName, 0.0);
             lastUpdates.put(coinName, Instant.now());
             return;
         }
         if (isStableCoin(coinName)) {
+            // todo parse stablecoin prices
             return;
         }
 
@@ -120,23 +126,17 @@ public class PriceProvider {
             return;
         }
 
-        String lpName;
-        String nonUSD = null;
-        if (Tokens.specificLpForCoin.containsKey(coinName)) {
-            lpName = Tokens.specificLpForCoin.get(coinName).component1();
-            nonUSD = Tokens.specificLpForCoin.get(coinName).component2();
-        } else {
-            lpName = "UNI_LP_USDC_" + coinName;
-        }
-
+        TokenInfo tokenInfo = Tokens.getTokenInfo(coinName);
+        String lpName = tokenInfo.findLp(block).component1();
+        String otherTokenName = tokenInfo.findLp(block).component2();
         String lpHash = LpContracts.lpNameToHash.get(lpName);
         if (lpHash == null) {
-            throw new IllegalStateException("Not found hash for " + lpName);
+            throw new IllegalStateException("Not found hash for " + tokenInfo);
         }
 
         Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
         if (reserves == null) {
-            throw new IllegalStateException("Can't reach reserves for " + coinName + " " + lpName);
+            throw new IllegalStateException("Can't reach reserves for " + tokenInfo);
         }
         double price;
         if (
@@ -146,62 +146,21 @@ public class PriceProvider {
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
             || UNI_LP_USDC_FARM.equals(lpHash)
+            || UNI_LP_WETH_FARM.equals(lpHash)
             || UNI_LP_ETH_DPI.equals(lpHash)
             || UNI_LP_GRAIN_FARM.equals(lpHash)
+            || UNI_LP_ETH_WBTC.equals(lpHash)
         ) {
             price = reserves.component2() / reserves.component1();
         } else {
             throw new IllegalStateException("Unknown LP " + lpHash);
         }
 
-        if (nonUSD != null) {
-            price *= getPriceForCoin(nonUSD, block);
-        }
+        price *= getPriceForCoin(otherTokenName, block);
 
         lastPrices.put(coinName, price);
         lastUpdates.put(coinName, Instant.now());
         log.info("Price {} updated {} on block {}", coinName, price, block);
-    }
-
-    private static boolean isStableCoin(String name) {
-        return "USD".equals(name)
-            || "USDC".equals(name)
-            || "USDT".equals(name)
-            || "YCRV".equals(name)
-            || "3CRV".equals(name)
-            || "_3CRV".equals(name)
-            || "TUSD".equals(name)
-            || "DAI".equals(name)
-            || "CRV_CMPND".equals(name)
-            || "CRV_BUSD".equals(name)
-            || "CRV_USDN".equals(name)
-            || "HUSD".equals(name)
-            || "CRV_HUSD".equals(name)
-            ;
-    }
-
-    public static String simplifyName(String name) {
-        name = name.replaceFirst("_V0", "");
-        if ("WETH".equals(name)) {
-            return "ETH";
-        } else if ("RENBTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRVRENWBTC".equals(name)) {
-            return "WBTC";
-        } else if ("TBTC".equals(name)) {
-            return "WBTC";
-        } else if ("BTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRV_TBTC".equals(name)) {
-            return "WBTC";
-        } else if ("HBTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRV_HBTC".equals(name)) {
-            return "WBTC";
-        } else if ("PS".equals(name)) {
-            return "FARM";
-        }
-        return name;
     }
 
     private void init() {

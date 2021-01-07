@@ -107,7 +107,7 @@ public class UniswapParserTest {
             "SELL",
             WBTC_NAME,
             "0,06232325",
-            "3,85728028"
+            "3,85605455"
         );
     }
 
@@ -122,7 +122,7 @@ public class UniswapParserTest {
             "ADD",
             WBTC_NAME,
             "0,00031472",
-            "0,12238873"
+            "0,12263252"
         );
     }
 
@@ -137,7 +137,7 @@ public class UniswapParserTest {
             "BUY",
             WBTC_NAME,
             "0,00001290",
-            "0,12443727"
+            "0,12461304"
         );
     }
 

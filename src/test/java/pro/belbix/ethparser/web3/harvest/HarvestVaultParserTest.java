@@ -84,8 +84,8 @@ public class HarvestVaultParserTest {
             "0,00175897",
             "",
             "",
-            795004L,
-            61485661L,
+            793188L,
+            61345192L,
             true
         );
         assertNotNull(dto);
@@ -256,8 +256,8 @@ public class HarvestVaultParserTest {
             "0,00003057",
             "0",
             "0",
-            423523L,
-            31808001L,
+            423610L,
+            31814577L,
             true
         );
     }
@@ -418,8 +418,8 @@ public class HarvestVaultParserTest {
             "0,00084212",
             "0,00084570",
             "1,00424760",
-            421722L,
-            65700482L,
+            421424L,
+            65653968L,
             true
         );
     }
@@ -665,8 +665,8 @@ public class HarvestVaultParserTest {
             "624,51801895",
             "624,89371055",
             "0",
-            8777930L,
-            130974716L,
+            8764980L,
+            130781486L,
             true
         );
     }
@@ -704,7 +704,7 @@ public class HarvestVaultParserTest {
             "0,02805316",
             "0",
             387L,
-            7471619L,
+            7473924L,
             true
         );
     }
@@ -722,8 +722,8 @@ public class HarvestVaultParserTest {
             "1,02540908",
             "1,02579537",
             "0",
-            14409L,
-            10818598L,
+            14366L,
+            10786356L,
             true
         );
     }
@@ -741,8 +741,8 @@ public class HarvestVaultParserTest {
             "0,00000981",
             "0,00000981",
             "0",
-            22349L,
-            2675138L,
+            22232L,
+            2661180L,
             true
         );
     }
@@ -798,8 +798,8 @@ public class HarvestVaultParserTest {
             "282,00527470",
             "282,01465792",
             "0",
-            3664775L,
-            124144485L,
+            3668456L,
+            124269201L,
             true
         );
     }

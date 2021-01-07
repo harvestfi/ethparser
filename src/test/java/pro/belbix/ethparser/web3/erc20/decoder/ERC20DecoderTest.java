@@ -9,6 +9,6 @@ public class ERC20DecoderTest {
 
     @Test
     public void decodeMethodNameTest() {
-        assertEquals("", decoder.decodeMethodName("0xd9627aa4"));
+        assertEquals("sellToUniswap", decoder.decodeMethodName("0xd9627aa4"));
     }
 }

@@ -36,6 +36,6 @@ public class PriceProviderTest {
     public void getLpPositionAmountInUsdWithNonNullBlockTest() {
         double amountUsd =
             priceProvider.getLpPositionAmountInUsd(UNI_LP_WBTC_BADGER, 0.00000630081174343, 11387098L);
-        assertEquals("437,54", String.format("%.2f", amountUsd));
+        assertEquals("437,96", String.format("%.2f", amountUsd));
     }
 }
