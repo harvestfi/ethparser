@@ -34,4 +34,8 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
     @Query(nativeQuery = true, value = ""
         + "select * from transfers where method_name is null or method_name like '0x%' order by block_date")
     List<TransferDTO> fetchAllWithoutMethods();
+
+    @Query(nativeQuery = true, value = ""
+        + "select * from transfers where transfers.price is null or price = 0 order by block_date")
+    List<TransferDTO> fetchAllWithoutPrice();
 }
