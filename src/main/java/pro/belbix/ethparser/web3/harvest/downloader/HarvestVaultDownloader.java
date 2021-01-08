@@ -46,7 +46,7 @@ public class HarvestVaultDownloader {
 
     public void start() {
         for (Entry<String, String> entry : Vaults.vaultHashToName.entrySet()) {
-            if (contractName != null && !contractName.equals(entry.getValue())) {
+            if (contractName != null && !contractName.isEmpty() && !contractName.equals(entry.getValue())) {
                 continue;
             }
 
