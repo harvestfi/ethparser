@@ -33,6 +33,7 @@ public class RewardParser implements Web3Parser {
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private Instant lastTx = Instant.now();
+    private boolean waitNewBlock = true;
 
     private final Functions functions;
     private final Web3Service web3Service;
@@ -95,7 +96,8 @@ public class RewardParser implements Web3Parser {
             || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        if (!"reward-download".equalsIgnoreCase(appProperties.getStartUtil())) {
+        if (!"reward-download".equalsIgnoreCase(appProperties.getStartUtil()) && waitNewBlock) {
+            log.info("Wait new block for correct parsing rewards");
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
         long nextBlock =
@@ -125,6 +127,10 @@ public class RewardParser implements Web3Parser {
         dto.setPeriodFinish(periodFinish);
         log.info("Parsed " + dto);
         return dto;
+    }
+
+    public void setWaitNewBlock(boolean waitNewBlock) {
+        this.waitNewBlock = waitNewBlock;
     }
 
     @Override

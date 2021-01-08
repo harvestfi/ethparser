@@ -111,19 +111,6 @@ public class Functions {
         return (BigInteger) types.get(0).getValue();
     }
 
-    public BigInteger callAnyFunction(String name, TypeReference<?> returnType, String hash, Long block) {
-        List<Type> types = web3Service.callMethodWithRetry(new Function(
-                name,
-            Collections.emptyList(),
-            Collections.singletonList(returnType)),
-            hash, resolveBlock(block));
-        if (types == null || types.isEmpty()) {
-            log.error(name + " Wrong callback " + hash);
-            return null;
-        }
-        return (BigInteger) types.get(0).getValue();
-    }
-
     public static DefaultBlockParameter resolveBlock(Long block) {
         if (block != null) {
             return new DefaultBlockParameterNumber(block);

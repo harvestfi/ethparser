@@ -369,7 +369,7 @@ public class Web3Service {
 
     public List<Type> callMethodWithRetry(Function function, String contractAddress, DefaultBlockParameter block) {
         int count = 0;
-        do {
+        while (true) {
             List<Type> result;
             try {
                 result = callMethod(function, contractAddress, block);
@@ -382,9 +382,11 @@ public class Web3Service {
                 return result;
             }
             count++;
+            if (count > RETRY_COUNT) {
+                return null;
+            }
             log.warn("Fail call eth function, retry " + count);
-        } while (count < RETRY_COUNT);
-        return null;
+        }
     }
 
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {

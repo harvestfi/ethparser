@@ -37,6 +37,7 @@ public class RewardParserTest {
     @Before
     public void setUp() {
         priceProvider.setUpdateTimeout(0);
+        rewardParser.setWaitNewBlock(false);
     }
 
     @Test

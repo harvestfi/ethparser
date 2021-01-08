@@ -63,7 +63,7 @@ public class HarvestOwnerBalanceCalculator {
             //migration process broken UnderlyingBalance for vault
             //but we have shortcut - after migration we can check balanceOf
             String stHash = StakeContracts.vaultHashToStakeHash.get(vaultHash);
-            if (vaultHash == null) {
+            if (stHash == null) {
                 throw new IllegalStateException("Not found st for " + dto.getVault());
             }
             balanceI = functions.callBalanceOf(dto.getOwner(), stHash, block);
