@@ -54,6 +54,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private Instant lastTx = Instant.now();
+    private long count = 0;
 
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
@@ -88,6 +89,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
                 Log ethLog = null;
                 try {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
+                    count++;
+                    if(count % 100 == 0) {
+                        log.info(this.getClass().getSimpleName() + " handled " + count);
+                    }
                     HarvestDTO dto = parseVaultLog(ethLog);
                     handleDto(dto);
                 } catch (Exception e) {

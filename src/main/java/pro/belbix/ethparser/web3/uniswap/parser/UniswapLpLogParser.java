@@ -34,6 +34,7 @@ public class UniswapLpLogParser implements Web3Parser {
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private Instant lastTx = Instant.now();
+    private long count = 0;
 
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
@@ -65,10 +66,14 @@ public class UniswapLpLogParser implements Web3Parser {
         web3Service.subscribeOnLogs(logs);
         new Thread(() -> {
             while (run.get()) {
-                Log log = null;
+                Log ethLog = null;
                 try {
-                    log = logs.poll(1, TimeUnit.SECONDS);
-                    UniswapDTO dto = parseUniswapLog(log);
+                    ethLog = logs.poll(1, TimeUnit.SECONDS);
+                    count++;
+                    if(count % 100 == 0) {
+                        log.info(this.getClass().getSimpleName() + " handled " + count);
+                    }
+                    UniswapDTO dto = parseUniswapLog(ethLog);
                     if (dto != null) {
                         lastTx = Instant.now();
                         enrichDto(dto);
@@ -80,7 +85,7 @@ public class UniswapLpLogParser implements Web3Parser {
                         }
                     }
                 } catch (Exception e) {
-                    UniswapLpLogParser.log.error("Error uniswap parser loop " + log, e);
+                    UniswapLpLogParser.log.error("Error uniswap parser loop " + ethLog, e);
                 }
             }
         }).start();
