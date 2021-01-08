@@ -116,6 +116,7 @@ public class TransferParser implements Web3Parser {
         fillMethodName(dto);
         fillTransferType(dto);
         fillBalance(dto);
+        fillPrice(dto);
 
         log.info(dto.print());
         return dto;
@@ -125,6 +126,9 @@ public class TransferParser implements Web3Parser {
         String tokenAddress = Tokens.findContractForName(dto.getName());
         dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
         dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
+    }
+
+    public void fillPrice(TransferDTO dto) {
         dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock()));
     }
 
