@@ -52,6 +52,10 @@ public class Vaults {
     public static final String IDX_ETH_DPI = "0x2a32dcbb121d48c106f6d94cf2b4714c0b4dfe48".toLowerCase();
     public static final String CRV_HUSD = "0x29780C39164Ebbd62e9DDDE50c151810070140f2".toLowerCase();
     public static final String CRV_HBTC = "0xCC775989e76ab386E9253df5B0c0b473E22102E2".toLowerCase();
+    public static final String UNI_BAC_DAI = "0x6Bccd7E983E438a56Ba2844883A664Da87E4C43b".toLowerCase();
+    public static final String UNI_DAI_BAS = "0xf8b7235fcfd5a75cfdcc0d7bc813817f3dd17858".toLowerCase();
+    public static final String SUSHI_MIC_USDT = "0x6F14165c6D529eA3Bfe1814d0998449e9c8D157D".toLowerCase();
+    public static final String SUSHI_MIS_USDT = "0x145f39B3c6e6a885AA6A8fadE4ca69d64bab69c8".toLowerCase();
 
     public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
     public final static Map<String, String> vaultNameToHash = new LinkedHashMap<>();
@@ -106,6 +110,10 @@ public class Vaults {
         vaultDividers.put(IDX_ETH_DPI, D18);
         vaultDividers.put(CRV_HUSD, D18);
         vaultDividers.put(CRV_HBTC, D18);
+        vaultDividers.put(UNI_BAC_DAI, D18);
+        vaultDividers.put(UNI_DAI_BAS, D18);
+        vaultDividers.put(SUSHI_MIC_USDT, D18);
+        vaultDividers.put(SUSHI_MIS_USDT, D18);
 
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");

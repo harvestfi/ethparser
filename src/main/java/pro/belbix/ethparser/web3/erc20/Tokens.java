@@ -23,6 +23,10 @@ public class Tokens {
     public final static String DPI_TOKEN = "0x1494ca1f11d487c2bbe4543e90080aeba4ba3c2b".toLowerCase();
     public final static String GRAIN_TOKEN = "0x6589fe1271A0F29346796C6bAf0cdF619e25e58e".toLowerCase();
     public final static String TUSD_TOKEN = "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase();
+    public final static String BAC_TOKEN = "0x3449fc1cd036255ba1eb19d65ff4ba2b8903a69a".toLowerCase();
+    public final static String BAS_TOKEN = "0xa7ED29B253D8B4E3109ce07c80fc570f81B63696".toLowerCase();
+    public final static String MIC_TOKEN = "0x368B3a58B5f49392e5C9E4C998cb0bB966752E51".toLowerCase();
+    public final static String MIS_TOKEN = "0x4b4D2e899658FB59b1D518b68fe836B100ee8958".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -36,6 +40,10 @@ public class Tokens {
     public static final String DPI_NAME = "DPI";
     public static final String GRAIN_NAME = "GRAIN";
     public static final String TUSD_NAME = "TUSD";
+    public static final String BAC_NAME = "BAC";
+    public static final String BAS_NAME = "BAS";
+    public static final String MIC_NAME = "MIC";
+    public static final String MIS_NAME = "MIS";
 
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -58,6 +66,18 @@ public class Tokens {
 
         tokenInfos.add(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
+
+        tokenInfos.add(new TokenInfo(BAC_NAME, BAC_TOKEN, 0)
+            .addLp("UNI_LP_BAC_DAI", 0, DAI_NAME));
+
+        tokenInfos.add(new TokenInfo(BAS_NAME, BAS_TOKEN, 0)
+            .addLp("UNI_LP_DAI_BAS", 0, DAI_NAME));
+
+        tokenInfos.add(new TokenInfo(MIC_NAME, MIC_TOKEN, 0)
+            .addLp("SUSHI_LP_MIC_USDT", 0, USDT_NAME));
+
+        tokenInfos.add(new TokenInfo(MIS_NAME, MIS_TOKEN, 0)
+            .addLp("SUSHI_LP_MIS_USDT", 0, USDT_NAME));
 
         //todo stablecoins
         tokenInfos.add(new TokenInfo(USDC_NAME, USDC_TOKEN, 0));

@@ -72,6 +72,86 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultSUSHI_MIS_USDT() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.SUSHI_MIS_USDT,
+            11616169,
+            LOG_ID,
+            "0xff21190b583e185235f5da7537f939d64ec1f6b5",
+            "Deposit",
+            "SUSHI_MIS_USDT",
+            "0xe34a6dfb4dd357c684c45cfb59af3efa9b3770b5d1a37feb5bf8c83df3d891be_285",
+            "0,00000784",
+            "",
+            "",
+            405L,
+            279662L,
+            true
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
+    public void parseVaultSUSHI_MIC_USDT() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.SUSHI_MIC_USDT,
+            11615991,
+            LOG_ID,
+            "0x8dc06d76a63e79c0b77633f60bc7b9e14ed94d18",
+            "Deposit",
+            "SUSHI_MIC_USDT",
+            "0x23f459577376439163cd5cf60e0545e7c7920302092e3e77b1f24dd30cd6989f_59",
+            "0,01899012",
+            "",
+            "",
+            41679L,
+            2399350L,
+            true
+        );
+        assertNotNull(dto);
+    }
+
+//    @Test
+//    public void parseVaultUNI_DAI_BAS() {
+//        HarvestDTO dto = harvestVaultParseTest(
+//            Vaults.UNI_DAI_BAS,
+//            11615995,
+//            LOG_ID,
+//            "",
+//            "",
+//            "UNI_DAI_BAS",
+//            "",
+//            "",
+//            "",
+//            "",
+//            385046L,
+//            415514L,
+//            true
+//        );
+//        assertNotNull(dto);
+//    }
+
+    @Test
+    public void parseVaultUNI_BAC_DAI() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.UNI_BAC_DAI,
+            11615995,
+            LOG_ID,
+            "0xe2bb94210b41ce4c01b9b97f3ac62e728e472f9c",
+            "Deposit",
+            "UNI_BAC_DAI",
+            "0xa78e9b989f0997ebf74afba986509a3233414155438e351b37987cfe93ff938b_95",
+            "179375,42468206",
+            "",
+            "",
+            385046L,
+            415514L,
+            true
+        );
+        assertNotNull(dto);
+    }
+
+    @Test
     public void parseVaultUNI_ETH_WBTC2() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.UNI_ETH_WBTC,

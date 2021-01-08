@@ -1,12 +1,20 @@
 package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.erc20.Tokens.BAC_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
 import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIC_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIS_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_BAC_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BAS;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
@@ -27,8 +35,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
-import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.erc20.TokenInfo;
+import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
@@ -54,10 +62,14 @@ public class PriceProvider {
 
     public String getAllPrices(long block) throws JsonProcessingException {
         PricesModel dto = new PricesModel();
-        dto.setBtc(getPriceForCoin("WBTC", block));
-        dto.setEth(getPriceForCoin("WETH", block));
-        dto.setDpi(getPriceForCoin("DPI", block));
-        dto.setGrain(getPriceForCoin("GRAIN", block));
+        dto.setBtc(getPriceForCoin(WBTC_NAME, block));
+        dto.setEth(getPriceForCoin(WETH_NAME, block));
+        dto.setDpi(getPriceForCoin(DPI_NAME, block));
+        dto.setGrain(getPriceForCoin(GRAIN_NAME, block));
+        dto.setBas(getPriceForCoin(BAC_NAME, block));
+        dto.setBas(getPriceForCoin(BAS_NAME, block));
+        dto.setMic(getPriceForCoin(MIC_NAME, block));
+        dto.setMis(getPriceForCoin(MIS_NAME, block));
         return objectMapper.writeValueAsString(dto);
     }
 
@@ -150,6 +162,10 @@ public class PriceProvider {
             || UNI_LP_ETH_DPI.equals(lpHash)
             || UNI_LP_GRAIN_FARM.equals(lpHash)
             || UNI_LP_ETH_WBTC.equals(lpHash)
+            || UNI_LP_BAC_DAI.equals(lpHash)
+            || UNI_LP_DAI_BAS.equals(lpHash)
+            || SUSHI_LP_MIC_USDT.equals(lpHash)
+            || SUSHI_LP_MIS_USDT.equals(lpHash)
         ) {
             price = reserves.component2() / reserves.component1();
         } else {
@@ -187,6 +203,14 @@ public class PriceProvider {
                 return pricesModel.getDpi();
             case GRAIN_NAME:
                 return pricesModel.getGrain();
+            case BAC_NAME:
+                return pricesModel.getBac();
+            case BAS_NAME:
+                return pricesModel.getBas();
+            case MIC_NAME:
+                return pricesModel.getMic();
+            case MIS_NAME:
+                return pricesModel.getMis();
             default:
                 log.warn("Not found price for {}", coinName);
                 return 0;

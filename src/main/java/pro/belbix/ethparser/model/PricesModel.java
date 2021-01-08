@@ -8,4 +8,8 @@ public class PricesModel {
     private Double eth;
     private Double dpi;
     private Double grain;
+    private Double bac;
+    private Double bas;
+    private Double mic;
+    private Double mis;
 }

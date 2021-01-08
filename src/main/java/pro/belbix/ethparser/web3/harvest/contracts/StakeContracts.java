@@ -39,6 +39,10 @@ public class StakeContracts {
     public static final String ST_UNI_LP_USDC_FARM = "0x99b0d6641A63Ce173E6EB063b3d3AED9A35Cf9bf".toLowerCase();
     public static final String ST_UNI_LP_WETH_FARM = "0x6555c79a8829b793F332f1535B0eFB1fE4C11958".toLowerCase();
     public static final String ST_UNI_LP_GRAIN_FARM = "0xe58f0d2956628921cdEd2eA6B195Fc821c3a2b16".toLowerCase();
+    public static final String ST_UNI_BAC_DAI = "0x797F1171DC5001B7A79ff7Dca68c9539329ccE48".toLowerCase();
+    public static final String ST_UNI_DAI_BAS = "0xf3B2B174E7f36e43246Ef33Fc58cE5821f21F799".toLowerCase();
+    public static final String ST_SUSHI_MIC_USDT = "0x98Ba5E432933E2D536e24A2C021deBb8404588C1".toLowerCase();
+    public static final String ST_SUSHI_MIS_USDT = "0xf4784d07136b5b10c6223134E8B36E1DC190725b".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> nameToHash = new LinkedHashMap<>();
