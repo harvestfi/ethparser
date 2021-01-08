@@ -175,7 +175,7 @@ public abstract class MethodDecoder {
         Map<String, Double> dividers = new HashMap<>();
         dividers.putAll(Vaults.vaultDividers);
         dividers.putAll(LpContracts.lpHashToDividers);
-        dividers.putAll(Tokens.tokenDividers);
+        dividers.putAll(Tokens.getTokensDividers());
         Double divider = dividers.get(address);
         if (divider == null) {
             throw new IllegalStateException("Divider not found for " + address);

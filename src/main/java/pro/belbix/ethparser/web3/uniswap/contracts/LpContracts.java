@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.uniswap.contracts;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.PriceProvider.simplifyName;
+import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDC;

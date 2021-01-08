@@ -162,7 +162,7 @@ public class Web3Service {
         checkInit();
         DefaultBlockParameter from;
         if (Strings.isBlank(appProperties.getStartLogBlock())) {
-            from = new DefaultBlockParameterNumber(findEarliestLastBlock());
+            from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
         } else {
             from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
         }
@@ -272,7 +272,7 @@ public class Web3Service {
         return 0.0;
     }
 
-    public List<LogResult> fetchContractLogs(List<String> adresses, Integer start,
+    public List<LogResult> fetchContractLogs(List<String> addresses, Integer start,
                                              Integer end) {
         checkInit();
         DefaultBlockParameter fromBlock;
@@ -288,7 +288,7 @@ public class Web3Service {
             toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
         }
         EthFilter filter = new EthFilter(fromBlock,
-            toBlock, adresses);
+            toBlock, addresses);
         EthLog ethLog;
         try {
             ethLog = web3.ethGetLogs(filter).send();

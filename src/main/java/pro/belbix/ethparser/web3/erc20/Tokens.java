@@ -1,11 +1,12 @@
 package pro.belbix.ethparser.web3.erc20;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpHashToCoinNames;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.web3j.tuples.generated.Tuple2;
 
 public class Tokens {
@@ -21,6 +22,7 @@ public class Tokens {
     public final static String IDX_TOKEN = "0x95b3497bbcccc46a8f45f5cf54b0878b39f8d96c".toLowerCase();
     public final static String DPI_TOKEN = "0x1494ca1f11d487c2bbe4543e90080aeba4ba3c2b".toLowerCase();
     public final static String GRAIN_TOKEN = "0x6589fe1271A0F29346796C6bAf0cdF619e25e58e".toLowerCase();
+    public final static String TUSD_TOKEN = "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -33,46 +35,60 @@ public class Tokens {
     public static final String IDX_NAME = "IDX";
     public static final String DPI_NAME = "DPI";
     public static final String GRAIN_NAME = "GRAIN";
+    public static final String TUSD_NAME = "TUSD";
 
-    private final static Map<String, String> tokenHashToName = new HashMap<>();
-    private final static Map<String, String> tokenNameToHash = new HashMap<>();
-    private final static Map<String, Integer> tokenCreated = new HashMap<>();
-    public final static Map<String, Double> tokenDividers = new HashMap<>();
-    public final static Map<String, Tuple2<String, String>> specificLpForCoin = new HashMap<>();
+    private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
     static {
-        tokenHashToName.put(WETH_TOKEN, WETH_NAME);
-        tokenHashToName.put(FARM_TOKEN, FARM_NAME);
-        tokenHashToName.put(USDC_TOKEN, USDC_NAME);
-        tokenHashToName.put(BADGER_TOKEN, BADGER_NAME);
-        tokenHashToName.put(WBTC_TOKEN, WBTC_NAME);
-        tokenHashToName.put(GRAIN_TOKEN, GRAIN_NAME);
+        tokenInfos.add(new TokenInfo(FARM_NAME, FARM_TOKEN, 10777201)
+            .addLp("UNI_LP_USDC_FARM", 0, USDC_NAME)
+            .addLp("UNI_LP_WETH_FARM", 11609000, WETH_NAME));
 
-        tokenNameToHash.put(WETH_NAME, WETH_TOKEN);
-        tokenNameToHash.put(FARM_NAME, FARM_TOKEN);
-        tokenNameToHash.put(USDC_NAME, USDC_TOKEN);
-        tokenNameToHash.put(BADGER_NAME, BADGER_TOKEN);
-        tokenNameToHash.put(WBTC_NAME, WBTC_TOKEN);
-        tokenNameToHash.put(GRAIN_NAME, GRAIN_TOKEN);
+        tokenInfos.add(new TokenInfo(DPI_NAME, DPI_TOKEN, 10868422)
+            .addLp("UNI_LP_ETH_DPI", 0, WETH_NAME));
 
-        tokenDividers.put(FARM_TOKEN, D18);
+        tokenInfos.add(new TokenInfo(GRAIN_NAME, GRAIN_TOKEN, 11408083)
+            .addLp("UNI_LP_GRAIN_FARM", 0, FARM_NAME));
 
-        tokenCreated.put(FARM_NAME, 10777280);
-        tokenCreated.put(GRAIN_NAME, 11408083);
-        tokenCreated.put(BADGER_NAME, 11381233);
-        tokenCreated.put(DPI_NAME, 10868422);
+        tokenInfos.add(new TokenInfo(BADGER_NAME, BADGER_TOKEN, 10868422)
+            .addLp("UNI_LP_WBTC_BADGER", 0, WBTC_NAME));
 
-        specificLpForCoin.put(DPI_NAME, new Tuple2<>("UNI_LP_ETH_DPI", WETH_NAME));
-        specificLpForCoin.put(GRAIN_NAME, new Tuple2<>("UNI_LP_GRAIN_FARM", FARM_NAME));
-        specificLpForCoin.put(BADGER_NAME, new Tuple2<>("UNI_LP_WBTC_BADGER", WBTC_NAME));
+        tokenInfos.add(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
+            .addLp("UNI_LP_ETH_USDC", 0, USDC_NAME));
+
+        tokenInfos.add(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0)
+            .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
+
+        //todo stablecoins
+        tokenInfos.add(new TokenInfo(USDC_NAME, USDC_TOKEN, 0));
+        tokenInfos.add(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));
+        tokenInfos.add(new TokenInfo(USDT_NAME, USDT_TOKEN, 0));
+        tokenInfos.add(new TokenInfo(USDT_NAME, USDT_TOKEN, 0));
+        tokenInfos.add(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
+    }
+
+    public static TokenInfo getTokenInfo(String tokenName) {
+        for (TokenInfo info : tokenInfos) {
+            if (tokenName.equals(info.getTokenName())) {
+                return info;
+            }
+        }
+        throw new IllegalStateException("Not found token info for " + tokenName);
+    }
+
+    public static Map<String, Double> getTokensDividers() {
+        Map<String, Double> d = new HashMap<>();
+        for (TokenInfo info : tokenInfos) {
+            d.put(info.getTokenAddress(), info.getDivider());
+        }
+        return d;
     }
 
     public static boolean isCreated(String tokenName, int block) {
-        Integer created = tokenCreated.get(tokenName);
-        if (created == null) {
+        if (isStableCoin(tokenName)) {
             return true;
         }
-        return created < block;
+        return getTokenInfo(tokenName).getCreatedOnBlock() < block;
     }
 
     public static boolean firstCoinIsKey(String lpAddress) {
@@ -84,7 +100,7 @@ public class Tokens {
         if (keyCoin == null) {
             throw new IllegalStateException("Key coin not found for " + lpAddress);
         }
-        String keyCoinName = tokenHashToName.get(keyCoin);
+        String keyCoinName = findNameForContract(keyCoin);
         if (keyCoinName == null) {
             throw new IllegalStateException("Key coin name not found for " + keyCoin);
         }
@@ -98,19 +114,16 @@ public class Tokens {
     }
 
     public static String findNameForContract(String contract) {
-        String name = tokenHashToName.get(contract);
-        if (name == null) {
-            throw new IllegalStateException("Name not found for " + contract);
+        for (TokenInfo info : tokenInfos) {
+            if (info.getTokenAddress().equals(contract)) {
+                return info.getTokenName();
+            }
         }
-        return name;
+        throw new IllegalStateException("Not found name for " + contract);
     }
 
     public static String findContractForName(String name) {
-        String contract = tokenNameToHash.get(name);
-        if (contract == null) {
-            throw new IllegalStateException("Contract not found for " + name);
-        }
-        return contract;
+        return getTokenInfo(name).getTokenAddress();
     }
 
     public static String mapLpAddressToCoin(String address) {
@@ -126,7 +139,7 @@ public class Tokens {
         if (keyCoin == null) {
             throw new IllegalStateException("Not found key coin for " + address);
         }
-        String keyCoinName = tokenHashToName.get(keyCoin);
+        String keyCoinName = findNameForContract(keyCoin);
         if (keyCoinName == null) {
             throw new IllegalStateException("Not found key coin name for " + keyCoin);
         }
@@ -148,7 +161,7 @@ public class Tokens {
         } else {
             pairName = getStringFromPair(pairNames, i, true);
         }
-        String hash = tokenNameToHash.get(pairName);
+        String hash = findContractForName(pairName);
         if (hash == null) {
             throw new IllegalStateException("Hash not found for " + pairNames.component2());
         }
@@ -172,4 +185,46 @@ public class Tokens {
             throw new IllegalStateException("Wrong index for pair " + i);
         }
     }
+
+    public static boolean isStableCoin(String name) {
+        return "USD".equals(name)
+            || USDC_NAME.equals(name)
+            || USDT_NAME.equals(name)
+            || "YCRV".equals(name)
+            || "3CRV".equals(name)
+            || "_3CRV".equals(name)
+            || TUSD_NAME.equals(name)
+            || DAI_NAME.equals(name)
+            || "CRV_CMPND".equals(name)
+            || "CRV_BUSD".equals(name)
+            || "CRV_USDN".equals(name)
+            || "HUSD".equals(name)
+            || "CRV_HUSD".equals(name)
+            ;
+    }
+
+    public static String simplifyName(String name) {
+        name = name.replaceFirst("_V0", "");
+        if ("WETH".equals(name)) {
+            return "ETH";
+        } else if ("RENBTC".equals(name)) {
+            return "WBTC";
+        } else if ("CRVRENWBTC".equals(name)) {
+            return "WBTC";
+        } else if ("TBTC".equals(name)) {
+            return "WBTC";
+        } else if ("BTC".equals(name)) {
+            return "WBTC";
+        } else if ("CRV_TBTC".equals(name)) {
+            return "WBTC";
+        } else if ("HBTC".equals(name)) {
+            return "WBTC";
+        } else if ("CRV_HBTC".equals(name)) {
+            return "WBTC";
+        } else if ("PS".equals(name)) {
+            return "FARM";
+        }
+        return name;
+    }
+
 }
