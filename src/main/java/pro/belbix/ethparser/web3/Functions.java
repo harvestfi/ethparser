@@ -35,7 +35,7 @@ public class Functions {
 
     public BigInteger callPricePerFullShare(String contractAddress, Long block) {
         List<Type> types = web3Service
-            .callMethodWithRetry(GET_PRICE_PER_FULL_SHARE, contractAddress, resolveBlock(block));
+            .callFunction(GET_PRICE_PER_FULL_SHARE, contractAddress, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             return null;
         }
@@ -44,7 +44,7 @@ public class Functions {
 
     public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
         List<Type> types = web3Service
-            .callMethodWithRetry(GET_RESERVES, lpAddress, resolveBlock(block));
+            .callFunction(GET_RESERVES, lpAddress, resolveBlock(block));
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + lpAddress);
             return null;
@@ -107,7 +107,7 @@ public class Functions {
     }
 
     private BigInteger callUint256Function(Function function, String hash, Long block) {
-        List<Type> types = web3Service.callMethodWithRetry(function, hash, resolveBlock(block));
+        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             log.error(function.getName() + " Wrong callback " + hash);
             return null;

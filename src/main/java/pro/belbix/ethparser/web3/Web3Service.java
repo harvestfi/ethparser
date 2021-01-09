@@ -7,7 +7,6 @@ import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,16 +15,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.Route;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +57,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Service
 public class Web3Service {
 
-    public final static int RETRY_COUNT = 2;
+    public final static int RETRY_COUNT = 5;
     public static final int LOG_LAST_PARSED_COUNT = 1_000;
     public static final long MAX_DELAY_BETWEEN_TX = 60 * 10;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
@@ -110,14 +106,10 @@ public class Web3Service {
             HttpService httpService = new HttpService(url, clientBuilder.build(), false);
             web3 = Web3j.build(httpService);
         } else {
-            clientBuilder.authenticator(new Authenticator() {
-                @Override
-                public Request authenticate(Route route, Response response) throws IOException {
-                    String credential = Credentials
-                        .basic(appProperties.getWeb3User(), appProperties.getWeb3Password());
-                    return response.request().newBuilder().header("Authorization", credential).build();
-                }
-            });
+            clientBuilder.authenticator((route, response) -> response.request().newBuilder()
+                .header("Authorization",
+                    Credentials.basic(appProperties.getWeb3User(), appProperties.getWeb3Password()))
+                .build());
 
             HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
             web3 = Web3j.build(service);
@@ -140,11 +132,11 @@ public class Web3Service {
         checkInit();
         Flowable<Transaction> flowable;
         if (Strings.isBlank(appProperties.getStartBlock())) {
-            flowable = web3.transactionFlowable();
+            flowable = callWithRetry(() -> web3.transactionFlowable());
         } else {
             log.info("Start flow from block " + appProperties.getStartBlock());
-            flowable = web3.replayPastAndFutureTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock())));
+            flowable = callWithRetry(() -> web3.replayPastAndFutureTransactionsFlowable(
+                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock()))));
         }
         Disposable subscription = flowable
             .subscribe(tx -> transactionConsumers.forEach(queue ->
@@ -207,17 +199,15 @@ public class Web3Service {
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
         checkInit();
-        try {
-            EthGetTransactionReceipt ethGetTransactionReceipt = web3.ethGetTransactionReceipt(hash).send();
-            Error error = ethGetTransactionReceipt.getError();
-            if (error != null) {
-                log.error("Got " + error.getCode() + " " + error.getMessage() + " " + error.getData());
-            } else {
-                return ethGetTransactionReceipt.getTransactionReceipt()
-                    .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
-            }
-        } catch (IOException e) {
-            log.error("", e);
+
+        EthGetTransactionReceipt ethGetTransactionReceipt =
+            callWithRetry(() -> web3.ethGetTransactionReceipt(hash).send());
+        Error error = ethGetTransactionReceipt.getError();
+        if (error != null) {
+            log.error("Got " + error.getCode() + " " + error.getMessage() + " " + error.getData());
+        } else {
+            return ethGetTransactionReceipt.getTransactionReceipt()
+                .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
         }
 
         return null;
@@ -225,23 +215,14 @@ public class Web3Service {
 
     public Transaction findTransaction(String hash) {
         checkInit();
-        try {
-            return web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null);
-        } catch (IOException e) {
-            log.error("Error get transaction by hash " + hash);
-        }
-        return null;
+        return callWithRetry(() -> web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
     }
 
     public Block findBlock(String blockHash) {
         checkInit();
-        EthBlock ethBlock;
-        try {
-            ethBlock = web3.ethGetBlockByHash(blockHash, false).send();
-        } catch (IOException e) {
-            log.error("Error get block " + blockHash, e);
-            return null;
-        }
+        EthBlock ethBlock =
+            callWithRetry(() ->web3.ethGetBlockByHash(blockHash, false).send());
+
         if (ethBlock != null && ethBlock.getError() != null) {
             log.error("Error fetching block " + ethBlock.getError().getMessage());
             return null;
@@ -255,13 +236,8 @@ public class Web3Service {
 
     public double fetchAverageGasPrice() {
         checkInit();
-        EthGasPrice gasPrice;
-        try {
-            gasPrice = web3.ethGasPrice().send();
-        } catch (IOException e) {
-            log.error("Error fetch gas", e);
-            return 0.0;
-        }
+        EthGasPrice gasPrice = callWithRetry(() -> web3.ethGasPrice().send());
+
         if (gasPrice != null && gasPrice.getError() != null) {
             log.error("Error gas fetching " + gasPrice.getError().getMessage());
             return 0.0;
@@ -289,13 +265,8 @@ public class Web3Service {
         }
         EthFilter filter = new EthFilter(fromBlock,
             toBlock, addresses);
-        EthLog ethLog;
-        try {
-            ethLog = web3.ethGetLogs(filter).send();
-        } catch (IOException e) {
-            log.error("Error ethLog", e);
-            return new ArrayList<>();
-        }
+        EthLog ethLog = callWithRetry(() -> web3.ethGetLogs(filter).send());
+
         if (ethLog == null) {
             return new ArrayList<>();
         }
@@ -308,13 +279,7 @@ public class Web3Service {
 
     public double fetchBalance(String hash) {
         checkInit();
-        EthGetBalance ethGetBalance;
-        try {
-            ethGetBalance = web3.ethGetBalance(hash, LATEST).send();
-        } catch (IOException e) {
-            log.error("Get balance error", e);
-            return 0.0;
-        }
+        EthGetBalance ethGetBalance = callWithRetry(() -> web3.ethGetBalance(hash, LATEST).send());
         if (ethGetBalance == null) {
             return 0.0;
         }
@@ -326,12 +291,8 @@ public class Web3Service {
     }
 
     public BigInteger fetchCurrentBlock() {
-        EthBlockNumber ethBlockNumber = null;
-        try {
-            ethBlockNumber = web3.ethBlockNumber().send();
-        } catch (IOException e) {
-            log.error("Error last block", e);
-        }
+        EthBlockNumber ethBlockNumber = callWithRetry(() -> web3.ethBlockNumber().send());
+
         if (ethBlockNumber == null) {
             log.error("Null callback last block");
             return BigInteger.ZERO;
@@ -343,22 +304,18 @@ public class Web3Service {
         return ethBlockNumber.getBlockNumber();
     }
 
-    public List<Type> callMethod(Function function, String contractAddress, DefaultBlockParameter block) {
+    public List<Type> callFunction(Function function, String contractAddress, DefaultBlockParameter block) {
         org.web3j.protocol.core.methods.request.Transaction transaction =
             org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                 ZERO_ADDRESS, contractAddress, FunctionEncoder.encode(function));
-        EthCall ethCall = null;
-        try {
-            ethCall = web3.ethCall(transaction, block).send();
-        } catch (IOException e) {
-            log.error("Error call " + function.getName(), e);
-        }
+
+        EthCall ethCall = callWithRetry(() -> web3.ethCall(transaction, block).send());
         if (ethCall == null) {
-            log.error("Eth call is null " + function.getName());
+            log.warn("Eth call is null " + function.getName());
             return null;
         }
         if (ethCall.getError() != null) {
-            log.error(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
+            log.warn(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
             if (ethCall.getError().getMessage().contains("Disabled in this strategy")) {
                 throw new IllegalStateException(ethCall.getError().getMessage());
             }
@@ -367,15 +324,14 @@ public class Web3Service {
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
     }
 
-    public List<Type> callMethodWithRetry(Function function, String contractAddress, DefaultBlockParameter block) {
+    public <T> T callWithRetry(Callable<T> callable) {
         int count = 0;
         while (true) {
-            List<Type> result;
+            T result = null;
             try {
-                result = callMethod(function, contractAddress, block);
-            } catch (IllegalStateException e) {
-                log.warn("Got not retryable error for " + function.getName() + " " + contractAddress);
-                return null;
+                result = callable.call();
+            } catch (Exception e) { //by default all errors, but can be filtered by type
+                log.warn("Retryable error " + e.getMessage());
             }
 
             if (result != null) {
@@ -385,7 +341,12 @@ public class Web3Service {
             if (count > RETRY_COUNT) {
                 return null;
             }
-            log.warn("Fail call eth function, retry " + count);
+            log.warn("Fail call web3, retry " + count);
+            try {
+                //noinspection BusyWait
+                Thread.sleep(1000);
+            } catch (InterruptedException ignore) {
+            }
         }
     }
 
@@ -522,7 +483,6 @@ public class Web3Service {
                 if (Duration.between(lastActionTime.get(), Instant.now()).getSeconds() > MAX_DELAY_BETWEEN_TX) {
                     log.error("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
                     lastActionTime.set(Instant.now());
-                    //TODO alert
                     web3Service.resubscribe();
                 }
                 try {

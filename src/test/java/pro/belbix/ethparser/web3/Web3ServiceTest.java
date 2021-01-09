@@ -35,7 +35,6 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 
@@ -105,7 +104,7 @@ public class Web3ServiceTest {
 
     @Test
     public void ethCallGET_PRICE_PER_FULL_SHARETest() {
-        List<Type> types = web3Service.callMethodWithRetry(GET_PRICE_PER_FULL_SHARE, WBTC, LATEST);
+        List<Type> types = web3Service.callFunction(GET_PRICE_PER_FULL_SHARE, WBTC, LATEST);
         assertNotNull(types);
         assertFalse(types.isEmpty());
         assertTrue(parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
@@ -113,7 +112,7 @@ public class Web3ServiceTest {
 
     @Test
     public void ethCallGET_RESERVESTest() {
-        List<Type> types = web3Service.callMethodWithRetry(GET_RESERVES, UNI_LP_ETH_DAI, BLOCK_NUMBER_30_AUGUST_2020);
+        List<Type> types = web3Service.callFunction(GET_RESERVES, UNI_LP_ETH_DAI, BLOCK_NUMBER_30_AUGUST_2020);
         assertNotNull(types);
         assertEquals(3, types.size());
         assertTrue(((Uint112) types.get(0)).getValue()
