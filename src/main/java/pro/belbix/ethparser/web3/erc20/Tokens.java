@@ -79,6 +79,9 @@ public class Tokens {
         tokenInfos.add(new TokenInfo(MIS_NAME, MIS_TOKEN, 11551671)
             .addLp("SUSHI_LP_MIS_USDT", 0, USDT_NAME));
 
+        tokenInfos.add(new TokenInfo(IDX_NAME, IDX_TOKEN, 0)
+            .addLp("UNI_LP_IDX_ETH", 0, WETH_NAME));
+
         //todo stablecoins
         tokenInfos.add(new TokenInfo(USDC_NAME, USDC_TOKEN, 0));
         tokenInfos.add(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));

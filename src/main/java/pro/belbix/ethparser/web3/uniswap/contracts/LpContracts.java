@@ -157,6 +157,7 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_DAI_BAS, new Tuple2<>(DAI_NAME, BAS_NAME));
         lpHashToCoinNames.put(SUSHI_LP_MIC_USDT, new Tuple2<>(MIC_NAME, USDT_NAME));
         lpHashToCoinNames.put(SUSHI_LP_MIS_USDT, new Tuple2<>(MIS_NAME, USDT_NAME));
+        lpHashToCoinNames.put(UNI_LP_USDC_WBTC, new Tuple2<>(MIS_NAME, USDT_NAME));
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(D6, D18));
