@@ -14,13 +14,13 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @RestController
 @RequestMapping(value = "/price")
-public class CheckPriceController {
+public class PriceController {
 
-    private final static Logger log = LoggerFactory.getLogger(CheckPriceController.class);
+    private final static Logger log = LoggerFactory.getLogger(PriceController.class);
 
     private final PriceProvider priceProvider;
 
-    public CheckPriceController(PriceProvider priceProvider) {
+    public PriceController(PriceProvider priceProvider) {
         this.priceProvider = priceProvider;
     }
 
