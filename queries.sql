@@ -131,8 +131,11 @@ select
     FROM_UNIXTIME(block_date) date,
        round(share_change_usd, 0) vault_income,
        round((share_change_usd / 0.7) * 0.3, 0) ps_income,
-       vault
+       vault,
+       id
 from hard_work
+where vault in ('UNI_BAC_DAI','UNI_DAI_BAS','SUSHI_MIC_USDT','SUSHI_MIS_USDT' )
+and share_change_usd != 0
 order by block_date desc;
 
 -- UNIQUE USERS ------------
