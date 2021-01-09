@@ -46,7 +46,7 @@ public class RewardDownloader {
     }
 
     public void start() {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
         for (Entry<String, String> entry : StakeContracts.hashToName.entrySet()) {
             if (contractName != null && !contractName.equals(entry.getValue())) {
                 continue;

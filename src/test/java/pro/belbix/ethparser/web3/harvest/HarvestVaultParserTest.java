@@ -46,7 +46,7 @@ public class HarvestVaultParserTest {
 
     @Before
     public void setUp() throws Exception {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test
@@ -124,8 +124,8 @@ public class HarvestVaultParserTest {
             "135,29092535",
             "",
             "",
-            2220L,
-            333901L,
+            4441L,
+            667770L,
             true
         );
         assertNotNull(dto);

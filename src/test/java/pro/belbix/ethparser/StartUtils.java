@@ -20,7 +20,7 @@ public class StartUtils {
 
     @BeforeEach
     void setUp() {
-        priceProvider.setUpdateTimeout(10);
+        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test

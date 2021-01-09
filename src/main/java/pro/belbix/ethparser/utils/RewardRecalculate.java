@@ -24,7 +24,7 @@ public class RewardRecalculate {
     }
 
     public void start() {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
         List<RewardDTO> rewards = rewardsRepository.getAllByOrderByBlockDate();
         int count = 0;
         for (RewardDTO dto : rewards) {

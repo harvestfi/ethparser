@@ -43,7 +43,7 @@ public class UniToHarvestConverterTest {
 
     @Before
     public void setUp() throws Exception {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
     }
 
     

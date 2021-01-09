@@ -23,7 +23,7 @@ public class PriceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test

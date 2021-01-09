@@ -37,7 +37,7 @@ public class DoHardWorkTest {
 
     @Before
     public void setUp() throws Exception {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test

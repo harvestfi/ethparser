@@ -316,9 +316,6 @@ public class Web3Service {
         }
         if (ethCall.getError() != null) {
             log.warn(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
-            if (ethCall.getError().getMessage().contains("Disabled in this strategy")) {
-                throw new IllegalStateException(ethCall.getError().getMessage());
-            }
             return null;
         }
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());

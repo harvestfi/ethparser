@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3;
 
+import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.BAC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
@@ -26,10 +27,10 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WET
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -44,29 +45,28 @@ public class PriceProvider {
 
     private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
-    private int updateTimeout = 60;
+    private long updateBlockDifference = 5;
 
-    private final Map<String, Double> lastPrices = new HashMap<>();
-    private final Map<String, Instant> lastUpdates = new HashMap<>();
+    private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
 
     private final Functions functions;
 
     public PriceProvider(Functions functions) {
-        init();
         this.functions = functions;
     }
 
-    public void setUpdateTimeout(int updateTimeout) {
-        this.updateTimeout = updateTimeout;
+    public void setUpdateBlockDifference(long updateBlockDifference) {
+        this.updateBlockDifference = updateBlockDifference;
     }
 
     public String getAllPrices(long block) throws JsonProcessingException {
+        //todo refactoring price model
         PricesModel dto = new PricesModel();
         dto.setBtc(getPriceForCoin(WBTC_NAME, block));
         dto.setEth(getPriceForCoin(WETH_NAME, block));
         dto.setDpi(getPriceForCoin(DPI_NAME, block));
         dto.setGrain(getPriceForCoin(GRAIN_NAME, block));
-        dto.setBas(getPriceForCoin(BAC_NAME, block));
+        dto.setBac(getPriceForCoin(BAC_NAME, block));
         dto.setBas(getPriceForCoin(BAS_NAME, block));
         dto.setMic(getPriceForCoin(MIC_NAME, block));
         dto.setMis(getPriceForCoin(MIS_NAME, block));
@@ -97,13 +97,13 @@ public class PriceProvider {
         return firstVaultUsdAmount + secondVaultUsdAmount;
     }
 
-    public Double getPriceForCoin(String vaultName, Long block) {
-        String coinNameSimple = simplifyName(vaultName);
+    public Double getPriceForCoin(String coinName, Long block) {
+        String coinNameSimple = simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
             return 1.0;
         }
-        return lastPrices.get(coinNameSimple);
+        return getLastPrice(coinNameSimple, block);
     }
 
     public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
@@ -123,8 +123,7 @@ public class PriceProvider {
 
     private void updateUSDPrice(String coinName, Long block) {
         if (block != null && !Tokens.isCreated(coinName, block.intValue())) {
-            lastPrices.put(coinName, 0.0);
-            lastUpdates.put(coinName, Instant.now());
+            savePrice(0.0, coinName, block);
             return;
         }
         if (isStableCoin(coinName)) {
@@ -132,13 +131,18 @@ public class PriceProvider {
             return;
         }
 
-        Instant lastUpdate = lastUpdates.get(coinName);
-        if (lastUpdate != null && updateTimeout != 0
-            && Duration.between(lastUpdate, Instant.now()).getSeconds() < updateTimeout) {
+        if (hasFreshPrice(coinName, block)) {
             return;
         }
 
-        TokenInfo tokenInfo = Tokens.getTokenInfo(coinName);
+        double price = getPriceForCoinWithoutCache(coinName, block);
+
+        savePrice(price, coinName, block);
+        log.info("Price {} updated {} on block {}", coinName, price, block);
+    }
+
+    private double getPriceForCoinWithoutCache(String name, Long block) {
+        TokenInfo tokenInfo = Tokens.getTokenInfo(name);
         String lpName = tokenInfo.findLp(block).component1();
         String otherTokenName = tokenInfo.findLp(block).component2();
         String lpHash = LpContracts.lpNameToHash.get(lpName);
@@ -173,20 +177,7 @@ public class PriceProvider {
         }
 
         price *= getPriceForCoin(otherTokenName, block);
-
-        lastPrices.put(coinName, price);
-        lastUpdates.put(coinName, Instant.now());
-        log.info("Price {} updated {} on block {}", coinName, price, block);
-    }
-
-    private void init() {
-        lastPrices.put("ETH", 382.0);
-        lastPrices.put("WETH", 382.0);
-
-        lastPrices.put("WBTC", 13673.0);
-        lastPrices.put("RENBTC", 13673.0);
-        lastPrices.put("CRVRENWBTC", 13673.0);
-        lastPrices.put("TBTC", 13673.0);
+        return price;
     }
 
     public static double readPrice(PricesModel pricesModel, String coinName) {
@@ -215,6 +206,42 @@ public class PriceProvider {
                 log.warn("Not found price for {}", coinName);
                 return 0;
         }
+    }
+
+    private boolean hasFreshPrice(String name, Long block) {
+        TreeMap<Long, Double> lastPriceByBlock = lastPrices.get(name);
+        if (lastPriceByBlock == null) {
+            return false;
+        }
+        if (block == null) {
+            block = 0L;
+        }
+
+        Entry<Long, Double> entry = lastPriceByBlock.floorEntry(block);
+        if (entry == null || Math.abs(entry.getKey() - block) >= updateBlockDifference) {
+            return false;
+        }
+        return entry.getValue() != null && entry.getValue() != 0;
+    }
+
+    private void savePrice(double price, String name, Long block) {
+        if (block == null) {
+            block = 0L;
+        }
+        TreeMap<Long, Double> lastPriceByBlock = lastPrices.computeIfAbsent(name, k -> new TreeMap<>());
+        lastPriceByBlock.put(block, price);
+    }
+
+    private double getLastPrice(String name, Long block) {
+        TreeMap<Long, Double> lastPriceByBlocks = lastPrices.get(name);
+        if (lastPriceByBlocks == null) {
+            return 0.0;
+        }
+        Entry<Long, Double> entry = lastPriceByBlocks.floorEntry(requireNonNullElse(block, 0L));
+        if (entry != null && entry.getValue() != null) {
+            return entry.getValue();
+        }
+        return 0.0;
     }
 
 }

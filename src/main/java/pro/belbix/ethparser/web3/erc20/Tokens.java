@@ -67,16 +67,16 @@ public class Tokens {
         tokenInfos.add(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
 
-        tokenInfos.add(new TokenInfo(BAC_NAME, BAC_TOKEN, 0)
+        tokenInfos.add(new TokenInfo(BAC_NAME, BAC_TOKEN, 11356492)
             .addLp("UNI_LP_BAC_DAI", 0, DAI_NAME));
 
-        tokenInfos.add(new TokenInfo(BAS_NAME, BAS_TOKEN, 0)
+        tokenInfos.add(new TokenInfo(BAS_NAME, BAS_TOKEN, 11356501)
             .addLp("UNI_LP_DAI_BAS", 0, DAI_NAME));
 
-        tokenInfos.add(new TokenInfo(MIC_NAME, MIC_TOKEN, 0)
+        tokenInfos.add(new TokenInfo(MIC_NAME, MIC_TOKEN, 11551514)
             .addLp("SUSHI_LP_MIC_USDT", 0, USDT_NAME));
 
-        tokenInfos.add(new TokenInfo(MIS_NAME, MIS_TOKEN, 0)
+        tokenInfos.add(new TokenInfo(MIS_NAME, MIS_TOKEN, 11551671)
             .addLp("SUSHI_LP_MIS_USDT", 0, USDT_NAME));
 
         //todo stablecoins

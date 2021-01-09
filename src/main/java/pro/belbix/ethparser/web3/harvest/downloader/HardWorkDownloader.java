@@ -43,7 +43,7 @@ public class HardWorkDownloader {
     }
 
     public void start() {
-        priceProvider.setUpdateTimeout(0);
+        priceProvider.setUpdateBlockDifference(1);
         LoopUtils.handleLoop(from, to, this::parse);
 
     }
