@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.*;
+import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 
 import org.junit.Before;
@@ -37,5 +38,11 @@ public class PriceProviderTest {
         double amountUsd =
             priceProvider.getLpPositionAmountInUsd(UNI_LP_WBTC_BADGER, 0.00000630081174343, 11387098L);
         assertEquals("437,96", String.format("%.2f", amountUsd));
+    }
+
+    @Test
+    public void priceForBAS() {
+        double price = priceProvider.getPriceForCoin(BAS_NAME, 11619379L);
+        assertEquals("143,06", String.format("%.2f", price));
     }
 }

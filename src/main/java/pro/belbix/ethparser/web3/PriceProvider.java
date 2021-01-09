@@ -154,6 +154,7 @@ public class PriceProvider {
         if (
             UNI_LP_USDC_ETH.equals(lpHash)
                 || UNI_LP_WBTC_BADGER.equals(lpHash)
+                || UNI_LP_DAI_BAS.equals(lpHash)
         ) { //todo create method based on key token
             price = reserves.component1() / reserves.component2();
         } else if (UNI_LP_USDC_WBTC.equals(lpHash)
@@ -163,7 +164,6 @@ public class PriceProvider {
             || UNI_LP_GRAIN_FARM.equals(lpHash)
             || UNI_LP_ETH_WBTC.equals(lpHash)
             || UNI_LP_BAC_DAI.equals(lpHash)
-            || UNI_LP_DAI_BAS.equals(lpHash)
             || SUSHI_LP_MIC_USDT.equals(lpHash)
             || SUSHI_LP_MIS_USDT.equals(lpHash)
         ) {

@@ -111,25 +111,25 @@ public class HarvestVaultParserTest {
         assertNotNull(dto);
     }
 
-//    @Test
-//    public void parseVaultUNI_DAI_BAS() {
-//        HarvestDTO dto = harvestVaultParseTest(
-//            Vaults.UNI_DAI_BAS,
-//            11615995,
-//            LOG_ID,
-//            "",
-//            "",
-//            "UNI_DAI_BAS",
-//            "",
-//            "",
-//            "",
-//            "",
-//            385046L,
-//            415514L,
-//            true
-//        );
-//        assertNotNull(dto);
-//    }
+    @Test
+    public void parseVaultUNI_DAI_BAS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.UNI_DAI_BAS,
+            11619379,
+            LOG_ID,
+            "0x068a01a3443df8230d423af83110d278d8dc9018",
+            "Deposit",
+            "UNI_DAI_BAS",
+            "0x0a6ff77be622ad6dca78f4ecdc115043380d6ef403cb2333f45a3443d33307a7_278",
+            "135,29092535",
+            "",
+            "",
+            2220L,
+            333901L,
+            true
+        );
+        assertNotNull(dto);
+    }
 
     @Test
     public void parseVaultUNI_BAC_DAI() {
