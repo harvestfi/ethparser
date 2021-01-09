@@ -86,6 +86,10 @@ public class Functions {
         return callUint256Function(PERIOD_FINISH, hash, block);
     }
 
+    public BigInteger callSellFloor(String hash, Long block) {
+        return callUint256Function(SELL_FLOOR, hash, block);
+    }
+
     public BigInteger callUnderlyingBalance(String holder, String hash, Long block) {
         return callUint256Function(new Function(
             "underlyingBalanceWithInvestmentForHolder",
@@ -167,6 +171,12 @@ public class Functions {
 
     static final Function PERIOD_FINISH = new Function(
         "periodFinish",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function SELL_FLOOR = new Function(
+        "sellFloor",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Uint256>() {
         }));
