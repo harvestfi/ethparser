@@ -14,6 +14,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
@@ -27,6 +28,7 @@ public class HarvestVaultDownloader {
     private final HarvestDBService harvestDBService;
     private final HarvestVaultParserV2 harvestVaultParser;
     private final PriceProvider priceProvider;
+    private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
 
     @Value("${harvest-download.contract:}")
     private String contractName;
@@ -37,11 +39,13 @@ public class HarvestVaultDownloader {
 
     public HarvestVaultDownloader(Web3Service web3Service, HarvestDBService harvestDBService,
                                   HarvestVaultParserV2 harvestVaultParser,
-                                  PriceProvider priceProvider) {
+                                  PriceProvider priceProvider,
+                                  HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.harvestVaultParser = harvestVaultParser;
         this.priceProvider = priceProvider;
+        this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     }
 
     public void start() {
@@ -64,6 +68,7 @@ public class HarvestVaultDownloader {
             try {
                 HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResult.get());
                 if (dto != null) {
+                    harvestOwnerBalanceCalculator.fillBalance(dto);
                     dto.setPrices(priceProvider.getAllPrices(dto.getBlock().longValue()));
                     harvestDBService.saveHarvestDTO(dto);
                 }

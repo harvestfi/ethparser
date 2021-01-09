@@ -32,6 +32,7 @@ public class TvlRecalculate {
     private final HarvestTvlRepository harvestTvlRepository;
     private final UniswapRepository uniswapRepository;
     private final PriceProvider priceProvider;
+    private final HarvestDBService harvestDBService;
 
     @Value("${tvl-recalculate.from:}")
     private Integer from;
@@ -39,30 +40,23 @@ public class TvlRecalculate {
     public TvlRecalculate(HarvestRepository harvestRepository,
                           AppProperties appProperties,
                           HarvestTvlRepository harvestTvlRepository,
-                          UniswapRepository uniswapRepository, PriceProvider priceProvider) {
+                          UniswapRepository uniswapRepository, PriceProvider priceProvider,
+                          HarvestDBService harvestDBService) {
         this.harvestRepository = harvestRepository;
         this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
         this.uniswapRepository = uniswapRepository;
         this.priceProvider = priceProvider;
+        this.harvestDBService = harvestDBService;
     }
 
     public void start() {
-        HarvestDBService harvestDBService = new HarvestDBService(
-            new HarvestRepositoryCache(harvestVaults),
-            appProperties,
-            harvestTvlRepository,
-            new UniswapRepositoryCache(uniswapDTOTreeMap));
-
         List<HarvestDTO> harvestDTOList;
         if (from == null) {
             harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
         } else {
             harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
         }
-
-        harvestDtosToMap(harvestDTOList);
-        uniDtosToMap(uniswapRepository.findAll());
         int count = 0;
         List<HarvestTvlEntity> tvls = new ArrayList<>();
         for (HarvestDTO harvestDTO : harvestDTOList) {
@@ -77,33 +71,12 @@ public class TvlRecalculate {
             }
             HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(harvestDTO, false);
             tvls.add(tvl);
-            if (count % 10000 == 0) {
+            if (count % 100 == 0) {
                 harvestTvlRepository.saveAll(tvls);
                 log.info("Save for " + harvestDTO.print());
                 tvls.clear();
             }
         }
         harvestTvlRepository.saveAll(tvls);
-    }
-
-    private void harvestDtosToMap(List<HarvestDTO> harvestDTOList) {
-        for (HarvestDTO dto : harvestDTOList) {
-            TreeMap<Long, HarvestDTO> map = harvestVaults.get(dto.getVault());
-            if (map == null) {
-                map = new TreeMap<>();
-                map.put(dto.getBlockDate(), dto);
-                harvestVaults.put(dto.getVault(), map);
-            } else {
-                map.put(dto.getBlockDate(), dto);
-            }
-        }
-    }
-
-    private void uniDtosToMap(List<UniswapDTO> uniswapDTOS) {
-        for (UniswapDTO dto : uniswapDTOS) {
-            if ("FARM".equals(dto.getCoin())) {
-                uniswapDTOTreeMap.put(dto.getBlockDate(), dto);
-            }
-        }
     }
 }
