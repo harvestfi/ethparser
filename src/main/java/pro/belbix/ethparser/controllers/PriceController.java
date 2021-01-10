@@ -35,7 +35,7 @@ public class PriceController {
                     return RestResponse.error("LP " + lp + " not supported");
                 }
             }
-            double amountUsd = priceProvider.getLpPositionAmountInUsd(lpAddress, amount, null);
+            double amountUsd = priceProvider.getLpPositionAmountInUsd(lpAddress.toLowerCase(), amount, null);
             return RestResponse.ok(String.format("%.8f", amountUsd));
         } catch (Exception e) {
             log.error("Error lp request", e);
@@ -48,7 +48,7 @@ public class PriceController {
         try {
             String tokenName = token;
             if (token.startsWith("0x")) {
-                tokenName = Tokens.findNameForContract(token);
+                tokenName = Tokens.findNameForContract(token.toLowerCase());
                 if (tokenName == null) {
                     return RestResponse.error("Token " + token + " not supported");
                 }
