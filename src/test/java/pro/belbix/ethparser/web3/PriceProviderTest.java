@@ -27,13 +27,6 @@ public class PriceProviderTest {
     }
 
     @Test
-    public void getLpPositionAmountInUsdWithNullBlockTest() {
-        double amountUsd =
-            priceProvider.getLpPositionAmountInUsd(UNI_LP_WBTC_BADGER, 0.00000630081174343, null);
-        System.out.println("amountUsd: " + amountUsd);
-    }
-
-    @Test
     public void getLpPositionAmountInUsdWithNonNullBlockTest() {
         double amountUsd =
             priceProvider.getLpPositionAmountInUsd(UNI_LP_WBTC_BADGER, 0.00000630081174343, 11387098L);

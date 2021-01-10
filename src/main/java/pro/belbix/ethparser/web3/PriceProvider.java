@@ -50,11 +50,9 @@ public class PriceProvider {
     private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
 
     private final Functions functions;
-    private final EthBlockService ethBlockService;
 
-    public PriceProvider(Functions functions, EthBlockService ethBlockService) {
+    public PriceProvider(Functions functions) {
         this.functions = functions;
-        this.ethBlockService = ethBlockService;
     }
 
     public void setUpdateBlockDifference(long updateBlockDifference) {
@@ -75,7 +73,7 @@ public class PriceProvider {
         return objectMapper.writeValueAsString(dto);
     }
 
-    public double getLpPositionAmountInUsd(String lpAddress, double amount, Long block) {
+    public double getLpPositionAmountInUsd(String lpAddress, double amount, long block) {
         Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpAddress);
         if (names == null) {
             throw new IllegalStateException("Not found names for " + lpAddress);
@@ -99,10 +97,7 @@ public class PriceProvider {
         return firstVaultUsdAmount + secondVaultUsdAmount;
     }
 
-    public Double getPriceForCoin(String coinName, Long block) {
-        if (block == null) {
-            block = ethBlockService.getLastBlock();
-        }
+    public Double getPriceForCoin(String coinName, long block) {
         String coinNameSimple = simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
