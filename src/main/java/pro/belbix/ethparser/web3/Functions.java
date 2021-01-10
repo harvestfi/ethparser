@@ -90,6 +90,14 @@ public class Functions {
         return callUint256Function(SELL_FLOOR, hash, block);
     }
 
+    public String callRewardToken(String hash, Long block) {
+        return callAddressFunction(REWARD_TOKEN, hash, block);
+    }
+
+    public String callRewardPool(String hash, Long block) {
+        return callAddressFunction(REWARD_POOL, hash, block);
+    }
+
     public BigInteger callUnderlyingBalance(String holder, String hash, Long block) {
         return callUint256Function(new Function(
             "underlyingBalanceWithInvestmentForHolder",
@@ -113,6 +121,15 @@ public class Functions {
             return null;
         }
         return (BigInteger) types.get(0).getValue();
+    }
+
+    private String callAddressFunction(Function function, String hash, Long block) {
+        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+        if (types == null || types.isEmpty()) {
+            log.error(function.getName() + " Wrong callback " + hash);
+            return null;
+        }
+        return (String) types.get(0).getValue();
     }
 
     public static DefaultBlockParameter resolveBlock(Long block) {
@@ -179,6 +196,18 @@ public class Functions {
         "sellFloor",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function REWARD_TOKEN = new Function(
+        "rewardToken",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+
+    static final Function REWARD_POOL = new Function(
+        "rewardPool",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
         }));
 
 }
