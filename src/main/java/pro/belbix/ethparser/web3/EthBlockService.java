@@ -9,8 +9,8 @@ import pro.belbix.ethparser.repositories.BlockCacheRepository;
 public class EthBlockService {
 
     private final Web3Service web3;
-
     private final BlockCacheRepository blockCacheRepository;
+    private long lastBlock = 0L;
 
     public EthBlockService(Web3Service web3, BlockCacheRepository blockCacheRepository) {
         this.web3 = web3;
@@ -31,7 +31,14 @@ public class EthBlockService {
         cachedBlock.setBlock(blockId);
         cachedBlock.setBlockDate(extractDateFromBlock(block));
         blockCacheRepository.save(cachedBlock);
+        if (lastBlock < blockId) {
+            lastBlock = blockId;
+        }
         return extractDateFromBlock(block);
+    }
+
+    public long getLastBlock() {
+        return lastBlock;
     }
 
     private static long extractDateFromBlock(Block block) {

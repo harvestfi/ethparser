@@ -50,9 +50,11 @@ public class PriceProvider {
     private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
 
     private final Functions functions;
+    private final EthBlockService ethBlockService;
 
-    public PriceProvider(Functions functions) {
+    public PriceProvider(Functions functions, EthBlockService ethBlockService) {
         this.functions = functions;
+        this.ethBlockService = ethBlockService;
     }
 
     public void setUpdateBlockDifference(long updateBlockDifference) {
@@ -98,6 +100,9 @@ public class PriceProvider {
     }
 
     public Double getPriceForCoin(String coinName, Long block) {
+        if (block == null) {
+            block = ethBlockService.getLastBlock();
+        }
         String coinNameSimple = simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
@@ -121,8 +126,8 @@ public class PriceProvider {
         );
     }
 
-    private void updateUSDPrice(String coinName, Long block) {
-        if (block != null && !Tokens.isCreated(coinName, block.intValue())) {
+    private void updateUSDPrice(String coinName, long block) {
+        if (!Tokens.isCreated(coinName, (int) block)) {
             savePrice(0.0, coinName, block);
             return;
         }
@@ -208,13 +213,10 @@ public class PriceProvider {
         }
     }
 
-    private boolean hasFreshPrice(String name, Long block) {
+    private boolean hasFreshPrice(String name, long block) {
         TreeMap<Long, Double> lastPriceByBlock = lastPrices.get(name);
         if (lastPriceByBlock == null) {
             return false;
-        }
-        if (block == null) {
-            block = 0L;
         }
 
         Entry<Long, Double> entry = lastPriceByBlock.floorEntry(block);
@@ -224,15 +226,12 @@ public class PriceProvider {
         return entry.getValue() != null && entry.getValue() != 0;
     }
 
-    private void savePrice(double price, String name, Long block) {
-        if (block == null) {
-            block = 0L;
-        }
+    private void savePrice(double price, String name, long block) {
         TreeMap<Long, Double> lastPriceByBlock = lastPrices.computeIfAbsent(name, k -> new TreeMap<>());
         lastPriceByBlock.put(block, price);
     }
 
-    private double getLastPrice(String name, Long block) {
+    private double getLastPrice(String name, long block) {
         TreeMap<Long, Double> lastPriceByBlocks = lastPrices.get(name);
         if (lastPriceByBlocks == null) {
             return 0.0;
