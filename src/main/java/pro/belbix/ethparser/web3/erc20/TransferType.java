@@ -2,6 +2,10 @@ package pro.belbix.ethparser.web3.erc20;
 
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.web3.MethodMapper;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
@@ -47,6 +51,20 @@ public enum TransferType {
     HARD_WORK;
 
     private static final String FEE_REWARD_FORWARDER = "0x9397bd6fB1EC46B7860C8073D2cb83BE34270D94".toLowerCase();
+    public static final Set<String> NOT_TRADE = new HashSet<>(Arrays.stream(TransferType.values())
+        .filter(t -> t != LP_BUY && t != LP_SELL)
+        .map(Enum::name)
+        .collect(Collectors.toList()));
+
+    public static final Set<String> KEEP_OWNERSHIP = new HashSet<>(Arrays.stream(TransferType.values())
+        .filter(t ->
+            t != PS_STAKE
+                && t != PS_EXIT
+                && t != LP_ADD
+                && t != LP_REM
+        )
+        .map(Enum::name)
+        .collect(Collectors.toList()));
 
     public boolean isUser() {
         return !(

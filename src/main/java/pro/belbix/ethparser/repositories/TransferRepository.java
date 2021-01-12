@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,7 +20,7 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
                                                   @Param("from") long from,
                                                   @Param("to") long to);
 
-    @Query(nativeQuery = true, value = "" 
+    @Query(nativeQuery = true, value = ""
         + "select  coalesce(buys.buy, 0) - coalesce(sells.sell, 0) sum from "
         + "(select sum(value) buy from transfers "
         + "where block_date <= :before and recipient = :address) buys "
@@ -38,4 +39,25 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
     @Query(nativeQuery = true, value = ""
         + "select * from transfers where transfers.price is null or price = 0 order by block_date")
     List<TransferDTO> fetchAllWithoutPrice();
+
+    @Query(nativeQuery = true, value = ""
+        + "select * from transfers t where "
+        + "(t.owner = :owner or t.recipient = :recipient) "
+        + "and t.type in :types "
+        + "and t.block_date < :blockDate "
+        + "order by block_date desc")
+    List<TransferDTO> fetchLastTransfer(
+        @Param("owner") String owner,
+        @Param("recipient") String recipient,
+        @Param("types") List<String> types,
+        @Param("blockDate") long blockDate,
+        Pageable pageable
+    );
+
+    @Query(nativeQuery = true, value = ""
+        + "select * from transfers t where "
+        + "(t.profit is null or t.profit = 0) "
+        + "and type in ('PS_EXIT', 'REWARD') "
+        + "order by block_date")
+    List<TransferDTO> fetchAllWithoutProfits();
 }

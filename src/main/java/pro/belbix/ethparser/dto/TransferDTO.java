@@ -31,6 +31,7 @@ public class TransferDTO implements DtoI {
     private String type;
     private String methodName;
     private Double profit;
+    private Double profitUsd;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
