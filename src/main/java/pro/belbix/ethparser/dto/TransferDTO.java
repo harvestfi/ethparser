@@ -42,4 +42,14 @@ public class TransferDTO implements DtoI {
             + " " + id;
     }
 
+    public double getBalance(String address) {
+        if (address.equalsIgnoreCase(owner)) {
+            return balanceOwner;
+        } else if (address.equalsIgnoreCase(recipient)) {
+            return balanceRecipient;
+        } else {
+            throw new IllegalStateException("Not found address " + address + " in " + toString());
+        }
+    }
+
 }

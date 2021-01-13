@@ -10,13 +10,26 @@ import pro.belbix.ethparser.dto.TransferDTO;
 public interface TransferRepository extends JpaRepository<TransferDTO, String> {
 
     @Query("select t from TransferDTO t where "
-        + "(t.owner = :owner or t.recipient = :recipient) "
+        + "(lower(t.owner) = lower(:owner) or lower(t.recipient) = lower(:recipient)) "
         + "and t.name = 'FARM'"
         + "and t.blockDate > :from "
         + "and t.blockDate <= :to "
         + "order by t.blockDate asc")
     List<TransferDTO> fetchAllByOwnerAndRecipient(@Param("owner") String owner,
                                                   @Param("recipient") String recipient,
+                                                  @Param("from") long from,
+                                                  @Param("to") long to);
+
+    @Query("select t from TransferDTO t where "
+        + "(lower(t.owner) = lower(:owner) or lower(t.recipient) = lower(:recipient)) "
+        + "and t.type in :types "
+        + "and t.name = 'FARM'"
+        + "and t.blockDate > :from "
+        + "and t.blockDate <= :to "
+        + "order by t.blockDate asc")
+    List<TransferDTO> fetchAllByOwnerAndRecipientAndTypes(@Param("owner") String owner,
+                                                  @Param("recipient") String recipient,
+                                                          @Param("types") List<String> types,
                                                   @Param("from") long from,
                                                   @Param("to") long to);
 
@@ -56,8 +69,8 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
 
     @Query(nativeQuery = true, value = ""
         + "select * from transfers t where "
-        + "(t.profit is null or t.profit = 0) "
-        + "and type in ('PS_EXIT', 'REWARD') "
+        + "(t.profit is null) "
+        + "and type in ('PS_EXIT', 'REWARD', 'LP_SELL') "
         + "order by block_date")
     List<TransferDTO> fetchAllWithoutProfits();
 }

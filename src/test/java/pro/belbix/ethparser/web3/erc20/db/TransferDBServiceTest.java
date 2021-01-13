@@ -24,7 +24,7 @@ public class TransferDBServiceTest {
     private static final String OTHER = "recipient";
 
     @Test
-    public void testCalculateProfit() {
+    public void testCalculateSellProfit() {
         List<TransferDTO> transfers = new ArrayList<>();
         transfers.add(createDto(transfers.size(), COMMON.name(), 100, 1000, OTHER, ADDR));
         transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 500, ADDR, OTHER));
@@ -63,6 +63,36 @@ public class TransferDBServiceTest {
 
     }
 
+    @Test
+    public void testCalculatePsProfit() {
+        double profit = 0;
+        List<TransferDTO> transfers = new ArrayList<>();
+        transfers.add(createPsStake(transfers.size(), 100, 100));
+        transfers.add(createPsExit(transfers.size(), 75, 25));
+
+        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        assertEquals("profit", "0,000000", String.format("%.6f", profit));
+
+        transfers.add(createPsExit(transfers.size(), 26, 0));
+        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        assertEquals("profit", "1,000000", String.format("%.6f", profit));
+
+        transfers.add(createPsStake(transfers.size(), 100, 100));
+        transfers.add(createPsExit(transfers.size(), 20, 80));
+        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        assertEquals("profit", "0,000000", String.format("%.6f", profit));
+
+        transfers.add(createPsExit(transfers.size(), 100, 0));
+        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        assertEquals("profit", "20,000000", String.format("%.6f", profit));
+
+        transfers.add(createPsStake(transfers.size(), 100, 100));
+        transfers.add(createPsStake(transfers.size(), 100, 200));
+        transfers.add(createPsExit(transfers.size(), 210, 0));
+        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        assertEquals("profit", "10,000000", String.format("%.6f", profit));
+    }
+
     private void assertDto(TransferDTO dto, String profit, String profitUsd) {
         if (dto.getProfit() == null) {
             return;
@@ -71,6 +101,30 @@ public class TransferDBServiceTest {
             () -> assertEquals(dto.getId() + " profit", profit, String.format("%.1f", dto.getProfit())),
             () -> assertEquals(dto.getId() + " profitUsd", profitUsd, String.format("%.1f", dto.getProfitUsd()))
         );
+    }
+
+    private TransferDTO createPsStake(int id, double value, double balance) {
+        TransferDTO dto = new TransferDTO();
+        dto.setId(id + "");
+        dto.setType(PS_STAKE.name());
+        dto.setValue(value);
+        dto.setBalanceRecipient(balance);
+        dto.setBalanceRecipient(balance);
+        dto.setOwner(ADDR);
+        dto.setRecipient(OTHER);
+        return dto;
+    }
+
+    private TransferDTO createPsExit(int id, double value, double balance) {
+        TransferDTO dto = new TransferDTO();
+        dto.setId(id + "");
+        dto.setType(PS_EXIT.name());
+        dto.setValue(value);
+        dto.setBalanceRecipient(balance);
+        dto.setBalanceRecipient(balance);
+        dto.setOwner(OTHER);
+        dto.setRecipient(ADDR);
+        return dto;
     }
 
     private TransferDTO createDto(int id, String type, double value, double price, String owner, String recipient) {

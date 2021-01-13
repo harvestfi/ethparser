@@ -29,7 +29,6 @@ import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.PriceProvider;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @Service
 @Log4j2
@@ -115,14 +114,15 @@ public class TransferDBService {
         if (!PS_EXIT.name().equals(dto.getType())) {
             return;
         }
-        fetchLastTransfer(dto.getRecipient(), "", PS_STAKE.name(), dto.getBlockDate())
-            .ifPresentOrElse(t -> {
-                double farmProfit = dto.getValue() - t.getValue();
-                dto.setProfit(farmProfit);
-                String psName = Vaults.vaultHashToName.get(dto.getOwner());
-                double farmPrice = priceProvider.getPriceForCoin(psName, dto.getBlock());
-                dto.setProfitUsd(farmProfit * farmPrice);
-            }, () -> log.error("Not found PS stake for " + dto));
+        List<TransferDTO> transfers = transferRepository.fetchAllByOwnerAndRecipient(
+            dto.getRecipient(),
+            dto.getRecipient(),
+            0,
+            dto.getBlockDate() - 1);
+        transfers.add(dto);
+        double profit = calculatePsProfit(transfers, dto.getRecipient());
+        dto.setProfit(profit);
+        dto.setProfitUsd(profit * dto.getPrice());
     }
 
     private void fillProfitForReward(TransferDTO dto) {
@@ -138,14 +138,47 @@ public class TransferDBService {
         if (!LP_SELL.name().equals(dto.getType())) {
             return;
         }
-        String address = dto.getOwner();
-        List<TransferDTO> transfers =
-            transferRepository.fetchAllByOwnerAndRecipient(address, address, 0, dto.getBlockDate() - 1);
+        List<TransferDTO> transfers = transferRepository.fetchAllByOwnerAndRecipient(
+            dto.getOwner(),
+            dto.getOwner(),
+            0,
+            dto.getBlockDate() - 1);
         transfers.add(dto);
-        calculateSellProfits(transfers, address);
+        calculateSellProfits(transfers, dto.getOwner());
     }
 
-    public static void calculateSellProfits(List<TransferDTO> transfers, String owner) {
+    static double calculatePsProfit(List<TransferDTO> transfers, String address) {
+        double stacked = 0.0;
+        double exits = 0.0;
+        double lastProfit = 0.0;
+        for (TransferDTO transfer : transfers) {
+            lastProfit = 0;
+            if (!PS_EXIT.name().equalsIgnoreCase(transfer.getType())
+                && !PS_STAKE.name().equalsIgnoreCase(transfer.getType())) {
+                continue;
+            }
+
+            if (PS_EXIT.name().equalsIgnoreCase(transfer.getType())) {
+                exits += transfer.getValue();
+            }
+            //count all stacked
+            if (PS_STAKE.name().equalsIgnoreCase(transfer.getType())) {
+                stacked += transfer.getValue();
+            }
+
+            // return profit only for last exit, so refresh balances after each full exit
+            // it is a shortcut
+            // will not work in rare situation when holder has profit more than initial stake amount (impossible I guess)
+            if (exits > stacked) {
+                lastProfit = exits - stacked;
+                stacked = 0;
+                exits = 0;
+            }
+        }
+        return lastProfit;
+    }
+
+    static void calculateSellProfits(List<TransferDTO> transfers, String owner) {
         double bought = 0;
         double boughtUsd = 0;
         for (int i = 0; i < transfers.size(); i++) {
@@ -158,10 +191,10 @@ public class TransferDBService {
 
             // count transfers between accounts
             if (COMMON.name().equalsIgnoreCase(transfer.getType())) {
-                if(owner.equalsIgnoreCase(transfer.getRecipient())) {
+                if (owner.equalsIgnoreCase(transfer.getRecipient())) {
                     bought += transfer.getValue();
                     boughtUsd += transfer.getValue() * transfer.getPrice();
-                } else if(owner.equalsIgnoreCase(transfer.getOwner())) {
+                } else if (owner.equalsIgnoreCase(transfer.getOwner())) {
                     bought -= transfer.getValue();
                     boughtUsd -= transfer.getValue() * transfer.getPrice();
                 } else {
