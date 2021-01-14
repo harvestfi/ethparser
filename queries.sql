@@ -174,4 +174,14 @@ where block_date <= 99999999999
 (select sum(value) sell from transfers
 where block_date <= 99999999999
   and owner = :address
-    ) sells on 1=1
+    ) sells on 1=1;
+
+-- assets under control
+select t.owner, count(t.vault) assets from (select owner, vault,
+                                              SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) b
+                                       from harvest_tx
+group by owner,vault) t
+where b > 10
+group by t.owner
+order by assets desc
+;

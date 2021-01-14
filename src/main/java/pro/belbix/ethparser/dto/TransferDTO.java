@@ -31,6 +31,7 @@ public class TransferDTO implements DtoI {
     private String type;
     private String methodName;
     private Double profit;
+    private Double profitUsd;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
@@ -39,6 +40,16 @@ public class TransferDTO implements DtoI {
             + value + " "
             + name + " "
             + " " + id;
+    }
+
+    public double getBalance(String address) {
+        if (address.equalsIgnoreCase(owner)) {
+            return balanceOwner;
+        } else if (address.equalsIgnoreCase(recipient)) {
+            return balanceRecipient;
+        } else {
+            throw new IllegalStateException("Not found address " + address + " in " + toString());
+        }
     }
 
 }
