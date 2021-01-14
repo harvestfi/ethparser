@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.erc20.db;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static pro.belbix.ethparser.web3.erc20.TransferType.BAL_TX;
 import static pro.belbix.ethparser.web3.erc20.TransferType.COMMON;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_ADD;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_BUY;
@@ -24,43 +25,76 @@ public class TransferDBServiceTest {
     private static final String OTHER = "recipient";
 
     @Test
-    public void testCalculateSellProfit() {
+    public void testCalculateSellProfit3() {
         List<TransferDTO> transfers = new ArrayList<>();
-        transfers.add(createDto(transfers.size(), COMMON.name(), 100, 1000, OTHER, ADDR));
-        transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 500, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), COMMON.name(), 25, 200, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), LP_SELL.name(), 20, 5, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), COMMON.name(), 100, 1500, OTHER, ADDR));
-        transfers.add(createDto(transfers.size(), LP_SELL.name(), 10, 100, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), PS_STAKE.name(), 100, 100, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), PS_EXIT.name(), 100, 100, OTHER, OTHER));
-        transfers.add(createDto(transfers.size(), PS_INTERNAL.name(), 100, 100, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), LP_SEND.name(), 10, 90, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), LP_RECEIVE.name(), 15, 70, OTHER, OTHER));
-        transfers.add(createDto(transfers.size(), LP_ADD.name(), 20, 150, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), LP_REM.name(), 10, 200, OTHER, ADDR)); //12
-        transfers.add(createDto(transfers.size(), LP_BUY.name(), 10, 100, OTHER, ADDR));
-        transfers.add(createDto(transfers.size(), LP_SELL.name(), 7, 200, ADDR, OTHER));
-        transfers.add(createDto(transfers.size(), LP_SELL.name(), 7, 5, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), COMMON.name(), 100, 100, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 90, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), COMMON.name(), 50, 90, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), COMMON.name(), 10, 200, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 10, 201, ADDR, OTHER));
         TransferDBService.calculateSellProfits(transfers, ADDR);
 
-        assertDto(transfers.get(0), "0,0", "0,0");
-        assertDto(transfers.get(1), "0,0", "-25000,0");
-        assertDto(transfers.get(2), "0,0", "0,0");
-        assertDto(transfers.get(3), "0,0", "-35900,0");
-        assertDto(transfers.get(4), "0,0", "0,0");
-        assertDto(transfers.get(5), "0,0", "-14142,9");
-        assertDto(transfers.get(6), "0,0", "0,0");
-        assertDto(transfers.get(7), "0,0", "0,0");
-        assertDto(transfers.get(8), "0,0", "0,0");
-        assertDto(transfers.get(9), "0,0", "0,0");
-        assertDto(transfers.get(10), "0,0", "0,0");
-        assertDto(transfers.get(11), "0,0", "0,0");
-        assertDto(transfers.get(12), "0,0", "0,0");
-        assertDto(transfers.get(13), "0,0", "0,0");
-        assertDto(transfers.get(14), "0,0", "-8257,1");
-        assertDto(transfers.get(15), "0,0", "-9622,1");
+        assertDto(transfers.get(0), "", "", true);
+        assertDto(transfers.get(1), "-5,6", "-500,0", false);
+        assertDto(transfers.get(2), "", "", true);
+        assertDto(transfers.get(3), "", "", true);
+        assertDto(transfers.get(4), "0,0", "10,0", false);
+    }
 
+    @Test
+    public void testCalculateSellProfit2() {
+        List<TransferDTO> transfers = new ArrayList<>();
+        transfers.add(createDto(transfers.size(), COMMON.name(), 100, 100, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 90, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), COMMON.name(), 20, 90, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 30, 120, ADDR, OTHER));
+        TransferDBService.calculateSellProfits(transfers, ADDR);
+
+        assertDto(transfers.get(0), "0,0", "0,0", true);
+        assertDto(transfers.get(1), "-5,6", "-500,0", false);
+        assertDto(transfers.get(2), "", "", true);
+        assertDto(transfers.get(3), "3,3", "400,0", false);
+    }
+
+    @Test
+    public void testCalculateSellProfit() {
+        List<TransferDTO> transfers = new ArrayList<>();
+        transfers.add(createDto(transfers.size(), COMMON.name(), 100, 100, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 90, ADDR, OTHER));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 50, 120, ADDR, OTHER));
+        TransferDBService.calculateSellProfits(transfers, ADDR);
+
+        assertDto(transfers.get(0), "0,0", "0,0", true);
+        assertDto(transfers.get(1), "-5,6", "-500,0", false);
+        assertDto(transfers.get(2), "8,3", "1000,0", false);
+    }
+
+    @Test
+    public void testCalculateSellProfitBal() {
+        List<TransferDTO> transfers = new ArrayList<>();
+        transfers.add(createDto(transfers.size(), BAL_TX.name(), 100, 100, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 100, 150, ADDR, OTHER));
+
+        TransferDBService.calculateSellProfits(transfers, ADDR);
+
+        assertDto(transfers.get(0), "0,0", "0,0", true);
+        assertDto(transfers.get(1), "33,3", "5000,0", false);
+    }
+
+    @Test
+    public void testCalculateSellProfitPS() {
+        List<TransferDTO> transfers = new ArrayList<>();
+        transfers.add(createDto(transfers.size(), BAL_TX.name(), 100, 100, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), PS_STAKE.name(), 100, 120, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), PS_EXIT.name(), 110, 90, OTHER, ADDR));
+        transfers.add(createDto(transfers.size(), LP_SELL.name(), 110, 150, ADDR, OTHER));
+
+        TransferDBService.calculateSellProfits(transfers, ADDR);
+
+        assertDto(transfers.get(0), "", "", true);
+        assertDto(transfers.get(1), "", "", true);
+        assertDto(transfers.get(2), "", "", true);
+        assertDto(transfers.get(3), "33,3", "5000,0", false);
     }
 
     @Test
@@ -70,31 +104,31 @@ public class TransferDBServiceTest {
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsExit(transfers.size(), 75, 25));
 
-        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        profit = TransferDBService.calculatePsProfit(transfers);
         assertEquals("profit", "0,000000", String.format("%.6f", profit));
 
         transfers.add(createPsExit(transfers.size(), 26, 0));
-        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        profit = TransferDBService.calculatePsProfit(transfers);
         assertEquals("profit", "1,000000", String.format("%.6f", profit));
 
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsExit(transfers.size(), 20, 80));
-        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        profit = TransferDBService.calculatePsProfit(transfers);
         assertEquals("profit", "0,000000", String.format("%.6f", profit));
 
         transfers.add(createPsExit(transfers.size(), 100, 0));
-        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        profit = TransferDBService.calculatePsProfit(transfers);
         assertEquals("profit", "20,000000", String.format("%.6f", profit));
 
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsStake(transfers.size(), 100, 200));
         transfers.add(createPsExit(transfers.size(), 210, 0));
-        profit = TransferDBService.calculatePsProfit(transfers, ADDR);
+        profit = TransferDBService.calculatePsProfit(transfers);
         assertEquals("profit", "10,000000", String.format("%.6f", profit));
     }
 
-    private void assertDto(TransferDTO dto, String profit, String profitUsd) {
-        if (dto.getProfit() == null) {
+    private void assertDto(TransferDTO dto, String profit, String profitUsd, boolean nullProfit) {
+        if (nullProfit && dto.getProfit() == null) {
             return;
         }
         assertAll(

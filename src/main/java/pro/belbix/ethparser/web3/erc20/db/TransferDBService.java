@@ -2,9 +2,10 @@ package pro.belbix.ethparser.web3.erc20.db;
 
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
-import static pro.belbix.ethparser.web3.erc20.TransferType.COMMON;
+import static pro.belbix.ethparser.web3.erc20.TransferType.KEEP_OWNERSHIP;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_BUY;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SELL;
+import static pro.belbix.ethparser.web3.erc20.TransferType.NOT_TRADE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_EXIT;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.REWARD;
@@ -118,9 +119,11 @@ public class TransferDBService {
             dto.getRecipient(),
             dto.getRecipient(),
             0,
-            dto.getBlockDate() - 1);
-        transfers.add(dto);
-        double profit = calculatePsProfit(transfers, dto.getRecipient());
+            dto.getBlockDate());
+        if (isNotContainsDto(transfers, dto.getId())) {
+            transfers.add(dto);
+        }
+        double profit = calculatePsProfit(transfers);
         dto.setProfit(profit);
         dto.setProfitUsd(profit * dto.getPrice());
     }
@@ -142,12 +145,16 @@ public class TransferDBService {
             dto.getOwner(),
             dto.getOwner(),
             0,
-            dto.getBlockDate() - 1);
-        transfers.add(dto);
-        calculateSellProfits(transfers, dto.getOwner());
+            dto.getBlockDate());
+        if (isNotContainsDto(transfers, dto.getId())) {
+            transfers.add(dto);
+        }
+        double profit = calculateSellProfits(transfers, dto.getOwner());
+        dto.setProfit(profit);
+        dto.setProfitUsd(profit * dto.getPrice());
     }
 
-    static double calculatePsProfit(List<TransferDTO> transfers, String address) {
+    static double calculatePsProfit(List<TransferDTO> transfers) {
         double stacked = 0.0;
         double exits = 0.0;
         double lastProfit = 0.0;
@@ -178,9 +185,10 @@ public class TransferDBService {
         return lastProfit;
     }
 
-    static void calculateSellProfits(List<TransferDTO> transfers, String owner) {
+    static double calculateSellProfits(List<TransferDTO> transfers, String owner) {
         double bought = 0;
         double boughtUsd = 0;
+        double profit = 0;
         for (int i = 0; i < transfers.size(); i++) {
             TransferDTO transfer = transfers.get(i);
 //            //remember how many we bought
@@ -190,7 +198,7 @@ public class TransferDBService {
             }
 
             // count transfers between accounts
-            if (COMMON.name().equalsIgnoreCase(transfer.getType())) {
+            if (NOT_TRADE.contains(transfer.getType()) && KEEP_OWNERSHIP.contains(transfer.getType())) {
                 if (owner.equalsIgnoreCase(transfer.getRecipient())) {
                     bought += transfer.getValue();
                     boughtUsd += transfer.getValue() * transfer.getPrice();
@@ -227,11 +235,18 @@ public class TransferDBService {
                     boughtUsd -= coveredUsd;
                     double sellUsd = sell * sellPrice;
                     double sellProfit = sellUsd - coveredUsd;
-                    transfer.setProfit(0.0);
+                    transfer.setProfit(sellProfit / transfer.getPrice()); // it is synthetic value for compatibility
                     transfer.setProfitUsd(sellProfit);
+                    if (i == transfers.size() - 1) {
+                        profit = sellProfit / transfer.getPrice();
+                    }
                 }
             }
+            if (bought == 0) {
+                boughtUsd = 0;
+            }
         }
+        return profit;
     }
 
     private Optional<TransferDTO> fetchLastTransfer(String owner, String recipient, String type, long blockDate) {
@@ -248,6 +263,15 @@ public class TransferDBService {
             .filter(Caller::isFilledList)
             .stream()
             .flatMap(Collection::stream);
+    }
+
+    private boolean isNotContainsDto(List<TransferDTO> dtos, String id) {
+        for (TransferDTO dto : dtos) {
+            if (id.equalsIgnoreCase(dto.getId())) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
