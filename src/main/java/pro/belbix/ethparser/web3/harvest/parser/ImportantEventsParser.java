@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +32,6 @@ public class ImportantEventsParser implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    
     private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
     private Instant lastTx = Instant.now();
 
@@ -41,11 +39,6 @@ public class ImportantEventsParser implements Web3Parser {
     private final ImportantEventsDbService importantEventsDbService;
     private final ParserInfo parserInfo;
     private final EthBlockService ethBlockService;
-
-    public static final String TOKEN_MINT_TX = "TokenMintTx";
-    public static final String TOKEN_MINT = "TokenMinted";
-
-    private ImportantEventsDTO lastTokenMintTx = null;
 
     public ImportantEventsParser(
         Web3Service web3Service,
@@ -68,28 +61,12 @@ public class ImportantEventsParser implements Web3Parser {
                 Log ethLog = null;
                 try {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
-
-                    // send TokenMint event from previous block, after we parsed all mint transactions
-                    if (lastTokenMintTx != null) {
-                        if (ethLog.getBlockNumber().doubleValue() > lastTokenMintTx.getBlock().doubleValue()) {
-                            boolean savedMint = importantEventsDbService.save(lastTokenMintTx);
-                            if (savedMint) {
-                                output.add(lastTokenMintTx);
-                                lastTokenMintTx = null;
-                            }
-                        }
-                    }
-
                     ImportantEventsDTO dto = parseLog(ethLog);
                     if (dto != null) {
                         lastTx = Instant.now();
                         boolean saved = importantEventsDbService.save(dto);
                         if (saved) {
                             output.put(dto);
-                        
-                            if (dto.getEvent().equals(TOKEN_MINT_TX)) {
-                                lastTokenMintTx = importantEventsDbService.updateTokenMinted(dto);
-                            }
                         }
                     }
                 } catch (Exception e) {
@@ -144,7 +121,7 @@ public class ImportantEventsParser implements Web3Parser {
     private void parseEvent(ImportantEventsDTO dto, String methodName) {
         // ERC20 token Mint function emits Transfer event
         if ("Transfer".equals(methodName)) {
-            dto.setEvent(TOKEN_MINT_TX);
+            dto.setEvent("TokenMinted");
         } else {
             dto.setEvent(methodName);
         }
