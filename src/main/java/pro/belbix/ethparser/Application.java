@@ -2,6 +2,9 @@ package pro.belbix.ethparser;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
+import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
+import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
@@ -145,54 +148,11 @@ public class Application {
 
     private static void startFakeDataForWebSocket(WsService ws, int rate) {
         int count = 0;
-        List<String> vaults = new ArrayList<>(Vaults.vaultHashToName.values());
-        HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
-        List<String> harvestMethods = new ArrayList<>(harvestVaultLogDecoder.getMethodNamesByMethodId().values());
         while (true) {
             double currentCount = count * new Random().nextDouble();
-
-            UniswapDTO uniswapDTO = new UniswapDTO();
-            uniswapDTO.setId("0x" + (count * 1000000));
-            uniswapDTO.setAmount(currentCount);
-            uniswapDTO.setOtherAmount(currentCount);
-            uniswapDTO.setCoin("FARM");
-            uniswapDTO.setOtherCoin("USDC");
-            uniswapDTO.setHash("0x" + count);
-            uniswapDTO.setType(new Random().nextBoolean() ?
-                new Random().nextBoolean() ? "BUY" : "SELL" :
-                new Random().nextBoolean() ? ADD_LIQ : REMOVE_LIQ);
-            uniswapDTO.setPrice(currentCount);
-            uniswapDTO.setConfirmed(new Random().nextBoolean());
-            uniswapDTO.setLastGas(currentCount / 6);
-            uniswapDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
-            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, uniswapDTO);
-
-            HarvestDTO harvestDTO = new HarvestDTO();
-            harvestDTO.setAmount(currentCount * 10000);
-            harvestDTO.setUsdAmount((long) currentCount * 100);
-            harvestDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
-            harvestDTO.setId("0x" + (count * 1000000));
-            harvestDTO.setHash("0x" + count);
-            harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
-            harvestDTO.setLastUsdTvl(currentCount * 1000000);
-            harvestDTO.setConfirmed(new Random().nextBoolean());
-            harvestDTO.setLastGas(currentCount / 6);
-            harvestDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
-            harvestDTO.setLastAllUsdTvl(count * 5.1);
-            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, harvestDTO);
-
-            HardWorkDTO hardWorkDTO = new HardWorkDTO();
-            hardWorkDTO.setId("0x" + (count * 1000000));
-            hardWorkDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
-            hardWorkDTO.setBlockDate(Instant.now().plus(count, ChronoUnit.MINUTES).getEpochSecond());
-            hardWorkDTO.setShareChange(count / 1000.0);
-            hardWorkDTO.setShareChangeUsd(count / 69.0);
-            hardWorkDTO.setShareUsdTotal(count);
-            hardWorkDTO.setTvl(count * 60);
-            hardWorkDTO.setPerc((double) count / 633.0);
-            hardWorkDTO.setPsApr((double) count / 63.0);
-            ws.send(HARDWORK_TOPIC_NAME, hardWorkDTO);
-
+            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, createUniswapDTO(count));
+            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, createHarvestDTO(count));
+            ws.send(HARDWORK_TOPIC_NAME, createHardWorkDTO(count));
             log.info("Msg sent " + currentCount);
             count++;
             try {
