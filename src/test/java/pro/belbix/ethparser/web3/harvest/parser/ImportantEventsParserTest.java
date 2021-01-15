@@ -22,6 +22,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
+import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 
@@ -35,12 +36,7 @@ public class ImportantEventsParserTest {
     @Autowired
     private Web3Service web3Service;
     @Autowired
-    private PriceProvider priceProvider;
-
-    @Before
-    public void setUp() {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+    private ImportantEventsDbService importantEventsDbService;
 
     @Test
     public void shouldParseStrategyChange() {
@@ -69,17 +65,36 @@ public class ImportantEventsParserTest {
     }
 
     @Test
-    public void shouldParseMint() {
+    public void shouldParseMintTx() {
         parserTest(
             FARM_TOKEN,
-            10776715, 
+            11550180, 
             0, 
             "null",
             "null", 
-            "2020-09-01T17:41:09Z",
-            "11513,82000000"
+            "2020-12-29T17:12:30Z",
+            "9129,32300000"
             );
     }    
+
+    @Test
+    public void shouldParseTokenMinted() {
+        ImportantEventsDTO dto = new ImportantEventsDTO();
+        dto.setBlock(Long.valueOf(11550180));
+        dto.setEvent(ImportantEventsParser.TOKEN_MINT_TX);
+        dto.setHash("0x33336e62c644b763776aae64b6f1ed27903405a92cca4501816515e19949ac4f");
+
+        ImportantEventsDTO tokenMintDto = importantEventsDbService.updateTokenMinted(dto);
+ 
+        assertNotNull("Dto is null", tokenMintDto);
+        assertAll(
+            // needs transactions in DB
+            //() -> assertEquals("mintAmount", tokenMintDto.getMintAmount(), Double.valueOf(13041.89)),
+            () -> assertEquals("event", tokenMintDto.getEvent(), ImportantEventsParser.TOKEN_MINT),
+            () -> assertEquals("id", tokenMintDto.getId(), "0x33336e62c644b763776aae64b6f1ed27903405a92cca4501816515e19949ac4f_sum")
+        );
+    }
+
     private void parserTest(
         String contract,
         int onBlock,
