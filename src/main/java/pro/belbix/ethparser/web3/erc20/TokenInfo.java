@@ -28,6 +28,11 @@ public class TokenInfo {
         return this;
     }
 
+    public TokenInfo setDivider(double d) {
+        divider = d;
+        return this;
+    }
+
     public Tuple2<String, String> findLp(Long block) {
         if (block == null) {
             block = 1L;

@@ -39,6 +39,22 @@ public class TransferParserTest {
         priceProvider.setUpdateBlockDifference(1);
     }
 
+    // it is a self destructed contract
+    @Test
+    public void testParseFARM_OneInch() {
+        TransferDTO dto = parserTest(FARM_TOKEN,
+            11631545 ,
+            0,
+            "FARM",
+            "0x0197abe48f0a9826d10f44dad7050f26586eb9ba",
+            "0x0000000000007f150bd6f54c40a34d7c3d5e9f56",
+            "99,79670382",
+            "LP_RECEIVE",
+            "0x030341f1"
+        );
+        assertNotNull(dto);
+    }
+
     @Test
     public void testParseFARM_firstMint() {
         TransferDTO dto = parserTest(FARM_TOKEN,

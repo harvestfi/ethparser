@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.erc20;
 
+import static pro.belbix.ethparser.web3.ContractConstants.D6;
+import static pro.belbix.ethparser.web3.ContractConstants.D8;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpHashToCoinNames;
 
@@ -48,46 +50,54 @@ public class Tokens {
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
     static {
-        tokenInfos.add(new TokenInfo(FARM_NAME, FARM_TOKEN, 10777201)
+        addTokenInfo(new TokenInfo(FARM_NAME, FARM_TOKEN, 10777201)
             .addLp("UNI_LP_USDC_FARM", 0, USDC_NAME)
             .addLp("UNI_LP_WETH_FARM", 11609000, WETH_NAME));
 
-        tokenInfos.add(new TokenInfo(DPI_NAME, DPI_TOKEN, 10868422)
+        addTokenInfo(new TokenInfo(DPI_NAME, DPI_TOKEN, 10868422)
             .addLp("UNI_LP_ETH_DPI", 0, WETH_NAME));
 
-        tokenInfos.add(new TokenInfo(GRAIN_NAME, GRAIN_TOKEN, 11408083)
+        addTokenInfo(new TokenInfo(GRAIN_NAME, GRAIN_TOKEN, 11408083)
             .addLp("UNI_LP_GRAIN_FARM", 0, FARM_NAME));
 
-        tokenInfos.add(new TokenInfo(BADGER_NAME, BADGER_TOKEN, 10868422)
+        addTokenInfo(new TokenInfo(BADGER_NAME, BADGER_TOKEN, 10868422)
             .addLp("UNI_LP_WBTC_BADGER", 0, WBTC_NAME));
 
-        tokenInfos.add(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
+        addTokenInfo(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
             .addLp("UNI_LP_ETH_USDC", 0, USDC_NAME));
 
-        tokenInfos.add(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0)
+        addTokenInfo(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0).setDivider(D8)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
 
-        tokenInfos.add(new TokenInfo(BAC_NAME, BAC_TOKEN, 11356492)
+        addTokenInfo(new TokenInfo(BAC_NAME, BAC_TOKEN, 11356492)
             .addLp("UNI_LP_BAC_DAI", 0, DAI_NAME));
 
-        tokenInfos.add(new TokenInfo(BAS_NAME, BAS_TOKEN, 11356501)
+        addTokenInfo(new TokenInfo(BAS_NAME, BAS_TOKEN, 11356501)
             .addLp("UNI_LP_DAI_BAS", 0, DAI_NAME));
 
-        tokenInfos.add(new TokenInfo(MIC_NAME, MIC_TOKEN, 11551514)
+        addTokenInfo(new TokenInfo(MIC_NAME, MIC_TOKEN, 11551514)
             .addLp("SUSHI_LP_MIC_USDT", 0, USDT_NAME));
 
-        tokenInfos.add(new TokenInfo(MIS_NAME, MIS_TOKEN, 11551671)
+        addTokenInfo(new TokenInfo(MIS_NAME, MIS_TOKEN, 11551671)
             .addLp("SUSHI_LP_MIS_USDT", 0, USDT_NAME));
 
-        tokenInfos.add(new TokenInfo(IDX_NAME, IDX_TOKEN, 0)
+        addTokenInfo(new TokenInfo(IDX_NAME, IDX_TOKEN, 0)
             .addLp("UNI_LP_IDX_ETH", 0, WETH_NAME));
 
         //todo stablecoins
-        tokenInfos.add(new TokenInfo(USDC_NAME, USDC_TOKEN, 0));
-        tokenInfos.add(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));
-        tokenInfos.add(new TokenInfo(USDT_NAME, USDT_TOKEN, 0));
-        tokenInfos.add(new TokenInfo(USDT_NAME, USDT_TOKEN, 0));
-        tokenInfos.add(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
+        addTokenInfo(new TokenInfo(USDC_NAME, USDC_TOKEN, 0).setDivider(D6));
+        addTokenInfo(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));
+        addTokenInfo(new TokenInfo(USDT_NAME, USDT_TOKEN, 0).setDivider(D6));
+        addTokenInfo(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
+    }
+
+    private static void addTokenInfo(TokenInfo tokenInfo) {
+        for (TokenInfo info : tokenInfos) {
+            if (tokenInfo.getTokenName().equalsIgnoreCase(info.getTokenName())) {
+                throw new IllegalStateException("You try to add token again " + tokenInfo);
+            }
+        }
+        tokenInfos.add(tokenInfo);
     }
 
     public static TokenInfo getTokenInfo(String tokenName) {
@@ -228,24 +238,20 @@ public class Tokens {
 
     public static String simplifyName(String name) {
         name = name.replaceFirst("_V0", "");
-        if ("WETH".equals(name)) {
-            return "ETH";
-        } else if ("RENBTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRVRENWBTC".equals(name)) {
-            return "WBTC";
-        } else if ("TBTC".equals(name)) {
-            return "WBTC";
-        } else if ("BTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRV_TBTC".equals(name)) {
-            return "WBTC";
-        } else if ("HBTC".equals(name)) {
-            return "WBTC";
-        } else if ("CRV_HBTC".equals(name)) {
-            return "WBTC";
-        } else if ("PS".equals(name)) {
-            return "FARM";
+        switch (name) {
+            case "WETH":
+                return "ETH";
+            case "PS":
+                return "FARM";
+            case "RENBTC":
+            case "CRVRENWBTC":
+            case "TBTC":
+            case "BTC":
+            case "CRV_OBTC":
+            case "CRV_TBTC":
+            case "HBTC":
+            case "CRV_HBTC":
+                return "WBTC";
         }
         return name;
     }

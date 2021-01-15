@@ -36,6 +36,9 @@ public class TransfersRecalculate {
     @Value("${transfer-recalculate.prices:false}")
     private boolean prices = false;
 
+    @Value("${transfer-recalculate.profit:false}")
+    private boolean profit = false;
+
     public TransfersRecalculate(TransferDBService transferDBService,
                                 TransferRepository transferRepository,
                                 TransferParser transferParser,
@@ -55,6 +58,9 @@ public class TransfersRecalculate {
         }
         if (prices) {
             reparseEmptyPrices();
+        }
+        if(profit){
+            reparseEmptyProfits();
         }
     }
 
@@ -130,6 +136,22 @@ public class TransfersRecalculate {
             }
         }
         transferRepository.saveAll(result);
+    }
+
+    private void reparseEmptyProfits() {
+        List<TransferDTO> dtos = transferRepository.fetchAllWithoutProfits();
+        log.info("Events for reparsing " + dtos.size());
+        for (TransferDTO dto : dtos) {
+            try {
+                transferDBService.fillProfit(dto);
+                transferRepository.save(dto);
+                log.info("Save " + dto.print());
+
+            } catch (Exception e) {
+                log.error("Error with " + dto.toString());
+                throw e;
+            }
+        }
     }
 
     private double getFarmPrice(long blockDate) {

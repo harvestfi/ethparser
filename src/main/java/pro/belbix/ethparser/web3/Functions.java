@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.web3;
 
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -24,6 +26,7 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 @SuppressWarnings("rawtypes")
 @Service
 public class Functions {
+
     public final static double SECONDS_OF_YEAR = 31557600.0;
     public final static double SECONDS_IN_WEEK = 604800.0;
     private static final Logger log = LoggerFactory.getLogger(Functions.class);
@@ -43,8 +46,30 @@ public class Functions {
     }
 
     public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
-        List<Type> types = web3Service
-            .callFunction(GET_RESERVES, lpAddress, resolveBlock(block));
+        if (LpContracts.oneInch.contains(lpAddress)) {
+            return callOneInchReserves(lpAddress, block);
+        } else {
+            return callUniReserves(lpAddress, block);
+        }
+    }
+
+    private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block) {
+        String coin0 = callStringFunction(TOKEN0, lpAddress, block);
+        String coin1 = callStringFunction(TOKEN1, lpAddress, block);
+
+        double coin0Balance = 0;
+        double coin1Balance = 0;
+        if (!ZERO_ADDRESS.equals(coin0)) {
+            coin0Balance = parseAmount(callBalanceOf(lpAddress, coin0, block), coin0);
+        }
+        if (!ZERO_ADDRESS.equals(coin1)) {
+            coin1Balance = parseAmount(callBalanceOf(lpAddress, coin1, block), coin1);
+        }
+        return new Tuple2<>(coin0Balance, coin1Balance);
+    }
+
+    private Tuple2<Double, Double> callUniReserves(String lpAddress, Long block) {
+        List<Type> types = web3Service.callFunction(GET_RESERVES, lpAddress, resolveBlock(block));
         if (types == null || types.size() < 3) {
             log.error("Wrong values for " + lpAddress);
             return null;
@@ -91,11 +116,11 @@ public class Functions {
     }
 
     public String callRewardToken(String hash, Long block) {
-        return callAddressFunction(REWARD_TOKEN, hash, block);
+        return callStringFunction(REWARD_TOKEN, hash, block);
     }
 
     public String callRewardPool(String hash, Long block) {
-        return callAddressFunction(REWARD_POOL, hash, block);
+        return callStringFunction(REWARD_POOL, hash, block);
     }
 
     public BigInteger callUnderlyingBalance(String holder, String hash, Long block) {
@@ -123,7 +148,7 @@ public class Functions {
         return (BigInteger) types.get(0).getValue();
     }
 
-    private String callAddressFunction(Function function, String hash, Long block) {
+    private String callStringFunction(Function function, String hash, Long block) {
         List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
         if (types == null || types.isEmpty()) {
             log.error(function.getName() + " Wrong callback " + hash);
@@ -206,6 +231,18 @@ public class Functions {
 
     static final Function REWARD_POOL = new Function(
         "rewardPool",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+
+    static final Function TOKEN0 = new Function(
+        "token0",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+
+    static final Function TOKEN1 = new Function(
+        "token1",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Address>() {
         }));

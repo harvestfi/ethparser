@@ -50,6 +50,116 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultONEINCH_ETH_DAI() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.ONEINCH_ETH_DAI,
+            11656737,
+            LOG_ID,
+            "0x856b0303e51b9cb68737a2e9d5a5260d7bb515c4",
+            "Deposit",
+            "ONEINCH_ETH_DAI",
+            "0x7e489e15a4f060692645ab78131b421a5e00c057cec3f7c8360ddb012ce04574_101",
+            "1313,48394098",
+            "",
+            "",
+            2605L,
+            196916L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultONEINCH_ETH_USDC() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.ONEINCH_ETH_USDC,
+            11652370,
+            LOG_ID,
+            "0xdb22c56f26940803095704634d0e305901cf83af",
+            "Deposit",
+            "ONEINCH_ETH_USDC",
+            "0x5f5ee66cc4872778dac722c39af219d44fe395978adf7c1aab6529661c960276_173",
+            "7,70258211",
+            "",
+            "",
+            18749L,
+            160570L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultONEINCH_ETH_USDT() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.ONEINCH_ETH_USDT,
+            11657337,
+            LOG_ID,
+            "0x3c8319dd83fa18ec1a0df2acf65277a731514d67",
+            "Deposit",
+            "ONEINCH_ETH_USDT",
+            "0x7373221e30209d5d254f9b6f3a8684d6f54a677d9f7b5d2ae483c933b7a93200_271",
+            "14,32730677",
+            "",
+            "",
+            34950L,
+            47028L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultONEINCH_ETH_WBTC() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.ONEINCH_ETH_WBTC,
+            11660459,
+            LOG_ID,
+            "0xb3bd674309ba3fd345134b28326326a0f0b3c6ed",
+            "Deposit",
+            "ONEINCH_ETH_WBTC",
+            "0x2f244375de17c78430758b82bbeb786a3fe213fd3756732fbb5f274be67a385f_128",
+            "11749,43295860",
+            "",
+            "",
+            27519431L,
+            27528776L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultCRV_OBTC() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.CRV_OBTC,
+            11653428,
+            LOG_ID,
+            "0xde50bd8fd4e7b8e9fc048938d450120c51fd6da5",
+            "Withdraw",
+            "CRV_OBTC",
+            "0x63150089d9db9da63740fb582f0fa46356fe3f4fddd98766225050f6b138217f_187",
+            "0,74794491",
+            "",
+            "",
+            28746L,
+            1480484L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultWETH_V02() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.WETH_V0,

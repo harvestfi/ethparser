@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
-import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -100,19 +100,19 @@ public class HarvestDBService {
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);
-        for (String vaultName : contracts) {
-            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
-            if (lastHarvest == null) {
-                continue;
-            }
-            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
-                lastHarvest = dto; // for avoiding JPA wrong synchronisation
-            }
-            if (dto.getPrices() != null && !dto.getPrices().contains("NaN")) {
+        if (dto.getPrices() != null && !dto.getPrices().contains("NaN")) {
+            for (String vaultName : contracts) {
+                HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+                if (lastHarvest == null) {
+                    continue;
+                }
+                if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                    lastHarvest = dto; // for avoiding JPA wrong synchronisation
+                }
                 tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
-            } else {
-                log.warn("Wrong prices " + dto);
             }
+        } else {
+            log.warn("Wrong prices " + dto);
         }
 
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();

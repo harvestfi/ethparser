@@ -57,7 +57,8 @@ public class MethodMapper {
     ));
 
     private static final Set<String> oneInch = new HashSet<>(Arrays.asList(
-        "0x90411a32"
+        "0x90411a32",
+        "swap"
     ));
 
     private static final Set<String> zeroX = new HashSet<>(Arrays.asList(

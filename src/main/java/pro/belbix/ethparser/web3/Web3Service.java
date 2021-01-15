@@ -478,7 +478,7 @@ public class Web3Service {
         public void run() {
             while (run.get()) {
                 if (Duration.between(lastActionTime.get(), Instant.now()).getSeconds() > MAX_DELAY_BETWEEN_TX) {
-                    log.error("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
+                    log.warn("Subscription doesn't receive any messages more than " + MAX_DELAY_BETWEEN_TX);
                     lastActionTime.set(Instant.now());
                     web3Service.resubscribe();
                 }
