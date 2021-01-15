@@ -29,6 +29,10 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.findNameForContract;
 import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.IDX_ETH_DPI;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.ONEINCH_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.ONEINCH_ETH_USDC;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.ONEINCH_ETH_USDT;
+import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.ONEINCH_ETH_WBTC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDC;
 import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.SUSHI_ETH_USDT;
@@ -80,6 +84,10 @@ public class LpContracts {
     public static final String UNI_LP_DAI_BAS = "0x0379da7a5895d13037b6937b109fa8607a659adf".toLowerCase();
     public static final String SUSHI_LP_MIC_USDT = "0xC9cB53B48A2f3A9e75982685644c1870F1405CCb".toLowerCase();
     public static final String SUSHI_LP_MIS_USDT = "0x066F3A3B7C8Fa077c71B9184d862ed0A4D5cF3e0".toLowerCase();
+    public static final String ONEINCH_LP_ETH_DAI = "0x7566126f2fD0f2Dddae01Bb8A6EA49b760383D5A".toLowerCase();
+    public static final String ONEINCH_LP_ETH_USDC = "0xb4dB55a20E0624eDD82A0Cf356e3488B4669BD27".toLowerCase();
+    public static final String ONEINCH_LP_ETH_USDT = "0xbBa17b81aB4193455Be10741512d0E71520F43cB".toLowerCase();
+    public static final String ONEINCH_LP_ETH_WBTC = "0x6a11F3E5a01D129e566d783A7b6E8862bFD66CcA".toLowerCase();
 
     public static final Map<String, String> harvestStrategyToLp = new LinkedHashMap<>();
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
@@ -89,6 +97,7 @@ public class LpContracts {
     public final static Map<String, Tuple2<Double, Double>> lpPairsDividers = new LinkedHashMap<>();
     public static final Map<String, String> keyCoinForLp = new LinkedHashMap<>();
     public static final Set<String> parsable = new HashSet<>();
+    public static final Set<String> oneInch = new HashSet<>();
 
     static {
         try {
@@ -115,6 +124,10 @@ public class LpContracts {
         harvestStrategyToLp.put(UNI_DAI_BAS, UNI_LP_DAI_BAS);
         harvestStrategyToLp.put(SUSHI_MIC_USDT, SUSHI_LP_MIC_USDT);
         harvestStrategyToLp.put(SUSHI_MIS_USDT, SUSHI_LP_MIS_USDT);
+        harvestStrategyToLp.put(ONEINCH_ETH_DAI, ONEINCH_LP_ETH_DAI);
+        harvestStrategyToLp.put(ONEINCH_ETH_USDC, ONEINCH_LP_ETH_USDC);
+        harvestStrategyToLp.put(ONEINCH_ETH_USDT, ONEINCH_LP_ETH_USDT);
+        harvestStrategyToLp.put(ONEINCH_ETH_WBTC, ONEINCH_LP_ETH_WBTC);
 
         lpHashToDividers.put(UNI_LP_ETH_DAI, D18);
         lpHashToDividers.put(UNI_LP_ETH_USDC, D18);
@@ -136,6 +149,10 @@ public class LpContracts {
         lpHashToDividers.put(UNI_LP_DAI_BAS, D18);
         lpHashToDividers.put(SUSHI_LP_MIC_USDT, D18);
         lpHashToDividers.put(SUSHI_LP_MIS_USDT, D18);
+        lpHashToDividers.put(ONEINCH_LP_ETH_DAI, D18);
+        lpHashToDividers.put(ONEINCH_LP_ETH_USDC, D18);
+        lpHashToDividers.put(ONEINCH_LP_ETH_USDT, D18);
+        lpHashToDividers.put(ONEINCH_LP_ETH_WBTC, D18);
 
         lpHashToCoinNames.put(UNI_LP_ETH_DAI, new Tuple2<>(DAI_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_ETH_USDC, new Tuple2<>(USDC_NAME, WETH_NAME));
@@ -158,6 +175,10 @@ public class LpContracts {
         lpHashToCoinNames.put(SUSHI_LP_MIC_USDT, new Tuple2<>(MIC_NAME, USDT_NAME));
         lpHashToCoinNames.put(SUSHI_LP_MIS_USDT, new Tuple2<>(MIS_NAME, USDT_NAME));
         lpHashToCoinNames.put(UNI_LP_USDC_WBTC, new Tuple2<>(MIS_NAME, USDT_NAME));
+        lpHashToCoinNames.put(ONEINCH_LP_ETH_DAI, new Tuple2<>(WETH_NAME, DAI_NAME));
+        lpHashToCoinNames.put(ONEINCH_LP_ETH_USDC, new Tuple2<>(WETH_NAME, USDC_NAME));
+        lpHashToCoinNames.put(ONEINCH_LP_ETH_USDT, new Tuple2<>(WETH_NAME, USDT_NAME));
+        lpHashToCoinNames.put(ONEINCH_LP_ETH_WBTC, new Tuple2<>(WETH_NAME, WBTC_NAME));
 
         lpPairsDividers.put(UNI_LP_ETH_DAI, new Tuple2<>(D18, D18));
         lpPairsDividers.put(UNI_LP_ETH_USDC, new Tuple2<>(D6, D18));
@@ -181,6 +202,10 @@ public class LpContracts {
         lpPairsDividers.put(UNI_LP_DAI_BAS, new Tuple2<>(D18, D18));
         lpPairsDividers.put(SUSHI_LP_MIC_USDT, new Tuple2<>(D18, D6));
         lpPairsDividers.put(SUSHI_LP_MIS_USDT, new Tuple2<>(D18, D6));
+        lpPairsDividers.put(ONEINCH_LP_ETH_DAI, new Tuple2<>(D18, D18));
+        lpPairsDividers.put(ONEINCH_LP_ETH_USDC, new Tuple2<>(D18, D6));
+        lpPairsDividers.put(ONEINCH_LP_ETH_USDT, new Tuple2<>(D18, D6));
+        lpPairsDividers.put(ONEINCH_LP_ETH_WBTC, new Tuple2<>(D8, D18));
 
         keyCoinForLp.put(UNI_LP_USDC_FARM, FARM_TOKEN);
         keyCoinForLp.put(UNI_LP_WETH_FARM, FARM_TOKEN);
@@ -196,6 +221,11 @@ public class LpContracts {
         parsable.add(UNI_LP_WETH_FARM);
         parsable.add(UNI_LP_WBTC_BADGER);
         parsable.add(UNI_LP_GRAIN_FARM);
+
+        oneInch.add(ONEINCH_LP_ETH_DAI);
+        oneInch.add(ONEINCH_LP_ETH_USDC);
+        oneInch.add(ONEINCH_LP_ETH_USDT);
+        oneInch.add(ONEINCH_LP_ETH_WBTC);
     }
 
     public static String findVaultHashByLpHash(String lpHash) {

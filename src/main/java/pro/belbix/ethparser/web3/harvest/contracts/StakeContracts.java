@@ -43,6 +43,11 @@ public class StakeContracts {
     public static final String ST_UNI_DAI_BAS = "0xf3B2B174E7f36e43246Ef33Fc58cE5821f21F799".toLowerCase();
     public static final String ST_SUSHI_MIC_USDT = "0x98Ba5E432933E2D536e24A2C021deBb8404588C1".toLowerCase();
     public static final String ST_SUSHI_MIS_USDT = "0xf4784d07136b5b10c6223134E8B36E1DC190725b".toLowerCase();
+    public static final String ST_CRV_OBTC = "0x91B5cD52fDE8dbAC37C95ECafEF0a70bA4c182fC".toLowerCase();
+    public static final String ST_ONEINCH_ETH_DAI = "0xda5e9706274d88bbf1bd1877a9b462fc40cdcfad".toLowerCase();
+    public static final String ST_ONEINCH_ETH_USDC = "0x9a9a6148f7b0a9767ac1fdc67343d1e3e219fddf".toLowerCase();
+    public static final String ST_ONEINCH_ETH_USDT = "0x2a80e0b572e7ef61ef81ef05ec024e1e52bd70bd".toLowerCase();
+    public static final String ST_ONEINCH_ETH_WBTC = "0x747318cf3171d4e2a1a52bbd3fcc9f9c690448b4".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> nameToHash = new LinkedHashMap<>();

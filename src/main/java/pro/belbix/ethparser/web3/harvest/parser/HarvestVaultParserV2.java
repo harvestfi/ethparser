@@ -4,6 +4,7 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
 import java.math.BigInteger;
@@ -90,7 +91,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
                 try {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
                     count++;
-                    if(count % 100 == 0) {
+                    if (count % 100 == 0) {
                         log.info(this.getClass().getSimpleName() + " handled " + count);
                     }
                     HarvestDTO dto = parseVaultLog(ethLog);
@@ -346,25 +347,43 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     public void fillUsdValuesForLP(HarvestDTO dto) {
+        long dtoBlock = dto.getBlock().longValue();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dtoBlock),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
-//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
+//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dtoBlock),
 //            vaultHash);
         double vaultUnderlyingUnit = 1.0; // currently always 1
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock().longValue()), lpHash);
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock().longValue());
+        double lpTotalSupply = parseAmount(functions.callErc20TotalSupply(lpHash, dtoBlock), lpHash);
+
+        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dtoBlock);
+        if (lpUnderlyingBalances == null) {
+            log.error("lpUnderlyingBalances is null. mb wrong lp contract for " + dto);
+            return;
+        }
+
+        double lpUnderlyingBalance1 = lpUnderlyingBalances.component1();
+        double lpUnderlyingBalance2 = lpUnderlyingBalances.component2();
 
         double vaultSharedBalance = (vaultBalance * sharedPrice);
-        double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpBalance;
+        double vaultFraction = (vaultSharedBalance / vaultUnderlyingUnit) / lpTotalSupply;
 
-        Tuple2<Double, Double> uniPrices = priceProvider
-            .getPairPriceForStrategyHash(vaultHash, dto.getBlock().longValue());
+        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dtoBlock);
 
-        double firstVault = vaultFraction * lpUnderlyingBalances.component1();
-        double secondVault = vaultFraction * lpUnderlyingBalances.component2();
+        //suppose it's ETH, but I didn't find allocation
+        // todo investigate how to calculate it (Mooniswap contract)
+        if(lpUnderlyingBalance1 == 0) {
+            double coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
+            lpUnderlyingBalance1 = (coin2Usd / uniPrices.component1());
+        } else if(lpUnderlyingBalance2 == 0) {
+            double coin1Usd = lpUnderlyingBalance1 * uniPrices.component1();
+            lpUnderlyingBalance2 = (coin1Usd / uniPrices.component2());
+        }
+
+        double firstVault = vaultFraction * lpUnderlyingBalance1;
+        double secondVault = vaultFraction * lpUnderlyingBalance2;
 
         dto.setLpStat(LpStat.createJson(lpHash, firstVault, secondVault));
 
