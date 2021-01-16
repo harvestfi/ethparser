@@ -123,6 +123,14 @@ public class Functions {
         return callStringFunction(REWARD_POOL, hash, block);
     }
 
+    public BigInteger callStrategyTimeLock(String hash, Long block) {
+        return callUint256Function(STRATEGY_TIME_LOCK, hash, block);
+    }
+
+    public String callStrategy(String hash, Long block) {
+        return callStringFunction(STRATEGY, hash, block);
+    }
+
     public BigInteger callUnderlyingBalance(String holder, String hash, Long block) {
         return callUint256Function(new Function(
             "underlyingBalanceWithInvestmentForHolder",
@@ -247,4 +255,15 @@ public class Functions {
         Collections.singletonList(new TypeReference<Address>() {
         }));
 
+    static final Function STRATEGY_TIME_LOCK = new Function(
+        "strategyTimeLock",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+
+    static final Function STRATEGY = new Function(
+        "strategy",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
 }

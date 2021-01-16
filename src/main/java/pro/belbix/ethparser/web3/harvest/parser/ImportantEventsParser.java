@@ -9,6 +9,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,7 +20,9 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsTx;
+import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
@@ -24,6 +30,7 @@ import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
+
 
 @Service
 public class ImportantEventsParser implements Web3Parser {
@@ -39,16 +46,23 @@ public class ImportantEventsParser implements Web3Parser {
     private final ImportantEventsDbService importantEventsDbService;
     private final ParserInfo parserInfo;
     private final EthBlockService ethBlockService;
+    private final Functions functions;
+
+
+
+    public static final String TOKEN_MINTED = "TokenMinted";
 
     public ImportantEventsParser(
         Web3Service web3Service,
         ImportantEventsDbService importantEventsDbService,
         ParserInfo parserInfo,
-        EthBlockService ethBlockService) {
+        EthBlockService ethBlockService,
+        Functions functions) {
         this.web3Service = web3Service;
         this.importantEventsDbService = importantEventsDbService;
         this.parserInfo = parserInfo;
         this.ethBlockService = ethBlockService;
+        this.functions = functions;
     }
 
     @Override
@@ -108,9 +122,28 @@ public class ImportantEventsParser implements Web3Parser {
         parseEvent(dto, tx.getMethodName());
         parseVault(dto, tx.getVault());
         parseMintAmount(dto, tx.getMintAmount());
+        updateInfo(dto, tx);
         log.info(dto.print());
         return dto;
     }
+
+    private void updateInfo(ImportantEventsDTO dto, ImportantEventsTx tx) {
+        ImportantEventsInfo info = new ImportantEventsInfo();
+        info.setVaultAddress(tx.getVault());
+
+        if ("StrategyAnnounced".equals(dto.getEvent())) {
+            info.setStrategyTimeLock(functions.callStrategyTimeLock(tx.getVault(), tx.getBlock()).longValue());
+            dto.setOldStrategy(functions.callStrategy(tx.getVault(), tx.getBlock()));
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            dto.setInfo(mapper.writeValueAsString(info));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    
+    }
+
 
     private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
         if (!mintAmount.equals(BigInteger.ZERO)) {
@@ -121,7 +154,7 @@ public class ImportantEventsParser implements Web3Parser {
     private void parseEvent(ImportantEventsDTO dto, String methodName) {
         // ERC20 token Mint function emits Transfer event
         if ("Transfer".equals(methodName)) {
-            dto.setEvent("TokenMinted");
+            dto.setEvent(TOKEN_MINTED);
         } else {
             dto.setEvent(methodName);
         }

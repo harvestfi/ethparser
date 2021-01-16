@@ -2,6 +2,7 @@ package pro.belbix.ethparser.dto;
 
 import java.time.Instant;
 import javax.persistence.Cacheable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
@@ -26,6 +27,8 @@ public class ImportantEventsDTO implements DtoI {
     private String newStrategy;
     private String vault;
     private Double mintAmount;
+    @Column(columnDefinition = "TEXT")
+    private String info;
 
 
     public String print() {
@@ -34,6 +37,7 @@ public class ImportantEventsDTO implements DtoI {
             + vault + " "
             + "old: " + oldStrategy + " "
             + "new: " + newStrategy + " "
-            + "minted: " + mintAmount;
+            + "minted: " + mintAmount + " "
+            + info;
     }
 }
