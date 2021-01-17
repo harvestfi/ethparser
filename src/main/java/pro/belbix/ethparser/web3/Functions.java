@@ -75,10 +75,7 @@ public class Functions {
             return null;
         }
 
-        Tuple2<Double, Double> dividers = LpContracts.lpPairsDividers.get(lpAddress);
-        if (dividers == null) {
-            throw new IllegalStateException("Not found divider for " + lpAddress);
-        }
+        Tuple2<Double, Double> dividers = LpContracts.findLpTokensDividers(lpAddress);
         double v1 = ((BigInteger) types.get(0).getValue()).doubleValue();
         double v2 = ((BigInteger) types.get(1).getValue()).doubleValue();
         return new Tuple2<>(

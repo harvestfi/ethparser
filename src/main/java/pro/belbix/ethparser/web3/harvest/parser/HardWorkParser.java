@@ -148,7 +148,7 @@ public class HardWorkParser implements Web3Parser {
     }
 
     private void fillUsdValuesForLP(HardWorkDTO dto, String vaultHash) {
-        String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
+        String lpHash = Vaults.underlyingToken.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
             vaultHash);
         double sharedPrice = dto.getShareChange();

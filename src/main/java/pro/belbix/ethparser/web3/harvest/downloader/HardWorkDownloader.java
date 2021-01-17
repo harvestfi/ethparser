@@ -67,5 +67,11 @@ public class HardWorkDownloader {
         }
     }
 
+    public void setFrom(Integer from) {
+        this.from = from;
+    }
 
+    public void setTo(Integer to) {
+        this.to = to;
+    }
 }

@@ -3,6 +3,7 @@ package pro.belbix.ethparser.dto;
 import java.math.BigInteger;
 import java.time.Instant;
 import javax.persistence.Cacheable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
@@ -36,6 +37,7 @@ public class HarvestDTO implements DtoI {
     private Integer ownerCount;
     private Double sharePrice;
     private Long usdAmount;
+    @Column(columnDefinition = "TEXT") //todo create price entity
     private String prices;
     private String lpStat;
     private Double lastAllUsdTvl;

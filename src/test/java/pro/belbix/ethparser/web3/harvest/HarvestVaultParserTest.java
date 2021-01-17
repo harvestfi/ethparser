@@ -50,6 +50,138 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultDAI_BSG2() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.DAI_BSG,
+            11668721,
+            LOG_ID,
+            "0xfab1ed72a7236a6b34f47ee7ed103d6cd448c441",
+            "Withdraw",
+            "DAI_BSG",
+            "0xf7edbf678eb039fdf8f47e6d2aed4ad98f443ce70e701ef14e405cc4ec1d1ced_155",
+            "2,82874611",
+            "",
+            "",
+            603L,
+            6248L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultDAI_BSG() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.DAI_BSG,
+            11664219,
+            LOG_ID,
+            "0xa35b52835dc644444881dd51563d13ad987c148c",
+            "Deposit",
+            "DAI_BSG",
+            "0x88999d4cbeff7d76f1a70e9cf43e174aba2c803b34a3aa69807354859cc12ad1_161",
+            "10,24413224",
+            "",
+            "",
+            2288L,
+            22244L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultDAI_BSGS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.DAI_BSGS,
+            11664918,
+            LOG_ID,
+            "0x2e3a18c95c67158342426eab5a9fd1856e869214",
+            "Deposit",
+            "DAI_BSGS",
+            "0x80164da94c69060dc7e4c2bc19efe7cf224a8d3ba0c25bfdd2af4a4af241cabd_252",
+            "57,12271524",
+            "",
+            "",
+            945L,
+            123924L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultBAC() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.BAC,
+            11664832,
+            LOG_ID,
+            "0x7cff918c6d506557d06fb307667fca863f07f262",
+            "Deposit",
+            "BAC",
+            "0x63f332bacc17ba1216ae283fb83e08b6ee6ca174a8f15d6e8eb2cc64aac695a0_95",
+            "301110,31093957",
+            "",
+            "",
+            249019L,
+            471579L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultESD() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.ESD,
+            11666935,
+            LOG_ID,
+            "0x19912c1c3d299b8385504d42132bc9e78552c99e",
+            "Deposit",
+            "ESD",
+            "0xd53954a87d5ef5d9813c826a381947928eb97fa05fb42cb6bed52d3d2e7f8d5f_320",
+            "3041863,70114524",
+            "",
+            "",
+            1720555L,
+            5746405L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultDSD() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.DSD,
+            11671555,
+            LOG_ID,
+            "0x7707c947b45cab9ce0fbf4505abf637bc4027a5b",
+            "Deposit",
+            "DSD",
+            "0x8098c9c62198557f7265c5138c730fbdc9cc1a6e554e346707b7300178a3cd4c_249",
+            "7431,58481815",
+            "",
+            "",
+            4994L,
+            18797282L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultONEINCH_ETH_DAI() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.ONEINCH_ETH_DAI,

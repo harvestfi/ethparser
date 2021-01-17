@@ -46,8 +46,8 @@ public class TransferParserTest {
             11631545 ,
             0,
             "FARM",
-            "0x0197abe48f0a9826d10f44dad7050f26586eb9ba",
-            "0x0000000000007f150bd6f54c40a34d7c3d5e9f56",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "0x56feaccb7f750b997b36a68625c7c596f0b41a58",
             "99,79670382",
             "LP_RECEIVE",
             "0x030341f1"
@@ -289,7 +289,7 @@ public class TransferParserTest {
             "0x8d98f2bcaf61811a2cc813a4db65286b5db785f6",
             "0x11111254369792b2ca5d084ab5eea397ca8fa48b",
             "1,58631881",
-            "COMMON",
+            "ONE_INCH",
             "swap"
         );
         assertNotNull(dto);

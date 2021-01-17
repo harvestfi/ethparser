@@ -349,7 +349,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     public void fillUsdValuesForLP(HarvestDTO dto) {
         long dtoBlock = dto.getBlock().longValue();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
+        String lpHash = Vaults.underlyingToken.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dtoBlock),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
@@ -372,7 +372,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dtoBlock);
 
-        //suppose it's ETH, but I didn't find allocation
+        //suppose it's ONE_INCH ETH pair
         // todo investigate how to calculate it (Mooniswap contract)
         if(lpUnderlyingBalance1 == 0) {
             double coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();

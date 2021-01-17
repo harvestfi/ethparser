@@ -3,6 +3,26 @@ package pro.belbix.ethparser.web3.harvest.contracts;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_USDC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_USDC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIC_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIS_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_WBTC_TBTC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_BAC_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BAS;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSG;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSGS;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
@@ -61,7 +81,13 @@ public class Vaults {
     public static final String ONEINCH_ETH_USDC = "0xd162395c21357b126c5afed6921bc8b13e48d690".toLowerCase();
     public static final String ONEINCH_ETH_USDT = "0x4bf633a09bd593f6fb047db3b4c25ef5b9c5b99e".toLowerCase();
     public static final String ONEINCH_ETH_WBTC = "0x859222dd0b249d0ea960f5102dab79b294d6874a".toLowerCase();
+    public static final String DAI_BSG = "0x639d4f3F41daA5f4B94d63C2A5f3e18139ba9E54".toLowerCase();
+    public static final String DAI_BSGS = "0x633C4861A4E9522353EDa0bb652878B079fb75Fd".toLowerCase();
+    public static final String BAC = "0x371E78676cd8547ef969f89D2ee8fA689C50F86B".toLowerCase();
+    public static final String ESD = "0x45a9e027DdD8486faD6fca647Bb132AD03303EC2".toLowerCase();
+    public static final String DSD = "0x8Bf3c1c7B1961764Ecb19b4FC4491150ceB1ABB1".toLowerCase();
 
+    public final static Map<String, String> underlyingToken = new LinkedHashMap<>();
     public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
     public final static Map<String, String> vaultNameToHash = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
@@ -75,6 +101,33 @@ public class Vaults {
 //            throw new RuntimeException(e);
         }
 
+        // todo add non lp
+        underlyingToken.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
+        underlyingToken.put(UNI_ETH_USDC, UNI_LP_ETH_USDC);
+        underlyingToken.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
+        underlyingToken.put(UNI_ETH_WBTC, UNI_LP_ETH_WBTC);
+        underlyingToken.put(SUSHI_WBTC_TBTC, SUSHI_LP_WBTC_TBTC);
+        underlyingToken.put(UNI_ETH_DAI_V0, UNI_LP_ETH_DAI);
+        underlyingToken.put(UNI_ETH_USDC_V0, UNI_LP_ETH_USDC);
+        underlyingToken.put(UNI_ETH_USDT_V0, UNI_LP_ETH_USDT);
+        underlyingToken.put(UNI_ETH_WBTC_V0, UNI_LP_ETH_WBTC);
+        underlyingToken.put(SUSHI_ETH_DAI, SUSHI_LP_ETH_DAI);
+        underlyingToken.put(SUSHI_ETH_USDC, SUSHI_LP_ETH_USDC);
+        underlyingToken.put(SUSHI_ETH_USDT, SUSHI_LP_ETH_USDT);
+        underlyingToken.put(SUSHI_ETH_WBTC, SUSHI_LP_ETH_WBTC);
+        underlyingToken.put(IDX_ETH_DPI, UNI_LP_ETH_DPI);
+        underlyingToken.put(UNI_BAC_DAI, UNI_LP_BAC_DAI);
+        underlyingToken.put(UNI_DAI_BAS, UNI_LP_DAI_BAS);
+        underlyingToken.put(SUSHI_MIC_USDT, SUSHI_LP_MIC_USDT);
+        underlyingToken.put(SUSHI_MIS_USDT, SUSHI_LP_MIS_USDT);
+        underlyingToken.put(ONEINCH_ETH_DAI, ONEINCH_LP_ETH_DAI);
+        underlyingToken.put(ONEINCH_ETH_USDC, ONEINCH_LP_ETH_USDC);
+        underlyingToken.put(ONEINCH_ETH_USDT, ONEINCH_LP_ETH_USDT);
+        underlyingToken.put(ONEINCH_ETH_WBTC, ONEINCH_LP_ETH_WBTC);
+        underlyingToken.put(DAI_BSG, UNI_LP_DAI_BSG);
+        underlyingToken.put(DAI_BSGS, UNI_LP_DAI_BSGS);
+
+        //todo get from underlying token
         vaultDividers.put(YCRV_V0, D18);
         vaultDividers.put(WETH_V0, D18);
         vaultDividers.put(USDC_V0, D6);
@@ -124,6 +177,11 @@ public class Vaults {
         vaultDividers.put(ONEINCH_ETH_USDC, D18);
         vaultDividers.put(ONEINCH_ETH_USDT, D18);
         vaultDividers.put(ONEINCH_ETH_WBTC, D18);
+        vaultDividers.put(DAI_BSG, D18);
+        vaultDividers.put(DAI_BSGS, D18);
+        vaultDividers.put(BAC, D18);
+        vaultDividers.put(ESD, D18);
+        vaultDividers.put(DSD, D18);
 
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");
@@ -140,8 +198,8 @@ public class Vaults {
     }
 
     public static String oldVaultToNew(String oldName) {
-        for(Entry<String, String> entry : vaultNameToOldVaultName.entrySet()) {
-            if(entry.getValue().equalsIgnoreCase(oldName)) {
+        for (Entry<String, String> entry : vaultNameToOldVaultName.entrySet()) {
+            if (entry.getValue().equalsIgnoreCase(oldName)) {
                 return entry.getKey();
             }
         }
@@ -150,10 +208,11 @@ public class Vaults {
 
     public static boolean isLp(String vaultName) {
         String vaultHash = Vaults.vaultNameToHash.get(vaultName);
-        if(vaultHash == null) {
+        if (vaultHash == null) {
             throw new IllegalStateException("Vault hash not found for " + vaultName);
         }
-       return LpContracts.harvestStrategyToLp.containsKey(vaultHash);
+        String underlying = Vaults.underlyingToken.get(vaultHash);
+        return LpContracts.lpHashToCoinNames.containsKey(underlying);
     }
 
     public static boolean isPsName(String vaultName) {

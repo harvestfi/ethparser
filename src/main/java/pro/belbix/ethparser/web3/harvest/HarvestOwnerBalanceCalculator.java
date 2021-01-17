@@ -84,7 +84,7 @@ public class HarvestOwnerBalanceCalculator {
 
         //fill USD value
         if (Vaults.isLp(dto.getVault())) {
-            String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
+            String lpHash = Vaults.underlyingToken.get(vaultHash);
             if (lpHash == null) {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
