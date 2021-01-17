@@ -234,7 +234,7 @@ public class HarvestVaultParser implements Web3Parser {
     }
 
     private void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
-        String lpHash = LpContracts.harvestStrategyToLp.get(vaultHash);
+        String lpHash = Vaults.underlyingToken.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
             vaultHash);
         double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock().longValue()),
@@ -253,8 +253,7 @@ public class HarvestVaultParser implements Web3Parser {
         double secondVault = vaultFraction * lpUnderlyingBalances.component2();
 
         try {
-            Tuple2<String, String> coinNames =
-                LpContracts.lpHashToCoinNames.get(LpContracts.harvestStrategyToLp.get(vaultHash));
+            Tuple2<String, String> coinNames = LpContracts.lpHashToCoinNames.get(lpHash);
             LpStat lpStat = new LpStat();
             lpStat.setCoin1(coinNames.component1());
             lpStat.setCoin2(coinNames.component2());

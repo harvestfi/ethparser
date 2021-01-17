@@ -30,6 +30,7 @@ public class UtilsStarter {
     private final TransferDownloader transferDownloader;
     private final TransfersRecalculate transfersRecalculate;
     private final RewardRecalculate rewardRecalculate;
+    private final NewStrategyDownloader newStrategyDownloader;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -45,7 +46,8 @@ public class UtilsStarter {
                         MigrationRecalculate migrationRecalculate,
                         TransferDownloader transferDownloader,
                         TransfersRecalculate transfersRecalculate,
-                        RewardRecalculate rewardRecalculate) {
+                        RewardRecalculate rewardRecalculate,
+                        NewStrategyDownloader newStrategyDownloader) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -62,6 +64,7 @@ public class UtilsStarter {
         this.transferDownloader = transferDownloader;
         this.transfersRecalculate = transfersRecalculate;
         this.rewardRecalculate = rewardRecalculate;
+        this.newStrategyDownloader = newStrategyDownloader;
     }
 
     public void startUtils() {
@@ -92,10 +95,12 @@ public class UtilsStarter {
             migrationRecalculate.start();
         } else if ("rewards-recalculate".equals(appProperties.getStartUtil())) {
             rewardRecalculate.start();
-        }else if ("transfer-download".equals(appProperties.getStartUtil())) {
+        } else if ("transfer-download".equals(appProperties.getStartUtil())) {
             transferDownloader.start();
         } else if ("transfer-recalculate".equals(appProperties.getStartUtil())) {
             transfersRecalculate.start();
+        } else if ("new-strategy-download".equals(appProperties.getStartUtil())) {
+            newStrategyDownloader.start();
         }
         log.info("Utils completed");
         System.exit(0);

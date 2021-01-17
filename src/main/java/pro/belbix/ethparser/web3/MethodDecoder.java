@@ -174,7 +174,7 @@ public abstract class MethodDecoder {
         }
         Map<String, Double> dividers = new HashMap<>();
         dividers.putAll(Vaults.vaultDividers);
-        dividers.putAll(LpContracts.lpHashToDividers);
+        dividers.putAll(LpContracts.getLpDividers());
         dividers.putAll(Tokens.getTokensDividers());
         Double divider = dividers.get(address);
         if (divider == null) {

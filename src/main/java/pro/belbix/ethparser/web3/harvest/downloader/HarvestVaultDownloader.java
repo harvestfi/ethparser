@@ -78,5 +78,15 @@ public class HarvestVaultDownloader {
         }
     }
 
+    public void setContractName(String contractName) {
+        this.contractName = contractName;
+    }
 
+    public void setFrom(Integer from) {
+        this.from = from;
+    }
+
+    public void setTo(Integer to) {
+        this.to = to;
+    }
 }

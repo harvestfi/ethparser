@@ -29,6 +29,10 @@ public class Tokens {
     public final static String BAS_TOKEN = "0xa7ED29B253D8B4E3109ce07c80fc570f81B63696".toLowerCase();
     public final static String MIC_TOKEN = "0x368B3a58B5f49392e5C9E4C998cb0bB966752E51".toLowerCase();
     public final static String MIS_TOKEN = "0x4b4D2e899658FB59b1D518b68fe836B100ee8958".toLowerCase();
+    public final static String BSG_TOKEN = "0xb34ab2f65c6e4f764ffe740ab83f982021faed6d".toLowerCase();
+    public final static String BSGS_TOKEN = "0xa9d232cc381715ae791417b624d7c4509d2c28db".toLowerCase();
+    public final static String ESD_TOKEN = "0x36f3fd68e7325a35eb768f1aedaae9ea0689d723".toLowerCase();
+    public final static String DSD_TOKEN = "0xbd2f0cd039e0bfcf88901c98c0bfac5ab27566e3".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -46,6 +50,10 @@ public class Tokens {
     public static final String BAS_NAME = "BAS";
     public static final String MIC_NAME = "MIC";
     public static final String MIS_NAME = "MIS";
+    public static final String BSG_NAME = "BSG";
+    public static final String BSGS_NAME = "BSGS";
+    public static final String ESD_NAME = "ESD";
+    public static final String DSD_NAME = "DSD";
 
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -84,6 +92,21 @@ public class Tokens {
         addTokenInfo(new TokenInfo(IDX_NAME, IDX_TOKEN, 0)
             .addLp("UNI_LP_IDX_ETH", 0, WETH_NAME));
 
+        addTokenInfo(new TokenInfo(BSG_NAME, BSG_TOKEN, 11644918)
+            .addLp("UNI_LP_DAI_BSG", 0, DAI_NAME));
+
+        addTokenInfo(new TokenInfo(BSGS_NAME, BSGS_TOKEN, 11647863)
+            .addLp("UNI_LP_DAI_BSGS", 0, DAI_NAME));
+
+        addTokenInfo(new TokenInfo(ESD_NAME, ESD_TOKEN, 10770511)
+            .addLp("UNI_LP_ESD_USDC", 0, USDC_NAME));
+
+        addTokenInfo(new TokenInfo(DSD_NAME, DSD_TOKEN, 11334505)
+            .addLp("UNI_LP_USDC_DSD", 0, USDC_NAME));
+
+        addTokenInfo(new TokenInfo(TBTC_NAME, TBTC_TOKEN, 0)
+            .addLp("SUSHI_LP_WBTC_TBTC", 0, WBTC_NAME));
+
         //todo stablecoins
         addTokenInfo(new TokenInfo(USDC_NAME, USDC_TOKEN, 0).setDivider(D6));
         addTokenInfo(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));
@@ -93,7 +116,8 @@ public class Tokens {
 
     private static void addTokenInfo(TokenInfo tokenInfo) {
         for (TokenInfo info : tokenInfos) {
-            if (tokenInfo.getTokenName().equalsIgnoreCase(info.getTokenName())) {
+            if (tokenInfo.getTokenName().equalsIgnoreCase(info.getTokenName())
+        || tokenInfo.getTokenAddress().equalsIgnoreCase(info.getTokenAddress())) {
                 throw new IllegalStateException("You try to add token again " + tokenInfo);
             }
         }

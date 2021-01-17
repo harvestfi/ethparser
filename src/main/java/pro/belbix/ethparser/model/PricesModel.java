@@ -12,4 +12,8 @@ public class PricesModel {
     private Double bas;
     private Double mic;
     private Double mis;
+    private Double bsg;
+    private Double bsgs;
+    private Double esd;
+    private Double dsd;
 }

@@ -4,7 +4,11 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.BAC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.BSGS_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.BSG_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.DSD_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.ESD_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_NAME;
@@ -12,18 +16,7 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
 import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIC_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIS_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_BAC_DAI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BAS;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +31,7 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.web3.erc20.TokenInfo;
 import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
@@ -70,6 +64,10 @@ public class PriceProvider {
         dto.setBas(getPriceForCoin(BAS_NAME, block));
         dto.setMic(getPriceForCoin(MIC_NAME, block));
         dto.setMis(getPriceForCoin(MIS_NAME, block));
+        dto.setBsg(getPriceForCoin(BSG_NAME, block));
+        dto.setBsgs(getPriceForCoin(BSGS_NAME, block));
+        dto.setEsd(getPriceForCoin(ESD_NAME, block));
+        dto.setDsd(getPriceForCoin(DSD_NAME, block));
         return objectMapper.writeValueAsString(dto);
     }
 
@@ -107,7 +105,7 @@ public class PriceProvider {
     }
 
     public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
-        return getPairPriceForLpHash(LpContracts.harvestStrategyToLp.get(strategyHash), block);
+        return getPairPriceForLpHash(Vaults.underlyingToken.get(strategyHash), block);
     }
 
     public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {
@@ -155,25 +153,10 @@ public class PriceProvider {
             throw new IllegalStateException("Can't reach reserves for " + tokenInfo);
         }
         double price;
-        if (
-            UNI_LP_USDC_ETH.equals(lpHash)
-                || UNI_LP_WBTC_BADGER.equals(lpHash)
-                || UNI_LP_DAI_BAS.equals(lpHash)
-        ) { //todo create method based on key token
-            price = reserves.component1() / reserves.component2();
-        } else if (UNI_LP_USDC_WBTC.equals(lpHash)
-            || UNI_LP_USDC_FARM.equals(lpHash)
-            || UNI_LP_WETH_FARM.equals(lpHash)
-            || UNI_LP_ETH_DPI.equals(lpHash)
-            || UNI_LP_GRAIN_FARM.equals(lpHash)
-            || UNI_LP_ETH_WBTC.equals(lpHash)
-            || UNI_LP_BAC_DAI.equals(lpHash)
-            || SUSHI_LP_MIC_USDT.equals(lpHash)
-            || SUSHI_LP_MIS_USDT.equals(lpHash)
-        ) {
+        if (isDivisionSequenceSecondDividesFirst(lpHash)) {
             price = reserves.component2() / reserves.component1();
         } else {
-            throw new IllegalStateException("Unknown LP " + lpHash);
+            price = reserves.component1() / reserves.component2();
         }
 
         price *= getPriceForCoin(otherTokenName, block);
@@ -185,6 +168,7 @@ public class PriceProvider {
         if (isStableCoin(coinName)) {
             return 1.0;
         }
+        //todo refactoring price model
         switch (coinName) {
             case WBTC_NAME:
                 return pricesModel.getBtc();
@@ -202,6 +186,14 @@ public class PriceProvider {
                 return pricesModel.getMic();
             case MIS_NAME:
                 return pricesModel.getMis();
+            case BSG_NAME:
+                return pricesModel.getBsg();
+            case BSGS_NAME:
+                return pricesModel.getBsgs();
+            case ESD_NAME:
+                return pricesModel.getEsd();
+            case DSD_NAME:
+                return pricesModel.getDsd();
             default:
                 log.warn("Not found price for {}", coinName);
                 return 0;
