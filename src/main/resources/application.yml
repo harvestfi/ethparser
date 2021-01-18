@@ -17,8 +17,6 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 
-local.server.port: 8080
-
 server:
   port: 8080
   ssl:
