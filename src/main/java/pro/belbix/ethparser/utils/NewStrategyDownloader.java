@@ -48,7 +48,8 @@ public class NewStrategyDownloader {
             if (harvest.getBlock().intValue() < minBlock) {
                 minBlock = harvest.getBlock().intValue();
             }
-            String stContract = StakeContracts.vaultHashToStakeHash.get(Vaults.vaultNameToHash.get(poolName));
+            String stContract = StakeContracts.hashToName.get(
+                StakeContracts.vaultHashToStakeHash.get(Vaults.vaultNameToHash.get(poolName)));
             rewardDownloader.setContractName(stContract);
             rewardDownloader.start();
         }

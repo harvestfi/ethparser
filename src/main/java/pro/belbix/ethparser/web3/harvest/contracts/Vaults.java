@@ -219,6 +219,13 @@ public class Vaults {
         return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);
     }
 
+    public static boolean isAutoStake(String vaultName) {
+        return isPsName(vaultName)
+            || DAI_BSG.equals(vaultName)
+            || DAI_BSGS.equals(vaultName)
+            ;
+    }
+
     public static boolean isPsHash(String hash) {
         return isPsName(Vaults.vaultHashToName.get(hash));
     }

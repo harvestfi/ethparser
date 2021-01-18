@@ -94,6 +94,28 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultDAI_BSG3() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.DAI_BSG,
+            11679676,
+            LOG_ID,
+            "0xf2ff7c888cd0f1a38d06f89658aeb36cf6951841",
+            "Deposit",
+            "DAI_BSG",
+            "0x0b2ddc041e983cea36954a3592c8ba208ea7b2cfdd212deb9a9b97d8b20dad42_159",
+            "7,49854995",
+            "",
+            "",
+            1090L,
+            6746L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultDAI_BSGS() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.DAI_BSGS,

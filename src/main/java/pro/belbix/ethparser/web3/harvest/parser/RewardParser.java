@@ -92,21 +92,18 @@ public class RewardParser implements Web3Parser {
             log.error("Error decode " + ethLog, e);
             return null;
         }
-        if (tx == null
-            || !"RewardAdded".equals(tx.getMethodName())) {
+        if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
         if (!"reward-download".equalsIgnoreCase(appProperties.getStartUtil()) && waitNewBlock) {
             log.info("Wait new block for correct parsing rewards");
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
-        long nextBlock =
-            tx.getBlock().longValue() + 1; //todo if it is last block it will be not safe, create another mechanism
+        //todo if it is last block it will be not safe, create another mechanism
+        long nextBlock = tx.getBlock().longValue() + 1;
         String vault = tx.getVault().getValue();
-        long periodFinish = functions.callPeriodFinish(vault, nextBlock)
-            .longValue();
-        double rewardRate = functions.callRewardRate(vault, nextBlock)
-            .doubleValue();
+        long periodFinish = functions.callPeriodFinish(vault, nextBlock).longValue();
+        double rewardRate = functions.callRewardRate(vault, nextBlock).doubleValue();
         if (periodFinish == 0 || rewardRate == 0) {
             log.error("Wrong values for " + ethLog);
             return null;
