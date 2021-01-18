@@ -139,11 +139,10 @@ public class ImportantEventsParser implements Web3Parser {
         try {
             dto.setInfo(mapper.writeValueAsString(info));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Error converting to json " + info, e);
         }
     
     }
-
 
     private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
         if (!mintAmount.equals(BigInteger.ZERO)) {
