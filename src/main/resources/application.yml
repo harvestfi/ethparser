@@ -17,10 +17,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 
-local.server.port: 4140
+local.server.port: 8080
 
 server:
-  port: 4140
+  port: 8080
   ssl:
     enabled: false
     key-store-type: PKCS12
