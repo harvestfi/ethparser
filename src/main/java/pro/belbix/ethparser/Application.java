@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
+import static pro.belbix.ethparser.utils.MockUtils.createImportantEventsDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
@@ -153,6 +154,7 @@ public class Application {
             ws.send(UNI_TRANSACTIONS_TOPIC_NAME, createUniswapDTO(count));
             ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, createHarvestDTO(count));
             ws.send(HARDWORK_TOPIC_NAME, createHardWorkDTO(count));
+            ws.send(IMPORTANT_EVENTS_TOPIC_NAME, createImportantEventsDTO(count));
             log.info("Msg sent " + currentCount);
             count++;
             try {

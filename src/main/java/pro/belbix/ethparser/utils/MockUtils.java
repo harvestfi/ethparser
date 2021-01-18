@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
@@ -67,6 +68,21 @@ public class MockUtils {
         hardWorkDTO.setPerc((double) seed / 633.0);
         hardWorkDTO.setPsApr((double) seed / 63.0);
         return hardWorkDTO;
+    }
+
+    public static ImportantEventsDTO createImportantEventsDTO(long seed) {
+        ImportantEventsDTO dto = new ImportantEventsDTO();
+        dto.setId(seed+"id");
+        dto.setHash(seed+"hash");
+        dto.setBlock(seed);
+        dto.setBlockDate(Instant.now().getEpochSecond());
+        dto.setEvent("StrategyChanged");
+        dto.setOldStrategy("oldsStr");
+        dto.setNewStrategy("newStr");
+        dto.setVault("vault");
+        dto.setMintAmount(seed * 0.3);
+        dto.setInfo("{}");
+        return dto;
     }
 
 }
