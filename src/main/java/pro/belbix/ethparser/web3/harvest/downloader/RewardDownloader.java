@@ -51,6 +51,7 @@ public class RewardDownloader {
             if (contractName != null && !contractName.equals(entry.getValue())) {
                 continue;
             }
+            logger.info("Start parse rewards for " + entry.getValue());
             handleLoop(from, to, (from, end) -> parse(from, end, entry.getKey()));
         }
     }

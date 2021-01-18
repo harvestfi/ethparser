@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
@@ -46,11 +48,9 @@ public class NewStrategyDownloader {
             if (harvest.getBlock().intValue() < minBlock) {
                 minBlock = harvest.getBlock().intValue();
             }
-
-            rewardDownloader.setContractName(poolName);
+            String stContract = StakeContracts.vaultHashToStakeHash.get(Vaults.vaultNameToHash.get(poolName));
+            rewardDownloader.setContractName(stContract);
             rewardDownloader.start();
-
-
         }
 
         hardWorkDownloader.setFrom(minBlock);
