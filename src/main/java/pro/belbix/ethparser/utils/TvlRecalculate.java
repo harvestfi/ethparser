@@ -63,7 +63,7 @@ public class TvlRecalculate {
             count++;
             if (harvestDTO.getPrices() == null || harvestDTO.getPrices().contains("NaN")) {
                 try {
-                    harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock().longValue()));
+                    harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock()));
                 } catch (JsonProcessingException e) {
                     log.error("Error parse prices", e);
                 }

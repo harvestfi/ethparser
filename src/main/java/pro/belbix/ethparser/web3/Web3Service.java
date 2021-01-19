@@ -167,7 +167,7 @@ public class Web3Service {
 //                e -> log.error("Log flowable error", e));
 //        subscriptions.add(subscription);
         initChecker();
-        log.info("Subscribe to Log Flowable from {}", from.getValue());
+        log.info("Subscribe to Log Flowable from {}", from);
     }
 
     private BigInteger findEarliestLastBlock() {

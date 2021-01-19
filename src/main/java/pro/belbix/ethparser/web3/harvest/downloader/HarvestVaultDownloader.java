@@ -69,7 +69,7 @@ public class HarvestVaultDownloader {
                 HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResult.get());
                 if (dto != null) {
                     harvestOwnerBalanceCalculator.fillBalance(dto);
-                    dto.setPrices(priceProvider.getAllPrices(dto.getBlock().longValue()));
+                    dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
                     harvestDBService.saveHarvestDTO(dto);
                 }
             } catch (Exception e) {
