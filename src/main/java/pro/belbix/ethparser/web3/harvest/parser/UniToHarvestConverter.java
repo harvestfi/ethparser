@@ -100,7 +100,7 @@ public class UniToHarvestConverter implements Web3Parser {
         fillUsdValuesForLP(uniswapDTO, harvestDTO, lpHash);
 
         try {
-            harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock().longValue()));
+            harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock()));
         } catch (JsonProcessingException e) {
             log.info("Error parse prices");
         }
@@ -109,7 +109,7 @@ public class UniToHarvestConverter implements Web3Parser {
     }
 
     public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
-        long block = harvestDTO.getBlock().longValue();
+        long block = harvestDTO.getBlock();
         String stakeHash = vaultHashToStakeHash.get(lpHash);
 
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, block), lpHash);
@@ -145,7 +145,7 @@ public class UniToHarvestConverter implements Web3Parser {
     private void fillCommonFields(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
         harvestDTO.setId(uniswapDTO.getId());
         harvestDTO.setHash(uniswapDTO.getHash());
-        harvestDTO.setBlock(uniswapDTO.getBlock());
+        harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
         harvestDTO.setConfirmed(true);
         harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
         harvestDTO.setOwner(uniswapDTO.getOwner());

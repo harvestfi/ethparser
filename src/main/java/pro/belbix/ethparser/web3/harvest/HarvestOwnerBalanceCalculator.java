@@ -42,7 +42,7 @@ public class HarvestOwnerBalanceCalculator {
 
     private boolean balanceForPs(HarvestDTO dto) {
         String psHash = Vaults.vaultNameToHash.get(dto.getVault());
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), psHash, dto.getBlock().longValue());
+        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), psHash, dto.getBlock());
         if (balanceI == null) {
             log.warn("Can reach ps balance for " + dto.print());
             return false;
@@ -50,13 +50,13 @@ public class HarvestOwnerBalanceCalculator {
         double balance = parseAmount(balanceI, psHash);
         dto.setOwnerBalance(balance);
 
-        double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         dto.setOwnerBalanceUsd(balance * price);
         return true;
     }
 
     private boolean balanceForVault(HarvestDTO dto) {
-        long block = dto.getBlock().longValue();
+        long block = dto.getBlock();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         BigInteger balanceI;
         if (dto.isMigrated()) {
@@ -104,7 +104,7 @@ public class HarvestOwnerBalanceCalculator {
             log.error("Not found vault/lp hash for " + dto.getVault());
             return false;
         }
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock().longValue());
+        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock());
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
             return false;
@@ -113,7 +113,7 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock());
         dto.setOwnerBalanceUsd(amountUsd);
         return true;
     }
