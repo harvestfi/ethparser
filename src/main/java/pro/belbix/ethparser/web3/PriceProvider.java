@@ -9,9 +9,14 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.BSG_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.DSD_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.ESD_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.EURS_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAAPL_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAMZN_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MGOOGL_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MTSLA_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
@@ -68,6 +73,11 @@ public class PriceProvider {
         dto.setBsgs(getPriceForCoin(BSGS_NAME, block));
         dto.setEsd(getPriceForCoin(ESD_NAME, block));
         dto.setDsd(getPriceForCoin(DSD_NAME, block));
+        dto.setMaapl(getPriceForCoin(MAAPL_NAME, block));
+        dto.setMamzn(getPriceForCoin(MAMZN_NAME, block));
+        dto.setMgoogl(getPriceForCoin(MGOOGL_NAME, block));
+        dto.setMtsla(getPriceForCoin(MTSLA_NAME, block));
+        dto.setEurs(getPriceForCoin(EURS_NAME, block));
         return objectMapper.writeValueAsString(dto);
     }
 
@@ -194,6 +204,16 @@ public class PriceProvider {
                 return pricesModel.getEsd();
             case DSD_NAME:
                 return pricesModel.getDsd();
+            case MAAPL_NAME:
+                return pricesModel.getMaapl();
+            case MAMZN_NAME:
+                return pricesModel.getMamzn();
+            case MGOOGL_NAME:
+                return pricesModel.getMgoogl();
+            case MTSLA_NAME:
+                return pricesModel.getMtsla();
+            case EURS_NAME:
+                return pricesModel.getEurs();
             default:
                 log.warn("Not found price for {}", coinName);
                 return 0;

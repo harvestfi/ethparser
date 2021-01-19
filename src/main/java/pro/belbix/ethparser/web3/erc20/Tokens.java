@@ -33,6 +33,12 @@ public class Tokens {
     public final static String BSGS_TOKEN = "0xa9d232cc381715ae791417b624d7c4509d2c28db".toLowerCase();
     public final static String ESD_TOKEN = "0x36f3fd68e7325a35eb768f1aedaae9ea0689d723".toLowerCase();
     public final static String DSD_TOKEN = "0xbd2f0cd039e0bfcf88901c98c0bfac5ab27566e3".toLowerCase();
+    public final static String EURS_TOKEN = "0xdb25f211ab05b1c97d595516f45794528a807ad8".toLowerCase();
+    public final static String UST_TOKEN = "0xa47c8bf37f92abed4a126bda807a7b7498661acd".toLowerCase();
+    public final static String MAAPL_TOKEN = "0xd36932143f6ebdedd872d5fb0651f4b72fd15a84".toLowerCase();
+    public final static String MAMZN_TOKEN = "0x0cae9e4d663793c2a2a0b211c1cf4bbca2b9caa7".toLowerCase();
+    public final static String MGOOGL_TOKEN = "0x59A921Db27Dd6d4d974745B7FfC5c33932653442".toLowerCase();
+    public final static String MTSLA_TOKEN = "0x21ca39943e91d704678f5d00b6616650f066fd63".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -54,6 +60,12 @@ public class Tokens {
     public static final String BSGS_NAME = "BSGS";
     public static final String ESD_NAME = "ESD";
     public static final String DSD_NAME = "DSD";
+    public static final String EURS_NAME = "EURS";
+    public static final String UST_NAME = "UST";
+    public static final String MAAPL_NAME = "MAAPL";
+    public static final String MAMZN_NAME = "MAMZN";
+    public static final String MGOOGL_NAME = "MGOOGL";
+    public static final String MTSLA_NAME = "MTSLA";
 
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -107,11 +119,27 @@ public class Tokens {
         addTokenInfo(new TokenInfo(TBTC_NAME, TBTC_TOKEN, 0)
             .addLp("SUSHI_LP_WBTC_TBTC", 0, WBTC_NAME));
 
+        addTokenInfo(new TokenInfo(EURS_NAME, EURS_TOKEN, 0).setDivider(100)
+            .addLp("UNI_LP_USDC_EURS", 0, USDC_NAME));
+
+        addTokenInfo(new TokenInfo(MAAPL_NAME, MAAPL_TOKEN, 0)
+            .addLp("UNI_LP_MAAPL_UST", 0, UST_NAME));
+
+        addTokenInfo(new TokenInfo(MAMZN_NAME, MAMZN_TOKEN, 0)
+            .addLp("UNI_LP_MAMZN_UST", 0, UST_NAME));
+
+        addTokenInfo(new TokenInfo(MGOOGL_NAME, MGOOGL_TOKEN, 0)
+            .addLp("UNI_LP_MGOOGL_UST", 0, UST_NAME));
+
+        addTokenInfo(new TokenInfo(MTSLA_NAME, MTSLA_TOKEN, 0)
+            .addLp("UNI_LP_MTSLA_UST", 0, UST_NAME));
+
         //todo stablecoins
         addTokenInfo(new TokenInfo(USDC_NAME, USDC_TOKEN, 0).setDivider(D6));
         addTokenInfo(new TokenInfo(DAI_NAME, DAI_TOKEN, 0));
         addTokenInfo(new TokenInfo(USDT_NAME, USDT_TOKEN, 0).setDivider(D6));
         addTokenInfo(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
+        addTokenInfo(new TokenInfo(UST_NAME, UST_TOKEN, 0));
     }
 
     private static void addTokenInfo(TokenInfo tokenInfo) {
@@ -257,12 +285,15 @@ public class Tokens {
             || "CRV_USDN".equals(name)
             || "HUSD".equals(name)
             || "CRV_HUSD".equals(name)
+            || UST_NAME.equals(name)
+            || "CRV_UST".equals(name)
             ;
     }
 
     public static String simplifyName(String name) {
         name = name.replaceFirst("_V0", "");
         switch (name) {
+            case "CRV_STETH":
             case "WETH":
                 return "ETH";
             case "PS":
@@ -276,6 +307,8 @@ public class Tokens {
             case "HBTC":
             case "CRV_HBTC":
                 return "WBTC";
+            case "CRV_EURS":
+                return "EURS";
         }
         return name;
     }

@@ -23,6 +23,10 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDT;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAAPL_UST;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAMZN_UST;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MGOOGL_UST;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MTSLA_UST;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
@@ -86,6 +90,13 @@ public class Vaults {
     public static final String BAC = "0x371E78676cd8547ef969f89D2ee8fA689C50F86B".toLowerCase();
     public static final String ESD = "0x45a9e027DdD8486faD6fca647Bb132AD03303EC2".toLowerCase();
     public static final String DSD = "0x8Bf3c1c7B1961764Ecb19b4FC4491150ceB1ABB1".toLowerCase();
+    public static final String CRV_EURS = "0x6eb941BD065b8a5bd699C5405A928c1f561e2e5a".toLowerCase();
+    public static final String CRV_UST = "0x84A1DfAdd698886A614fD70407936816183C0A02".toLowerCase();
+    public static final String MAAPL_UST = "0x11804D69AcaC6Ae9466798325fA7DE023f63Ab53".toLowerCase();
+    public static final String MAMZN_UST = "0x8334A61012A779169725FcC43ADcff1F581350B7".toLowerCase();
+    public static final String MGOOGL_UST = "0x07DBe6aA35EF70DaD124f4e2b748fFA6C9E1963a".toLowerCase();
+    public static final String MTSLA_UST = "0xC800982d906671637E23E031e907d2e3487291Bc".toLowerCase();
+    public static final String CRV_STETH = "0xc27bfE32E0a934a12681C1b35acf0DBA0e7460Ba".toLowerCase();
 
     public final static Map<String, String> underlyingToken = new LinkedHashMap<>();
     public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
@@ -126,6 +137,10 @@ public class Vaults {
         underlyingToken.put(ONEINCH_ETH_WBTC, ONEINCH_LP_ETH_WBTC);
         underlyingToken.put(DAI_BSG, UNI_LP_DAI_BSG);
         underlyingToken.put(DAI_BSGS, UNI_LP_DAI_BSGS);
+        underlyingToken.put(MAAPL_UST, UNI_LP_MAAPL_UST);
+        underlyingToken.put(MAMZN_UST, UNI_LP_MAMZN_UST);
+        underlyingToken.put(MGOOGL_UST, UNI_LP_MGOOGL_UST);
+        underlyingToken.put(MTSLA_UST, UNI_LP_MTSLA_UST);
 
         //todo get from underlying token
         vaultDividers.put(YCRV_V0, D18);
@@ -182,6 +197,13 @@ public class Vaults {
         vaultDividers.put(BAC, D18);
         vaultDividers.put(ESD, D18);
         vaultDividers.put(DSD, D18);
+        vaultDividers.put(CRV_EURS, D18);
+        vaultDividers.put(CRV_UST, D18);
+        vaultDividers.put(MAAPL_UST, D18);
+        vaultDividers.put(MAMZN_UST, D18);
+        vaultDividers.put(MGOOGL_UST, D18);
+        vaultDividers.put(MTSLA_UST, D18);
+        vaultDividers.put(CRV_STETH, D18);
 
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");

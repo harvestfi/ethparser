@@ -50,6 +50,160 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultCRV_EURS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.CRV_EURS,
+            11686425,
+            LOG_ID,
+            "0x5ae053134b7866f329f1a0a474936d3d5b9d23cc",
+            "Deposit",
+            "CRV_EURS",
+            "0x73f1a5811f1dd64d224eabf20f011c8f75d9236cf55c5a1519c5fa289920162e_175",
+            "19201,10182170",
+            "",
+            "",
+            23709L,
+            188026L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultCRV_UST() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.CRV_UST,
+            11688348,
+            LOG_ID,
+            "0xe5350e927b904fdb4d2af55c566e269bb3df1941",
+            "Deposit",
+            "CRV_UST",
+            "0x7d9467776c17178f7173c88cc98764e22248fb02e678099570083f1983f46ef8_247",
+            "18805,20616001",
+            "",
+            "",
+            18805L,
+            44777L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultMAAPL_UST() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.MAAPL_UST,
+            11688495,
+            LOG_ID,
+            "0x6aaaf98e8522491bc1006cd8cf95515220144dd3",
+            "Deposit",
+            "MAAPL_UST",
+            "0xdc55d934106a85dfd101cb04d80757baffad3e735fbc940a57e9f92d8383557f_55",
+            "87,57535992",
+            "",
+            "",
+            1998L,
+            1998L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultMAMZN_UST() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.MAMZN_UST,
+            11688255,
+            LOG_ID,
+            "0x123967b5e51eef1bea412394c51aa6702eddb675",
+            "Deposit",
+            "MAMZN_UST",
+            "0xefaa1f00c817310d6ffea5f22aefe72f084178952940d0bb20de7b9a4d460e39_260",
+            "0,53110351",
+            "",
+            "",
+            60L,
+            60L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultMGOOGL_UST() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.MGOOGL_UST,
+            11688264,
+            LOG_ID,
+            "0x252e7e8b9863f81798b1fef8cfd9741a46de653c",
+            "Deposit",
+            "MGOOGL_UST",
+            "0x2ed703289ac97ccc3639021b1900af3eb18bc8c240cf9cd660357c489ca4000b_13",
+            "1,16986789",
+            "",
+            "",
+            100L,
+            100L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultMTSLA_UST() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.MTSLA_UST,
+            11688649,
+            LOG_ID,
+            "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
+            "Deposit",
+            "MTSLA_UST",
+            "0xf8c923e71034431f965212f6d3096d076b87c616306f42dc90971a975c4b85a6_22",
+            "0,01000000",
+            "",
+            "",
+            1L,
+            5170L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void parseVaultCRV_STETH() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.CRV_STETH,
+            11688707,
+            LOG_ID,
+            "0xfbfd491bc1e89782fb01219c5fd8462c039d0d7e",
+            "Deposit",
+            "CRV_STETH",
+            "0x9b0ee4bf4057e601b9d18f53c5cfe7e633abe1fa3fb0cf5d90161c7a2d53da32_241",
+            "9,99521148",
+            "",
+            "",
+            13994L,
+            609189L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultDAI_BSG2() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.DAI_BSG,

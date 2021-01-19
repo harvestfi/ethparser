@@ -16,4 +16,9 @@ public class PricesModel {
     private Double bsgs;
     private Double esd;
     private Double dsd;
+    private Double maapl;
+    private Double mamzn;
+    private Double mgoogl;
+    private Double mtsla;
+    private Double eurs;
 }

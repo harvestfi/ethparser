@@ -53,6 +53,13 @@ public class StakeContracts {
     public static final String ST_BAC = "0x3cddE34C96eCB95A1232c9673e23f2dB5fA72280".toLowerCase();
     public static final String ST_ESD = "0xDB9C2EbA87301e6951d6FBE7a458832eaab2137E".toLowerCase();
     public static final String ST_DSD = "0x7c497298d9576499e17F9564CE4E13faa87A9b33".toLowerCase();
+    public static final String ST_CRV_EURS = "0xf4d50f60D53a230abc8268c6697972CB255Cd940".toLowerCase();
+    public static final String ST_CRV_UST = "0xDdb5D3CCd968Df64Ce48b577776BdC29ebD3120e".toLowerCase();
+    public static final String ST_MAAPL_UST = "0xc02d1Da469d68Adc651Dd135d1A7f6b42F4d1A57".toLowerCase();
+    public static final String ST_MAMZN_UST = "0x8Dc427Cbcc75cAe58dD4f386979Eba6662f5C158".toLowerCase();
+    public static final String ST_MGOOGL_UST = "0xfE83a00DF3A98dE218c08719FAF7e3741b220D0D".toLowerCase();
+    public static final String ST_MTSLA_UST = "0x40C34B0E1bb6984810E17474c6B0Bcc6A6B46614".toLowerCase();
+    public static final String ST_CRV_STETH = "0x2E25800957742C52b4d69b65F9C67aBc5ccbffe6".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> nameToHash = new LinkedHashMap<>();

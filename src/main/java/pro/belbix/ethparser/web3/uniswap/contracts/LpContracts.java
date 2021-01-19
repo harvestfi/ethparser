@@ -18,18 +18,29 @@ import static pro.belbix.ethparser.web3.erc20.Tokens.DSD_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.DSD_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.ESD_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.ESD_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.EURS_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.EURS_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.IDX_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAAPL_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAAPL_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAMZN_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MAMZN_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MGOOGL_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MGOOGL_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_TOKEN;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MTSLA_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.MTSLA_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.TBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.USDC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.USDT_NAME;
+import static pro.belbix.ethparser.web3.erc20.Tokens.UST_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_TOKEN;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
@@ -80,6 +91,11 @@ public class LpContracts {
     public static final String UNI_LP_DAI_BSGS = "0x980a07e4f64d21a0cb2ef8d4af362a79b9f5c0da".toLowerCase();
     public static final String UNI_LP_ESD_USDC = "0x88ff79eb2bc5850f27315415da8685282c7610f9".toLowerCase();
     public static final String UNI_LP_USDC_DSD = "0x66e33d2605c5fb25ebb7cd7528e7997b0afa55e8".toLowerCase();
+    public static final String UNI_LP_MAAPL_UST = "0xb022e08adc8ba2de6ba4fecb59c6d502f66e953b".toLowerCase();
+    public static final String UNI_LP_MAMZN_UST = "0x0Ae8cB1f57e3b1b7f4f5048743710084AA69E796".toLowerCase();
+    public static final String UNI_LP_MGOOGL_UST = "0x4b70ccD1Cf9905BE1FaEd025EADbD3Ab124efe9a".toLowerCase();
+    public static final String UNI_LP_MTSLA_UST = "0x5233349957586A8207c52693A959483F9aeAA50C".toLowerCase();
+    public static final String UNI_LP_USDC_EURS = "0x767055e2a9f15783b1ec5ef134a89acf3165332f".toLowerCase();
 
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
     public static final Map<String, Double> lpHashToDividers = new LinkedHashMap<>();
@@ -126,6 +142,11 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_DAI_BSGS, new Tuple2<>(DAI_NAME, BSGS_NAME));
         lpHashToCoinNames.put(UNI_LP_ESD_USDC, new Tuple2<>(ESD_NAME, USDC_NAME));
         lpHashToCoinNames.put(UNI_LP_USDC_DSD, new Tuple2<>(USDC_NAME, DSD_NAME));
+        lpHashToCoinNames.put(UNI_LP_USDC_EURS, new Tuple2<>(USDC_NAME, EURS_NAME));
+        lpHashToCoinNames.put(UNI_LP_MAAPL_UST, new Tuple2<>(UST_NAME, MAAPL_NAME));
+        lpHashToCoinNames.put(UNI_LP_MAMZN_UST, new Tuple2<>(MAMZN_NAME, UST_NAME));
+        lpHashToCoinNames.put(UNI_LP_MGOOGL_UST, new Tuple2<>(MGOOGL_NAME, UST_NAME));
+        lpHashToCoinNames.put(UNI_LP_MTSLA_UST, new Tuple2<>(MTSLA_NAME, UST_NAME));
 
         // this LPs use for get price for the key token
         keyCoinForLp.put(UNI_LP_USDC_FARM, FARM_TOKEN);
@@ -144,6 +165,11 @@ public class LpContracts {
         keyCoinForLp.put(UNI_LP_ETH_DPI, DPI_TOKEN);
         keyCoinForLp.put(UNI_LP_ETH_WBTC, WBTC_TOKEN);
         keyCoinForLp.put(UNI_LP_USDC_DSD, DSD_TOKEN);
+        keyCoinForLp.put(UNI_LP_USDC_EURS, EURS_TOKEN);
+        keyCoinForLp.put(UNI_LP_MAAPL_UST, MAAPL_TOKEN);
+        keyCoinForLp.put(UNI_LP_MAMZN_UST, MAMZN_TOKEN);
+        keyCoinForLp.put(UNI_LP_MGOOGL_UST, MGOOGL_TOKEN);
+        keyCoinForLp.put(UNI_LP_MTSLA_UST, MTSLA_TOKEN);
 
         parsable.add(UNI_LP_USDC_FARM);
         parsable.add(UNI_LP_WETH_FARM);
