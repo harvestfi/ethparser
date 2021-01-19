@@ -179,11 +179,11 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
         String st = StakeContracts.vaultHashToStakeHash.get(vaultHash);
-        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         double vaultBalance = parseAmount(
-            functions.callErc20TotalSupply(st, dto.getBlock().longValue()), vaultHash);
+            functions.callErc20TotalSupply(st, dto.getBlock()), vaultHash);
         double allFarm = parseAmount(
-            functions.callErc20TotalSupply(FARM_TOKEN, dto.getBlock().longValue()), vaultHash)
+            functions.callErc20TotalSupply(FARM_TOKEN, dto.getBlock()), vaultHash)
             - BURNED_FARM;
         dto.setLastUsdTvl(price * vaultBalance);
         dto.setLastTvl(vaultBalance);
@@ -285,7 +285,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private void fillSharedPrice(HarvestDTO dto) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         BigInteger sharedPriceInt = functions
-            .callPricePerFullShare(vaultHash, dto.getBlock().longValue());
+            .callPricePerFullShare(vaultHash, dto.getBlock());
         double sharedPrice;
         if (BigInteger.ONE.equals(sharedPriceInt)) {
             sharedPrice = 0.0;
@@ -298,7 +298,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private HarvestDTO createStubPriceDto() {
         HarvestDTO dto = new HarvestDTO();
         dto.setBlockDate(Instant.now().getEpochSecond());
-        dto.setBlock(web3Service.fetchCurrentBlock());
+        dto.setBlock(web3Service.fetchCurrentBlock().longValue());
         dto.setMethodName(PRICE_STUB_TYPE);
         return dto;
     }
@@ -312,7 +312,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         //write all prices
         try {
-            dto.setPrices(priceProvider.getAllPrices(dto.getBlock().longValue()));
+            dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
         } catch (Exception e) {
             log.error("Error get prices", e);
         }
@@ -328,12 +328,12 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private void fillUsdValues(HarvestDTO dto) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock().longValue());
+        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + dto.getVault());
         }
 
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock().longValue()),
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
 //        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
@@ -347,7 +347,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     public void fillUsdValuesForLP(HarvestDTO dto) {
-        long dtoBlock = dto.getBlock().longValue();
+        long dtoBlock = dto.getBlock();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         String lpHash = Vaults.underlyingToken.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dtoBlock),

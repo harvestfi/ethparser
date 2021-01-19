@@ -147,7 +147,7 @@ public class HarvestDBService {
         if (dto == null) {
             return new BigInteger("0");
         }
-        return dto.getBlock();
+        return BigInteger.valueOf(dto.getBlock());
     }
 
     private double calculateActualTvl(HarvestDTO dto, String currentPrices, Double farmPrice) {
