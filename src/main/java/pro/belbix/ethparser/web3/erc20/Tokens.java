@@ -119,19 +119,19 @@ public class Tokens {
         addTokenInfo(new TokenInfo(TBTC_NAME, TBTC_TOKEN, 0)
             .addLp("SUSHI_LP_WBTC_TBTC", 0, WBTC_NAME));
 
-        addTokenInfo(new TokenInfo(EURS_NAME, EURS_TOKEN, 0).setDivider(100)
+        addTokenInfo(new TokenInfo(EURS_NAME, EURS_TOKEN, 11386529).setDivider(100)
             .addLp("UNI_LP_USDC_EURS", 0, USDC_NAME));
 
-        addTokenInfo(new TokenInfo(MAAPL_NAME, MAAPL_TOKEN, 0)
+        addTokenInfo(new TokenInfo(MAAPL_NAME, MAAPL_TOKEN, 11383561)
             .addLp("UNI_LP_MAAPL_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MAMZN_NAME, MAMZN_TOKEN, 0)
+        addTokenInfo(new TokenInfo(MAMZN_NAME, MAMZN_TOKEN, 11383561)
             .addLp("UNI_LP_MAMZN_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MGOOGL_NAME, MGOOGL_TOKEN, 0)
+        addTokenInfo(new TokenInfo(MGOOGL_NAME, MGOOGL_TOKEN, 11383561)
             .addLp("UNI_LP_MGOOGL_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MTSLA_NAME, MTSLA_TOKEN, 0)
+        addTokenInfo(new TokenInfo(MTSLA_NAME, MTSLA_TOKEN, 11383561)
             .addLp("UNI_LP_MTSLA_UST", 0, UST_NAME));
 
         //todo stablecoins
@@ -145,7 +145,7 @@ public class Tokens {
     private static void addTokenInfo(TokenInfo tokenInfo) {
         for (TokenInfo info : tokenInfos) {
             if (tokenInfo.getTokenName().equalsIgnoreCase(info.getTokenName())
-        || tokenInfo.getTokenAddress().equalsIgnoreCase(info.getTokenAddress())) {
+                || tokenInfo.getTokenAddress().equalsIgnoreCase(info.getTokenAddress())) {
                 throw new IllegalStateException("You try to add token again " + tokenInfo);
             }
         }
