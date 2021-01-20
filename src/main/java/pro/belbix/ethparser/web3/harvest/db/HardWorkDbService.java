@@ -18,6 +18,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
@@ -105,7 +106,7 @@ public class HardWorkDbService {
 
                 silentCall(() -> hardWorkRepository
                     .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate(), limitOne))
-                    .filter(sumOfPercL -> !sumOfPercL.isEmpty() && sumOfPercL.get(0) != null)
+                    .filter(Caller::isFilledList)
                     .ifPresentOrElse(sumOfPercL -> {
                         final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
 
@@ -128,13 +129,23 @@ public class HardWorkDbService {
                         dto.getBlockDate() - (long) SECONDS_IN_WEEK,
                         dto.getBlockDate(),
                         limitOne))
-                    .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
+                    .filter(Caller::isFilledList)
                     .ifPresentOrElse(sumOfProfitL -> {
                         double sumOfProfit = sumOfProfitL.get(0) + dto.getShareChangeUsd();
-
-//                        double weekApr = (SECONDS_OF_YEAR / SECONDS_IN_WEEK) * ((sumOfProfit / dto.getTvl()) * 100.0);
                         dto.setWeeklyProfit(sumOfProfit);
                     }, () -> log.warn("Not found profit for period for " + dto.print()));
+
+                silentCall(() -> harvestRepository
+                    .fetchAverageTvl(
+                        dto.getVault(),
+                        dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+                        dto.getBlockDate(),
+                        limitOne))
+                    .filter(Caller::isFilledList)
+                    .ifPresentOrElse(avgTvlD -> {
+                       dto.setWeeklyAverageTvl(avgTvlD.get(0));
+                    }, () -> log.warn("Not found average tvl for period for " + dto.print()));
+
             }, () -> log.warn("Not found harvest for " + dto.print()));
 
         silentCall(() -> hardWorkRepository

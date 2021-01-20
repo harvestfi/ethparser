@@ -99,6 +99,13 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
                                  @Param("to") long to,
                                  Pageable pageable);
 
+    @Query("select avg(t.lastUsdTvl) as period from HarvestDTO t where "
+        + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
+    List<Double> fetchAverageTvl(@Param("vault") String vault,
+                                   @Param("from") long from,
+                                 @Param("to") long to,
+                                 Pageable pageable);
+
     @Query("select t from HarvestDTO t where "
         + "t.owner = :owner and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
     List<HarvestDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);

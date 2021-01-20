@@ -39,6 +39,7 @@ public class HardWorkDTO implements DtoI {
     private double savedGasFees;
     private double savedGasFeesSum;
     private double fee;
+    private Double weeklyAverageTvl;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
