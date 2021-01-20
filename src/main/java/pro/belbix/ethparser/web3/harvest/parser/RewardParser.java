@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Service
 public class RewardParser implements Web3Parser {
 
+    private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
     private static final Logger log = LoggerFactory.getLogger(RewardParser.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
@@ -95,7 +97,7 @@ public class RewardParser implements Web3Parser {
         if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        if (!"reward-download".equalsIgnoreCase(appProperties.getStartUtil()) && waitNewBlock) {
+        if (!notWaitNewBlock.contains(appProperties.getStartUtil()) && waitNewBlock) {
             log.info("Wait new block for correct parsing rewards");
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
