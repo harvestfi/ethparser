@@ -21,6 +21,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 
 @RunWith(SpringRunner.class)
@@ -34,10 +35,27 @@ public class DoHardWorkTest {
     private Web3Service web3Service;
     @Autowired
     private PriceProvider priceProvider;
+    @Autowired
+    private HardWorkDbService hardWorkDbService;
 
     @Before
     public void setUp() throws Exception {
         priceProvider.setUpdateBlockDifference(1);
+    }
+
+    @Test
+    public void parseDAI_BSGS() {
+        HardWorkDTO dto = assertOnBlock(
+            11698881,
+            "0,000000",
+            "0,000000",
+            "0,000000"
+        );
+        assertNotNull(dto);
+        hardWorkDbService.enrich(dto);
+        assertAll(
+            () -> assertEquals("Farm buyback sum", "49547,177326", String.format("%f", dto.getFarmBuybackSum()))
+        );
     }
 
     @Test
@@ -70,10 +88,10 @@ public class DoHardWorkTest {
         );
     }
 
-    private void assertOnBlock(int onBlock,
-                               String sharePrice,
-                               String sharePriceUsd,
-                               String shareChange) {
+    private HardWorkDTO assertOnBlock(int onBlock,
+                                      String sharePrice,
+                                      String sharePriceUsd,
+                                      String shareChange) {
         List<LogResult> logResults = web3Service
             .fetchContractLogs(Collections.singletonList(CONTROLLER), onBlock, onBlock);
         assertNotNull(logResults);
@@ -85,8 +103,7 @@ public class DoHardWorkTest {
             () -> assertEquals("sharePrice", sharePrice, String.format("%f", dto.getShareChange())),
             () -> assertEquals("sharePriceUsd", sharePriceUsd, String.format("%f", dto.getShareChangeUsd()))
         );
-
-
+        return dto;
     }
 
 }

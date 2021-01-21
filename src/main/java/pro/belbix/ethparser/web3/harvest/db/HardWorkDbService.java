@@ -53,13 +53,12 @@ public class HardWorkDbService {
             log.info("Duplicate HardWork entry " + dto.getId());
             return false;
         }
-        hardWorkRepository.save(dto);
-        hardWorkRepository.flush();
-        saveTotalProfit(dto);
+        enrich(dto);
+        hardWorkRepository.saveAndFlush(dto);
         return true;
     }
 
-    public void saveTotalProfit(HardWorkDTO dto) {
+    public void enrich(HardWorkDTO dto) {
         Double all = hardWorkRepository.getSumForVault(dto.getVault(), dto.getBlockDate());
         if (all == null) {
             all = 0.0;
@@ -70,8 +69,6 @@ public class HardWorkDbService {
         calculatePsProfits(dto);
         calculateFarmBuyback(dto);
         fillExtraInfo(dto);
-
-        hardWorkRepository.save(dto);
     }
 
     public void fillExtraInfo(HardWorkDTO dto) {
@@ -143,7 +140,7 @@ public class HardWorkDbService {
                         limitOne))
                     .filter(Caller::isFilledList)
                     .ifPresentOrElse(avgTvlD -> {
-                       dto.setWeeklyAverageTvl(avgTvlD.get(0));
+                        dto.setWeeklyAverageTvl(avgTvlD.get(0));
                     }, () -> log.warn("Not found average tvl for period for " + dto.print()));
 
             }, () -> log.warn("Not found harvest for " + dto.print()));
@@ -202,23 +199,21 @@ public class HardWorkDbService {
     }
 
     private void calculateFarmBuyback(HardWorkDTO dto) {
-        if (dto.getShareChangeUsd() <= 0) {
-            dto.setFarmBuyback(0.0);
-            return;
-        }
-        Double farmPrice;
-        UniswapDTO uniswapDTO = uniswapRepository
-            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
-        if (uniswapDTO != null) {
-            farmPrice = uniswapDTO.getLastPrice();
-        } else {
-            log.warn("FARM price not found at block date" + dto.getBlockDate());
-            return;
-        }
+        if (dto.getShareChangeUsd() > 0) {
+            Double farmPrice;
+            UniswapDTO uniswapDTO = uniswapRepository
+                .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
+            if (uniswapDTO != null) {
+                farmPrice = uniswapDTO.getLastPrice();
+            } else {
+                log.warn("FARM price not found at block date" + dto.getBlockDate());
+                return;
+            }
 
-        dto.setFarmBuyback(((dto.getShareChangeUsd() / 0.7) * 0.3) / farmPrice);
+            dto.setFarmBuyback(((dto.getShareChangeUsd() / 0.7) * 0.3) / farmPrice);
+        }
         silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate(), limitOne))
-            .filter(l -> !l.isEmpty() && l.get(0) != null)
+            .filter(Caller::isFilledList)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
                 () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));
     }

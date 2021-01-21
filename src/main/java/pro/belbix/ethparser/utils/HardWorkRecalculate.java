@@ -25,7 +25,7 @@ public class HardWorkRecalculate {
     public void start() {
         List<HardWorkDTO> dtos = hardWorkRepository.findAllByOrderByBlockDate();
         for (HardWorkDTO dto : dtos) {
-            hardWorkDbService.saveTotalProfit(dto);
+            hardWorkDbService.enrich(dto);
             log.info("Save hardwork for " + dto.print());
         }
     }
