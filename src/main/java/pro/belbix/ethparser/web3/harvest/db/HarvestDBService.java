@@ -1,10 +1,12 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -194,6 +196,22 @@ public class HarvestDBService {
             throw new IllegalStateException("TVL is wrong for " + dto);
         }
         return tvl;
+    }
+
+    public List<HarvestDTO> fetchHarvest(String from, String to) {
+        if (from == null && to == null) {
+            return harvestRepository.fetchAllFromBlockDate(
+                Instant.now().minus(1, DAYS).toEpochMilli() / 1000);
+        }
+        int fromI = 0;
+        int toI = Integer.MAX_VALUE;
+        if (from != null) {
+            fromI = Integer.parseInt(from);
+        }
+        if (to != null) {
+            toI = Integer.parseInt(to);
+        }
+        return harvestRepository.fetchAllByPeriod(fromI, toI);
     }
 
     public static double aprToApy(double apr, double period) {

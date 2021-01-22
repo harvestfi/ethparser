@@ -15,4 +15,20 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     @Query("select t from RewardDTO t where t.vault = :vault and t.blockDate > :date")
     List<RewardDTO> fetchRewardsByVaultAfterBlockDate(@Param("vault") String vault, @Param("date") long date);
 
+
+    @Query(nativeQuery = true, value = "" +
+        "select max(id)                                                              id, " +
+        "       null                                                                 block, " +
+        "       max(block_date)                                                      block_date, " +
+        "       vault                                                                vault, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', reward)), '_', -1)     reward, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_finish)), '_', -1)     period_finish " +
+        " " +
+        "from rewards " +
+        "group by vault")
+    List<RewardDTO> fetchLastRewards();
+
+
+    List<RewardDTO> getAllByVaultOrderByBlockDate(String vault);
+
 }

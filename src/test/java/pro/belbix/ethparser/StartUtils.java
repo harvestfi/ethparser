@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.utils.UtilsStarter;
+import pro.belbix.ethparser.utils.recalculation.UtilsStarter;
 import pro.belbix.ethparser.web3.PriceProvider;
 
 @SpringBootTest(classes = Application.class)

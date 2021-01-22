@@ -1,0 +1,63 @@
+package pro.belbix.ethparser.service;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.HarvestTvlEntity;
+import pro.belbix.ethparser.model.TvlHistory;
+import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.HarvestTvlRepository;
+
+@Service
+@Log4j2
+public class HarvestTvlDBService {
+
+    private final HarvestRepository harvestRepository;
+    private final HarvestTvlRepository harvestTvlRepository;
+
+    public HarvestTvlDBService(HarvestRepository harvestRepository,
+                               HarvestTvlRepository harvestTvlRepository) {
+        this.harvestRepository = harvestRepository;
+        this.harvestTvlRepository = harvestTvlRepository;
+    }
+
+    public List<TvlHistory> fetchTvlByVault(String name) {
+        log.debug("get tvl for " + name);
+        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllTvlForVault(name);
+        List<TvlHistory> tvlHistoryDTOS = new ArrayList<>();
+        if (harvestTxEntities == null) {
+            return tvlHistoryDTOS;
+        }
+        Instant lastDate = null;
+        for (HarvestDTO harvestTxEntity : harvestTxEntities) {
+            try {
+                Instant date = Instant.ofEpochSecond(harvestTxEntity.getBlockDate());
+                if (lastDate != null && Duration.between(lastDate, date).getSeconds() < 60 * 60) {
+                    continue;
+                }
+
+                TvlHistory tvlHistoryDTO = new TvlHistory();
+                tvlHistoryDTO.setCalculateTime(harvestTxEntity.getBlockDate());
+                tvlHistoryDTO.setLastTvl(harvestTxEntity.getLastUsdTvl());
+                if (harvestTxEntity.getLastTvl() != null) {
+                    tvlHistoryDTO.setLastTvlNative(harvestTxEntity.getLastTvl());
+                }
+                tvlHistoryDTO.setSharePrice(harvestTxEntity.getSharePrice());
+                tvlHistoryDTO.setLastOwnersCount(harvestTxEntity.getOwnerCount());
+
+                lastDate = date;
+
+                tvlHistoryDTOS.add(tvlHistoryDTO);
+            } catch (Exception e) {
+                log.error("Error convert " + harvestTxEntity, e);
+                break;
+            }
+        }
+        return tvlHistoryDTOS;
+    }
+
+}

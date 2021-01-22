@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils;
+package pro.belbix.ethparser.utils.recalculation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
