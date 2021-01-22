@@ -62,7 +62,7 @@ public class ImportantEventsParserTest {
             11517785,
             0,
             "0x180c496709023CE8952003A9FF385a3bBEB8b2C3",
-            "null",
+            "0xfde5dfb79d4a65913cb72ddd9148a768705e98d4",
             "2020-12-24T17:55:58Z",
             "null"
         );

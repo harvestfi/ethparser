@@ -12,4 +12,7 @@ public interface IncomeRepository extends JpaRepository<IncomeEntity, String> {
     @Query("select sum(t.perc) from IncomeEntity t where t.timestamp > :from and t.timestamp <= :to")
     List<Double> fetchPercentFroPeriod(@Param("from") long from, @Param("to") long to, Pageable pageable);
 
+    List<IncomeEntity> findAllByOrderByTimestamp();
+
+    IncomeEntity findFirstByOrderByTimestampDesc();
 }

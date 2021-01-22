@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils;
+package pro.belbix.ethparser.utils.recalculation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;

@@ -7,31 +7,41 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.RewardsRepository;
 
 @RestController
-@RequestMapping(value = "/history")
 @Log4j2
-public class HistoryController {
+public class RewardController {
 
     private final RewardsRepository rewardsRepository;
 
-    public HistoryController(RewardsRepository rewardsRepository) {
+    public RewardController(RewardsRepository rewardsRepository) {
         this.rewardsRepository = rewardsRepository;
     }
 
-    @GetMapping(value = "/rewards/{pool}")
+    @GetMapping(value = "/history/rewards/{pool}")
     List<RewardDTO> rewardsHistory(@PathVariable("pool") String pool,
                                    @RequestParam(value = "days", required = false) String days) {
         int daysI = 7;
-        if(days != null) {
+        if (days != null) {
             daysI = Integer.parseInt(days);
         }
         return rewardsRepository.fetchRewardsByVaultAfterBlockDate(pool,
             Instant.now().minus(daysI, ChronoUnit.DAYS).getEpochSecond());
+    }
+
+    @RequestMapping(value = "api/transactions/last/reward", method = RequestMethod.GET)
+    public List<RewardDTO> lastReward() {
+        return rewardsRepository.fetchLastRewards();
+    }
+
+    @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
+    public List<RewardDTO> historyReward(@PathVariable("name") String name) {
+        return rewardsRepository.getAllByVaultOrderByBlockDate(name);
     }
 
 }

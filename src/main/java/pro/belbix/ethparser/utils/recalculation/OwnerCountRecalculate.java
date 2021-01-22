@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils;
+package pro.belbix.ethparser.utils.recalculation;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
