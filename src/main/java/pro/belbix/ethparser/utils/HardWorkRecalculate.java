@@ -26,6 +26,7 @@ public class HardWorkRecalculate {
         List<HardWorkDTO> dtos = hardWorkRepository.findAllByOrderByBlockDate();
         for (HardWorkDTO dto : dtos) {
             hardWorkDbService.enrich(dto);
+            hardWorkRepository.saveAndFlush(dto);
             log.info("Save hardwork for " + dto.print());
         }
     }
