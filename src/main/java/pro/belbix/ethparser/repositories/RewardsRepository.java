@@ -18,10 +18,12 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
 
     @Query(nativeQuery = true, value = "" +
         "select max(id)                                                              id, " +
-        "       null                                                                 block, " +
+        "       max(block)                                                                   block, " +
         "       max(block_date)                                                      block_date, " +
         "       vault                                                                vault, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', reward)), '_', -1)     reward, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', apy)), '_', -1)     apy, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', tvl)), '_', -1)     tvl, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_finish)), '_', -1)     period_finish " +
         " " +
         "from rewards " +

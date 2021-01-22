@@ -14,7 +14,6 @@ import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.RewardsRepository;
 
 @RestController
-@RequestMapping(value = "/history")
 @Log4j2
 public class RewardController {
 
@@ -24,7 +23,7 @@ public class RewardController {
         this.rewardsRepository = rewardsRepository;
     }
 
-    @GetMapping(value = "/rewards/{pool}")
+    @GetMapping(value = "/history/rewards/{pool}")
     List<RewardDTO> rewardsHistory(@PathVariable("pool") String pool,
                                    @RequestParam(value = "days", required = false) String days) {
         int daysI = 7;

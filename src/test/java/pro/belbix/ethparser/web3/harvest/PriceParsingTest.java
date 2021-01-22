@@ -28,7 +28,7 @@ public class PriceParsingTest {
         dto.setBlock(11203037L);
         harvestVaultParser.enrichDto(dto);
         assertNotNull(dto.getPrices());
-        assertEquals("{\"btc\":15377.564221196233,\"eth\":429.5548615484777,\"dpi\":65.97087400036581,\"grain\":0.0,\"bac\":0.0,\"bas\":0.0,\"mic\":0.0,\"mis\":0.0}",
+        assertEquals("{\"btc\":15377.564221196233,\"eth\":429.5548615484777,\"dpi\":65.97087400036581,\"grain\":0.0,\"bac\":0.0,\"bas\":0.0,\"mic\":0.0,\"mis\":0.0,\"bsg\":0.0,\"bsgs\":0.0,\"esd\":0.933612754556086,\"dsd\":0.0,\"maapl\":0.0,\"mamzn\":0.0,\"mgoogl\":0.0,\"mtsla\":0.0,\"eurs\":0.0}",
             dto.getPrices());
     }
 }
