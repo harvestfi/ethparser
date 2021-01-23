@@ -14,6 +14,9 @@ public class ParserInfo {
     }
 
     public String getInfoForAllParsers() {
+        if (parsers.isEmpty()) {
+            return "{}";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         for (Web3Parser parser : parsers) {
