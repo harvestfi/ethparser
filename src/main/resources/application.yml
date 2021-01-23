@@ -15,6 +15,10 @@ spring:
     username:
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+    tomcat:
+      max-active: 5
 
 
 server:
