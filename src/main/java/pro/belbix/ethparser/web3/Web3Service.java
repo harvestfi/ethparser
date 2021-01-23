@@ -88,6 +88,9 @@ public class Web3Service {
 
     @PostConstruct
     private void init() {
+        if (appProperties.isOnlyApi()) {
+            return;
+        }
         log.info("Connecting to Ethereum ...");
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         clientBuilder.callTimeout(600, SECONDS)
@@ -221,7 +224,7 @@ public class Web3Service {
     public Block findBlock(String blockHash) {
         checkInit();
         EthBlock ethBlock =
-            callWithRetry(() ->web3.ethGetBlockByHash(blockHash, false).send());
+            callWithRetry(() -> web3.ethGetBlockByHash(blockHash, false).send());
 
         if (ethBlock != null && ethBlock.getError() != null) {
             log.error("Error fetching block " + ethBlock.getError().getMessage());
