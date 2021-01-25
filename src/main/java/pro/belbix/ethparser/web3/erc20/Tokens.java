@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.web3j.tuples.generated.Tuple2;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 public class Tokens {
 
@@ -39,6 +40,9 @@ public class Tokens {
     public final static String MAMZN_TOKEN = "0x0cae9e4d663793c2a2a0b211c1cf4bbca2b9caa7".toLowerCase();
     public final static String MGOOGL_TOKEN = "0x59A921Db27Dd6d4d974745B7FfC5c33932653442".toLowerCase();
     public final static String MTSLA_TOKEN = "0x21ca39943e91d704678f5d00b6616650f066fd63".toLowerCase();
+    public final static String YCRV_TOKEN = "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8".toLowerCase();
+    public final static String _3CRV_TOKEN = "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490".toLowerCase();
+    public final static String CRV_CMPND_TOKEN = "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -66,6 +70,9 @@ public class Tokens {
     public static final String MAMZN_NAME = "MAMZN";
     public static final String MGOOGL_NAME = "MGOOGL";
     public static final String MTSLA_NAME = "MTSLA";
+    public static final String YCRV_NAME = "YCRV";
+    public static final String _3CRV_NAME = "3CRV";
+    public static final String CRV_CMPND_NAME = "CRV_CMPND";
 
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 

@@ -13,11 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
@@ -33,17 +31,14 @@ public class HardWorkDbService {
 
     private final HardWorkRepository hardWorkRepository;
     private final HarvestRepository harvestRepository;
-    private final UniswapRepository uniswapRepository;
     private final AppProperties appProperties;
     private final PriceProvider priceProvider;
 
     public HardWorkDbService(HardWorkRepository hardWorkRepository,
                              HarvestRepository harvestRepository,
-                             UniswapRepository uniswapRepository,
                              AppProperties appProperties, PriceProvider priceProvider) {
         this.hardWorkRepository = hardWorkRepository;
         this.harvestRepository = harvestRepository;
-        this.uniswapRepository = uniswapRepository;
         this.appProperties = appProperties;
         this.priceProvider = priceProvider;
     }
@@ -67,7 +62,7 @@ public class HardWorkDbService {
 
         calculateVaultProfits(dto);
         calculatePsProfits(dto);
-        calculateFarmBuyback(dto);
+        calculateFarmBuybackSum(dto);
         fillExtraInfo(dto);
     }
 
@@ -198,20 +193,7 @@ public class HardWorkDbService {
         }
     }
 
-    private void calculateFarmBuyback(HardWorkDTO dto) {
-        if (dto.getShareChangeUsd() > 0) {
-            Double farmPrice;
-            UniswapDTO uniswapDTO = uniswapRepository
-                .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
-            if (uniswapDTO != null) {
-                farmPrice = uniswapDTO.getLastPrice();
-            } else {
-                log.warn("FARM price not found at block date" + dto.getBlockDate());
-                return;
-            }
-
-            dto.setFarmBuyback(((dto.getShareChangeUsd() / 0.7) * 0.3) / farmPrice);
-        }
+    private void calculateFarmBuybackSum(HardWorkDTO dto) {
         silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate(), limitOne))
             .filter(Caller::isFilledList)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),

@@ -1,8 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -17,15 +19,16 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
+import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 public class HardWorkParser implements Web3Parser {
@@ -36,6 +39,7 @@ public class HardWorkParser implements Web3Parser {
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
+    private final ERC20Decoder erc20Decoder = new ERC20Decoder();
     private Instant lastTx = Instant.now();
 
     private final PriceProvider priceProvider;
@@ -95,6 +99,10 @@ public class HardWorkParser implements Web3Parser {
         if (tx == null) {
             return null;
         }
+
+        // parse SharePriceChangeLog was wrong solution
+        // some strategies doesn't change share price
+        // but it is a good point for catch doHardWork
         if (!"SharePriceChangeLog".equals(tx.getMethodName())) {
             throw new IllegalStateException("Unknown method " + tx.getMethodName());
         }
@@ -111,32 +119,131 @@ public class HardWorkParser implements Web3Parser {
         dto.setVault(Vaults.vaultHashToName.get(tx.getVault()));
         dto.setShareChange(parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
-        fillUsdValues(dto, tx.getVault());
+        parseRewards(dto, tx.getHash(), tx.getStrategy());
 
-        parseFee(dto, tx.getHash());
         log.info(dto.print());
         return dto;
     }
 
-    private void parseFee(HardWorkDTO dto, String hash) {
-        Transaction transaction = web3Service.findTransaction(hash);
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(hash);
-        double gas = (receipt.getGasUsed().doubleValue());
-        double gasPrice = transaction.getGasPrice().doubleValue() / 1000_000_000 / 1000_000_000;
+    // not in the root because it can be weekly reward
+    private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
+        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+        // todo replace to VaultModel
+        String underlyingTokenHash = functions.callUnderlying(vaultHash, dto.getBlock());
+        TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
+        boolean autoStake = isAutoStake(tr.getLogs());
+        for (Log ethLog : tr.getLogs()) {
+            parseRewardAddedEvents(ethLog, dto, autoStake);
+        }
+
+        // for AutoStaking vault rewards already parsed
+        // skip vault reward parsing if we didn't earn anything
+        if (!autoStake && dto.getFarmBuyback() != 0) {
+            for (Log ethLog : tr.getLogs()) {
+                parseVaultReward(ethLog, dto, underlyingTokenHash, strategyHash);
+            }
+        }
+        fillFeeInfo(dto, txHash, tr);
+    }
+
+    private boolean isAutoStake(List<Log> logs) {
+        return logs.stream()
+            .filter(l -> {
+                try {
+                    return hardWorkLogDecoder.decode(l).getMethodName().equals("RewardAdded");
+                } catch (Exception ignored) {
+                }
+                return false;
+            }).count() > 1;
+    }
+
+    private void parseRewardAddedEvents(Log ethLog, HardWorkDTO dto, boolean autoStake) {
+        HardWorkTx tx;
+        try {
+            tx = hardWorkLogDecoder.decode(ethLog);
+        } catch (Exception e) {
+            log.info("Can't decode {} {}", e.getMessage(), ethLog);
+            return;
+        }
+        if (tx == null) {
+            return;
+        }
+
+        if ("RewardAdded".equals(tx.getMethodName())) {
+            if (!autoStake && dto.getFarmBuyback() != 0.0) {
+                throw new IllegalStateException("Duplicate RewardAdded for " + dto);
+            }
+            double reward = tx.getReward().doubleValue() / D18;
+
+            // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
+            if (autoStake && dto.getFarmBuyback() != 0) {
+                dto.setShareChangeUsd(reward);
+            } else {
+                dto.setFarmBuyback(reward);
+            }
+
+        }
+    }
+
+    private void parseVaultReward(Log ethLog, HardWorkDTO dto, String underlyingTokenHash, String strategyHash) {
+        TokenTx tx;
+        try {
+            tx = erc20Decoder.decode(ethLog);
+        } catch (Exception e) {
+            log.info("Can't decode {} {}", e.getMessage(), ethLog);
+            return;
+        }
+        if (tx == null) {
+            return;
+        }
+
+        if ("Transfer".equals(tx.getMethodName())) {
+            // suppose that underlying token transferred to the strategy is reward
+            if (!tx.getTokenAddress().equalsIgnoreCase(underlyingTokenHash)
+                || !tx.getRecipient().equalsIgnoreCase(strategyHash)) {
+                return;
+            }
+
+            if (dto.getShareChangeUsd() != 0.0) {
+                //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
+                log.info("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
+            }
+            String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+            double vaultReward = parseAmount(tx.getValue(), vaultHash);
+            double price = calculateVaultRewardUsdPrice(dto.getVault(), underlyingTokenHash, dto.getBlock());
+            dto.setShareChangeUsd(vaultReward * price);
+        }
+    }
+
+    private double calculateVaultRewardUsdPrice(String vaultName, String underlyingTokenHash, long block) {
+        if (Vaults.isLp(vaultName)) {
+            return priceProvider.getLpPositionAmountInUsd(underlyingTokenHash, 1, block);
+        } else {
+            return priceProvider.getPriceForCoin(vaultName, block);
+        }
+    }
+
+    private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
+        Transaction transaction = web3Service.findTransaction(txHash);
+        double gas = (tr.getGasUsed().doubleValue());
+        double gasPrice = transaction.getGasPrice().doubleValue() / D18;
         double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
         double feeUsd = gas * gasPrice * ethPrice;
         dto.setFee(feeUsd);
     }
 
-    private void fillUsdValues(HardWorkDTO dto, String vaultHash) {
+    @Deprecated
+    private void fillUsdValues(HardWorkDTO dto) {
         if (Vaults.isLp(dto.getVault())) {
-            fillUsdValuesForLP(dto, vaultHash);
+            fillUsdValuesForLP(dto);
         } else {
-            fillUsdValuesForRegular(dto, vaultHash);
+            fillUsdValuesForRegular(dto);
         }
     }
 
-    private void fillUsdValuesForRegular(HardWorkDTO dto, String vaultHash) {
+    @Deprecated
+    private void fillUsdValuesForRegular(HardWorkDTO dto) {
+        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + vaultHash);
@@ -147,16 +254,17 @@ public class HardWorkParser implements Web3Parser {
         dto.setShareChangeUsd(usdValue);
     }
 
-    private void fillUsdValuesForLP(HardWorkDTO dto, String vaultHash) {
+    @Deprecated
+    private void fillUsdValuesForLP(HardWorkDTO dto) {
+        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         String lpHash = Vaults.underlyingToken.get(vaultHash);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
             vaultHash);
-        double sharedPrice = dto.getShareChange();
 
         double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock()), lpHash);
         Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock());
 
-        double vaultSharedBalance = (vaultBalance * sharedPrice);
+        double vaultSharedBalance = (vaultBalance * dto.getShareChange());
         double vaultFraction = vaultSharedBalance / lpBalance;
 
         Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dto.getBlock());

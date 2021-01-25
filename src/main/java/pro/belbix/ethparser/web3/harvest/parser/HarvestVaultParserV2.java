@@ -303,9 +303,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
         return dto;
     }
 
-    /**
-     * Separate method for avoid any unnecessary enrichment for other methods
-     */
     public void enrichDto(HarvestDTO dto) {
         //set gas
         dto.setLastGas(web3Service.fetchAverageGasPrice());

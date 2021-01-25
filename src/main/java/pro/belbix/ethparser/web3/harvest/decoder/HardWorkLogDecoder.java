@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
@@ -17,11 +18,11 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HardWorkLogDecoder extends MethodDecoder {
 
-    public HardWorkTx decode(Log log) {
-        if (!isValidLog(log)) {
+    public HardWorkTx decode(Log ethLog) {
+        if (!isValidLog(ethLog)) {
             return null;
         }
-        String topic0 = log.getTopics().get(0);
+        String topic0 = ethLog.getTopics().get(0);
         String methodId = methodIdByFullHex.get(topic0);
 
         if (methodId == null) {
@@ -34,18 +35,18 @@ public class HardWorkLogDecoder extends MethodDecoder {
             throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
         }
 
-        List<Type> types = extractLogIndexedValues(log, parameters);
+        List<Type> types = extractLogIndexedValues(ethLog, parameters);
         HardWorkTx tx = new HardWorkTx();
-        tx.setLogId(log.getLogIndex().toString());
-        tx.setHash(log.getTransactionHash());
+        tx.setLogId(ethLog.getLogIndex().toString());
+        tx.setHash(ethLog.getTransactionHash());
         tx.setMethodName(methodName);
-        tx.setBlock(log.getBlockNumber().longValue());
+        tx.setBlock(ethLog.getBlockNumber().longValue());
         enrich(types, tx);
         return tx;
     }
 
-    private boolean isValidLog(Log log) {
-        return log != null && !log.getTopics().isEmpty();
+    private boolean isValidLog(Log ethLog) {
+        return ethLog != null && !ethLog.getTopics().isEmpty();
     }
 
     private void enrich(List<Type> types, HardWorkTx tx) {
@@ -58,6 +59,8 @@ public class HardWorkLogDecoder extends MethodDecoder {
         } else if ("ProfitLogInReward".equals(tx.getMethodName())) {
             tx.setProfitAmount((BigInteger) types.get(0).getValue());
             tx.setFeeAmount((BigInteger) types.get(1).getValue());
+        } else if ("RewardAdded".equals(tx.getMethodName())) {
+            tx.setReward((BigInteger) types.get(0).getValue());
         }
     }
 

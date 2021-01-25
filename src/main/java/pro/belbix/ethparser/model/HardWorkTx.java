@@ -16,5 +16,6 @@ public class HardWorkTx {
     private BigInteger newSharePrice;
     private BigInteger profitAmount;
     private BigInteger feeAmount;
+    private BigInteger reward;
 
 }

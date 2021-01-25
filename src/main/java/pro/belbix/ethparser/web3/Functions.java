@@ -128,6 +128,10 @@ public class Functions {
         return callStringFunction(STRATEGY, hash, block);
     }
 
+    public String callUnderlying(String hash, Long block) {
+        return callStringFunction(UNDERLYING, hash, block);
+    }
+
     public BigInteger callUnderlyingBalance(String holder, String hash, Long block) {
         return callUint256Function(new Function(
             "underlyingBalanceWithInvestmentForHolder",
@@ -260,6 +264,12 @@ public class Functions {
 
     static final Function STRATEGY = new Function(
         "strategy",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+
+    static final Function UNDERLYING = new Function(
+        "underlying",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Address>() {
         }));
