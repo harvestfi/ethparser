@@ -133,6 +133,18 @@ public class DoHardWorkTest {
         );
     }
 
+    @Test
+    public void parseDAI_BSGS2() {
+        assertOnBlock(
+            11724037,
+            "0x054b92d6bc7e846f40a4aea5a99f3ba77941be41107fad9a72e14d68a407148f_79",
+            "DAI_BSGS",
+            "0,000000",
+            "19,726441",
+            "8,454189"
+        );
+    }
+
     private HardWorkDTO assertOnBlock(int onBlock,
                                       String id,
                                       String vault,
@@ -155,13 +167,16 @@ public class DoHardWorkTest {
         );
 
         double vaultRewardUsd = dto.getShareChangeUsd();
-        double psReward = dto.getFarmBuyback();
-        double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
-        double psRewardUsd = psReward * farmPrice;
-        double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
-        double wholeRewardBasedOnVaultReward = vaultRewardUsd / 0.7;
-        double diff = Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward) / wholeRewardBasedOnPsReward;
-        assertEquals("whole balance check", 0.0, diff, 1.0);
+        if (vaultRewardUsd != 0) {
+            double psReward = dto.getFarmBuyback();
+            double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+            double psRewardUsd = psReward * farmPrice;
+            double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
+            double wholeRewardBasedOnVaultReward = vaultRewardUsd / 0.7;
+            double diff =
+                Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward) / wholeRewardBasedOnPsReward;
+            assertEquals("whole balance check", 0.0, diff, 1.0);
+        }
         return dto;
     }
 

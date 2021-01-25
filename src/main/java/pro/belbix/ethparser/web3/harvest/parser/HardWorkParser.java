@@ -162,7 +162,6 @@ public class HardWorkParser implements Web3Parser {
         try {
             tx = hardWorkLogDecoder.decode(ethLog);
         } catch (Exception e) {
-            log.info("Can't decode {} {}", e.getMessage(), ethLog);
             return;
         }
         if (tx == null) {
@@ -190,7 +189,6 @@ public class HardWorkParser implements Web3Parser {
         try {
             tx = erc20Decoder.decode(ethLog);
         } catch (Exception e) {
-            log.info("Can't decode {} {}", e.getMessage(), ethLog);
             return;
         }
         if (tx == null) {
@@ -206,7 +204,7 @@ public class HardWorkParser implements Web3Parser {
 
             if (dto.getShareChangeUsd() != 0.0) {
                 //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
-                log.info("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
+                log.debug("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
             }
             String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
             double vaultReward = parseAmount(tx.getValue(), vaultHash);
