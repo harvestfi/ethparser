@@ -24,6 +24,7 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', reward)), '_', -1)     reward, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', apy)), '_', -1)     apy, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', tvl)), '_', -1)     tvl, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', farm_balance)), '_', -1)     farm_balance, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_finish)), '_', -1)     period_finish " +
         " " +
         "from rewards " +
