@@ -13,7 +13,7 @@ import pro.belbix.ethparser.repositories.RewardsRepository;
 @Service
 public class ApyService {
 
-    private RewardDTO lastReward;
+    private final Map<String, RewardDTO> lastRewards = new HashMap<>();
     private final Map<String, Map<Integer, Double>> apyCache = new HashMap<>();
     private final RewardsRepository rewardsRepository;
 
@@ -23,23 +23,25 @@ public class ApyService {
 
     public Double averageApyForPool(String pool, int days) {
         RewardDTO reward = rewardsRepository.getFirstByVaultOrderByBlockDateDesc(pool);
-        if (lastReward != null && reward.getId().equals(lastReward.getId())) {
+        RewardDTO cachedReward = lastRewards.get(pool);
+        if (cachedReward != null && reward.getId().equals(cachedReward.getId())) {
             Double apy = getApyFromCache(pool, days);
             if (apy != null) {
                 return apy;
             }
         }
-        lastReward = reward;
+        lastRewards.put(pool, reward);
         List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(pool,
             Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond());
-        double averageApy = calculateAverageApy(rewards.stream()
-            .map(RewardDTO::getApy)
-            .mapToDouble(Double::doubleValue).toArray());
+        double averageApy = calculateAverageApy(rewards);
         saveToCache(pool, days, averageApy);
         return averageApy;
     }
 
-    private double calculateAverageApy(double[] apys) {
+    public static double calculateAverageApy(List<RewardDTO> rewards) {
+        double[] apys = rewards.stream()
+            .map(RewardDTO::getApy)
+            .mapToDouble(Double::doubleValue).toArray();
         DescriptiveStatistics stats = new DescriptiveStatistics(apys);
         return stats.getMean();
     }

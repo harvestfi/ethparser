@@ -1,7 +1,11 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
 import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,7 @@ public class RewardsDBService {
             log.warn("Duplicate reward " + dto);
         }
         fillApy(dto);
+        fillWeeklyApy(dto);
         rewardsRepository.save(dto);
         return true;
     }
@@ -72,6 +77,14 @@ public class RewardsDBService {
             apy = 0;
         }
         dto.setApy(apy);
+    }
+
+    public void fillWeeklyApy(RewardDTO dto) {
+        Instant blockDate = Instant.ofEpochSecond(dto.getBlockDate());
+        long weekAgo = blockDate.minus(7, ChronoUnit.DAYS).getEpochSecond();
+        List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(dto.getVault(), weekAgo);
+        double averageApy = calculateAverageApy(rewards);
+        dto.setWeeklyApy(averageApy);
     }
 
     private static double calculateApr(double periodFinish, double blockDate, double reward, double tvl) {

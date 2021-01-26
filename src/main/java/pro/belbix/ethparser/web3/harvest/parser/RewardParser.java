@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 
 import java.time.Instant;
 import java.util.Set;
@@ -117,6 +119,8 @@ public class RewardParser implements Web3Parser {
             farmRewardsForPeriod = (rewardRate / D18) * (periodFinish - blockTime);
         }
 
+        double farmBalance = parseAmount(functions.callBalanceOf(vault, FARM_TOKEN, nextBlock), FARM_TOKEN);
+
         RewardDTO dto = new RewardDTO();
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock().longValue());
@@ -126,6 +130,7 @@ public class RewardParser implements Web3Parser {
             .replaceFirst("ST_", ""));
         dto.setReward(farmRewardsForPeriod);
         dto.setPeriodFinish(periodFinish);
+        dto.setFarmBalance(farmBalance);
         log.info("Parsed " + dto);
         return dto;
     }

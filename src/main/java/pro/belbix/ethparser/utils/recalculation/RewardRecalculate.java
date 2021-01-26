@@ -30,6 +30,7 @@ public class RewardRecalculate {
         for (RewardDTO dto : rewards) {
             try {
                 rewardsDBService.fillApy(dto);
+                rewardsDBService.fillWeeklyApy(dto);
             } catch (Exception e) {
                 log.error("Error with " + dto, e);
                 break;
