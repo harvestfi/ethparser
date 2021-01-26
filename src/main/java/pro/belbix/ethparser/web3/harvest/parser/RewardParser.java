@@ -121,7 +121,9 @@ public class RewardParser implements Web3Parser {
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock().longValue());
         dto.setBlockDate(blockTime);
-        dto.setVault(StakeContracts.hashToName.get(vault).replaceFirst("ST_", ""));
+        dto.setVault(StakeContracts.hashToName.get(vault)
+            .replaceFirst("ST__", "")
+            .replaceFirst("ST_", ""));
         dto.setReward(farmRewardsForPeriod);
         dto.setPeriodFinish(periodFinish);
         log.info("Parsed " + dto);
