@@ -33,6 +33,7 @@ public class UniswapTx implements EthTransactionI {
     private Address[] allAddresses;
     private String coinAddress;
     private String lpAddress;
+    private String methodName;
 
     public boolean isContainsAddress(String address) {
         for (Address a : allAddresses) {
@@ -77,6 +78,7 @@ public class UniswapTx implements EthTransactionI {
         uniswapDTO.setCoin(findNameForContract(coinAddress));
         uniswapDTO.setConfirmed(success);
         uniswapDTO.setLp(LpContracts.findNameForLpHash(lpAddress));
+        uniswapDTO.setMethodName(methodName);
 
         if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
             assertBuy(false);

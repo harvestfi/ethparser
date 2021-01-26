@@ -35,6 +35,7 @@ public class UniswapDTO implements DtoI {
     private Double lastPrice;
     private Double lastGas;
     private String lp;
+    private String methodName;
     // ---- ADDITIONAL STATISTIC INFO ----
     private Integer ownerCount;
     private Double psWeekApy;

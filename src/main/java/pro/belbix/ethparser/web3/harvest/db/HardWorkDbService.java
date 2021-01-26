@@ -67,7 +67,7 @@ public class HardWorkDbService {
     }
 
     public void fillExtraInfo(HardWorkDTO dto) {
-        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate());
+        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate() - 1);
         dto.setCallsQuantity(count + 1);
         int owners = harvestRepository.fetchActualOwnerQuantity(
             dto.getVault(),
@@ -97,7 +97,7 @@ public class HardWorkDbService {
                 }
 
                 silentCall(() -> hardWorkRepository
-                    .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate(), limitOne))
+                    .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate() - 1, limitOne))
                     .filter(Caller::isFilledList)
                     .ifPresentOrElse(sumOfPercL -> {
                         final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
@@ -119,7 +119,7 @@ public class HardWorkDbService {
                     .fetchProfitForPeriod(
                         dto.getVault(),
                         dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                        dto.getBlockDate(),
+                        dto.getBlockDate() - 1,
                         limitOne))
                     .filter(Caller::isFilledList)
                     .ifPresentOrElse(sumOfProfitL -> {
@@ -141,9 +141,9 @@ public class HardWorkDbService {
             }, () -> log.warn("Not found harvest for " + dto.print()));
 
         silentCall(() -> hardWorkRepository
-            .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK, dto.getBlockDate(), limitOne))
+            .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK, dto.getBlockDate() - 1, limitOne))
             .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
-            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0)),
+            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0) + dto.getShareChangeUsd()),
                 () -> log.warn("Not found weekly profits for all vaults for " + dto.print()));
 
     }
@@ -194,7 +194,7 @@ public class HardWorkDbService {
     }
 
     private void calculateFarmBuybackSum(HardWorkDTO dto) {
-        silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate(), limitOne))
+        silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate() - 1, limitOne))
             .filter(Caller::isFilledList)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
                 () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));

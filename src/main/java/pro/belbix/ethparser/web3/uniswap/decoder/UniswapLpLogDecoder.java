@@ -53,6 +53,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         tx.setSuccess(true);
         tx.setCoinAddress(keyCoinForLp.get(log.getAddress()));
         tx.setLpAddress(log.getAddress());
+        tx.setMethodName(methodName);
         enrich(types, methodName, tx, log);
     }
 

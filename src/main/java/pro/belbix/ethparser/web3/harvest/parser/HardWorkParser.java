@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
 
 import java.time.Instant;
 import java.util.List;
@@ -138,11 +139,12 @@ public class HardWorkParser implements Web3Parser {
 
         // for AutoStaking vault rewards already parsed
         // skip vault reward parsing if we didn't earn anything
-        if (!autoStake && dto.getFarmBuyback() != 0) {
-            for (Log ethLog : tr.getLogs()) {
-                parseVaultReward(ethLog, dto, underlyingTokenHash, strategyHash);
-            }
-        }
+        // BROKEN LOGIC if we don't send rewards to strategy (yes, it happened for uni strats)
+//        if (!autoStake && dto.getFarmBuyback() != 0) {
+//            for (Log ethLog : tr.getLogs()) {
+//                parseVaultReward(ethLog, dto, underlyingTokenHash, strategyHash);
+//            }
+//        }
         fillFeeInfo(dto, txHash, tr);
     }
 
@@ -179,6 +181,12 @@ public class HardWorkParser implements Web3Parser {
                 dto.setShareChangeUsd(reward);
             } else {
                 dto.setFarmBuyback(reward);
+
+                if (!autoStake) {
+                    double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                    double stReward = ((reward * farmPrice) / 0.3) * 0.7;
+                    dto.setShareChangeUsd(stReward);
+                }
             }
 
         }

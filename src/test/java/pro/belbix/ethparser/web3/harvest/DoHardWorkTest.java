@@ -92,7 +92,7 @@ public class DoHardWorkTest {
             "0x839df6bfc0e08d5ef6b516f9662e5f70807b2b416dcac142ac82fc1ff5048345_51",
             "USDC_V0",
             "0,000395",
-            "27857,188467",
+            "19486,387393",
             "55,126335"
         );
     }
@@ -104,7 +104,7 @@ public class DoHardWorkTest {
             "0xfaff1b27f5f17252bea0a2a1cc452f282fc644ec8ccfa963941f2c83ce6414aa_207",
             "SUSHI_ETH_USDC",
             "0,000073",
-            "3059,633751",
+            "2994,840625",
             "10,740319"
         );
     }
@@ -116,7 +116,7 @@ public class DoHardWorkTest {
             "0xb63ea164db21279e9b4a09975ca5e3313cf897cf7118e733ca81708719c87b91_190",
             "USDC",
             "0,000097",
-            "4454,536837",
+            "4639,927130",
             "16,849470"
         );
     }
@@ -128,7 +128,7 @@ public class DoHardWorkTest {
             "0x25aed6e95e2ebb3bd66ca906bcb59cb762a286a273c1ce67052701697e4b2bc5_114",
             "YCRV",
             "0,000265",
-            "8256,895390",
+            "8802,192582",
             "32,585083"
         );
     }
@@ -142,6 +142,30 @@ public class DoHardWorkTest {
             "0,000000",
             "19,726441",
             "8,454189"
+        );
+    }
+
+    @Test
+    public void parseSUSHI_ETH_USDC2() {
+        assertOnBlock(
+            11425987,
+            "0xcaf98b04b4d779899e29d36833fc52955b2c887d62bd4b4c277abd998b4e355f_138",
+            "SUSHI_ETH_USDC",
+            "0,000271",
+            "11767,732981",
+            "49,378887"
+        );
+    }
+
+    @Test
+    public void parseUNI_ETH_DAI_broken_when_all_profit_went_to_PS() {
+        assertOnBlock(
+            11058343,
+            "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
+            "UNI_ETH_DAI",
+            "0,000000",
+            "1168,706345",
+            "2,804286"
         );
     }
 

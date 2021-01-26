@@ -13,6 +13,11 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
     HardWorkDTO findFirstByOrderByBlockDateDesc();
 
+    @Query("select t from HardWorkDTO t where "
+        + "t.blockDate > :from and t.blockDate <= :to order by t.blockDate")
+    List<HardWorkDTO> fetchAllInRange(@Param("from") long from,
+                                      @Param("to") long to);
+
     @Query(""
         + "select sum(t.shareChangeUsd) from HardWorkDTO t "
         + "where t.vault = :vault "
