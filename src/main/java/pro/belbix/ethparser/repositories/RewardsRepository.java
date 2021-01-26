@@ -12,6 +12,10 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
 
     RewardDTO getFirstByVaultOrderByBlockDateDesc(String vault);
 
+    @Query("select t from RewardDTO t where "
+        + "t.blockDate > :from and t.blockDate <= :to order by t.blockDate")
+    List<RewardDTO> fetchAllByRange(@Param("from") long from, @Param("to") long to);
+
     @Query("select t from RewardDTO t where t.vault = :vault and t.blockDate > :date")
     List<RewardDTO> fetchRewardsByVaultAfterBlockDate(@Param("vault") String vault, @Param("date") long date);
 

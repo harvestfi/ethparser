@@ -2,6 +2,7 @@ package pro.belbix.ethparser.utils.recalculation;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.RewardsRepository;
@@ -16,6 +17,11 @@ public class RewardRecalculate {
     private final RewardsRepository rewardsRepository;
     private final PriceProvider priceProvider;
 
+    @Value("${rewards-recalculate.from:}")
+    private Integer from;
+    @Value("${rewards-recalculate.to:}")
+    private Integer to;
+
     public RewardRecalculate(RewardsDBService rewardsDBService,
                              RewardsRepository rewardsRepository, PriceProvider priceProvider) {
         this.rewardsDBService = rewardsDBService;
@@ -24,8 +30,14 @@ public class RewardRecalculate {
     }
 
     public void start() {
+        if (from == null) {
+            from = 0;
+        }
+        if (to == null) {
+            to = Integer.MAX_VALUE;
+        }
         priceProvider.setUpdateBlockDifference(1);
-        List<RewardDTO> rewards = rewardsRepository.getAllByOrderByBlockDate();
+        List<RewardDTO> rewards = rewardsRepository.fetchAllByRange(from, to);
         int count = 0;
         for (RewardDTO dto : rewards) {
             try {
