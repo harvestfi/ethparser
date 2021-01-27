@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
 
 import java.time.Instant;
 import java.util.Set;
@@ -99,7 +100,9 @@ public class RewardParser implements Web3Parser {
         if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        if (!notWaitNewBlock.contains(appProperties.getStartUtil()) && waitNewBlock) {
+        if (!ST_PS.equals(tx.getVault().getValue())
+            && !notWaitNewBlock.contains(appProperties.getStartUtil())
+            && waitNewBlock) {
             log.info("Wait new block for correct parsing rewards");
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
