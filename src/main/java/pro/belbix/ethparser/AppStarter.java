@@ -7,6 +7,7 @@ import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.IMPORTANT_EVENTS_TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.PRICES_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
@@ -27,6 +28,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapTransactionsParser;
 import pro.belbix.ethparser.ws.WsService;
@@ -47,6 +49,8 @@ public class AppStarter {
     private final TransferParser transferParser;
     private final WsService ws;
     private final AppProperties conf;
+    private final PriceLogParser priceLogParser;
+
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
     private boolean web3LogsStarted = false;
@@ -60,7 +64,8 @@ public class AppStarter {
                       ImportantEventsParser importantEventsParser,
                       UniToHarvestConverter uniToHarvestConverter,
                       TransferParser transferParser, WsService wsService,
-                      AppProperties appProperties) {
+                      AppProperties appProperties,
+                      PriceLogParser priceLogParser) {
         this.web3Service = web3Service;
         this.uniswapTransactionsParser = uniswapTransactionsParser;
         this.harvestTransactionsParser = harvestTransactionsParser;
@@ -73,6 +78,7 @@ public class AppStarter {
         this.transferParser = transferParser;
         this.ws = wsService;
         this.conf = appProperties;
+        this.priceLogParser = priceLogParser;
     }
 
     public void start() {
@@ -116,6 +122,9 @@ public class AppStarter {
             }
             if (conf.isParseTransfers()) {
                 startParse(web3Service, transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+            }
+            if (conf.isParsePrices()) {
+                startParse(web3Service, priceLogParser, ws, PRICES_TOPIC_NAME, true);
             }
         }
     }

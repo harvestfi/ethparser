@@ -16,13 +16,11 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.model.LpStat;
-import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
@@ -105,19 +103,16 @@ public class HarvestDBService {
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);
-        if (dto.getPrices() != null && !dto.getPrices().contains("NaN")) {
-            for (String vaultName : contracts) {
-                HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
-                if (lastHarvest == null) {
-                    continue;
-                }
-                if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
-                    lastHarvest = dto; // for avoiding JPA wrong synchronisation
-                }
-                tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
+
+        for (String vaultName : contracts) {
+            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+            if (lastHarvest == null) {
+                continue;
             }
-        } else {
-            log.warn("Wrong prices " + dto);
+            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                lastHarvest = dto; // for avoiding JPA wrong synchronisation
+            }
+            tvl += calculateActualTvl(lastHarvest, farmPrice);
         }
 
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
@@ -147,20 +142,16 @@ public class HarvestDBService {
         return harvestTvl;
     }
 
-    private double calculateActualTvl(HarvestDTO dto, String currentPrices, Double farmPrice) {
-        if (currentPrices == null) {
-            return dto.getLastUsdTvl();
-        }
+    private double calculateActualTvl(HarvestDTO dto, Double farmPrice) {
         String lpStatStr = dto.getLpStat();
         double tvl = 0.0;
         try {
-            PricesModel pricesModel = objectMapper.readValue(currentPrices, PricesModel.class);
             if (lpStatStr == null) {
                 double coinPrice = 0.0;
                 if (("PS".equals(dto.getVault()) || "PS_V0".equals(dto.getVault())) && farmPrice != null) {
                     coinPrice = farmPrice;
                 } else {
-                    coinPrice = PriceProvider.readPrice(pricesModel, dto.getVault());
+                    coinPrice = dto.getUnderlyingPrice();
                 }
                 tvl = dto.getLastTvl() * coinPrice;
             } else {
@@ -170,14 +161,14 @@ public class HarvestDBService {
                 if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
                     coin1Price = farmPrice;
                 } else {
-                    coin1Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin1());
+                    coin1Price = lpStat.getPrice1();
                 }
 
                 double coin2Price;
                 if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
                     coin2Price = farmPrice;
                 } else {
-                    coin2Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin2());
+                    coin2Price = lpStat.getPrice2();
                 }
 
                 tvl = (lpStat.getAmount1() * coin1Price) + (lpStat.getAmount2() * coin2Price);

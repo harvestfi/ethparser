@@ -90,7 +90,7 @@ public class Tokens {
             .addLp("UNI_LP_WBTC_BADGER", 0, WBTC_NAME));
 
         addTokenInfo(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
-            .addLp("UNI_LP_ETH_USDC", 0, USDC_NAME));
+            .addLp("UNI_LP_USDC_ETH", 0, USDC_NAME));
 
         addTokenInfo(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0).setDivider(D8)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));

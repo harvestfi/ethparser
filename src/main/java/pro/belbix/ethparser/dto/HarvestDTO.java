@@ -45,6 +45,7 @@ public class HarvestDTO implements DtoI {
     private Integer allOwnersCount;
     private Integer allPoolsOwnersCount;
     private boolean migrated = false;
+    private Double underlyingPrice;
     @Transient
     private HarvestDTO migration;
 

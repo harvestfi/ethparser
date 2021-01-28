@@ -46,14 +46,6 @@ public class TvlRecalculate {
         List<HarvestTvlEntity> tvls = new ArrayList<>();
         for (HarvestDTO harvestDTO : harvestDTOList) {
             count++;
-            if (harvestDTO.getPrices() == null || harvestDTO.getPrices().contains("NaN")) {
-                try {
-                    harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock()));
-                } catch (JsonProcessingException e) {
-                    log.error("Error parse prices", e);
-                }
-                harvestRepository.save(harvestDTO);
-            }
             HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(harvestDTO, false);
             tvls.add(tvl);
             if (count % 100 == 0) {

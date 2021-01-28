@@ -176,7 +176,9 @@ public class HardWorkParser implements Web3Parser {
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
-                dto.setShareChangeUsd(reward);
+                double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                double stReward = ((reward * farmPrice) / 0.3) * 0.7;
+                dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
 

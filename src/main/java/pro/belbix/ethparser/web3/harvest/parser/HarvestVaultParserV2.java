@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     private Instant lastTx = Instant.now();
     private long count = 0;
+    private final static ObjectMapper objectMapper = new ObjectMapper();
 
     public HarvestVaultParserV2(Web3Service web3Service,
                                 HarvestDBService harvestDBService,
@@ -302,13 +304,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
     public void enrichDto(HarvestDTO dto) {
         //set gas
         dto.setLastGas(web3Service.fetchAverageGasPrice());
-
-        //write all prices
-        try {
-            dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
-        } catch (Exception e) {
-            log.error("Error get prices", e);
-        }
     }
 
     private void fillUsdPrice(HarvestDTO dto) {
@@ -325,7 +320,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + dto.getVault());
         }
-
+        dto.setUnderlyingPrice(price);
         double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
@@ -378,7 +373,13 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double firstVault = vaultFraction * lpUnderlyingBalance1;
         double secondVault = vaultFraction * lpUnderlyingBalance2;
 
-        dto.setLpStat(LpStat.createJson(lpHash, firstVault, secondVault));
+        dto.setLpStat(LpStat.createJson(
+            lpHash,
+            firstVault,
+            secondVault,
+            uniPrices.component1(),
+            uniPrices.component2()
+        ));
 
         Long firstVaultUsdAmount = Math.round(firstVault * uniPrices.component1());
         Long secondVaultUsdAmount = Math.round(secondVault * uniPrices.component2());

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSG;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,23 @@ public class PriceLogParserTest {
     @Test
     public void priceParse() {
         assertOnBlock(
+            UNI_LP_USDC_WBTC,
+            11733803,
+            1,
+            "0xe0c327a5bd20bfb33cd21302bba266c84adca8c5191e328c31501b182fbe68eb_20",
+            "UNI_LP_USDC_WBTC",
+            true,
+            "WBTC",
+            0.372,
+            "USDC",
+            11982.818413,
+            32211.877454301077
+        );
+    }
+
+    @Test
+    public void priceParseUNI_LP_DAI_BSG() {
+        assertOnBlock(
             UNI_LP_DAI_BSG,
             11644538,
             1,
@@ -40,9 +58,9 @@ public class PriceLogParserTest {
             "UNI_LP_DAI_BSG",
             true,
             "BSG",
-            9.95014151163403E14,
+            9.95014151163403E-4,
             "DAI",
-            2.0016815759936366E20,
+            200.16815759936367,
             201171.166626445
         );
     }

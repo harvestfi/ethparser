@@ -20,13 +20,13 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSGS;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DAI;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDT;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAAPL_UST;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAMZN_UST;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MGOOGL_UST;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MTSLA_UST;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
@@ -114,12 +114,12 @@ public class Vaults {
 
         // todo add non lp
         underlyingToken.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
-        underlyingToken.put(UNI_ETH_USDC, UNI_LP_ETH_USDC);
+        underlyingToken.put(UNI_ETH_USDC, UNI_LP_USDC_ETH);
         underlyingToken.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
         underlyingToken.put(UNI_ETH_WBTC, UNI_LP_ETH_WBTC);
         underlyingToken.put(SUSHI_WBTC_TBTC, SUSHI_LP_WBTC_TBTC);
         underlyingToken.put(UNI_ETH_DAI_V0, UNI_LP_ETH_DAI);
-        underlyingToken.put(UNI_ETH_USDC_V0, UNI_LP_ETH_USDC);
+        underlyingToken.put(UNI_ETH_USDC_V0, UNI_LP_USDC_ETH);
         underlyingToken.put(UNI_ETH_USDT_V0, UNI_LP_ETH_USDT);
         underlyingToken.put(UNI_ETH_WBTC_V0, UNI_LP_ETH_WBTC);
         underlyingToken.put(SUSHI_ETH_DAI, SUSHI_LP_ETH_DAI);

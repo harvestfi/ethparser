@@ -9,7 +9,6 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WET
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findLpForCoins;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findNameForLpHash;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -94,11 +93,6 @@ public class UniToHarvestConverter implements Web3Parser {
 
         fillUsdValuesForLP(uniswapDTO, harvestDTO, lpHash);
 
-        try {
-            harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock()));
-        } catch (JsonProcessingException e) {
-            log.info("Error parse prices");
-        }
         log.info(harvestDTO.print());
         return harvestDTO;
     }
@@ -139,9 +133,14 @@ public class UniToHarvestConverter implements Web3Parser {
         double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
         double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 
-        harvestDTO.setLpStat(LpStat.createJson(lpHash, firstCoinBalance, secondCoinBalance));
-
         Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
+        harvestDTO.setLpStat(LpStat.createJson(
+            lpHash,
+            firstCoinBalance,
+            secondCoinBalance,
+            uniPrices.component1(),
+            uniPrices.component2()
+        ));
         double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
         double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
         double vaultUsdAmount = firstCoinUsdAmount + secondCoinUsdAmount;

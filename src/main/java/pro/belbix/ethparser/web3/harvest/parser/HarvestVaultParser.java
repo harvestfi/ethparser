@@ -151,13 +151,6 @@ public class HarvestVaultParser implements Web3Parser {
     public void enrichDto(HarvestDTO dto) {
         //set gas
         dto.setLastGas(web3Service.fetchAverageGasPrice());
-
-        //write all prices
-        try {
-            dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
-        } catch (Exception e) {
-            log.error("Error get prices", e);
-        }
     }
 
     private HarvestDTO createStubPriceDto() {

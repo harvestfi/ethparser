@@ -32,6 +32,7 @@ public class AppProperties {
     private boolean parseImportantEvents = true;
     private boolean convertUniToHarvest = true;
     private boolean parseTransfers = true;
+    private boolean parsePrices = true;
 
     private String startBlock = "";
     private boolean parseTransactions = false;

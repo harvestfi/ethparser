@@ -9,14 +9,14 @@ import lombok.Data;
 
 @Entity
 @Table(name = "prices", indexes = {
-    @Index(name = "idx_prices", columnList = "blockDate")
+    @Index(name = "idx_prices", columnList = "block")
 })
 @Data
 public class PriceDTO implements DtoI {
 
     @Id
     private String id;
-    private BigInteger block;
+    private Long block;
     private Long blockDate;
     private String token;
     private Double tokenAmount;

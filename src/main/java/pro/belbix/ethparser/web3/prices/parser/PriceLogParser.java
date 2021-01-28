@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -28,8 +30,8 @@ public class PriceLogParser implements Web3Parser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final PriceDecoder priceDecoder = new PriceDecoder();
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10000);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10000);
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
@@ -93,7 +95,7 @@ public class PriceLogParser implements Web3Parser {
         boolean buy = isBuy(tx, keyCoinFirst);
 
         dto.setId(tx.getHash() + "_" + tx.getLogId());
-        dto.setBlock(tx.getBlock());
+        dto.setBlock(tx.getBlock().longValue());
         dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
         dto.setBuy(buy);
         dto.setSource(LpContracts.findNameForLpHash(tx.getSource()));
@@ -152,22 +154,27 @@ public class PriceLogParser implements Web3Parser {
     private static void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst, boolean buy) {
         if (keyCoinFirst) {
             if (buy) {
-                dto.setTokenAmount(tx.getIntegers()[2].doubleValue());
-                dto.setOtherTokenAmount(tx.getIntegers()[1].doubleValue());
+                dto.setTokenAmount(parseAmountFromTx(tx, 2, dto.getToken()));
+                dto.setOtherTokenAmount(parseAmountFromTx(tx, 1, dto.getOtherToken()));
             } else {
-                dto.setTokenAmount(tx.getIntegers()[0].doubleValue());
-                dto.setOtherTokenAmount(tx.getIntegers()[3].doubleValue());
+                dto.setTokenAmount(parseAmountFromTx(tx, 0, dto.getToken()));
+                dto.setOtherTokenAmount(parseAmountFromTx(tx, 3, dto.getOtherToken()));
             }
         } else {
             if (buy) {
-                dto.setTokenAmount(tx.getIntegers()[3].doubleValue());
-                dto.setOtherTokenAmount(tx.getIntegers()[0].doubleValue());
+                dto.setTokenAmount(parseAmountFromTx(tx, 3, dto.getToken()));
+                dto.setOtherTokenAmount(parseAmountFromTx(tx, 0, dto.getOtherToken()));
             } else {
-                dto.setTokenAmount(tx.getIntegers()[1].doubleValue());
-                dto.setOtherTokenAmount(tx.getIntegers()[2].doubleValue());
+                dto.setTokenAmount(parseAmountFromTx(tx, 1, dto.getToken()));
+                dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherToken()));
             }
         }
+
         dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
+    }
+
+    private static double parseAmountFromTx(PriceTx tx, int i, String name) {
+        return parseAmount(tx.getIntegers()[i], Tokens.findContractForName(name));
     }
 
     private static boolean isZero(PriceTx tx, int i) {
