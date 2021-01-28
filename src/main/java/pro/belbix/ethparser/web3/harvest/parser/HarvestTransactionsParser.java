@@ -8,8 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -25,9 +24,9 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 
 @Service
+@Log4j2
 public class HarvestTransactionsParser implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestTransactionsParser.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
     private final Web3Service web3Service;
@@ -75,11 +74,6 @@ public class HarvestTransactionsParser implements Web3Parser {
         }).start();
     }
 
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
-    }
-
     HarvestDTO parseHarvestTransaction(Transaction tx) {
         incrementAndPrintCount(tx);
         if (!isValidTransaction(tx)) {
@@ -96,6 +90,25 @@ public class HarvestTransactionsParser implements Web3Parser {
         dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlockNumber().longValue()));
         print(dto);
         return dto;
+    }
+
+    private void incrementAndPrintCount(Transaction tx) {
+        parsedTxCount++;
+        if (parsedTxCount % LOG_LAST_PARSED_COUNT == 0) {
+            log.info("Harvest parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
+        }
+    }
+
+    private boolean isValidTransaction(Transaction tx) {
+        if (tx == null) {
+            log.error("Null clear tx!");
+            return false;
+        }
+        if (tx.getTo() == null) {
+            //it is contract deploy
+            return false;
+        }
+        return Vaults.vaultHashToName.containsKey(tx.getTo().toLowerCase());
     }
 
     private HarvestTx decodeTransaction(Transaction tx) {
@@ -133,23 +146,9 @@ public class HarvestTransactionsParser implements Web3Parser {
         }
     }
 
-    private boolean isValidTransaction(Transaction tx) {
-        if (tx == null) {
-            log.error("Null clear tx!");
-            return false;
-        }
-        if (tx.getTo() == null) {
-            //it is contract deploy
-            return false;
-        }
-        return Vaults.vaultHashToName.containsKey(tx.getTo().toLowerCase());
-    }
-
-    private void incrementAndPrintCount(Transaction tx) {
-        parsedTxCount++;
-        if (parsedTxCount % LOG_LAST_PARSED_COUNT == 0) {
-            log.info("Harvest parsed " + parsedTxCount + ", last block: " + tx.getBlockNumber());
-        }
+    @Override
+    public BlockingQueue<DtoI> getOutput() {
+        return output;
     }
 
     @PreDestroy

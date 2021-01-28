@@ -1,8 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.db;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +14,7 @@ import pro.belbix.ethparser.repositories.UniswapRepository;
 @Service
 @Log4j2
 public class IncomeDBService {
+
     public static final String DO_HARD_WORK = "0xbed04c43e74150794f2ff5b62b4f73820edaf661";
     private final UniswapRepository uniswapRepository;
     private final HarvestRepository harvestRepository;

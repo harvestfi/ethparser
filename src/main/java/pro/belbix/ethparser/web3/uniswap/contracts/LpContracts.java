@@ -182,16 +182,6 @@ public class LpContracts {
         oneInch.add(ONEINCH_LP_ETH_WBTC);
     }
 
-    public static Tuple2<Double, Double> findLpTokensDividers(String lpHash) {
-        Tuple2<String, String> coinNames = lpHashToCoinNames.get(lpHash);
-        if (coinNames == null) {
-            throw new IllegalStateException("Not found coin names for " + lpHash);
-        }
-        double token1Divider = Tokens.getTokenInfo(coinNames.component1()).getDivider();
-        double token2Divider = Tokens.getTokenInfo(coinNames.component2()).getDivider();
-        return new Tuple2<>(token1Divider, token2Divider);
-    }
-
     public static Map<String, Double> getLpDividers() {
         Map<String, Double> dividers = new HashMap<>();
         for (String lpHash : lpHashToCoinNames.keySet()) {
@@ -264,6 +254,16 @@ public class LpContracts {
         }
 
         return amount.doubleValue() / divider;
+    }
+
+    public static Tuple2<Double, Double> findLpTokensDividers(String lpHash) {
+        Tuple2<String, String> coinNames = lpHashToCoinNames.get(lpHash);
+        if (coinNames == null) {
+            throw new IllegalStateException("Not found coin names for " + lpHash);
+        }
+        double token1Divider = Tokens.getTokenInfo(coinNames.component1()).getDivider();
+        double token2Divider = Tokens.getTokenInfo(coinNames.component2()).getDivider();
+        return new Tuple2<>(token1Divider, token2Divider);
     }
 
     //dangerous, but useful

@@ -22,7 +22,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @RunWith(SpringRunner.class)

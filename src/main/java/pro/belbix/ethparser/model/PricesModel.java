@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class PricesModel {
+
     private Double btc;
     private Double eth;
     private Double dpi;

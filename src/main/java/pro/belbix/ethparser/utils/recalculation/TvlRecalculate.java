@@ -2,35 +2,23 @@ package pro.belbix.ethparser.utils.recalculation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
-import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
-import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
+@Log4j2
 public class TvlRecalculate {
 
-    private static final Logger log = LoggerFactory.getLogger(TvlRecalculate.class);
-    private final Map<String, TreeMap<Long, HarvestDTO>> harvestVaults = new HashMap<>();
-    private final TreeMap<Long, UniswapDTO> uniswapDTOTreeMap = new TreeMap<>();
-
     private final HarvestRepository harvestRepository;
-    private final AppProperties appProperties;
     private final HarvestTvlRepository harvestTvlRepository;
-    private final UniswapRepository uniswapRepository;
     private final PriceProvider priceProvider;
     private final HarvestDBService harvestDBService;
 
@@ -38,14 +26,11 @@ public class TvlRecalculate {
     private Integer from;
 
     public TvlRecalculate(HarvestRepository harvestRepository,
-                          AppProperties appProperties,
                           HarvestTvlRepository harvestTvlRepository,
-                          UniswapRepository uniswapRepository, PriceProvider priceProvider,
+                          PriceProvider priceProvider,
                           HarvestDBService harvestDBService) {
         this.harvestRepository = harvestRepository;
-        this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
-        this.uniswapRepository = uniswapRepository;
         this.priceProvider = priceProvider;
         this.harvestDBService = harvestDBService;
     }

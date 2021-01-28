@@ -50,12 +50,10 @@ public enum TransferType {
     REWARD,
     HARD_WORK;
 
-    private static final String FEE_REWARD_FORWARDER = "0x9397bd6fB1EC46B7860C8073D2cb83BE34270D94".toLowerCase();
     public static final Set<String> NOT_TRADE = new HashSet<>(Arrays.stream(TransferType.values())
         .filter(t -> t != LP_BUY && t != LP_SELL)
         .map(Enum::name)
         .collect(Collectors.toList()));
-
     public static final Set<String> KEEP_OWNERSHIP = new HashSet<>(Arrays.stream(TransferType.values())
         .filter(t ->
             t != PS_STAKE
@@ -65,16 +63,7 @@ public enum TransferType {
         )
         .map(Enum::name)
         .collect(Collectors.toList()));
-
-    public boolean isUser() {
-        return !(
-            this == NOTIFY
-                || this == MINT
-                || this == HARD_WORK
-                || this == PS_INTERNAL
-                || this == BOT
-        );
-    }
+    private static final String FEE_REWARD_FORWARDER = "0x9397bd6fB1EC46B7860C8073D2cb83BE34270D94".toLowerCase();
 
     public static TransferType getType(TransferDTO dto) {
         String recipient = dto.getRecipient().toLowerCase();
@@ -167,5 +156,15 @@ public enum TransferType {
         }
 
         return COMMON;
+    }
+
+    public boolean isUser() {
+        return !(
+            this == NOTIFY
+                || this == MINT
+                || this == HARD_WORK
+                || this == PS_INTERNAL
+                || this == BOT
+        );
     }
 }

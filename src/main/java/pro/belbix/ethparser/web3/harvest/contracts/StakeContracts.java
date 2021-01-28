@@ -80,7 +80,7 @@ public class StakeContracts {
     //dangerous, but useful
     private static void initMaps() throws IllegalAccessException, NoSuchFieldException {
         for (Field field : StakeContracts.class.getDeclaredFields()) {
-            if(!(field.get(null) instanceof String)) {
+            if (!(field.get(null) instanceof String)) {
                 continue;
             }
             hashToName.put((String) field.get(null), field.getName());
@@ -92,7 +92,7 @@ public class StakeContracts {
                 vault = Vaults.class.getDeclaredField(baseName);
             } catch (NoSuchFieldException ignored) {
             }
-            if(vault != null) {
+            if (vault != null) {
                 vaultHashToStakeHash.put((String) vault.get(null), (String) field.get(null));
             } else {
                 Field lp = LpContracts.class.getDeclaredField(baseName);

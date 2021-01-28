@@ -1,19 +1,17 @@
 package pro.belbix.ethparser.utils.recalculation;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
-import pro.belbix.ethparser.web3.uniswap.downloader.DownloadIncome;
 
 @Service
+@Log4j2
 public class HardWorkRecalculate {
 
-    private final static Logger log = LoggerFactory.getLogger(DownloadIncome.class);
     private final HardWorkRepository hardWorkRepository;
     private final HardWorkDbService hardWorkDbService;
 

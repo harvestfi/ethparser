@@ -66,7 +66,6 @@ public class UniswapDTO implements DtoI {
         return ADD_LIQ.equals(type) || REMOVE_LIQ.equals(type);
     }
 
-
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
             + type + " "

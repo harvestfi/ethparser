@@ -12,6 +12,7 @@ import pro.belbix.ethparser.repositories.HarvestRepository;
 @Service
 @Log4j2
 public class BlockCacher {
+
     private final HarvestRepository harvestRepository;
     private final BlockCacheRepository blockCacheRepository;
 

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class HardWorkTx {
+
     private String hash;
     private String logId;
     private String vault;

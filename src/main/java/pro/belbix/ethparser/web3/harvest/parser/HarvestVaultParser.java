@@ -16,8 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
@@ -30,19 +29,19 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
 @Deprecated
+@Log4j2
 public class HarvestVaultParser implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParser.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("withdraw", "deposit"));
@@ -50,13 +49,12 @@ public class HarvestVaultParser implements Web3Parser {
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
-
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final ParserInfo parserInfo;
+    private Instant lastTx = Instant.now();
 
     public HarvestVaultParser(Web3Service web3Service,
                               HarvestDBService harvestDBService,
@@ -128,7 +126,8 @@ public class HarvestVaultParser implements Web3Parser {
         HarvestDTO dto = harvestTx.toDto();
 
         //enrich date
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
+        dto.setBlockDate(
+            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
         //enrich owner
         dto.setOwner(receipt.getFrom());
@@ -144,6 +143,21 @@ public class HarvestVaultParser implements Web3Parser {
 
         log.info(dto.print());
         return dto;
+    }
+
+    /**
+     * Separate method for avoid any unnecessary enrichment for other methods
+     */
+    public void enrichDto(HarvestDTO dto) {
+        //set gas
+        dto.setLastGas(web3Service.fetchAverageGasPrice());
+
+        //write all prices
+        try {
+            dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
+        } catch (Exception e) {
+            log.error("Error get prices", e);
+        }
     }
 
     private HarvestDTO createStubPriceDto() {
@@ -191,46 +205,12 @@ public class HarvestVaultParser implements Web3Parser {
         throw new IllegalStateException("Not found transfer value " + harvestTx.getHash());
     }
 
-    /**
-     * Separate method for avoid any unnecessary enrichment for other methods
-     */
-    public void enrichDto(HarvestDTO dto) {
-        //set gas
-        dto.setLastGas(web3Service.fetchAverageGasPrice());
-
-        //write all prices
-        try {
-            dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
-        } catch (Exception e) {
-            log.error("Error get prices", e);
-        }
-    }
-
     private void fillUsdPrice(HarvestDTO dto, String strategyHash) {
         if (Vaults.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto, strategyHash);
         } else {
             fillUsdValues(dto, strategyHash);
         }
-    }
-
-    private void fillUsdValues(HarvestDTO dto, String vaultHash) {
-        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
-        if (price == null) {
-            throw new IllegalStateException("Unknown coin " + dto.getVault());
-        }
-
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
-            vaultHash);
-        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock()),
-            vaultHash);
-        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock()),
-            vaultHash);
-
-        double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
-        dto.setLastTvl(vault);
-        dto.setLastUsdTvl((double) Math.round(vault * price));
-        dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
     }
 
     private void fillUsdValuesForLP(HarvestDTO dto, String vaultHash) {
@@ -272,6 +252,25 @@ public class HarvestVaultParser implements Web3Parser {
         double txFraction = (dto.getAmount() / vaultBalance);
         long txUsdAmount = Math.round(vaultUsdAmount * txFraction);
         dto.setUsdAmount(txUsdAmount);
+    }
+
+    private void fillUsdValues(HarvestDTO dto, String vaultHash) {
+        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
+        if (price == null) {
+            throw new IllegalStateException("Unknown coin " + dto.getVault());
+        }
+
+        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
+            vaultHash);
+        double sharedPrice = parseAmount(functions.callPricePerFullShare(vaultHash, dto.getBlock()),
+            vaultHash);
+        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock()),
+            vaultHash);
+
+        double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
+        dto.setLastTvl(vault);
+        dto.setLastUsdTvl((double) Math.round(vault * price));
+        dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
     }
 
     @Override

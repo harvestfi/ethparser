@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.RewardsRepository;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2

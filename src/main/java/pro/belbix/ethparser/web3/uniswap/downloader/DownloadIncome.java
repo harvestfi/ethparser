@@ -3,17 +3,16 @@ package pro.belbix.ethparser.web3.uniswap.downloader;
 import static pro.belbix.ethparser.web3.uniswap.db.IncomeDBService.DO_HARD_WORK;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.uniswap.db.IncomeDBService;
 
 @Service
+@Log4j2
 public class DownloadIncome {
 
-    private final static Logger log = LoggerFactory.getLogger(DownloadIncome.class);
     private final UniswapRepository uniswapRepository;
     private final IncomeDBService incomeDBService;
 

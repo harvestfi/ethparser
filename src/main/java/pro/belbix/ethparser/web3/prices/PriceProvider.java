@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
@@ -29,29 +29,74 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.PricesModel;
+import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.erc20.TokenInfo;
 import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
+@Log4j2
 public class PriceProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
-    private long updateBlockDifference = 5;
-
     private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
-
     private final Functions functions;
+    private long updateBlockDifference = 5;
 
     public PriceProvider(Functions functions) {
         this.functions = functions;
+    }
+
+    public static double readPrice(PricesModel pricesModel, String coinName) {
+        coinName = simplifyName(coinName);
+        if (isStableCoin(coinName)) {
+            return 1.0;
+        }
+        //todo refactoring price model
+        switch (coinName) {
+            case WBTC_NAME:
+                return pricesModel.getBtc();
+            case WETH_NAME:
+                return pricesModel.getEth();
+            case DPI_NAME:
+                return pricesModel.getDpi();
+            case GRAIN_NAME:
+                return pricesModel.getGrain();
+            case BAC_NAME:
+                return pricesModel.getBac();
+            case BAS_NAME:
+                return pricesModel.getBas();
+            case MIC_NAME:
+                return pricesModel.getMic();
+            case MIS_NAME:
+                return pricesModel.getMis();
+            case BSG_NAME:
+                return pricesModel.getBsg();
+            case BSGS_NAME:
+                return pricesModel.getBsgs();
+            case ESD_NAME:
+                return pricesModel.getEsd();
+            case DSD_NAME:
+                return pricesModel.getDsd();
+            case MAAPL_NAME:
+                return pricesModel.getMaapl();
+            case MAMZN_NAME:
+                return pricesModel.getMamzn();
+            case MGOOGL_NAME:
+                return pricesModel.getMgoogl();
+            case MTSLA_NAME:
+                return pricesModel.getMtsla();
+            case EURS_NAME:
+                return pricesModel.getEurs();
+            default:
+                log.warn("Not found price for {}", coinName);
+                return 0;
+        }
     }
 
     public void setUpdateBlockDifference(long updateBlockDifference) {
@@ -171,53 +216,6 @@ public class PriceProvider {
 
         price *= getPriceForCoin(otherTokenName, block);
         return price;
-    }
-
-    public static double readPrice(PricesModel pricesModel, String coinName) {
-        coinName = simplifyName(coinName);
-        if (isStableCoin(coinName)) {
-            return 1.0;
-        }
-        //todo refactoring price model
-        switch (coinName) {
-            case WBTC_NAME:
-                return pricesModel.getBtc();
-            case WETH_NAME:
-                return pricesModel.getEth();
-            case DPI_NAME:
-                return pricesModel.getDpi();
-            case GRAIN_NAME:
-                return pricesModel.getGrain();
-            case BAC_NAME:
-                return pricesModel.getBac();
-            case BAS_NAME:
-                return pricesModel.getBas();
-            case MIC_NAME:
-                return pricesModel.getMic();
-            case MIS_NAME:
-                return pricesModel.getMis();
-            case BSG_NAME:
-                return pricesModel.getBsg();
-            case BSGS_NAME:
-                return pricesModel.getBsgs();
-            case ESD_NAME:
-                return pricesModel.getEsd();
-            case DSD_NAME:
-                return pricesModel.getDsd();
-            case MAAPL_NAME:
-                return pricesModel.getMaapl();
-            case MAMZN_NAME:
-                return pricesModel.getMamzn();
-            case MGOOGL_NAME:
-                return pricesModel.getMgoogl();
-            case MTSLA_NAME:
-                return pricesModel.getMtsla();
-            case EURS_NAME:
-                return pricesModel.getEurs();
-            default:
-                log.warn("Not found price for {}", coinName);
-                return 0;
-        }
     }
 
     private boolean hasFreshPrice(String name, long block) {

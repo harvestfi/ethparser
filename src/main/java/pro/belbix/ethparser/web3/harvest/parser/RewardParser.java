@@ -11,8 +11,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
@@ -29,23 +28,22 @@ import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 @Service
+@Log4j2
 public class RewardParser implements Web3Parser {
 
-    private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
-    private static final Logger log = LoggerFactory.getLogger(RewardParser.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
+    private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
-    private Instant lastTx = Instant.now();
-    private boolean waitNewBlock = true;
-
     private final Functions functions;
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final RewardsDBService rewardsDBService;
     private final AppProperties appProperties;
     private final ParserInfo parserInfo;
+    private Instant lastTx = Instant.now();
+    private boolean waitNewBlock = true;
 
     public RewardParser(Functions functions,
                         Web3Service web3Service,

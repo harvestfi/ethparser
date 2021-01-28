@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class TvlHistory {
+
     private long calculateTime;
     private double lastTvl;
     private double sharePrice;

@@ -10,8 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
@@ -22,14 +21,14 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
+@Log4j2
 public class HarvestDBService {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestDBService.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
 
     private final HarvestRepository harvestRepository;
@@ -45,6 +44,10 @@ public class HarvestDBService {
         this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
         this.uniswapRepository = uniswapRepository;
+    }
+
+    public static double aprToApy(double apr, double period) {
+        return (Math.pow(1 + (apr / period), period) - 1.0);
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
@@ -144,14 +147,6 @@ public class HarvestDBService {
         return harvestTvl;
     }
 
-    public BigInteger lastBlock() {
-        HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
-        if (dto == null) {
-            return new BigInteger("0");
-        }
-        return BigInteger.valueOf(dto.getBlock());
-    }
-
     private double calculateActualTvl(HarvestDTO dto, String currentPrices, Double farmPrice) {
         if (currentPrices == null) {
             return dto.getLastUsdTvl();
@@ -198,6 +193,14 @@ public class HarvestDBService {
         return tvl;
     }
 
+    public BigInteger lastBlock() {
+        HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
+        if (dto == null) {
+            return new BigInteger("0");
+        }
+        return BigInteger.valueOf(dto.getBlock());
+    }
+
     public List<HarvestDTO> fetchHarvest(String from, String to) {
         if (from == null && to == null) {
             return harvestRepository.fetchAllFromBlockDate(
@@ -212,10 +215,6 @@ public class HarvestDBService {
             toI = Integer.parseInt(to);
         }
         return harvestRepository.fetchAllByPeriod(fromI, toI);
-    }
-
-    public static double aprToApy(double apr, double period) {
-        return (Math.pow(1 + (apr / period), period) - 1.0);
     }
 
 }

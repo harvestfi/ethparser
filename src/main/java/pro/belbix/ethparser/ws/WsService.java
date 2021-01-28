@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class WsService {
+
     public final static String UNI_TRANSACTIONS_TOPIC_NAME = "/topic/transactions";
     public final static String HARVEST_TRANSACTIONS_TOPIC_NAME = "/topic/harvest";
     public final static String HARDWORK_TOPIC_NAME = "/topic/hardwork";

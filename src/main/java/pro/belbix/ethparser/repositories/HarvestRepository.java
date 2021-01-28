@@ -102,7 +102,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     @Query("select avg(t.lastUsdTvl) as period from HarvestDTO t where "
         + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchAverageTvl(@Param("vault") String vault,
-                                   @Param("from") long from,
+                                 @Param("from") long from,
                                  @Param("to") long to,
                                  Pageable pageable);
 
@@ -183,7 +183,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         "       null      owner_balance_usd, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_owners_count)), '_', -1) all_owners_count, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_all_usd_tvl)), '_', -1)      last_all_usd_tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, "
+        +
         "       false      migrated " +
         " " +
         "from harvest_tx " +

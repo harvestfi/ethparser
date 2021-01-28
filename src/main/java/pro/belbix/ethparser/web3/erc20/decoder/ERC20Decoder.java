@@ -12,31 +12,23 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 
 public class ERC20Decoder extends MethodDecoder {
 
-    public TokenTx decode(Log log) {
-        if (!isValidLog(log)) {
+    public TokenTx decode(Log ethLog) {
+        if (!isValidLog(ethLog)) {
             return null;
         }
-        String topic0 = log.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
 
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
+        String methodId = parseMethodId(ethLog);
         String methodName = methodNamesByMethodId.get(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId);
 
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
-        }
-
-        List<Type> types = extractLogIndexedValues(log, parameters);
+        List<Type> types = extractLogIndexedValues(ethLog, parameters);
         TokenTx tx = new TokenTx();
-        tx.setLogId(log.getLogIndex().toString());
-        tx.setHash(log.getTransactionHash());
+        tx.setLogId(ethLog.getLogIndex().toString());
+        tx.setHash(ethLog.getTransactionHash());
         tx.setMethodName(methodName);
-        tx.setBlock(log.getBlockNumber().longValue());
-        tx.setBlockHash(log.getBlockHash());
-        tx.setTokenAddress(log.getAddress());
+        tx.setBlock(ethLog.getBlockNumber().longValue());
+        tx.setBlockHash(ethLog.getBlockHash());
+        tx.setTokenAddress(ethLog.getAddress());
         enrich(types, tx);
         return tx;
     }

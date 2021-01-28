@@ -6,8 +6,7 @@ import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
 import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,18 +16,17 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
+@Log4j2
 public class HardWorkDbService {
 
-    private static final Logger log = LoggerFactory.getLogger(HardWorkDbService.class);
-    private final Pageable limitOne = PageRequest.of(0, 1);
     private final static long PS_DEPLOYED = 1601389313;
     private final static long PS_OLD_DEPLOYED = 1599258042;
     private final static double HARD_WORK_COST = 0.1;
-
+    private final Pageable limitOne = PageRequest.of(0, 1);
     private final HardWorkRepository hardWorkRepository;
     private final HarvestRepository harvestRepository;
     private final AppProperties appProperties;
@@ -64,26 +62,6 @@ public class HardWorkDbService {
         calculatePsProfits(dto);
         calculateFarmBuybackSum(dto);
         fillExtraInfo(dto);
-    }
-
-    public void fillExtraInfo(HardWorkDTO dto) {
-        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate() - 1);
-        dto.setCallsQuantity(count + 1);
-        int owners = harvestRepository.fetchActualOwnerQuantity(
-            dto.getVault(),
-            Vaults.vaultNameToOldVaultName.get(dto.getVault()),
-            dto.getBlockDate());
-        dto.setPoolUsers(owners);
-
-        double ethPrice = priceProvider.getPriceForCoin(WETH_NAME, dto.getBlock());
-
-        dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
-
-        Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
-        if (feesSum == null) {
-            feesSum = 0.0;
-        }
-        dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
     }
 
     private void calculateVaultProfits(HardWorkDTO dto) {
@@ -198,5 +176,25 @@ public class HardWorkDbService {
             .filter(Caller::isFilledList)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
                 () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));
+    }
+
+    public void fillExtraInfo(HardWorkDTO dto) {
+        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate() - 1);
+        dto.setCallsQuantity(count + 1);
+        int owners = harvestRepository.fetchActualOwnerQuantity(
+            dto.getVault(),
+            Vaults.vaultNameToOldVaultName.get(dto.getVault()),
+            dto.getBlockDate());
+        dto.setPoolUsers(owners);
+
+        double ethPrice = priceProvider.getPriceForCoin(WETH_NAME, dto.getBlock());
+
+        dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
+
+        Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
+        if (feesSum == null) {
+            feesSum = 0.0;
+        }
+        dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
     }
 }

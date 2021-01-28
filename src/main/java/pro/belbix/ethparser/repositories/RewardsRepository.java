@@ -19,7 +19,6 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     @Query("select t from RewardDTO t where t.vault = :vault and t.blockDate > :date")
     List<RewardDTO> fetchRewardsByVaultAfterBlockDate(@Param("vault") String vault, @Param("date") long date);
 
-
     @Query(nativeQuery = true, value = "" +
         "select max(id)                                                              id, " +
         "       max(block)                                                                   block, " +
@@ -35,7 +34,6 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         "from rewards " +
         "group by vault")
     List<RewardDTO> fetchLastRewards();
-
 
     List<RewardDTO> getAllByVaultOrderByBlockDate(String vault);
 

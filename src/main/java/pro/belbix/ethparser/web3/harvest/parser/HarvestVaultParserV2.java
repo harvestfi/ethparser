@@ -4,7 +4,6 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
 import java.math.BigInteger;
@@ -18,8 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
@@ -33,7 +31,6 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
@@ -41,28 +38,27 @@ import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
+@Log4j2
 public class HarvestVaultParserV2 implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestVaultParserV2.class);
+    public static final double BURNED_FARM = 14850.0;
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private static final Set<String> allowedMethods = new HashSet<>(Collections.singletonList("transfer"));
-    public static final double BURNED_FARM = 14850.0;
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
-    private long count = 0;
-
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final ParserInfo parserInfo;
     private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
+    private Instant lastTx = Instant.now();
+    private long count = 0;
 
     public HarvestVaultParserV2(Web3Service web3Service,
                                 HarvestDBService harvestDBService,
@@ -371,10 +367,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         //suppose it's ONE_INCH ETH pair
         // todo investigate how to calculate it (Mooniswap contract)
-        if(lpUnderlyingBalance1 == 0) {
+        if (lpUnderlyingBalance1 == 0) {
             double coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
             lpUnderlyingBalance1 = (coin2Usd / uniPrices.component1());
-        } else if(lpUnderlyingBalance2 == 0) {
+        } else if (lpUnderlyingBalance2 == 0) {
             double coin1Usd = lpUnderlyingBalance1 * uniPrices.component1();
             lpUnderlyingBalance2 = (coin1Usd / uniPrices.component2());
         }

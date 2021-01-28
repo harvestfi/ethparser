@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,15 +8,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @RestController
 @RequestMapping(value = "/price")
+@Log4j2
 public class PriceController {
-
-    private final static Logger log = LoggerFactory.getLogger(PriceController.class);
 
     private final PriceProvider priceProvider;
     private final EthBlockService ethBlockService;
