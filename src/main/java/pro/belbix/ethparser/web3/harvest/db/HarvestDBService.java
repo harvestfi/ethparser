@@ -251,12 +251,11 @@ public class HarvestDBService {
         double deposits = 0.0;
         double profit = 0.0;
         for (HarvestDTO transfer : transfers) {
-            //lastProfit = 0;
             if (!"Withdraw".equals(transfer.getMethodName())
                 && !"Deposit".equals(transfer.getMethodName())) {
                 continue;
             }
-
+            //count all withdraws
             if ("Withdraw".equals(transfer.getMethodName())) {
                 withdraws += transfer.getAmount();
             }
@@ -269,6 +268,8 @@ public class HarvestDBService {
             // todo: negative withdraws after usdc and usdt exploit
             if (withdraws >= deposits) {
                 profit = withdraws - deposits;
+                deposits = 0;
+                withdraws = 0;
             }
         }
         return profit;

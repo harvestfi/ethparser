@@ -29,20 +29,27 @@ public class ProfitRecalculate {
 
     public void start() {
         List<HarvestDTO> harvestDTOList;
+        log.info("Loading transactions from database");
         if (from == null) {
             harvestDTOList = harvestRepository.findAllByMethodNameOrderByBlockDate("Withdraw");
         } else {
             harvestDTOList = harvestRepository.findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate("Withdraw", from);
         }
+        log.info("Loaded " + harvestDTOList.size() + " Withdraw transactions. Starting recalculation..");
+        int count = 0;
         for (HarvestDTO harvestDTO : harvestDTOList) {
             harvestDBService.fillProfit(harvestDTO);
             try {
                 if (harvestDTO.getProfit() != null && !harvestDTO.getProfit().equals(0D)) {
                     harvestRepository.save(harvestDTO);
-                    log.info("Profit recalculated for " + harvestDTO.getVault() + " " + harvestDTO.print());
+                    log.info("Profit recalculated for " + harvestDTO.print());
                 }
             } catch(Exception e) {
                 log.error("Error saving " + harvestDTO.print(), e.fillInStackTrace());
+            }
+            count++;
+            if (count % 1000 == 0) {
+                log.info(count + " done");
             }
         }
 

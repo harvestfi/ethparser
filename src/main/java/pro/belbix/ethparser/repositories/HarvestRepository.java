@@ -215,7 +215,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "where owner = :owner "
         + "and vault = :vault "
         + "and method_name = 'Withdraw' "
-        + "and block_date <= :blockDate "
+        + "and block_date < :blockDate "
         + "and profit > 0 "
         + "order by block_date desc limit 0,1")
     Long findLastFullWithdrawByOwnerAndVault(@Param("owner") String owner, 
