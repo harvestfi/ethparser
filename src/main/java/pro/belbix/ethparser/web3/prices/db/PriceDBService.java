@@ -20,7 +20,7 @@ public class PriceDBService {
 
     public boolean savePriceDto(PriceDTO dto) {
         if (!appProperties.isOverrideDuplicates() && priceRepository.existsById(dto.getId())) {
-            log.info("Duplicate Price entry " + dto.getId());
+            log.warn("Duplicate Price entry " + dto.getId());
             return false;
         }
         priceRepository.save(dto);
