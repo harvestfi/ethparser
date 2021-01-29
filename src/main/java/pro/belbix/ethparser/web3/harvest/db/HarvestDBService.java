@@ -61,6 +61,7 @@ public class HarvestDBService {
         HarvestTvlEntity harvestTvl = calculateHarvestTvl(dto, true);
         harvestTvlRepository.save(harvestTvl);
 
+        fillProfit(dto);
         harvestRepository.save(dto);
         return true;
     }
@@ -218,4 +219,71 @@ public class HarvestDBService {
         return (Math.pow(1 + (apr / period), period) - 1.0);
     }
 
+    public void fillProfit(HarvestDTO dto) {
+        if (!"Withdraw".equals(dto.getMethodName()) 
+        || dto.getAmount().equals(0D) 
+        || "PS".equals(dto.getVault()) 
+        || "PS_V0".equals(dto.getVault())) {
+            return;
+        }
+
+        // check if there is last full withdrawal in the past
+        Long lastWithdrawBlockDate = harvestRepository.findLastFullWithdrawByOwnerAndVault(
+            dto.getOwner(),
+            dto.getVault(),
+            dto.getBlockDate()
+        );
+        
+        // find relevant transfers (from last full withdraw)
+        List<HarvestDTO> transfers = harvestRepository.fetchPeriodForOwnerAndVault(
+            dto.getOwner(),
+            dto.getVault(),
+            dto.getBlockDate(),
+            lastWithdrawBlockDate != null ? lastWithdrawBlockDate : 0
+            );
+
+        dto.setProfit(calculateProfit(transfers));
+        dto.setProfitUsd(calculateProfitUsd(dto));
+    }
+
+    static double calculateProfit(List<HarvestDTO> transfers) {
+        double withdraws = 0.0;
+        double deposits = 0.0;
+        double profit = 0.0;
+        for (HarvestDTO transfer : transfers) {
+            //lastProfit = 0;
+            if (!"Withdraw".equals(transfer.getMethodName())
+                && !"Deposit".equals(transfer.getMethodName())) {
+                continue;
+            }
+
+            if ("Withdraw".equals(transfer.getMethodName())) {
+                withdraws += transfer.getAmount();
+            }
+            //count all deposits
+            if ("Deposit".equals(transfer.getMethodName())) {
+                deposits += transfer.getAmount();
+            }
+
+            // will not work in rare situation when holder has profit more than initial stake amount (impossible I guess)
+            // todo: negative withdraws after usdc and usdt exploit
+            if (withdraws >= deposits) {
+                profit = withdraws - deposits;
+            }
+        }
+        return profit;
+    }
+
+    private double calculateProfitUsd(HarvestDTO dto) {
+        if (dto.getLastUsdTvl() == null 
+        || dto.getLastUsdTvl().equals(0D)
+        || dto.getLastTvl() == null 
+        || dto.getLastTvl().equals(0D)
+        || dto.getProfit().equals(0D)
+        ) {
+            return 0.0;
+        }
+
+        return (dto.getLastUsdTvl() / dto.getLastTvl()) * dto.getProfit();
+    }
 }

@@ -196,4 +196,29 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by t.blockDate")
     List<HarvestDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
 
+    List<HarvestDTO> findAllByMethodNameOrderByBlockDate(String methodName);
+
+    List<HarvestDTO> findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate(String methodName, long blockDate);
+
+    @Query("select t from HarvestDTO t where "
+        + "t.owner = :owner "
+        + "and t.vault = :vault "
+        + "and t.blockDate <= :blockDate "
+        + "and t.blockDate > :lastFullWithdrawBlockDate " 
+        + "order by t.blockDate")
+    List<HarvestDTO> fetchPeriodForOwnerAndVault(@Param("owner") String owner,
+                                                @Param("vault") String vault,
+                                                @Param("blockDate") long blockDate,
+                                                @Param("lastFullWithdrawBlockDate") long lastFullWithdrawBlockDate);
+
+    @Query(nativeQuery = true, value = "select block_date from harvest_tx "
+        + "where owner = :owner "
+        + "and vault = :vault "
+        + "and method_name = 'Withdraw' "
+        + "and block_date <= :blockDate "
+        + "and profit > 0 "
+        + "order by block_date desc limit 0,1")
+    Long findLastFullWithdrawByOwnerAndVault(@Param("owner") String owner, 
+                                        @Param("vault") String vault, 
+                                        @Param("blockDate") long blockDate);
 }

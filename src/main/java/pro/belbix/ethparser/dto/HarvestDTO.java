@@ -48,6 +48,8 @@ public class HarvestDTO implements DtoI {
     private boolean migrated = false;
     @Transient
     private HarvestDTO migration;
+    private Double profit;
+    private Double profitUsd;
 
 
     public String print() {
@@ -57,6 +59,8 @@ public class HarvestDTO implements DtoI {
             + "f: " + amount + " "
             + vault
             + " " + hash
-            + " " + String.format("%f.0", lastUsdTvl);
+            + " " + String.format("$%.0f", lastUsdTvl)
+            + " profit: " + profit
+            + " " + String.format("$%.4f", profitUsd);
     }
 }
