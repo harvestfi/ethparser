@@ -97,7 +97,7 @@ public class PriceLogParser implements Web3Parser {
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock().longValue());
         dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
-        dto.setBuy(buy);
+        dto.setBuy(buy ? 1 : 0);
         dto.setSource(LpContracts.findNameForLpHash(tx.getSource()));
 
         fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);

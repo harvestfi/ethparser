@@ -23,7 +23,7 @@ public class PriceDTO implements DtoI {
     private String otherToken;
     private Double otherTokenAmount;
     private Double price;
-    private Boolean buy;
+    private Integer buy;
     private String source;
 
     public String print() {

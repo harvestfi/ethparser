@@ -131,34 +131,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
     List<HarvestDTO> findAllByVaultOrderByBlockDate(String vault);
 
-    @Query(nativeQuery = true, value = "" +
-        "select " +
-        "    id as id, " +
-        "    null as amount, " +
-        "    null as amount_in, " +
-        "    null as block, " +
-        "    block_date as block_date, " +
-        "    confirmed as confirmed, " +
-        "    null as hash, " +
-        "    null as last_gas, " +
-        "    last_tvl as last_tvl, " +
-        "    last_usd_tvl as last_usd_tvl, " +
-        "    null as method_name, " +
-        "    null as owner, " +
-        "    owner_count as owner_count, " +
-        "    share_price as share_price, " +
-        "    null as usd_amount, " +
-        "    null as vault, " +
-        "    null as prices, " +
-        "    null as lp_stat, " +
-        "    null as last_all_usd_tvl, " +
-        "    null as owner_balance, " +
-        "    owner_balance_usd as owner_balance_usd, " +
-        "    all_owners_count as all_owners_count, " +
-        "    all_pools_owners_count as all_pools_owners_count, " +
-        "    false as migrated " +
-        "from harvest_tx where vault = :vault order by block_date")
-    List<HarvestDTO> fetchAllTvlForVault(@Param("vault") String vault);
+    @Query("select t from HarvestDTO t where t.vault = :vault order by t.blockDate")
+    List<HarvestDTO> fetchAllByVault(@Param("vault") String vault);
 
     @Query(nativeQuery = true, value = "" +
         "select max(id)                                                              id, " +

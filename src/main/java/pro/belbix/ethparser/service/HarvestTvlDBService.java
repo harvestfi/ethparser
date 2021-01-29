@@ -26,7 +26,7 @@ public class HarvestTvlDBService {
 
     public List<TvlHistory> fetchTvlByVault(String name) {
         log.debug("get tvl for " + name);
-        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllTvlForVault(name);
+        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllByVault(name);
         List<TvlHistory> tvlHistoryDTOS = new ArrayList<>();
         if (harvestTxEntities == null) {
             return tvlHistoryDTOS;

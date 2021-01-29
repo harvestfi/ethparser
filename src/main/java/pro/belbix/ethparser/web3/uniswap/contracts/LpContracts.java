@@ -159,7 +159,6 @@ public class LpContracts {
         keyCoinForLp.put(UNI_LP_DAI_BSG, BSG_TOKEN);
         keyCoinForLp.put(UNI_LP_DAI_BSGS, BSGS_TOKEN);
         keyCoinForLp.put(UNI_LP_ESD_USDC, ESD_TOKEN);
-        keyCoinForLp.put(UNI_LP_USDC_WBTC, WBTC_TOKEN);
         keyCoinForLp.put(UNI_LP_ETH_DPI, DPI_TOKEN);
         keyCoinForLp.put(UNI_LP_ETH_WBTC, WBTC_TOKEN);
         keyCoinForLp.put(UNI_LP_USDC_DSD, DSD_TOKEN);

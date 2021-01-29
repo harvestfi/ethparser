@@ -1,12 +1,16 @@
 package pro.belbix.ethparser.controllers;
 
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.RestResponse;
+import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -19,10 +23,14 @@ public class PriceController {
 
     private final PriceProvider priceProvider;
     private final EthBlockService ethBlockService;
+    private final PriceRepository priceRepository;
 
-    public PriceController(PriceProvider priceProvider, EthBlockService ethBlockService) {
+    public PriceController(PriceProvider priceProvider,
+                           EthBlockService ethBlockService,
+                           PriceRepository priceRepository) {
         this.priceProvider = priceProvider;
         this.ethBlockService = ethBlockService;
+        this.priceRepository = priceRepository;
     }
 
     @GetMapping(value = "/lp/{lp}")
@@ -63,5 +71,10 @@ public class PriceController {
             log.error("Error token request", e);
             return RestResponse.error("Server error");
         }
+    }
+
+    @RequestMapping(value = "/token/latest", method = RequestMethod.GET)
+    public List<PriceDTO> lastReward() {
+        return priceRepository.fetchLastPrices();
     }
 }
