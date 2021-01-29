@@ -102,6 +102,7 @@ public class PriceLogParser implements Web3Parser {
 
         fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
 
+        log.info(dto.print());
         return dto;
     }
 

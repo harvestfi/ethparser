@@ -393,6 +393,7 @@ public class Web3Service {
 
     private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
         try {
+            // todo it can be bottleneck, create solution
             queue.put(o);
             lastTxTime.set(Instant.now());
         } catch (Exception e) {

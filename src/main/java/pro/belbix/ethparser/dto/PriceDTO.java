@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.dto;
 
-import java.math.BigInteger;
+import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
@@ -25,5 +25,13 @@ public class PriceDTO implements DtoI {
     private Double price;
     private Boolean buy;
     private String source;
+
+    public String print() {
+        return Instant.ofEpochSecond(blockDate) + " "
+            + source + " "
+            + String.format("%.1f", price) + " "
+            + buy + " "
+            + id;
+    }
 
 }

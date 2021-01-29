@@ -11,7 +11,8 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
 
     @Query("select t from PriceDTO t where "
         + "t.source = :source "
-        + "and t.block <= :block")
+        + "and t.block <= :block "
+        + "order by t.block desc")
     List<PriceDTO> fetchLastPrice(@Param("source") String source, @Param("block") long block, Pageable pageable);
 
 }

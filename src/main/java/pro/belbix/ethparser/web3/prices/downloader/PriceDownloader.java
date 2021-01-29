@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.prices.downloader;
 
 import static java.util.Collections.singletonList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
@@ -22,7 +23,7 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 public class PriceDownloader {
 
     private final Web3Service web3Service;
-    private final PriceDBService priceDBService;
+    private final PriceRepository priceRepository;
     private final PriceLogParser priceLogParser;
 
     @Value("${price-download.contracts:}")
@@ -32,10 +33,11 @@ public class PriceDownloader {
     @Value("${price-download.to:}")
     private Integer to;
 
-    public PriceDownloader(Web3Service web3Service, PriceDBService priceDBService,
+    public PriceDownloader(Web3Service web3Service,
+                           PriceRepository priceRepository,
                            PriceLogParser priceLogParser) {
         this.web3Service = web3Service;
-        this.priceDBService = priceDBService;
+        this.priceRepository = priceRepository;
         this.priceLogParser = priceLogParser;
     }
 
@@ -58,19 +60,23 @@ public class PriceDownloader {
             log.info("Empty log {} {}", start, end);
             return;
         }
+        List<PriceDTO> result = new ArrayList<>();
         for (LogResult logResult : logResults) {
             try {
                 PriceDTO dto = priceLogParser.parse((Log) logResult.get());
                 if (dto != null) {
-                    boolean success = priceDBService.savePriceDto(dto);
-                    if (success) {
-                        log.info("Save " + dto);
-                    }
+                    result.add(dto);
+                }
+                if (result.size() > 100) {
+                    priceRepository.saveAll(result);
+                    result.clear();
+                    log.info("Saved a bunch, last " + dto);
                 }
             } catch (Exception e) {
                 log.error("error with " + logResult.get(), e);
                 break;
             }
         }
+        priceRepository.saveAll(result);
     }
 }

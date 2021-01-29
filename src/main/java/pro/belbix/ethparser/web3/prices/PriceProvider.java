@@ -111,7 +111,6 @@ public class PriceProvider {
         double price = getPriceForCoinWithoutCache(coinName, block);
 
         savePrice(price, coinName, block);
-        log.info("Price {} updated {} on block {}", coinName, price, block);
     }
 
     private double getPriceForCoinWithoutCache(String name, Long block) {
@@ -129,10 +128,12 @@ public class PriceProvider {
             && !priceDTO.getOtherToken().equalsIgnoreCase(name)) {
             throw new IllegalStateException("Wrong source for " + name);
         }
-        if (priceDTO.getBlock() - block > 100) {
-            log.warn("Price have not updated more then {} for {}", priceDTO.getBlock() - block, name);
+        if (block - priceDTO.getBlock() > 1000) {
+            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
         }
-        return priceDTO.getPrice();
+
+        double otherTokenPrice = getPriceForCoin(priceDTO.getOtherToken(), block);
+        return priceDTO.getPrice() * otherTokenPrice;
     }
 
     @Deprecated
@@ -157,6 +158,7 @@ public class PriceProvider {
         }
 
         price *= getPriceForCoin(otherTokenName, block);
+        log.info("Price {} fetched {} on block {}", name, price, block);
         return price;
     }
 

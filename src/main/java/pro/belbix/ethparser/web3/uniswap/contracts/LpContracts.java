@@ -171,7 +171,6 @@ public class LpContracts {
 
         parsable.add(UNI_LP_USDC_FARM);
         parsable.add(UNI_LP_WETH_FARM);
-        parsable.add(UNI_LP_WBTC_BADGER);
         parsable.add(UNI_LP_GRAIN_FARM);
 
         oneInch.add(ONEINCH_LP_ETH_DAI);
