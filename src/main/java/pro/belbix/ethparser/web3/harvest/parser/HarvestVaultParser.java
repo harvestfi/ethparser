@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.harvest.PriceStubSender.PRICE_STUB_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,12 +81,7 @@ public class HarvestVaultParser implements Web3Parser {
                     if (dto != null) {
                         lastTx = Instant.now();
                         enrichDto(dto);
-                        boolean success = true;
-                        if (!PRICE_STUB_TYPE.equals(dto.getMethodName())) {
-                            success = harvestDBService.saveHarvestDTO(dto);
-                        } else {
-                            log.info("Last prices send " + dto.getPrices() + " " + dto.getLastGas());
-                        }
+                        boolean success = harvestDBService.saveHarvestDTO(dto);
                         if (success) {
                             output.put(dto);
                         }
@@ -102,9 +96,6 @@ public class HarvestVaultParser implements Web3Parser {
     public HarvestDTO parseVaultLog(Log ethLog) {
         if (ethLog == null) {
             return null;
-        }
-        if (PRICE_STUB_TYPE.equals(ethLog.getType())) {
-            return createStubPriceDto();
         }
         HarvestTx harvestTx;
         try {
@@ -151,14 +142,6 @@ public class HarvestVaultParser implements Web3Parser {
     public void enrichDto(HarvestDTO dto) {
         //set gas
         dto.setLastGas(web3Service.fetchAverageGasPrice());
-    }
-
-    private HarvestDTO createStubPriceDto() {
-        HarvestDTO dto = new HarvestDTO();
-        dto.setBlockDate(Instant.now().getEpochSecond());
-        dto.setBlock(web3Service.fetchCurrentBlock().longValue());
-        dto.setMethodName(PRICE_STUB_TYPE);
-        return dto;
     }
 
     /*
