@@ -31,16 +31,16 @@ public class ProfitRecalculate {
         List<HarvestDTO> harvestDTOList;
         log.info("Loading transactions from database");
         if (from == null) {
-            harvestDTOList = harvestRepository.findAllByMethodNameOrderByBlockDate("Withdraw");
-        } else {
-            harvestDTOList = harvestRepository.findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate("Withdraw", from);
-        }
+            from = 0;
+         }
+        harvestDTOList = harvestRepository.findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate("Withdraw", from);
+        
         log.info("Loaded " + harvestDTOList.size() + " Withdraw transactions. Starting recalculation..");
         int count = 0;
         for (HarvestDTO harvestDTO : harvestDTOList) {
             harvestDBService.fillProfit(harvestDTO);
             try {
-                if (harvestDTO.getProfit() != null && !harvestDTO.getProfit().equals(0D)) {
+                if (harvestDTO.getProfit() != 0.0) {
                     harvestRepository.save(harvestDTO);
                     log.info("Profit recalculated for " + harvestDTO.print());
                 }

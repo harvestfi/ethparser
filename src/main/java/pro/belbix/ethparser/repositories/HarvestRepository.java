@@ -196,8 +196,6 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by t.blockDate")
     List<HarvestDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
 
-    List<HarvestDTO> findAllByMethodNameOrderByBlockDate(String methodName);
-
     List<HarvestDTO> findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate(String methodName, long blockDate);
 
     @Query("select t from HarvestDTO t where "
