@@ -209,10 +209,6 @@ public class HarvestDBService {
         return harvestRepository.fetchAllByPeriod(fromI, toI);
     }
 
-    public static double aprToApy(double apr, double period) {
-        return (Math.pow(1 + (apr / period), period) - 1.0);
-    }
-
     public void fillProfit(HarvestDTO dto) {
         if (!"Withdraw".equals(dto.getMethodName())
         || dto.getAmount().equals(0D)
