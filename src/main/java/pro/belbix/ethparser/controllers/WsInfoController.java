@@ -1,14 +1,12 @@
 package pro.belbix.ethparser.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
 @Controller
+@Log4j2
 public class WsInfoController {
-
-    private final static Logger log = LoggerFactory.getLogger(WsInfoController.class);
 
     @MessageMapping("/info")
     public String info(String info) {

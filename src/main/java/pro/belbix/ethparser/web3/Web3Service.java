@@ -20,11 +20,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.extern.log4j.Log4j2;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.util.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -55,6 +54,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
 @SuppressWarnings("rawtypes")
 @Service
+@Log4j2
 public class Web3Service {
 
     public final static int RETRY_COUNT = 5;
@@ -62,17 +62,16 @@ public class Web3Service {
     public static final long MAX_DELAY_BETWEEN_TX = 60 * 10;
     public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
         .valueOf(new BigInteger("10765094"));
-    private static final Logger log = LoggerFactory.getLogger(Web3Service.class);
-    private Web3j web3;
     private final Set<Disposable> subscriptions = new HashSet<>();
     private final AppProperties appProperties;
     private final SubscriptionsProperties subscriptionsProperties;
     private final UniswapDbService uniswapDbService;
     private final HarvestDBService harvestDBService;
-    private boolean init = false;
     private final List<BlockingQueue<Transaction>> transactionConsumers = new ArrayList<>();
     private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
     private final AtomicReference<Instant> lastTxTime = new AtomicReference<>(Instant.now());
+    private Web3j web3;
+    private boolean init = false;
     private Web3Checker web3Checker;
     private LogFlowable logFlowable;
 
@@ -84,120 +83,6 @@ public class Web3Service {
         this.subscriptionsProperties = subscriptionsProperties;
         this.uniswapDbService = uniswapDbService;
         this.harvestDBService = harvestDBService;
-    }
-
-    @PostConstruct
-    private void init() {
-        if (appProperties.isOnlyApi()) {
-            return;
-        }
-        log.info("Connecting to Ethereum ...");
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        clientBuilder.callTimeout(600, SECONDS)
-            .writeTimeout(600, SECONDS)
-            .connectTimeout(600, SECONDS);
-        if (Strings.isBlank(appProperties.getWeb3User())) {
-            String url;
-            if (Strings.isBlank(appProperties.getWeb3Url())) {
-                url = System.getProperty("ethjava.web3.url");
-            } else {
-                url = appProperties.getWeb3Url();
-            }
-            if (url == null) {
-                throw new IllegalStateException("Web3 url not defined");
-            }
-            HttpService httpService = new HttpService(url, clientBuilder.build(), false);
-            web3 = Web3j.build(httpService);
-        } else {
-            clientBuilder.authenticator((route, response) -> response.request().newBuilder()
-                .header("Authorization",
-                    Credentials.basic(appProperties.getWeb3User(), appProperties.getWeb3Password()))
-                .build());
-
-            HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
-            web3 = Web3j.build(service);
-        }
-        log.info("Successfully connected to Ethereum");
-        init = true;
-    }
-
-    private void initChecker() {
-        if (web3Checker == null) {
-            web3Checker = new Web3Checker(lastTxTime, this);
-            new Thread(web3Checker).start();
-        }
-    }
-
-    public void subscribeTransactionFlowable() {
-        if (!appProperties.isParseTransactions()) {
-            return;
-        }
-        checkInit();
-        Flowable<Transaction> flowable;
-        if (Strings.isBlank(appProperties.getStartBlock())) {
-            flowable = callWithRetry(() -> web3.transactionFlowable());
-        } else {
-            log.info("Start flow from block " + appProperties.getStartBlock());
-            flowable = callWithRetry(() -> web3.replayPastAndFutureTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock()))));
-        }
-        Disposable subscription = flowable
-            .subscribe(tx -> transactionConsumers.forEach(queue ->
-                    writeInQueue(queue, tx)),
-                e -> log.error("Transaction flowable error", e));
-        subscriptions.add(subscription);
-        initChecker();
-        log.info("Subscribe to Transaction Flowable");
-    }
-
-    public void subscribeLogFlowable() {
-        if (!appProperties.isParseLog()) {
-            return;
-        }
-        checkInit();
-        DefaultBlockParameter from;
-        if (Strings.isBlank(appProperties.getStartLogBlock())) {
-            from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
-        } else {
-            from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
-        }
-        EthFilter filter = new EthFilter(from, LATEST, subscriptionsProperties.getLogSubscriptions());
-        logFlowable(filter);
-        //NPE https://github.com/web3j/web3j/issues/1264
-//        Disposable subscription = web3.ethLogFlowable(filter)
-//            .subscribe(log -> logConsumers.forEach(queue ->
-//                    writeInQueue(queue, log)),
-//                e -> log.error("Log flowable error", e));
-//        subscriptions.add(subscription);
-        initChecker();
-        log.info("Subscribe to Log Flowable from {}", from);
-    }
-
-    private BigInteger findEarliestLastBlock() {
-        BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
-        BigInteger lastBlocHarvest = harvestDBService.lastBlock();
-        //if only one enabled
-        if (appProperties.isParseHarvestLog() && !appProperties.isParseUniswapLog()) {
-            return lastBlocHarvest;
-        }
-        if (!appProperties.isParseHarvestLog() && appProperties.isParseUniswapLog()) {
-            return lastBlocUniswap;
-        }
-        //multiple enabled
-        if (lastBlocHarvest.intValue() < lastBlocUniswap.intValue()) {
-            return lastBlocHarvest;
-        } else {
-            return lastBlocUniswap;
-        }
-    }
-
-    private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
-        try {
-            queue.put(o);
-            lastTxTime.set(Instant.now());
-        } catch (Exception e) {
-            log.error("Error write in queue", e);
-        }
     }
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
@@ -214,6 +99,43 @@ public class Web3Service {
         }
 
         return null;
+    }
+
+    private void checkInit() {
+        while (!init) {
+            log.info("Wait initialization...");
+            try {
+                //noinspection BusyWait
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
+    public <T> T callWithRetry(Callable<T> callable) {
+        int count = 0;
+        while (true) {
+            T result = null;
+            try {
+                result = callable.call();
+            } catch (Exception e) { //by default all errors, but can be filtered by type
+                log.warn("Retryable error " + e.getMessage());
+            }
+
+            if (result != null) {
+                return result;
+            }
+            count++;
+            if (count > RETRY_COUNT) {
+                return null;
+            }
+            log.warn("Fail call web3, retry " + count);
+            try {
+                //noinspection BusyWait
+                Thread.sleep(1000);
+            } catch (InterruptedException ignore) {
+            }
+        }
     }
 
     public Transaction findTransaction(String hash) {
@@ -274,7 +196,7 @@ public class Web3Service {
             return new ArrayList<>();
         }
         if (ethLog.getError() != null) {
-            log.error("Can't get et log. " + ethLog.getError().getMessage());
+            log.error("Can't get eth log. " + ethLog.getError().getMessage());
             return new ArrayList<>();
         }
         return ethLog.getLogs();
@@ -324,32 +246,6 @@ public class Web3Service {
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
     }
 
-    public <T> T callWithRetry(Callable<T> callable) {
-        int count = 0;
-        while (true) {
-            T result = null;
-            try {
-                result = callable.call();
-            } catch (Exception e) { //by default all errors, but can be filtered by type
-                log.warn("Retryable error " + e.getMessage());
-            }
-
-            if (result != null) {
-                return result;
-            }
-            count++;
-            if (count > RETRY_COUNT) {
-                return null;
-            }
-            log.warn("Fail call web3, retry " + count);
-            try {
-                //noinspection BusyWait
-                Thread.sleep(1000);
-            } catch (InterruptedException ignore) {
-            }
-        }
-    }
-
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {
         transactionConsumers.add(queue);
     }
@@ -370,17 +266,6 @@ public class Web3Service {
         }
     }
 
-    private void checkInit() {
-        while (!init) {
-            log.info("Wait initialization...");
-            try {
-                //noinspection BusyWait
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
     private void resubscribe() {
         log.warn("Resubscribe");
         subscriptions.forEach(Disposable::dispose);
@@ -396,9 +281,124 @@ public class Web3Service {
         subscribeTransactionFlowable();
     }
 
+    @PostConstruct
+    private void init() {
+        if (appProperties.isOnlyApi()) {
+            return;
+        }
+        log.info("Connecting to Ethereum ...");
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        clientBuilder.callTimeout(600, SECONDS)
+            .writeTimeout(600, SECONDS)
+            .connectTimeout(600, SECONDS);
+        if (Strings.isBlank(appProperties.getWeb3User())) {
+            String url;
+            if (Strings.isBlank(appProperties.getWeb3Url())) {
+                url = System.getProperty("ethjava.web3.url");
+            } else {
+                url = appProperties.getWeb3Url();
+            }
+            if (url == null) {
+                throw new IllegalStateException("Web3 url not defined");
+            }
+            HttpService httpService = new HttpService(url, clientBuilder.build(), false);
+            web3 = Web3j.build(httpService);
+        } else {
+            clientBuilder.authenticator((route, response) -> response.request().newBuilder()
+                .header("Authorization",
+                    Credentials.basic(appProperties.getWeb3User(), appProperties.getWeb3Password()))
+                .build());
+
+            HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
+            web3 = Web3j.build(service);
+        }
+        log.info("Successfully connected to Ethereum");
+        init = true;
+    }
+
+    public void subscribeLogFlowable() {
+        if (!appProperties.isParseLog()) {
+            return;
+        }
+        checkInit();
+        DefaultBlockParameter from;
+        if (Strings.isBlank(appProperties.getStartLogBlock())) {
+            from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
+        } else {
+            from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
+        }
+        EthFilter filter = new EthFilter(from, LATEST, subscriptionsProperties.getLogSubscriptions());
+        logFlowable(filter);
+        //NPE https://github.com/web3j/web3j/issues/1264
+//        Disposable subscription = web3.ethLogFlowable(filter)
+//            .subscribe(log -> logConsumers.forEach(queue ->
+//                    writeInQueue(queue, log)),
+//                e -> log.error("Log flowable error", e));
+//        subscriptions.add(subscription);
+        initChecker();
+        log.info("Subscribe to Log Flowable from {}", from);
+    }
+
+    public void subscribeTransactionFlowable() {
+        if (!appProperties.isParseTransactions()) {
+            return;
+        }
+        checkInit();
+        Flowable<Transaction> flowable;
+        if (Strings.isBlank(appProperties.getStartBlock())) {
+            flowable = callWithRetry(() -> web3.transactionFlowable());
+        } else {
+            log.info("Start flow from block " + appProperties.getStartBlock());
+            flowable = callWithRetry(() -> web3.replayPastAndFutureTransactionsFlowable(
+                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock()))));
+        }
+        Disposable subscription = flowable
+            .subscribe(tx -> transactionConsumers.forEach(queue ->
+                    writeInQueue(queue, tx)),
+                e -> log.error("Transaction flowable error", e));
+        subscriptions.add(subscription);
+        initChecker();
+        log.info("Subscribe to Transaction Flowable");
+    }
+
+    private BigInteger findEarliestLastBlock() {
+        BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
+        BigInteger lastBlocHarvest = harvestDBService.lastBlock();
+        //if only one enabled
+        if (appProperties.isParseHarvestLog() && !appProperties.isParseUniswapLog()) {
+            return lastBlocHarvest;
+        }
+        if (!appProperties.isParseHarvestLog() && appProperties.isParseUniswapLog()) {
+            return lastBlocUniswap;
+        }
+        //multiple enabled
+        if (lastBlocHarvest.intValue() < lastBlocUniswap.intValue()) {
+            return lastBlocHarvest;
+        } else {
+            return lastBlocUniswap;
+        }
+    }
+
     private void logFlowable(EthFilter filter) {
         logFlowable = new LogFlowable(filter, this);
         new Thread(logFlowable).start();
+    }
+
+    private void initChecker() {
+        if (web3Checker == null) {
+            web3Checker = new Web3Checker(lastTxTime, this);
+            new Thread(web3Checker).start();
+        }
+    }
+
+    private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
+        try {
+            // todo it can be bottleneck, create solution
+            queue.put(o);
+            lastTxTime.set(Instant.now());
+        } catch (Exception e) {
+            log.error("Error write in queue", e);
+        }
     }
 
     public static class LogFlowable implements Runnable {

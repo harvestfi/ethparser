@@ -15,8 +15,15 @@ public class LpStat {
     private String coin2;
     private Double amount1;
     private Double amount2;
+    private Double price1;
+    private Double price2;
 
-    public static String createJson(String lpHash, double firstCoinAmount, double secondCoinAmount) {
+    public static String createJson(String lpHash,
+                                    double firstCoinAmount,
+                                    double secondCoinAmount,
+                                    double firstCoinPrice,
+                                    double secondCoinPrice
+    ) {
         try {
             Tuple2<String, String> coinNames = LpContracts.lpHashToCoinNames.get(lpHash);
             LpStat lpStat = new LpStat();
@@ -24,6 +31,8 @@ public class LpStat {
             lpStat.setCoin2(coinNames.component2());
             lpStat.setAmount1(firstCoinAmount);
             lpStat.setAmount2(secondCoinAmount);
+            lpStat.setPrice1(firstCoinPrice);
+            lpStat.setPrice2(secondCoinPrice);
             return OBJECT_MAPPER.writeValueAsString(lpStat);
         } catch (JsonProcessingException ignored) {
         }

@@ -77,6 +77,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         @Param("period") int period);
 
     interface OhlcProjection {
+
         long getTimestamp();
 
         double getOpen();

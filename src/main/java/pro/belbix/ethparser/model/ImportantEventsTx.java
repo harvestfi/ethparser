@@ -1,10 +1,11 @@
 package pro.belbix.ethparser.model;
 
-import lombok.Data;
 import java.math.BigInteger;
+import lombok.Data;
 
 @Data
 public class ImportantEventsTx implements EthTransactionI {
+
     private String hash;
     private String logId;
     private String vault;

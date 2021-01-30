@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.parsable;
 import static pro.belbix.ethparser.web3.erc20.Tokens.firstCoinIsKey;
 import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToCoin;
 import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToOtherCoin;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.parsable;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -90,14 +90,14 @@ public class UniswapLpLogDecoder extends MethodDecoder {
 
                 if (
                     (amount1In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
-                    || (amount0In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
-                    ) {
+                        || (amount0In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                ) {
                     tx.setBuy(false);
                     tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
                     tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
                 } else if (
                     (amount0In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
-                    || (amount1In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                        || (amount1In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
                 ) {
                     tx.setBuy(true);
                     tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
@@ -112,7 +112,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 tx.setBuy(true);
                 tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
                 tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
-                if(firstCoinIsKey(log.getAddress())) {
+                if (firstCoinIsKey(log.getAddress())) {
                     tx.setAmountOut((BigInteger) types.get(1).getValue());
                     tx.setAmountIn((BigInteger) types.get(2).getValue());
                 } else {
@@ -126,7 +126,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 tx.setBuy(false);
                 tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
                 tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                if(firstCoinIsKey(log.getAddress())) {
+                if (firstCoinIsKey(log.getAddress())) {
                     tx.setAmountIn((BigInteger) types.get(2).getValue());
                     tx.setAmountOut((BigInteger) types.get(3).getValue());
                 } else {

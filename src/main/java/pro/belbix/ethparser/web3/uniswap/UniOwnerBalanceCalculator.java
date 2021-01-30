@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
@@ -41,31 +41,6 @@ public class UniOwnerBalanceCalculator {
         return false;
     }
 
-    private boolean balanceForFarm(UniswapDTO dto) {
-        List<UniswapDTO> txs = uniswapRepository.fetchAllByOwner(dto.getOwner(), 0, dto.getBlockDate());
-        double balance = 0;
-        for (UniswapDTO oldTx : txs) {
-            if (oldTx.getId().equals(dto.getId())) {
-                continue;
-            }
-            if (oldTx.isBuy()) {
-                balance += oldTx.getAmount();
-            }
-            if (oldTx.isSell()) {
-                balance -= oldTx.getAmount();
-            }
-        }
-        if (dto.isBuy()) {
-            balance += dto.getAmount();
-        }
-        if (dto.isSell()) {
-            balance -= dto.getAmount();
-        }
-        dto.setOwnerBalance(balance);
-        dto.setOwnerBalanceUsd(balance * dto.getLastPrice());
-        return true;
-    }
-
     private boolean balanceForLp(UniswapDTO dto) {
         String lpHash;
         if (dto.getLp() == null) {
@@ -88,6 +63,31 @@ public class UniOwnerBalanceCalculator {
         //fill USD value
         double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
         dto.setOwnerBalanceUsd(amountUsd);
+        return true;
+    }
+
+    private boolean balanceForFarm(UniswapDTO dto) {
+        List<UniswapDTO> txs = uniswapRepository.fetchAllByOwner(dto.getOwner(), 0, dto.getBlockDate());
+        double balance = 0;
+        for (UniswapDTO oldTx : txs) {
+            if (oldTx.getId().equals(dto.getId())) {
+                continue;
+            }
+            if (oldTx.isBuy()) {
+                balance += oldTx.getAmount();
+            }
+            if (oldTx.isSell()) {
+                balance -= oldTx.getAmount();
+            }
+        }
+        if (dto.isBuy()) {
+            balance += dto.getAmount();
+        }
+        if (dto.isSell()) {
+            balance -= dto.getAmount();
+        }
+        dto.setOwnerBalance(balance);
+        dto.setOwnerBalanceUsd(balance * dto.getLastPrice());
         return true;
     }
 }

@@ -10,6 +10,7 @@ import javax.persistence.Table;
     @Index(name = "idx_block_cache", columnList = "blockDate")
 })
 public class BlockCacheEntity {
+
     @Id
     private long block;
     private long blockDate;

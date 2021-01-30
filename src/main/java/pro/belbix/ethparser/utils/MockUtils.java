@@ -16,6 +16,7 @@ import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 public class MockUtils {
+
     private static final List<String> vaults = new ArrayList<>(Vaults.vaultHashToName.values());
     private static final List<String> harvestMethods =
         new ArrayList<>(new HarvestVaultLogDecoder().getMethodNamesByMethodId().values());
@@ -72,8 +73,8 @@ public class MockUtils {
 
     public static ImportantEventsDTO createImportantEventsDTO(long seed) {
         ImportantEventsDTO dto = new ImportantEventsDTO();
-        dto.setId(seed+"id");
-        dto.setHash(seed+"hash");
+        dto.setId(seed + "id");
+        dto.setHash(seed + "hash");
         dto.setBlock(seed);
         dto.setBlockDate(Instant.now().getEpochSecond());
         dto.setEvent("StrategyChanged");

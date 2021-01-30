@@ -1,10 +1,8 @@
 package pro.belbix.ethparser.utils.recalculation;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
@@ -13,8 +11,8 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 
 @Service
+@Log4j2
 public class LpTvlRecalculate {
-    private static final Logger log = LoggerFactory.getLogger(LpTvlRecalculate.class);
 
     private final UniswapRepository uniswapRepository;
     private final UniToHarvestConverter uniToHarvestConverter;
@@ -32,7 +30,7 @@ public class LpTvlRecalculate {
     }
 
     public void start() {
-   
+
         List<UniswapDTO> dtos;
         if (from == null) {
             dtos = uniswapRepository.findAllByOrderByBlockDate();
@@ -43,11 +41,11 @@ public class LpTvlRecalculate {
         for (UniswapDTO dto : dtos) {
             try {
                 HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
-                
+
                 if (harvestDto != null) {
-                    
+
                     boolean success = harvestDBService.saveHarvestDTO(harvestDto);
-                
+
                     if (!success) {
                         log.warn("Save failed for " + harvestDto.print());
                     }

@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.dto;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
@@ -46,9 +45,9 @@ public class HarvestDTO implements DtoI {
     private Integer allOwnersCount;
     private Integer allPoolsOwnersCount;
     private boolean migrated = false;
+    private Double underlyingPrice;
     @Transient
     private HarvestDTO migration;
-
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

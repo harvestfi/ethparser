@@ -20,13 +20,13 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -35,15 +35,14 @@ public class TransferParser implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
     private final ERC20Decoder erc20Decoder = new ERC20Decoder();
-
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
     private final TransferDBService transferDBService;
     private final PriceProvider priceProvider;
     private final Functions functions;
+    private Instant lastTx = Instant.now();
 
     public TransferParser(Web3Service web3Service,
                           EthBlockService ethBlockService,
@@ -122,21 +121,6 @@ public class TransferParser implements Web3Parser {
         return dto;
     }
 
-    public void fillBalance(TransferDTO dto) {
-        String tokenAddress = Tokens.findContractForName(dto.getName());
-        dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
-        dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
-    }
-
-    public void fillPrice(TransferDTO dto) {
-        dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock()));
-    }
-
-    private double getBalance(String holder, String tokenAddress, long block) {
-        BigInteger balanceI = functions.callBalanceOf(holder, tokenAddress, block);
-        return MethodDecoder.parseAmount(balanceI, tokenAddress);
-    }
-
     public void fillMethodName(TransferDTO dto) {
         String methodName = dto.getMethodName();
         if (methodName == null) {
@@ -165,6 +149,21 @@ public class TransferParser implements Web3Parser {
     public static void fillTransferType(TransferDTO dto) {
         TransferType type = TransferType.getType(dto);
         dto.setType(type.name());
+    }
+
+    public void fillBalance(TransferDTO dto) {
+        String tokenAddress = Tokens.findContractForName(dto.getName());
+        dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
+        dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
+    }
+
+    public void fillPrice(TransferDTO dto) {
+        dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock()));
+    }
+
+    private double getBalance(String holder, String tokenAddress, long block) {
+        BigInteger balanceI = functions.callBalanceOf(holder, tokenAddress, block);
+        return MethodDecoder.parseAmount(balanceI, tokenAddress);
     }
 
     @Override

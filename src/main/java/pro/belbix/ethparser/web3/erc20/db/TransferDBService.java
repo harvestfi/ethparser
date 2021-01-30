@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -75,6 +75,12 @@ public class TransferDBService {
             && checkBalance(dto.getRecipient(), dto.getBalanceRecipient(), dto.getBlockDate());
     }
 
+    public void fillProfit(TransferDTO dto) {
+        fillProfitForPs(dto);
+        fillProfitForReward(dto);
+        fillProfitForTrade(dto);
+    }
+
     private boolean checkBalance(String holder, double expectedBalance, long blockDate) {
         if (notCheckableAddresses.contains(holder.toLowerCase())) {
             return true;
@@ -88,27 +94,6 @@ public class TransferDBService {
             return false;
         }
         return true;
-    }
-
-    // used only for recalculation
-    public void fillBalances(TransferDTO dto) {
-        Double balanceOwner = transferRepository.getBalanceForOwner(dto.getOwner(), dto.getBlockDate());
-        if (balanceOwner == null) {
-            balanceOwner = 0.0;
-        }
-        dto.setBalanceOwner(balanceOwner);
-
-        Double balanceRecipient = transferRepository.getBalanceForOwner(dto.getRecipient(), dto.getBlockDate());
-        if (balanceRecipient == null) {
-            balanceRecipient = 0.0;
-        }
-        dto.setBalanceRecipient(balanceRecipient);
-    }
-
-    public void fillProfit(TransferDTO dto) {
-        fillProfitForPs(dto);
-        fillProfitForReward(dto);
-        fillProfitForTrade(dto);
     }
 
     private void fillProfitForPs(TransferDTO dto) {
@@ -152,6 +137,15 @@ public class TransferDBService {
         double profit = calculateSellProfits(transfers, dto.getOwner());
         dto.setProfit(profit);
         dto.setProfitUsd(profit * dto.getPrice());
+    }
+
+    private boolean isNotContainsDto(List<TransferDTO> dtos, String id) {
+        for (TransferDTO dto : dtos) {
+            if (id.equalsIgnoreCase(dto.getId())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static double calculatePsProfit(List<TransferDTO> transfers) {
@@ -249,6 +243,21 @@ public class TransferDBService {
         return profit;
     }
 
+    // used only for recalculation
+    public void fillBalances(TransferDTO dto) {
+        Double balanceOwner = transferRepository.getBalanceForOwner(dto.getOwner(), dto.getBlockDate());
+        if (balanceOwner == null) {
+            balanceOwner = 0.0;
+        }
+        dto.setBalanceOwner(balanceOwner);
+
+        Double balanceRecipient = transferRepository.getBalanceForOwner(dto.getRecipient(), dto.getBlockDate());
+        if (balanceRecipient == null) {
+            balanceRecipient = 0.0;
+        }
+        dto.setBalanceRecipient(balanceRecipient);
+    }
+
     private Optional<TransferDTO> fetchLastTransfer(String owner, String recipient, String type, long blockDate) {
         return silentCall(() ->
             transferRepository
@@ -263,15 +272,6 @@ public class TransferDBService {
             .filter(Caller::isFilledList)
             .stream()
             .flatMap(Collection::stream);
-    }
-
-    private boolean isNotContainsDto(List<TransferDTO> dtos, String id) {
-        for (TransferDTO dto : dtos) {
-            if (id.equalsIgnoreCase(dto.getId())) {
-                return false;
-            }
-        }
-        return true;
     }
 
 }

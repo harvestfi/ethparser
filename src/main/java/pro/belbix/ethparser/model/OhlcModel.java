@@ -5,6 +5,7 @@ import pro.belbix.ethparser.repositories.UniswapRepository;
 
 @Data
 public class OhlcModel implements UniswapRepository.OhlcProjection {
+
     private long timestamp;
     private double open;
     private double high;

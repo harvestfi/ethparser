@@ -102,7 +102,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     @Query("select avg(t.lastUsdTvl) as period from HarvestDTO t where "
         + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchAverageTvl(@Param("vault") String vault,
-                                   @Param("from") long from,
+                                 @Param("from") long from,
                                  @Param("to") long to,
                                  Pageable pageable);
 
@@ -131,34 +131,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
     List<HarvestDTO> findAllByVaultOrderByBlockDate(String vault);
 
-    @Query(nativeQuery = true, value = "" +
-        "select " +
-        "    id as id, " +
-        "    null as amount, " +
-        "    null as amount_in, " +
-        "    null as block, " +
-        "    block_date as block_date, " +
-        "    confirmed as confirmed, " +
-        "    null as hash, " +
-        "    null as last_gas, " +
-        "    last_tvl as last_tvl, " +
-        "    last_usd_tvl as last_usd_tvl, " +
-        "    null as method_name, " +
-        "    null as owner, " +
-        "    owner_count as owner_count, " +
-        "    share_price as share_price, " +
-        "    null as usd_amount, " +
-        "    null as vault, " +
-        "    null as prices, " +
-        "    null as lp_stat, " +
-        "    null as last_all_usd_tvl, " +
-        "    null as owner_balance, " +
-        "    owner_balance_usd as owner_balance_usd, " +
-        "    all_owners_count as all_owners_count, " +
-        "    all_pools_owners_count as all_pools_owners_count, " +
-        "    false as migrated " +
-        "from harvest_tx where vault = :vault order by block_date")
-    List<HarvestDTO> fetchAllTvlForVault(@Param("vault") String vault);
+    @Query("select t from HarvestDTO t where t.vault = :vault order by t.blockDate")
+    List<HarvestDTO> fetchAllByVault(@Param("vault") String vault);
 
     @Query(nativeQuery = true, value = "" +
         "select max(id)                                                              id, " +
@@ -183,7 +157,9 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         "       null      owner_balance_usd, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_owners_count)), '_', -1) all_owners_count, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_all_usd_tvl)), '_', -1)      last_all_usd_tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', underlying_price)), '_', -1)      underlying_price, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, "
+        +
         "       false      migrated " +
         " " +
         "from harvest_tx " +

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.recalculation.UtilsStarter;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 public class StartUtils {

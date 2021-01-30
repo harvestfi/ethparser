@@ -1,84 +1,48 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
+import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.erc20.Tokens.BAC_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.BSGS_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.BSG_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.DPI_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.DSD_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.ESD_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.EURS_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.GRAIN_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MAAPL_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MAMZN_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MGOOGL_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MIC_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MIS_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.MTSLA_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.WBTC_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
 import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
 import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.model.PricesModel;
+import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.repositories.PriceRepository;
+import pro.belbix.ethparser.utils.Caller;
+import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.erc20.TokenInfo;
 import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
+@Log4j2
 public class PriceProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(PriceProvider.class);
-    private final static ObjectMapper objectMapper = new ObjectMapper();
-    private long updateBlockDifference = 5;
-
     private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
+    private long updateBlockDifference = 0;
+    private final Pageable limitOne = PageRequest.of(0, 1);
 
     private final Functions functions;
+    private final PriceRepository priceRepository;
 
-    public PriceProvider(Functions functions) {
+    public PriceProvider(Functions functions, PriceRepository priceRepository) {
         this.functions = functions;
+        this.priceRepository = priceRepository;
     }
 
     public void setUpdateBlockDifference(long updateBlockDifference) {
         this.updateBlockDifference = updateBlockDifference;
-    }
-
-    public String getAllPrices(long block) throws JsonProcessingException {
-        //todo refactoring price model
-        PricesModel dto = new PricesModel();
-        dto.setBtc(getPriceForCoin(WBTC_NAME, block));
-        dto.setEth(getPriceForCoin(WETH_NAME, block));
-        dto.setDpi(getPriceForCoin(DPI_NAME, block));
-        dto.setGrain(getPriceForCoin(GRAIN_NAME, block));
-        dto.setBac(getPriceForCoin(BAC_NAME, block));
-        dto.setBas(getPriceForCoin(BAS_NAME, block));
-        dto.setMic(getPriceForCoin(MIC_NAME, block));
-        dto.setMis(getPriceForCoin(MIS_NAME, block));
-        dto.setBsg(getPriceForCoin(BSG_NAME, block));
-        dto.setBsgs(getPriceForCoin(BSGS_NAME, block));
-        dto.setEsd(getPriceForCoin(ESD_NAME, block));
-        dto.setDsd(getPriceForCoin(DSD_NAME, block));
-        dto.setMaapl(getPriceForCoin(MAAPL_NAME, block));
-        dto.setMamzn(getPriceForCoin(MAMZN_NAME, block));
-        dto.setMgoogl(getPriceForCoin(MGOOGL_NAME, block));
-        dto.setMtsla(getPriceForCoin(MTSLA_NAME, block));
-        dto.setEurs(getPriceForCoin(EURS_NAME, block));
-        return objectMapper.writeValueAsString(dto);
     }
 
     public double getLpPositionAmountInUsd(String lpAddress, double amount, long block) {
@@ -105,6 +69,7 @@ public class PriceProvider {
         return firstVaultUsdAmount + secondVaultUsdAmount;
     }
 
+    // you can use Vault name instead of coinName if it is not a LP
     public Double getPriceForCoin(String coinName, long block) {
         String coinNameSimple = simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
@@ -146,10 +111,33 @@ public class PriceProvider {
         double price = getPriceForCoinWithoutCache(coinName, block);
 
         savePrice(price, coinName, block);
-        log.info("Price {} updated {} on block {}", coinName, price, block);
     }
 
     private double getPriceForCoinWithoutCache(String name, Long block) {
+        TokenInfo tokenInfo = Tokens.getTokenInfo(name);
+        String lpName = tokenInfo.findLp(block).component1();
+        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+            .filter(Caller::isFilledList)
+            .map(l -> l.get(0))
+            .orElse(null);
+        if (priceDTO == null) {
+            log.warn("Saved price not found for " + name + " at block " + block);
+            return getPriceForCoinWithoutCacheOld(name, block);
+        }
+        if (!priceDTO.getToken().equalsIgnoreCase(name)
+            && !priceDTO.getOtherToken().equalsIgnoreCase(name)) {
+            throw new IllegalStateException("Wrong source for " + name);
+        }
+        if (block - priceDTO.getBlock() > 1000) {
+            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
+        }
+
+        double otherTokenPrice = getPriceForCoin(priceDTO.getOtherToken(), block);
+        return priceDTO.getPrice() * otherTokenPrice;
+    }
+
+    @Deprecated
+    private double getPriceForCoinWithoutCacheOld(String name, Long block) {
         TokenInfo tokenInfo = Tokens.getTokenInfo(name);
         String lpName = tokenInfo.findLp(block).component1();
         String otherTokenName = tokenInfo.findLp(block).component2();
@@ -170,54 +158,8 @@ public class PriceProvider {
         }
 
         price *= getPriceForCoin(otherTokenName, block);
+        log.info("Price {} fetched {} on block {}", name, price, block);
         return price;
-    }
-
-    public static double readPrice(PricesModel pricesModel, String coinName) {
-        coinName = simplifyName(coinName);
-        if (isStableCoin(coinName)) {
-            return 1.0;
-        }
-        //todo refactoring price model
-        switch (coinName) {
-            case WBTC_NAME:
-                return pricesModel.getBtc();
-            case WETH_NAME:
-                return pricesModel.getEth();
-            case DPI_NAME:
-                return pricesModel.getDpi();
-            case GRAIN_NAME:
-                return pricesModel.getGrain();
-            case BAC_NAME:
-                return pricesModel.getBac();
-            case BAS_NAME:
-                return pricesModel.getBas();
-            case MIC_NAME:
-                return pricesModel.getMic();
-            case MIS_NAME:
-                return pricesModel.getMis();
-            case BSG_NAME:
-                return pricesModel.getBsg();
-            case BSGS_NAME:
-                return pricesModel.getBsgs();
-            case ESD_NAME:
-                return pricesModel.getEsd();
-            case DSD_NAME:
-                return pricesModel.getDsd();
-            case MAAPL_NAME:
-                return pricesModel.getMaapl();
-            case MAMZN_NAME:
-                return pricesModel.getMamzn();
-            case MGOOGL_NAME:
-                return pricesModel.getMgoogl();
-            case MTSLA_NAME:
-                return pricesModel.getMtsla();
-            case EURS_NAME:
-                return pricesModel.getEurs();
-            default:
-                log.warn("Not found price for {}", coinName);
-                return 0;
-        }
     }
 
     private boolean hasFreshPrice(String name, long block) {

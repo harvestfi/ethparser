@@ -6,10 +6,10 @@ import java.util.concurrent.Callable;
 
 public class Caller {
 
-    public static  <T> Optional<T> silentCall(Callable<T> callable) {
+    public static <T> Optional<T> silentCall(Callable<T> callable) {
         try {
             T result = callable.call();
-            if(result == null) {
+            if (result == null) {
                 return Optional.empty();
             }
             return Optional.of(result);

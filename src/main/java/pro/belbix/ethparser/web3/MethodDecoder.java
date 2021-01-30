@@ -54,6 +54,81 @@ public abstract class MethodDecoder {
         return result;
     }
 
+    public static BigInteger[] parseInts(Type type) {
+        List values = ((List) type.getValue());
+        BigInteger[] integers = new BigInteger[values.size()];
+        int i = 0;
+        for (Object v : values) {
+            integers[i] = (BigInteger) v;
+            i++;
+        }
+        return integers;
+    }
+
+    public static String methodSignatureToFullHex(String methodSignature) {
+        final byte[] input = methodSignature.getBytes();
+        final byte[] hash = Hash.sha3(input);
+        return Numeric.toHexString(hash);
+    }
+
+    public static double parseAmount(BigInteger amount, String address) {
+        if (amount == null) {
+            return 0.0;
+        }
+        Map<String, Double> dividers = new HashMap<>();
+        dividers.putAll(Vaults.vaultDividers);
+        dividers.putAll(LpContracts.getLpDividers());
+        dividers.putAll(Tokens.getTokensDividers());
+        Double divider = dividers.get(address);
+        if (divider == null) {
+            throw new IllegalStateException("Divider not found for " + address);
+        }
+        return amount.doubleValue() / divider;
+        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
+    }
+
+    public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
+        final List<String> topics = log.getTopics();
+
+        List<Type> nonIndexedValues =
+            FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
+        List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
+        List<Type> indexedValues = new ArrayList<>();
+        for (int i = 0; i < indexedParameters.size(); i++) {
+            String topic = topics.get(i + 1);
+            Type value = decodeIndexedValue(topic, indexedParameters.get(i));
+            indexedValues.add(value);
+        }
+        indexedValues.addAll(nonIndexedValues);
+        return indexedValues;
+    }
+
+    public static List<TypeReference<Type>> getNonIndexedParameters(List<TypeReference<Type>> parameters) {
+        return parameters.stream().filter(p -> !p.isIndexed()).collect(Collectors.toList());
+    }
+
+    public static List<TypeReference<Type>> getIndexedParameters(List<TypeReference<Type>> parameters) {
+        return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
+    }
+
+    protected String parseMethodId(Log ethLog) {
+        String topic0 = ethLog.getTopics().get(0);
+        String methodId = methodIdByFullHex.get(topic0);
+
+        if (methodId == null) {
+            throw new IllegalStateException("Unknown topic " + topic0);
+        }
+        return methodId;
+    }
+
+    protected List<TypeReference<Type>> findParameters(String methodId) {
+        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
+        if (parameters == null) {
+            throw new IllegalStateException("Not found parameters for " + methodId);
+        }
+        return parameters;
+    }
+
     public EthTransactionI decodeInputData(Transaction transaction) {
         String data = transaction.getInput();
         if (data.length() < 74) {
@@ -77,23 +152,6 @@ public abstract class MethodDecoder {
 
     public String createMethodFullHex(String name, List<TypeReference<Type>> parameters) {
         return methodSignatureToFullHex(createMethodSignature(name, parameters));
-    }
-
-    public static BigInteger[] parseInts(Type type) {
-        List values = ((List) type.getValue());
-        BigInteger[] integers = new BigInteger[values.size()];
-        int i = 0;
-        for (Object v : values) {
-            integers[i] = (BigInteger) v;
-            i++;
-        }
-        return integers;
-    }
-
-    public static String methodSignatureToFullHex(String methodSignature) {
-        final byte[] input = methodSignature.getBytes();
-        final byte[] hash = Hash.sha3(input);
-        return Numeric.toHexString(hash);
     }
 
     public String methodSignatureToShortHex(String methodSignature) {
@@ -168,22 +226,6 @@ public abstract class MethodDecoder {
         }
     }
 
-    public static double parseAmount(BigInteger amount, String address) {
-        if (amount == null) {
-            return 0.0;
-        }
-        Map<String, Double> dividers = new HashMap<>();
-        dividers.putAll(Vaults.vaultDividers);
-        dividers.putAll(LpContracts.getLpDividers());
-        dividers.putAll(Tokens.getTokensDividers());
-        Double divider = dividers.get(address);
-        if (divider == null) {
-            throw new IllegalStateException("Divider not found for " + address);
-        }
-        return amount.doubleValue() / divider;
-        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
-    }
-
     @SuppressWarnings("unchecked")
     <T extends Type> Class<T> getParameterizedTypeFromArray(TypeReference typeReference)
         throws ClassNotFoundException {
@@ -210,30 +252,6 @@ public abstract class MethodDecoder {
             methodIdByFullHex.put(methodFullHex, methodID);
 //            System.out.println(this.getClass().getSimpleName() + " " + entry.getKey() + " " + methodID + " " + methodFullHex);
         }
-    }
-
-    public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
-        final List<String> topics = log.getTopics();
-
-        List<Type> nonIndexedValues =
-            FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
-        List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
-        List<Type> indexedValues = new ArrayList<>();
-        for (int i = 0; i < indexedParameters.size(); i++) {
-            String topic = topics.get(i + 1);
-            Type value = decodeIndexedValue(topic, indexedParameters.get(i));
-            indexedValues.add(value);
-        }
-        indexedValues.addAll(nonIndexedValues);
-        return indexedValues;
-    }
-
-    public static List<TypeReference<Type>> getIndexedParameters(List<TypeReference<Type>> parameters) {
-        return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
-    }
-
-    public static List<TypeReference<Type>> getNonIndexedParameters(List<TypeReference<Type>> parameters) {
-        return parameters.stream().filter(p -> !p.isIndexed()).collect(Collectors.toList());
     }
 
     private void initParameters() {

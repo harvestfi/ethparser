@@ -9,7 +9,6 @@ import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WET
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findLpForCoins;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findNameForLpHash;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,9 +26,9 @@ import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.Functions;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -43,12 +42,11 @@ public class UniToHarvestConverter implements Web3Parser {
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
-
     private final PriceProvider priceProvider;
     private final Functions functions;
     private final HarvestDBService harvestDBService;
     private final ParserInfo parserInfo;
+    private Instant lastTx = Instant.now();
 
     public UniToHarvestConverter(PriceProvider priceProvider, Functions functions,
                                  HarvestDBService harvestDBService, ParserInfo parserInfo) {
@@ -82,10 +80,6 @@ public class UniToHarvestConverter implements Web3Parser {
         }).start();
     }
 
-    public void addDtoToQueue(UniswapDTO dto) {
-        uniswapDTOS.add(dto);
-    }
-
     public HarvestDTO convert(UniswapDTO uniswapDTO) {
         if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
             return null;
@@ -99,47 +93,8 @@ public class UniToHarvestConverter implements Web3Parser {
 
         fillUsdValuesForLP(uniswapDTO, harvestDTO, lpHash);
 
-        try {
-            harvestDTO.setPrices(priceProvider.getAllPrices(harvestDTO.getBlock()));
-        } catch (JsonProcessingException e) {
-            log.info("Error parse prices");
-        }
         log.info(harvestDTO.print());
         return harvestDTO;
-    }
-
-    public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
-        long block = harvestDTO.getBlock();
-        String stakeHash = vaultHashToStakeHash.get(lpHash);
-
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, block), lpHash);
-        double stBalance = parseAmount(functions.callErc20TotalSupply(stakeHash, block), lpHash);
-        harvestDTO.setLastTvl(stBalance);
-        double stFraction = stBalance / lpBalance;
-        if(Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
-            stFraction = 0;
-        }
-
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, block);
-        double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
-        double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
-
-        harvestDTO.setLpStat(LpStat.createJson(lpHash, firstCoinBalance, secondCoinBalance));
-
-        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
-        double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
-        double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
-        double vaultUsdAmount = firstCoinUsdAmount + secondCoinUsdAmount;
-        harvestDTO.setLastUsdTvl(vaultUsdAmount);
-
-        double usdAmount = uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
-        harvestDTO.setUsdAmount(Math.round(usdAmount));
-
-        double fraction = usdAmount / (vaultUsdAmount / stFraction);
-        if(Double.isNaN(fraction) || Double.isInfinite(fraction)) {
-            fraction = 0;
-        }
-        harvestDTO.setAmount(lpBalance * fraction); //not accurate
     }
 
     private void fillCommonFields(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
@@ -160,6 +115,49 @@ public class UniToHarvestConverter implements Web3Parser {
         } else {
             harvestDTO.setMethodName("Withdraw");
         }
+    }
+
+    public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
+        long block = harvestDTO.getBlock();
+        String stakeHash = vaultHashToStakeHash.get(lpHash);
+
+        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, block), lpHash);
+        double stBalance = parseAmount(functions.callErc20TotalSupply(stakeHash, block), lpHash);
+        harvestDTO.setLastTvl(stBalance);
+        double stFraction = stBalance / lpBalance;
+        if (Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
+            stFraction = 0;
+        }
+
+        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, block);
+        double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
+        double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
+
+        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
+        harvestDTO.setLpStat(LpStat.createJson(
+            lpHash,
+            firstCoinBalance,
+            secondCoinBalance,
+            uniPrices.component1(),
+            uniPrices.component2()
+        ));
+        double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
+        double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
+        double vaultUsdAmount = firstCoinUsdAmount + secondCoinUsdAmount;
+        harvestDTO.setLastUsdTvl(vaultUsdAmount);
+
+        double usdAmount = uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
+        harvestDTO.setUsdAmount(Math.round(usdAmount));
+
+        double fraction = usdAmount / (vaultUsdAmount / stFraction);
+        if (Double.isNaN(fraction) || Double.isInfinite(fraction)) {
+            fraction = 0;
+        }
+        harvestDTO.setAmount(lpBalance * fraction); //not accurate
+    }
+
+    public void addDtoToQueue(UniswapDTO dto) {
+        uniswapDTOS.add(dto);
     }
 
     @Override

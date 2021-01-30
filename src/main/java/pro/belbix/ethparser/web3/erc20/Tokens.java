@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 public class Tokens {
 
@@ -91,7 +90,7 @@ public class Tokens {
             .addLp("UNI_LP_WBTC_BADGER", 0, WBTC_NAME));
 
         addTokenInfo(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
-            .addLp("UNI_LP_ETH_USDC", 0, USDC_NAME));
+            .addLp("UNI_LP_USDC_ETH", 0, USDC_NAME));
 
         addTokenInfo(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0).setDivider(D8)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
@@ -159,15 +158,6 @@ public class Tokens {
         tokenInfos.add(tokenInfo);
     }
 
-    public static TokenInfo getTokenInfo(String tokenName) {
-        for (TokenInfo info : tokenInfos) {
-            if (tokenName.equals(info.getTokenName())) {
-                return info;
-            }
-        }
-        throw new IllegalStateException("Not found token info for " + tokenName);
-    }
-
     public static Map<String, Double> getTokensDividers() {
         Map<String, Double> d = new HashMap<>();
         for (TokenInfo info : tokenInfos) {
@@ -181,6 +171,34 @@ public class Tokens {
             return true;
         }
         return getTokenInfo(tokenName).getCreatedOnBlock() < block;
+    }
+
+    public static boolean isStableCoin(String name) {
+        return "USD".equals(name)
+            || USDC_NAME.equals(name)
+            || USDT_NAME.equals(name)
+            || "YCRV".equals(name)
+            || "3CRV".equals(name)
+            || "_3CRV".equals(name)
+            || TUSD_NAME.equals(name)
+            || DAI_NAME.equals(name)
+            || "CRV_CMPND".equals(name)
+            || "CRV_BUSD".equals(name)
+            || "CRV_USDN".equals(name)
+            || "HUSD".equals(name)
+            || "CRV_HUSD".equals(name)
+            || UST_NAME.equals(name)
+            || "CRV_UST".equals(name)
+            ;
+    }
+
+    public static TokenInfo getTokenInfo(String tokenName) {
+        for (TokenInfo info : tokenInfos) {
+            if (tokenName.equals(info.getTokenName())) {
+                return info;
+            }
+        }
+        throw new IllegalStateException("Not found token info for " + tokenName);
     }
 
     public static boolean firstCoinIsKey(String lpAddress) {
@@ -214,16 +232,8 @@ public class Tokens {
         throw new IllegalStateException("Not found name for " + contract);
     }
 
-    public static String findContractForName(String name) {
-        return getTokenInfo(name).getTokenAddress();
-    }
-
     public static String mapLpAddressToCoin(String address) {
         return mapLpAddress(address, true);
-    }
-
-    public static String mapLpAddressToOtherCoin(String address) {
-        return mapLpAddress(address, false);
     }
 
     private static String mapLpAddress(String address, boolean isKeyCoin) {
@@ -278,23 +288,12 @@ public class Tokens {
         }
     }
 
-    public static boolean isStableCoin(String name) {
-        return "USD".equals(name)
-            || USDC_NAME.equals(name)
-            || USDT_NAME.equals(name)
-            || "YCRV".equals(name)
-            || "3CRV".equals(name)
-            || "_3CRV".equals(name)
-            || TUSD_NAME.equals(name)
-            || DAI_NAME.equals(name)
-            || "CRV_CMPND".equals(name)
-            || "CRV_BUSD".equals(name)
-            || "CRV_USDN".equals(name)
-            || "HUSD".equals(name)
-            || "CRV_HUSD".equals(name)
-            || UST_NAME.equals(name)
-            || "CRV_UST".equals(name)
-            ;
+    public static String findContractForName(String name) {
+        return getTokenInfo(name).getTokenAddress();
+    }
+
+    public static String mapLpAddressToOtherCoin(String address) {
+        return mapLpAddress(address, false);
     }
 
     public static String simplifyName(String name) {

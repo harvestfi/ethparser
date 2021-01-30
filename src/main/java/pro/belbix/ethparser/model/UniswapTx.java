@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.amountToDouble;
 import static pro.belbix.ethparser.web3.erc20.Tokens.findNameForContract;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.amountToDouble;
 
 import java.math.BigInteger;
 import lombok.Data;
@@ -60,15 +60,6 @@ public class UniswapTx implements EthTransactionI {
         throw new IllegalStateException("Token not the last or first for " + hash);
     }
 
-    public void assertBuy(boolean expected) {
-        if (buy == null) {
-            throw new IllegalStateException("Buy now is null for " + hash);
-        }
-        if (buy != expected) {
-            throw new IllegalStateException("Unexpected setup for " + hash);
-        }
-    }
-
     public UniswapDTO toDto() {
         UniswapDTO uniswapDTO = new UniswapDTO();
         uniswapDTO.setId(hash + "_" + logId);
@@ -109,6 +100,15 @@ public class UniswapTx implements EthTransactionI {
             uniswapDTO.setPrice(price);
         }
         return uniswapDTO;
+    }
+
+    public void assertBuy(boolean expected) {
+        if (buy == null) {
+            throw new IllegalStateException("Buy now is null for " + hash);
+        }
+        if (buy != expected) {
+            throw new IllegalStateException("Unexpected setup for " + hash);
+        }
     }
 
     private static String addrToStr(Address adr) {
