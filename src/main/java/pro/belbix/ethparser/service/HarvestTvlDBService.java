@@ -7,7 +7,6 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.model.TvlHistory;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
@@ -27,7 +26,7 @@ public class HarvestTvlDBService {
 
     public List<TvlHistory> fetchTvlByVault(String name) {
         log.debug("get tvl for " + name);
-        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllTvlForVault(name);
+        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllByVault(name);
         List<TvlHistory> tvlHistoryDTOS = new ArrayList<>();
         if (harvestTxEntities == null) {
             return tvlHistoryDTOS;

@@ -8,6 +8,16 @@ import org.web3j.abi.datatypes.StaticStruct;
 @SuppressWarnings("rawtypes")
 public class DynamicStructures {
 
+    public static TypeReference swapTypeReference() {
+        return new TypeReference<Swap>() {
+        };
+    }
+
+    public static TypeReference swapTypeReferenceDoubleArray() {
+        return new TypeReference<DynamicArray<Swap>>() {
+        };
+    }
+
     //balancer
     public static class Swap extends StaticStruct {
 
@@ -51,16 +61,6 @@ public class DynamicStructures {
             this.tokenOutParam = tokenOutParam.getValue();
             this.maxPrice = maxPrice.getValue();
         }
-    }
-
-    public static TypeReference swapTypeReference() {
-        return new TypeReference<Swap>() {
-        };
-    }
-
-    public static TypeReference swapTypeReferenceDoubleArray() {
-        return new TypeReference<DynamicArray<Swap>>() {
-        };
     }
 
 }

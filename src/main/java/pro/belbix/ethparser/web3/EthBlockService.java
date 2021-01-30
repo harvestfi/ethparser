@@ -37,12 +37,12 @@ public class EthBlockService {
         return extractDateFromBlock(block);
     }
 
-    public long getLastBlock() {
-        return lastBlock;
-    }
-
     private static long extractDateFromBlock(Block block) {
         return block.getTimestamp().longValue();
+    }
+
+    public long getLastBlock() {
+        return lastBlock;
     }
 
 

@@ -10,8 +10,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -27,23 +26,22 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapRouterDecoder;
 
 @Service
+@Log4j2
 public class UniswapTransactionsParser implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(UniswapTransactionsParser.class);
-    private static final AtomicBoolean run = new AtomicBoolean(true);
     public static final String UNI_ROUTER = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d".toLowerCase();
+    private static final AtomicBoolean run = new AtomicBoolean(true);
     private final UniswapRouterDecoder uniswapRouterDecoder = new UniswapRouterDecoder();
     private final Web3Service web3Service;
-    private double lastPrice = 0.0;
-    private long parsedTxCount = 0;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
-
     private final UniswapPoolDecoder uniswapPoolDecoder = new UniswapPoolDecoder();
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
+    private double lastPrice = 0.0;
+    private long parsedTxCount = 0;
+    private Instant lastTx = Instant.now();
 
     public UniswapTransactionsParser(Web3Service web3Service, UniswapDbService uniswapDbService,
                                      EthBlockService ethBlockService, ParserInfo parserInfo) {
@@ -93,7 +91,8 @@ public class UniswapTransactionsParser implements Web3Parser {
 
         UniswapDTO uniswapDTO = uniswapTx.toDto();
         uniswapDTO.setLastGas(web3Service.fetchAverageGasPrice());
-        uniswapDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlockNumber().longValue()));
+        uniswapDTO
+            .setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlockNumber().longValue()));
 //        calculateNotClearData(uniswapDTO);
         saveLastPrice(uniswapDTO);
         print(uniswapDTO);
@@ -149,11 +148,10 @@ public class UniswapTransactionsParser implements Web3Parser {
         return uniswapTx;
     }
 
-    private void print(UniswapDTO uniswapDTO) {
-        if (uniswapDTO.isConfirmed()) {
-            log.info(uniswapDTO.print() + " " + lastPrice);
-        } else {
-            log.debug(uniswapDTO.print() + " " + lastPrice);
+    private void saveLastPrice(UniswapDTO uniswapDTO) {
+        if (uniswapDTO.isConfirmed() && "USDC".equals(uniswapDTO.getOtherCoin())) {
+            lastPrice = uniswapDTO.getOtherAmount() / uniswapDTO.getAmount();
+            uniswapDTO.setPrice(lastPrice);
         }
     }
 
@@ -175,10 +173,11 @@ public class UniswapTransactionsParser implements Web3Parser {
 //        }
 //    }
 
-    private void saveLastPrice(UniswapDTO uniswapDTO) {
-        if (uniswapDTO.isConfirmed() && "USDC".equals(uniswapDTO.getOtherCoin())) {
-            lastPrice = uniswapDTO.getOtherAmount() / uniswapDTO.getAmount();
-            uniswapDTO.setPrice(lastPrice);
+    private void print(UniswapDTO uniswapDTO) {
+        if (uniswapDTO.isConfirmed()) {
+            log.info(uniswapDTO.print() + " " + lastPrice);
+        } else {
+            log.debug(uniswapDTO.print() + " " + lastPrice);
         }
     }
 

@@ -8,8 +8,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -25,11 +24,96 @@ import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @SuppressWarnings("rawtypes")
 @Service
+@Log4j2
 public class Functions {
 
     public final static double SECONDS_OF_YEAR = 31557600.0;
     public final static double SECONDS_IN_WEEK = 604800.0;
-    private static final Logger log = LoggerFactory.getLogger(Functions.class);
+    static final Function GET_PRICE_PER_FULL_SHARE = new Function(
+        "getPricePerFullShare",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function GET_RESERVES = new Function(
+        "getReserves",
+        Collections.emptyList(),
+        Arrays.asList(new TypeReference<Uint112>() {
+                      },
+            new TypeReference<Uint112>() {
+            },
+            new TypeReference<Uint32>() {
+            }
+        ));
+    static final Function ERC_20_TOTAL_SUPPLY = new Function(
+        "totalSupply",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function UNDERLYING_UNIT = new Function(
+        "underlyingUnit",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function REWARD_PER_TOKEN = new Function(
+        "rewardPerToken",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function LAST_TIME_REWARD_APPLICABLE = new Function(
+        "lastTimeRewardApplicable",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function REWARD_RATE = new Function(
+        "rewardRate",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function PERIOD_FINISH = new Function(
+        "periodFinish",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function SELL_FLOOR = new Function(
+        "sellFloor",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function REWARD_TOKEN = new Function(
+        "rewardToken",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+    static final Function REWARD_POOL = new Function(
+        "rewardPool",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+    static final Function TOKEN0 = new Function(
+        "token0",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+    static final Function TOKEN1 = new Function(
+        "token1",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+    static final Function STRATEGY_TIME_LOCK = new Function(
+        "strategyTimeLock",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        }));
+    static final Function STRATEGY = new Function(
+        "strategy",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
+    static final Function UNDERLYING = new Function(
+        "underlying",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Address>() {
+        }));
     private final Web3Service web3Service;
 
     public Functions(Web3Service web3Service) {
@@ -43,6 +127,13 @@ public class Functions {
             return null;
         }
         return (BigInteger) types.get(0).getValue();
+    }
+
+    public static DefaultBlockParameter resolveBlock(Long block) {
+        if (block != null) {
+            return new DefaultBlockParameterNumber(block);
+        }
+        return LATEST;
     }
 
     public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
@@ -82,6 +173,32 @@ public class Functions {
             v1 / dividers.component1(),
             v2 / dividers.component2()
         );
+    }
+
+    private String callStringFunction(Function function, String hash, Long block) {
+        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+        if (types == null || types.isEmpty()) {
+            log.error(function.getName() + " Wrong callback " + hash);
+            return null;
+        }
+        return (String) types.get(0).getValue();
+    }
+
+    public BigInteger callBalanceOf(String holder, String hash, Long block) {
+        return callUint256Function(new Function(
+            "balanceOf",
+            Collections.singletonList(new Address(holder)),
+            Collections.singletonList(new TypeReference<Uint256>() {
+            })), hash, block);
+    }
+
+    private BigInteger callUint256Function(Function function, String hash, Long block) {
+        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+        if (types == null || types.isEmpty()) {
+            log.error(function.getName() + " Wrong callback " + hash);
+            return null;
+        }
+        return (BigInteger) types.get(0).getValue();
     }
 
     public BigInteger callErc20TotalSupply(String hash, Long block) {
@@ -139,138 +256,4 @@ public class Functions {
             Collections.singletonList(new TypeReference<Uint256>() {
             })), hash, block);
     }
-
-    public BigInteger callBalanceOf(String holder, String hash, Long block) {
-        return callUint256Function(new Function(
-            "balanceOf",
-            Collections.singletonList(new Address(holder)),
-            Collections.singletonList(new TypeReference<Uint256>() {
-            })), hash, block);
-    }
-
-    private BigInteger callUint256Function(Function function, String hash, Long block) {
-        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
-        if (types == null || types.isEmpty()) {
-            log.error(function.getName() + " Wrong callback " + hash);
-            return null;
-        }
-        return (BigInteger) types.get(0).getValue();
-    }
-
-    private String callStringFunction(Function function, String hash, Long block) {
-        List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
-        if (types == null || types.isEmpty()) {
-            log.error(function.getName() + " Wrong callback " + hash);
-            return null;
-        }
-        return (String) types.get(0).getValue();
-    }
-
-    public static DefaultBlockParameter resolveBlock(Long block) {
-        if (block != null) {
-            return new DefaultBlockParameterNumber(block);
-        }
-        return LATEST;
-    }
-
-    static final Function GET_PRICE_PER_FULL_SHARE = new Function(
-        "getPricePerFullShare",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function GET_RESERVES = new Function(
-        "getReserves",
-        Collections.emptyList(),
-        Arrays.asList(new TypeReference<Uint112>() {
-                      },
-            new TypeReference<Uint112>() {
-            },
-            new TypeReference<Uint32>() {
-            }
-        ));
-
-    static final Function ERC_20_TOTAL_SUPPLY = new Function(
-        "totalSupply",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function UNDERLYING_UNIT = new Function(
-        "underlyingUnit",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function REWARD_PER_TOKEN = new Function(
-        "rewardPerToken",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function LAST_TIME_REWARD_APPLICABLE = new Function(
-        "lastTimeRewardApplicable",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function REWARD_RATE = new Function(
-        "rewardRate",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function PERIOD_FINISH = new Function(
-        "periodFinish",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function SELL_FLOOR = new Function(
-        "sellFloor",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function REWARD_TOKEN = new Function(
-        "rewardToken",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
-
-    static final Function REWARD_POOL = new Function(
-        "rewardPool",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
-
-    static final Function TOKEN0 = new Function(
-        "token0",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
-
-    static final Function TOKEN1 = new Function(
-        "token1",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
-
-    static final Function STRATEGY_TIME_LOCK = new Function(
-        "strategyTimeLock",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Uint256>() {
-        }));
-
-    static final Function STRATEGY = new Function(
-        "strategy",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
-
-    static final Function UNDERLYING = new Function(
-        "underlying",
-        Collections.emptyList(),
-        Collections.singletonList(new TypeReference<Address>() {
-        }));
 }

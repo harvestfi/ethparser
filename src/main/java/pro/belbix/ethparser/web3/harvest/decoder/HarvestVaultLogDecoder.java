@@ -16,30 +16,21 @@ import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
 
-    public HarvestTx decode(Log log) {
-        if (!isValidLog(log)) {
+    public HarvestTx decode(Log ethLog) {
+        if (!isValidLog(ethLog)) {
             return null;
         }
-        String topic0 = log.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
-
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
+        String methodId = parseMethodId(ethLog);
         String methodName = methodNamesByMethodId.get(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId);
 
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
-        }
-
-        List<Type> types = extractLogIndexedValues(log, parameters);
+        List<Type> types = extractLogIndexedValues(ethLog, parameters);
         HarvestTx tx = new HarvestTx();
-        tx.setVault(new Address(log.getAddress()));
-        tx.setLogId(log.getLogIndex().longValue());
-        tx.setHash(log.getTransactionHash());
-        tx.setBlock(log.getBlockNumber());
-        tx.setBlockHash(log.getBlockHash());
+        tx.setVault(new Address(ethLog.getAddress()));
+        tx.setLogId(ethLog.getLogIndex().longValue());
+        tx.setHash(ethLog.getTransactionHash());
+        tx.setBlock(ethLog.getBlockNumber());
+        tx.setBlockHash(ethLog.getBlockHash());
         tx.setMethodName(methodName);
         tx.setSuccess(true); //from logs always success
         enrich(types, methodName, tx);

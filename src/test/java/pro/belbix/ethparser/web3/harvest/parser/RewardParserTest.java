@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_DAI_BSG;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.DAI_BSG;
 
 import java.util.List;
 import org.junit.Before;
@@ -21,7 +20,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.web3.PriceProvider;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @RunWith(SpringRunner.class)

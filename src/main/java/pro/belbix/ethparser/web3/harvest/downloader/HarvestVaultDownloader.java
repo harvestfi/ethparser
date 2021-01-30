@@ -12,12 +12,12 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -69,7 +69,6 @@ public class HarvestVaultDownloader {
                 HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResult.get());
                 if (dto != null) {
                     harvestOwnerBalanceCalculator.fillBalance(dto);
-                    dto.setPrices(priceProvider.getAllPrices(dto.getBlock()));
                     harvestDBService.saveHarvestDTO(dto);
                 }
             } catch (Exception e) {

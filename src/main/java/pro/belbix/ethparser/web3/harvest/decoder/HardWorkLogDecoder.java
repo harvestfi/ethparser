@@ -1,12 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.decoder;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
@@ -22,18 +17,9 @@ public class HardWorkLogDecoder extends MethodDecoder {
         if (!isValidLog(ethLog)) {
             return null;
         }
-        String topic0 = ethLog.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
-
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
+        String methodId = parseMethodId(ethLog);
         String methodName = methodNamesByMethodId.get(methodId);
-
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
-        }
+        List<TypeReference<Type>> parameters = findParameters(methodId);
 
         List<Type> types = extractLogIndexedValues(ethLog, parameters);
         HardWorkTx tx = new HardWorkTx();

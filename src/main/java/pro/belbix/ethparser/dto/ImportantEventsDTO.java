@@ -30,7 +30,6 @@ public class ImportantEventsDTO implements DtoI {
     @Column(columnDefinition = "TEXT")
     private String info;
 
-
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
             + event + " "

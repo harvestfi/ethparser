@@ -37,7 +37,7 @@ public class HarvestController {
 
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryData(@RequestParam(value = "from", required = false) String from,
-                                                        @RequestParam(value = "to", required = false) String to) {
+                                                   @RequestParam(value = "to", required = false) String to) {
         return harvestDBService.fetchHarvest(from, to);
     }
 

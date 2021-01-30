@@ -7,9 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service

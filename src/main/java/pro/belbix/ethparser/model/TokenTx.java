@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import lombok.Data;
 
 @Data
-public class TokenTx implements EthTransactionI{
+public class TokenTx implements EthTransactionI {
 
     private String hash;
     private String logId;

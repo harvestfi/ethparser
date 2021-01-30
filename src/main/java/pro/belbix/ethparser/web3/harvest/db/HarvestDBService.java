@@ -10,26 +10,23 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.model.LpStat;
-import pro.belbix.ethparser.model.PricesModel;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @Service
+@Log4j2
 public class HarvestDBService {
 
-    private static final Logger log = LoggerFactory.getLogger(HarvestDBService.class);
     private final static ObjectMapper objectMapper = new ObjectMapper();
 
     private final HarvestRepository harvestRepository;
@@ -45,6 +42,10 @@ public class HarvestDBService {
         this.appProperties = appProperties;
         this.harvestTvlRepository = harvestTvlRepository;
         this.uniswapRepository = uniswapRepository;
+    }
+
+    public static double aprToApy(double apr, double period) {
+        return (Math.pow(1 + (apr / period), period) - 1.0);
     }
 
     public boolean saveHarvestDTO(HarvestDTO dto) {
@@ -103,19 +104,16 @@ public class HarvestDBService {
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);
-        if (dto.getPrices() != null && !dto.getPrices().contains("NaN")) {
-            for (String vaultName : contracts) {
-                HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
-                if (lastHarvest == null) {
-                    continue;
-                }
-                if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
-                    lastHarvest = dto; // for avoiding JPA wrong synchronisation
-                }
-                tvl += calculateActualTvl(lastHarvest, dto.getPrices(), farmPrice);
+
+        for (String vaultName : contracts) {
+            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+            if (lastHarvest == null) {
+                continue;
             }
-        } else {
-            log.warn("Wrong prices " + dto);
+            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                lastHarvest = dto; // for avoiding JPA wrong synchronisation
+            }
+            tvl += calculateActualTvl(lastHarvest, farmPrice);
         }
 
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
@@ -145,28 +143,16 @@ public class HarvestDBService {
         return harvestTvl;
     }
 
-    public BigInteger lastBlock() {
-        HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
-        if (dto == null) {
-            return new BigInteger("0");
-        }
-        return BigInteger.valueOf(dto.getBlock());
-    }
-
-    private double calculateActualTvl(HarvestDTO dto, String currentPrices, Double farmPrice) {
-        if (currentPrices == null) {
-            return dto.getLastUsdTvl();
-        }
+    private double calculateActualTvl(HarvestDTO dto, Double farmPrice) {
         String lpStatStr = dto.getLpStat();
         double tvl = 0.0;
         try {
-            PricesModel pricesModel = objectMapper.readValue(currentPrices, PricesModel.class);
             if (lpStatStr == null) {
                 double coinPrice = 0.0;
                 if (("PS".equals(dto.getVault()) || "PS_V0".equals(dto.getVault())) && farmPrice != null) {
                     coinPrice = farmPrice;
                 } else {
-                    coinPrice = PriceProvider.readPrice(pricesModel, dto.getVault());
+                    coinPrice = dto.getUnderlyingPrice();
                 }
                 tvl = dto.getLastTvl() * coinPrice;
             } else {
@@ -176,14 +162,14 @@ public class HarvestDBService {
                 if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
                     coin1Price = farmPrice;
                 } else {
-                    coin1Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin1());
+                    coin1Price = lpStat.getPrice1();
                 }
 
                 double coin2Price;
                 if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
                     coin2Price = farmPrice;
                 } else {
-                    coin2Price = PriceProvider.readPrice(pricesModel, lpStat.getCoin2());
+                    coin2Price = lpStat.getPrice2();
                 }
 
                 tvl = (lpStat.getAmount1() * coin1Price) + (lpStat.getAmount2() * coin2Price);
@@ -197,6 +183,14 @@ public class HarvestDBService {
             throw new IllegalStateException("TVL is wrong for " + dto);
         }
         return tvl;
+    }
+
+    public BigInteger lastBlock() {
+        HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
+        if (dto == null) {
+            return new BigInteger("0");
+        }
+        return BigInteger.valueOf(dto.getBlock());
     }
 
     public List<HarvestDTO> fetchHarvest(String from, String to) {
@@ -220,9 +214,9 @@ public class HarvestDBService {
     }
 
     public void fillProfit(HarvestDTO dto) {
-        if (!"Withdraw".equals(dto.getMethodName()) 
-        || dto.getAmount().equals(0D) 
-        || "PS".equals(dto.getVault()) 
+        if (!"Withdraw".equals(dto.getMethodName())
+        || dto.getAmount().equals(0D)
+        || "PS".equals(dto.getVault())
         || "PS_V0".equals(dto.getVault())) {
             return;
         }
@@ -233,7 +227,7 @@ public class HarvestDBService {
             dto.getVault(),
             dto.getBlockDate()
         );
-        
+
         // find relevant transfers (from last full withdraw)
         List<HarvestDTO> transfers = harvestRepository.fetchPeriodForOwnerAndVault(
             dto.getOwner(),
@@ -276,9 +270,9 @@ public class HarvestDBService {
     }
 
     private double calculateProfitUsd(HarvestDTO dto) {
-        if (dto.getLastUsdTvl() == null 
+        if (dto.getLastUsdTvl() == null
         || dto.getLastUsdTvl().equals(0D)
-        || dto.getLastTvl() == null 
+        || dto.getLastTvl() == null
         || dto.getLastTvl().equals(0D)
         || dto.getProfit().equals(0D)
         ) {

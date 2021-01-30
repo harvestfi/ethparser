@@ -23,6 +23,23 @@ public class UniswapPoolDecoder {
         initParameters();
     }
 
+    void initParameters() {
+        if (parametersByMethodName == null) {
+            parametersByMethodName = new HashMap<>();
+            try {
+                parametersByMethodName.put("Swap",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint"),
+                        TypeReference.makeTypeReference("uint")
+                    ));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void enrichUniTx(UniswapTx tx, List<Log> logs) {
         Log log;
         if (tx.getBuy()) {
@@ -37,8 +54,15 @@ public class UniswapPoolDecoder {
         tx.setEnriched(true);
     }
 
-    public List<Type> decodeSwap(String data) {
-        return FunctionReturnDecoder.decode(data, parametersByMethodName.get("Swap"));
+    public Log findLastSwapLog(List<Log> logs) {
+        for (int i = logs.size() - 1; i != 0; i--) {
+            Log log = logs.get(i);
+            if (!log.getTopics().isEmpty()
+                && log.getTopics().get(0).toLowerCase().equals(SWAP_TOPIC)) {
+                return log;
+            }
+        }
+        return null;
     }
 
     public Log findFirstSwapLog(List<Log> logs) {
@@ -51,15 +75,8 @@ public class UniswapPoolDecoder {
         return null;
     }
 
-    public Log findLastSwapLog(List<Log> logs) {
-        for (int i = logs.size() - 1; i != 0; i--) {
-            Log log = logs.get(i);
-            if (!log.getTopics().isEmpty()
-                && log.getTopics().get(0).toLowerCase().equals(SWAP_TOPIC)) {
-                return log;
-            }
-        }
-        return null;
+    public List<Type> decodeSwap(String data) {
+        return FunctionReturnDecoder.decode(data, parametersByMethodName.get("Swap"));
     }
 
     public void enrichPrice(UniswapTx tx, List<Type> types) {
@@ -89,23 +106,6 @@ public class UniswapPoolDecoder {
 
         tx.setAmountIn(amountIn);
         tx.setAmountOut(amountOut);
-    }
-
-    void initParameters() {
-        if (parametersByMethodName == null) {
-            parametersByMethodName = new HashMap<>();
-            try {
-                parametersByMethodName.put("Swap",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("uint"),
-                        TypeReference.makeTypeReference("uint"),
-                        TypeReference.makeTypeReference("uint"),
-                        TypeReference.makeTypeReference("uint")
-                    ));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }

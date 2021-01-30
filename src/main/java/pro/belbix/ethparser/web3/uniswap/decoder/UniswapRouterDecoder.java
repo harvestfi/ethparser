@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -16,6 +16,14 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 public class UniswapRouterDecoder extends MethodDecoder {
 
     private final static Address WETH_ADDRESS = new Address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
+
+    private static Address parseAddress(Type type, int i) {
+        if (i < 0) {
+            List adrs = (List) type.getValue();
+            return (Address) adrs.get(adrs.size() + i);
+        }
+        return (Address) ((List) type.getValue()).get(i);
+    }
 
     @Override
     public EthTransactionI mapTypesToModel(List<Type> types, String methodId, Transaction transaction) {
@@ -132,13 +140,5 @@ public class UniswapRouterDecoder extends MethodDecoder {
                 return;
         }
         throw new IllegalStateException("Unknown method " + methodName + " for " + tx.getHash());
-    }
-
-    private static Address parseAddress(Type type, int i) {
-        if (i < 0) {
-            List adrs = (List) type.getValue();
-            return (Address) adrs.get(adrs.size() + i);
-        }
-        return (Address) ((List) type.getValue()).get(i);
     }
 }

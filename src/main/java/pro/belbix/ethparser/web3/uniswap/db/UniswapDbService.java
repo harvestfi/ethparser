@@ -6,13 +6,9 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.entity.IncomeEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 
 @Service

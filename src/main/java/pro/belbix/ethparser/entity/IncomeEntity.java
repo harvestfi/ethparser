@@ -14,6 +14,7 @@ import lombok.Data;
 @Cacheable(false)
 @Data
 public class IncomeEntity {
+
     @Id
     private String id;
     private long timestamp;

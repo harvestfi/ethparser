@@ -10,7 +10,8 @@ import org.springframework.validation.annotation.Validated;
 @ToString
 @Validated
 public class WebErrorModel {
-//    additional: [{headers: {normalizedNames: {}, lazyUpdate: null}, status: 200, statusText: "OK",…}]
+
+    //    additional: [{headers: {normalizedNames: {}, lazyUpdate: null}, status: 200, statusText: "OK",…}]
     String fileName;
     Integer level;
     String lineNumber;

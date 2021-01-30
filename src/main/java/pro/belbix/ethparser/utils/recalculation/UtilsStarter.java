@@ -7,6 +7,7 @@ import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
+import pro.belbix.ethparser.web3.prices.downloader.PriceDownloader;
 import pro.belbix.ethparser.web3.uniswap.downloader.DownloadIncome;
 import pro.belbix.ethparser.web3.uniswap.downloader.UniswapLpDownloader;
 
@@ -31,6 +32,7 @@ public class UtilsStarter {
     private final TransfersRecalculate transfersRecalculate;
     private final RewardRecalculate rewardRecalculate;
     private final NewStrategyDownloader newStrategyDownloader;
+    private final PriceDownloader priceDownloader;
     private final ProfitRecalculate profitRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
@@ -49,7 +51,8 @@ public class UtilsStarter {
                         TransfersRecalculate transfersRecalculate,
                         RewardRecalculate rewardRecalculate,
                         NewStrategyDownloader newStrategyDownloader,
-                        ProfitRecalculate profitRecalculate) {
+                        ProfitRecalculate profitRecalculate,
+                        PriceDownloader priceDownloader) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -68,6 +71,7 @@ public class UtilsStarter {
         this.rewardRecalculate = rewardRecalculate;
         this.newStrategyDownloader = newStrategyDownloader;
         this.profitRecalculate = profitRecalculate;
+        this.priceDownloader = priceDownloader;
     }
 
     public void startUtils() {
@@ -104,6 +108,8 @@ public class UtilsStarter {
             transfersRecalculate.start();
         } else if ("new-strategy-download".equals(appProperties.getStartUtil())) {
             newStrategyDownloader.start();
+        } else if ("price-download".equals(appProperties.getStartUtil())) {
+            priceDownloader.start();
         } else if ("profit-recalculate".equals(appProperties.getStartUtil())) {
             profitRecalculate.start();
         }

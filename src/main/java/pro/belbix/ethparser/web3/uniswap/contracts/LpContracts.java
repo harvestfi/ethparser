@@ -62,7 +62,6 @@ import pro.belbix.ethparser.web3.erc20.Tokens;
 public class LpContracts {
 
     public static final String UNI_LP_ETH_DAI = "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11".toLowerCase();
-    public static final String UNI_LP_ETH_USDC = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc".toLowerCase();
     public static final String UNI_LP_USDC_ETH = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc".toLowerCase();
     public static final String UNI_LP_ETH_USDT = "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852".toLowerCase();
     public static final String UNI_LP_ETH_WBTC = "0xBb2b8038a1640196FbE3e38816F3e67Cba72D940".toLowerCase();
@@ -113,7 +112,6 @@ public class LpContracts {
         }
 
         lpHashToCoinNames.put(UNI_LP_ETH_DAI, new Tuple2<>(DAI_NAME, WETH_NAME));
-        lpHashToCoinNames.put(UNI_LP_ETH_USDC, new Tuple2<>(USDC_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_USDC_ETH, new Tuple2<>(USDC_NAME, WETH_NAME));
         lpHashToCoinNames.put(UNI_LP_ETH_USDT, new Tuple2<>(WETH_NAME, USDT_NAME));
         lpHashToCoinNames.put(UNI_LP_ETH_WBTC, new Tuple2<>(WBTC_NAME, WETH_NAME));
@@ -133,7 +131,7 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_DAI_BAS, new Tuple2<>(DAI_NAME, BAS_NAME));
         lpHashToCoinNames.put(SUSHI_LP_MIC_USDT, new Tuple2<>(MIC_NAME, USDT_NAME));
         lpHashToCoinNames.put(SUSHI_LP_MIS_USDT, new Tuple2<>(MIS_NAME, USDT_NAME));
-        lpHashToCoinNames.put(UNI_LP_USDC_WBTC, new Tuple2<>(MIS_NAME, USDT_NAME));
+        lpHashToCoinNames.put(UNI_LP_USDC_WBTC, new Tuple2<>(WBTC_NAME, USDC_NAME));
         lpHashToCoinNames.put(ONEINCH_LP_ETH_DAI, new Tuple2<>(WETH_NAME, DAI_NAME));
         lpHashToCoinNames.put(ONEINCH_LP_ETH_USDC, new Tuple2<>(WETH_NAME, USDC_NAME));
         lpHashToCoinNames.put(ONEINCH_LP_ETH_USDT, new Tuple2<>(WETH_NAME, USDT_NAME));
@@ -161,7 +159,6 @@ public class LpContracts {
         keyCoinForLp.put(UNI_LP_DAI_BSG, BSG_TOKEN);
         keyCoinForLp.put(UNI_LP_DAI_BSGS, BSGS_TOKEN);
         keyCoinForLp.put(UNI_LP_ESD_USDC, ESD_TOKEN);
-        keyCoinForLp.put(UNI_LP_USDC_WBTC, WBTC_TOKEN);
         keyCoinForLp.put(UNI_LP_ETH_DPI, DPI_TOKEN);
         keyCoinForLp.put(UNI_LP_ETH_WBTC, WBTC_TOKEN);
         keyCoinForLp.put(UNI_LP_USDC_DSD, DSD_TOKEN);
@@ -173,23 +170,12 @@ public class LpContracts {
 
         parsable.add(UNI_LP_USDC_FARM);
         parsable.add(UNI_LP_WETH_FARM);
-        parsable.add(UNI_LP_WBTC_BADGER);
         parsable.add(UNI_LP_GRAIN_FARM);
 
         oneInch.add(ONEINCH_LP_ETH_DAI);
         oneInch.add(ONEINCH_LP_ETH_USDC);
         oneInch.add(ONEINCH_LP_ETH_USDT);
         oneInch.add(ONEINCH_LP_ETH_WBTC);
-    }
-
-    public static Tuple2<Double, Double> findLpTokensDividers(String lpHash) {
-        Tuple2<String, String> coinNames = lpHashToCoinNames.get(lpHash);
-        if (coinNames == null) {
-            throw new IllegalStateException("Not found coin names for " + lpHash);
-        }
-        double token1Divider = Tokens.getTokenInfo(coinNames.component1()).getDivider();
-        double token2Divider = Tokens.getTokenInfo(coinNames.component2()).getDivider();
-        return new Tuple2<>(token1Divider, token2Divider);
     }
 
     public static Map<String, Double> getLpDividers() {
@@ -264,6 +250,16 @@ public class LpContracts {
         }
 
         return amount.doubleValue() / divider;
+    }
+
+    public static Tuple2<Double, Double> findLpTokensDividers(String lpHash) {
+        Tuple2<String, String> coinNames = lpHashToCoinNames.get(lpHash);
+        if (coinNames == null) {
+            throw new IllegalStateException("Not found coin names for " + lpHash);
+        }
+        double token1Divider = Tokens.getTokenInfo(coinNames.component1()).getDivider();
+        double token2Divider = Tokens.getTokenInfo(coinNames.component2()).getDivider();
+        return new Tuple2<>(token1Divider, token2Divider);
     }
 
     //dangerous, but useful

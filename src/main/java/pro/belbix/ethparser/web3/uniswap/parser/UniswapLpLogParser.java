@@ -6,8 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -16,32 +15,31 @@ import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
 @Service
+@Log4j2
 public class UniswapLpLogParser implements Web3Parser {
 
-    private static final Logger log = LoggerFactory.getLogger(UniswapLpLogParser.class);
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
     private final Web3Service web3Service;
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private Instant lastTx = Instant.now();
-    private long count = 0;
-
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
     private final UniToHarvestConverter uniToHarvestConverter;
     private final ParserInfo parserInfo;
     private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
+    private Instant lastTx = Instant.now();
+    private long count = 0;
 
     public UniswapLpLogParser(Web3Service web3Service,
                               UniswapDbService uniswapDbService,
@@ -70,7 +68,7 @@ public class UniswapLpLogParser implements Web3Parser {
                 try {
                     ethLog = logs.poll(1, TimeUnit.SECONDS);
                     count++;
-                    if(count % 100 == 0) {
+                    if (count % 100 == 0) {
                         log.info(this.getClass().getSimpleName() + " handled " + count);
                     }
                     UniswapDTO dto = parseUniswapLog(ethLog);
@@ -105,11 +103,12 @@ public class UniswapLpLogParser implements Web3Parser {
         dto.setOwner(receipt.getFrom());
 
         //enrich date
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
+        dto.setBlockDate(
+            ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
 
-        if(dto.getLastPrice() == null) {
+        if (dto.getLastPrice() == null) {
             Double otherCoinPrice = priceProvider.getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue());
-            if(otherCoinPrice != null) {
+            if (otherCoinPrice != null) {
                 dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
             } else {
                 throw new IllegalStateException("Price not found " + dto.print());

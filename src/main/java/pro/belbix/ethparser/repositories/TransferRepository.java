@@ -28,10 +28,10 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
         + "and t.blockDate <= :to "
         + "order by t.blockDate asc")
     List<TransferDTO> fetchAllByOwnerAndRecipientAndTypes(@Param("owner") String owner,
-                                                  @Param("recipient") String recipient,
+                                                          @Param("recipient") String recipient,
                                                           @Param("types") List<String> types,
-                                                  @Param("from") long from,
-                                                  @Param("to") long to);
+                                                          @Param("from") long from,
+                                                          @Param("to") long to);
 
     @Query(nativeQuery = true, value = ""
         + "select  coalesce(buys.buy, 0) - coalesce(sells.sell, 0) sum from "

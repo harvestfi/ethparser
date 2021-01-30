@@ -21,45 +21,36 @@ public class ImportantEventsLogDecoder extends MethodDecoder {
 
     private static final Set<String> allowedMethods = new HashSet<>(
         Arrays.asList("StrategyChanged", "StrategyAnnounced", "Transfer")
-        );
+    );
 
-    public ImportantEventsTx decode(Log log) {
-        if (!isValidLog(log)) {
+    public ImportantEventsTx decode(Log ethLog) {
+        if (!isValidLog(ethLog)) {
             return null;
         }
-        String topic0 = log.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
-
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
+        String methodId = parseMethodId(ethLog);
         String methodName = methodNamesByMethodId.get(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId);
 
         if (!allowedMethods.contains(methodName)) {
             return null;
         }
 
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
-        }
+        List<Type> types = extractLogIndexedValues(ethLog, parameters);
 
-        List<Type> types = extractLogIndexedValues(log, parameters);
-        
         // Mint function emits only Transfer event from zero address
         // and we want only FARM token
         if ("Transfer".equals(methodName)) {
-            if (!FARM_TOKEN.equals(log.getAddress()) || !types.get(0).getValue().equals(ZERO_ADDRESS)) {
+            if (!FARM_TOKEN.equals(ethLog.getAddress()) || !types.get(0).getValue().equals(ZERO_ADDRESS)) {
                 return null;
             }
         }
 
         ImportantEventsTx tx = new ImportantEventsTx();
-        tx.setLogId(log.getLogIndex().toString());
-        tx.setHash(log.getTransactionHash());
+        tx.setLogId(ethLog.getLogIndex().toString());
+        tx.setHash(ethLog.getTransactionHash());
         tx.setMethodName(methodName);
-        tx.setBlock(log.getBlockNumber().longValue());
-        tx.setVault(log.getAddress());
+        tx.setBlock(ethLog.getBlockNumber().longValue());
+        tx.setVault(ethLog.getAddress());
         enrich(types, tx);
         return tx;
     }

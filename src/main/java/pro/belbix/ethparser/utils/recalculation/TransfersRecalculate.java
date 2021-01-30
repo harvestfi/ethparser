@@ -59,7 +59,7 @@ public class TransfersRecalculate {
         if (prices) {
             reparseEmptyPrices();
         }
-        if(profit){
+        if (profit) {
             reparseEmptyProfits();
         }
     }

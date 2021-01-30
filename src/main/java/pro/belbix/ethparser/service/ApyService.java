@@ -38,6 +38,15 @@ public class ApyService {
         return averageApy;
     }
 
+    private Double getApyFromCache(String pool, int days) {
+        Map<Integer, Double> poolApys = apyCache.get(pool);
+        if (poolApys == null) {
+            apyCache.put(pool, new HashMap<>());
+            return null;
+        }
+        return poolApys.get(days);
+    }
+
     public static double calculateAverageApy(List<RewardDTO> rewards) {
         double[] apys = rewards.stream()
             .map(RewardDTO::getApy)
@@ -55,15 +64,6 @@ public class ApyService {
             return;
         }
         poolApys.put(days, averageApy);
-    }
-
-    private Double getApyFromCache(String pool, int days) {
-        Map<Integer, Double> poolApys = apyCache.get(pool);
-        if (poolApys == null) {
-            apyCache.put(pool, new HashMap<>());
-            return null;
-        }
-        return poolApys.get(days);
     }
 
 
