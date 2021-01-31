@@ -33,6 +33,7 @@ public class UtilsStarter {
     private final RewardRecalculate rewardRecalculate;
     private final NewStrategyDownloader newStrategyDownloader;
     private final PriceDownloader priceDownloader;
+    private final HarvestProfitRecalculate harvestProfitRecalculate;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -50,6 +51,7 @@ public class UtilsStarter {
                         TransfersRecalculate transfersRecalculate,
                         RewardRecalculate rewardRecalculate,
                         NewStrategyDownloader newStrategyDownloader,
+                        HarvestProfitRecalculate harvestProfitRecalculate,
                         PriceDownloader priceDownloader) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
@@ -68,6 +70,7 @@ public class UtilsStarter {
         this.transfersRecalculate = transfersRecalculate;
         this.rewardRecalculate = rewardRecalculate;
         this.newStrategyDownloader = newStrategyDownloader;
+        this.harvestProfitRecalculate = harvestProfitRecalculate;
         this.priceDownloader = priceDownloader;
     }
 
@@ -107,6 +110,8 @@ public class UtilsStarter {
             newStrategyDownloader.start();
         } else if ("price-download".equals(appProperties.getStartUtil())) {
             priceDownloader.start();
+        } else if ("profit-recalculate".equals(appProperties.getStartUtil())) {
+            harvestProfitRecalculate.start();
         }
         log.info("Utils completed");
         System.exit(0);

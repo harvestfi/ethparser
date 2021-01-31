@@ -62,6 +62,7 @@ public class HarvestDBService {
         HarvestTvlEntity harvestTvl = calculateHarvestTvl(dto, true);
         harvestTvlRepository.save(harvestTvl);
 
+        fillProfit(dto);
         harvestRepository.save(dto);
         return true;
     }
@@ -208,4 +209,83 @@ public class HarvestDBService {
         return harvestRepository.fetchAllByPeriod(fromI, toI);
     }
 
+    public void fillProfit(HarvestDTO dto) {
+        if (!"Withdraw".equals(dto.getMethodName())
+            || dto.getOwnerBalance() == null
+            || dto.getOwnerBalance() != 0.0
+            || dto.getAmount() == null
+            || dto.getAmount() == 0.0
+            || "PS".equals(dto.getVault())
+            || "PS_V0".equals(dto.getVault())) {
+            return;
+        }
+
+        // find relevant transfers (from last full withdraw)
+        List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
+            dto.getOwner(),
+            dto.getVault(),
+            dto.getBlockDate());
+
+        // for new transaction DB can still not write the object at this moment
+        if (transfers.stream().noneMatch(h -> h.getId().equalsIgnoreCase(dto.getId()))) {
+            transfers.add(dto);
+        }
+
+        dto.setProfit(calculateProfit(transfers));
+        dto.setProfitUsd(calculateProfitUsd(dto));
+    }
+
+    static double calculateProfit(List<HarvestDTO> transfers) {
+        double withdraws = 0.0;
+        double deposits = 0.0;
+        double profit = 0.0;
+        for (HarvestDTO transfer : transfers) {
+            if ((!"Withdraw".equals(transfer.getMethodName())
+                && !"Deposit".equals(transfer.getMethodName()))
+                || transfer.getAmount() == null
+                || transfer.getAmount() == 0.0
+            ) {
+                continue;
+            }
+
+            double sharePrice = transfer.getSharePrice();
+            if (transfer.getSharePrice() == null
+                || transfer.getSharePrice() == 0.0) {
+                sharePrice = 1.0;
+            }
+
+            //count all withdraws
+            if ("Withdraw".equals(transfer.getMethodName())) {
+                withdraws += transfer.getAmount() * sharePrice;
+            }
+            //count all deposits
+            if ("Deposit".equals(transfer.getMethodName())) {
+                deposits += transfer.getAmount() * sharePrice;
+            }
+
+            // will not work in rare situation when holder has profit more than initial stake amount (impossible I guess)
+            if (transfer.getOwnerBalance() == 0) {
+                profit = withdraws - deposits;
+                deposits = 0;
+                withdraws = 0;
+            }
+        }
+        return profit;
+    }
+
+    private double calculateProfitUsd(HarvestDTO dto) {
+        if (dto.getLastUsdTvl() == null
+            || dto.getLastUsdTvl() == 0.0
+            || dto.getLastTvl() == null
+            || dto.getLastTvl() == 0.0
+            || dto.getProfit() == null
+            || dto.getProfit() == 0.0
+            || Double.isNaN(dto.getProfit())
+            || Double.isInfinite(dto.getProfit())
+        ) {
+            return 0.0;
+        }
+
+        return (dto.getLastUsdTvl() / dto.getLastTvl()) * dto.getProfit();
+    }
 }
