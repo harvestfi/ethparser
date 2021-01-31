@@ -47,6 +47,7 @@ public class HardWorkDbService {
             return false;
         }
         enrich(dto);
+        fillExtraInfo(dto);
         hardWorkRepository.saveAndFlush(dto);
         return true;
     }
@@ -61,7 +62,6 @@ public class HardWorkDbService {
         calculateVaultProfits(dto);
         calculatePsProfits(dto);
         calculateFarmBuybackSum(dto);
-        fillExtraInfo(dto);
     }
 
     private void calculateVaultProfits(HardWorkDTO dto) {
@@ -171,7 +171,7 @@ public class HardWorkDbService {
         }
     }
 
-    private void calculateFarmBuybackSum(HardWorkDTO dto) {
+    public void calculateFarmBuybackSum(HardWorkDTO dto) {
         silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate() - 1, limitOne))
             .filter(Caller::isFilledList)
             .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
