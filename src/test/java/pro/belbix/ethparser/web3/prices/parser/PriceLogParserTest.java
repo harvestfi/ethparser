@@ -32,23 +32,6 @@ public class PriceLogParserTest {
     private Web3Service web3Service;
 
     @Test
-    public void priceParse() {
-        assertOnBlock(
-            UNI_LP_USDC_WBTC,
-            11733803,
-            1,
-            "0xe0c327a5bd20bfb33cd21302bba266c84adca8c5191e328c31501b182fbe68eb_20",
-            "UNI_LP_USDC_WBTC",
-            true,
-            "WBTC",
-            0.372,
-            "USDC",
-            11982.818413,
-            32211.877454301077
-        );
-    }
-
-    @Test
     public void priceParseUNI_LP_DAI_BSG() {
         assertOnBlock(
             UNI_LP_DAI_BSG,
@@ -56,7 +39,7 @@ public class PriceLogParserTest {
             1,
             "0xa96edf5c1858ab62d8bcf10d54e2adee1f1bdf38fd36c8f4450d3eb3ad8f7223_101",
             "UNI_LP_DAI_BSG",
-            true,
+            1,
             "BSG",
             9.95014151163403E-4,
             "DAI",
@@ -70,7 +53,7 @@ public class PriceLogParserTest {
                                    int logId,
                                    String id,
                                    String source,
-                                   boolean buy,
+                                   int buy,
                                    String token,
                                    double tokenAmount,
                                    String otherToken,
@@ -86,7 +69,7 @@ public class PriceLogParserTest {
         assertAll(
             () -> assertEquals("id", id, dto.getId()),
             () -> assertEquals("source", source, dto.getSource()),
-            () -> assertEquals("buy", buy, dto.getBuy()),
+            () -> assertEquals("buy", buy, dto.getBuy(), 0),
             () -> assertEquals("token", token, dto.getToken()),
             () -> assertEquals("tokenAmount", tokenAmount, dto.getTokenAmount(), 0.000001),
             () -> assertEquals("otherToken", otherToken, dto.getOtherToken()),

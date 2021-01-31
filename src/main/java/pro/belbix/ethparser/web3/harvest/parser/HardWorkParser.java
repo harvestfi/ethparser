@@ -110,12 +110,16 @@ public class HardWorkParser implements Web3Parser {
             log.warn("Unknown vault " + tx.getVault());
             return null;
         }
-
+        String vaultName = Vaults.vaultHashToName.get(tx.getVault());
+        if (vaultName.endsWith("_V0")) {
+            // skip old strategies
+            return null;
+        }
         HardWorkDTO dto = new HardWorkDTO();
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock());
         dto.setBlockDate(tx.getBlockDate());
-        dto.setVault(Vaults.vaultHashToName.get(tx.getVault()));
+        dto.setVault(vaultName);
         dto.setShareChange(parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
         parseRewards(dto, tx.getHash(), tx.getStrategy());
@@ -127,7 +131,6 @@ public class HardWorkParser implements Web3Parser {
     // not in the root because it can be weekly reward
     private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        // todo replace to VaultModel
         String underlyingTokenHash = functions.callUnderlying(vaultHash, dto.getBlock());
         TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
         boolean autoStake = isAutoStake(tr.getLogs());
