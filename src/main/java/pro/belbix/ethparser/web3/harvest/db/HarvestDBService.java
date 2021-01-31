@@ -211,26 +211,25 @@ public class HarvestDBService {
 
     public void fillProfit(HarvestDTO dto) {
         if (!"Withdraw".equals(dto.getMethodName())
-        || dto.getAmount().equals(0D)
-        || "PS".equals(dto.getVault())
-        || "PS_V0".equals(dto.getVault())) {
+            || dto.getOwnerBalance() == null
+            || dto.getOwnerBalance() != 0.0
+            || dto.getAmount() == null
+            || dto.getAmount() == 0.0
+            || "PS".equals(dto.getVault())
+            || "PS_V0".equals(dto.getVault())) {
             return;
         }
 
-        // check if there is last full withdrawal in the past
-        Long lastWithdrawBlockDate = harvestRepository.findLastFullWithdrawByOwnerAndVault(
-            dto.getOwner(),
-            dto.getVault(),
-            dto.getBlockDate()
-        );
-
         // find relevant transfers (from last full withdraw)
-        List<HarvestDTO> transfers = harvestRepository.fetchPeriodForOwnerAndVault(
+        List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
             dto.getOwner(),
             dto.getVault(),
-            dto.getBlockDate(),
-            lastWithdrawBlockDate != null ? lastWithdrawBlockDate : 0
-            );
+            dto.getBlockDate());
+
+        // for new transaction DB can still not write the object at this moment
+        if (transfers.stream().noneMatch(h -> h.getId().equalsIgnoreCase(dto.getId()))) {
+            transfers.add(dto);
+        }
 
         dto.setProfit(calculateProfit(transfers));
         dto.setProfitUsd(calculateProfitUsd(dto));
@@ -241,22 +240,31 @@ public class HarvestDBService {
         double deposits = 0.0;
         double profit = 0.0;
         for (HarvestDTO transfer : transfers) {
-            if (!"Withdraw".equals(transfer.getMethodName())
-                && !"Deposit".equals(transfer.getMethodName())) {
+            if ((!"Withdraw".equals(transfer.getMethodName())
+                && !"Deposit".equals(transfer.getMethodName()))
+                || transfer.getAmount() == null
+                || transfer.getAmount() == 0.0
+            ) {
                 continue;
             }
+
+            double sharePrice = transfer.getSharePrice();
+            if (transfer.getSharePrice() == null
+                || transfer.getSharePrice() == 0.0) {
+                sharePrice = 1.0;
+            }
+
             //count all withdraws
             if ("Withdraw".equals(transfer.getMethodName())) {
-                withdraws += transfer.getAmount();
+                withdraws += transfer.getAmount() * sharePrice;
             }
             //count all deposits
             if ("Deposit".equals(transfer.getMethodName())) {
-                deposits += transfer.getAmount();
+                deposits += transfer.getAmount() * sharePrice;
             }
 
             // will not work in rare situation when holder has profit more than initial stake amount (impossible I guess)
-            // todo: negative withdraws after usdc and usdt exploit
-            if (withdraws >= deposits) {
+            if (transfer.getOwnerBalance() == 0) {
                 profit = withdraws - deposits;
                 deposits = 0;
                 withdraws = 0;
@@ -267,10 +275,13 @@ public class HarvestDBService {
 
     private double calculateProfitUsd(HarvestDTO dto) {
         if (dto.getLastUsdTvl() == null
-        || dto.getLastUsdTvl().equals(0D)
-        || dto.getLastTvl() == null
-        || dto.getLastTvl().equals(0D)
-        || dto.getProfit().equals(0D)
+            || dto.getLastUsdTvl() == 0.0
+            || dto.getLastTvl() == null
+            || dto.getLastTvl() == 0.0
+            || dto.getProfit() == null
+            || dto.getProfit() == 0.0
+            || Double.isNaN(dto.getProfit())
+            || Double.isInfinite(dto.getProfit())
         ) {
             return 0.0;
         }
