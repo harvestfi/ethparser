@@ -158,6 +158,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_owners_count)), '_', -1) all_owners_count, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_all_usd_tvl)), '_', -1)      last_all_usd_tvl, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', underlying_price)), '_', -1)      underlying_price, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', profit)), '_', -1)      profit, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', profit_usd)), '_', -1)      profit_usd, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, "
         +
         "       false      migrated " +
