@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar dist/ethparser.jar
+web: java -XX:+UseContainerSupport -Dserver.port=$PORT -jar dist/ethparser.jar
