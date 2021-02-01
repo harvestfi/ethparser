@@ -88,12 +88,16 @@ public abstract class MethodDecoder {
     }
 
     public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
+        List<Type> indexedValues = new ArrayList<>();
+        if(log == null || parameters == null) {
+            return indexedValues;
+        }
         final List<String> topics = log.getTopics();
 
         List<Type> nonIndexedValues =
             FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
         List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
-        List<Type> indexedValues = new ArrayList<>();
+
         for (int i = 0; i < indexedParameters.size(); i++) {
             String topic = topics.get(i + 1);
             Type value = decodeIndexedValue(topic, indexedParameters.get(i));
