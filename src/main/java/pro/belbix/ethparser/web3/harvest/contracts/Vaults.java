@@ -239,13 +239,6 @@ public class Vaults {
         return LpContracts.lpHashToCoinNames.containsKey(underlying);
     }
 
-    public static boolean isAutoStake(String vaultName) {
-        return isPsName(vaultName)
-            || DAI_BSG.equals(vaultName)
-            || DAI_BSGS.equals(vaultName)
-            ;
-    }
-
     public static boolean isPsName(String vaultName) {
         return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);
     }

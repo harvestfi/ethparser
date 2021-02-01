@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_DAI_BSG;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_WBTC;
 
 import java.util.List;
 import org.junit.Before;
@@ -39,6 +41,30 @@ public class RewardParserTest {
     public void setUp() {
         priceProvider.setUpdateBlockDifference(1);
         rewardParser.setWaitNewBlock(false);
+    }
+
+    @Test
+    public void shouldParseRewardST_SUSHI_ETH_DAI() {
+        parserTest(
+            ST_SUSHI_ETH_DAI,
+            11733131,
+            0,
+            "SUSHI_ETH_DAI",
+            "96,04999599",
+            1612292480
+        );
+    }
+
+    @Test
+    public void shouldParseRewardST_WBTC() {
+        parserTest(
+            ST_WBTC,
+            11733131,
+            0,
+            "WBTC",
+            "19,39506533",
+            1612292480
+        );
     }
 
     @Test

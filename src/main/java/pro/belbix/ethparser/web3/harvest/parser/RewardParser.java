@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
 
 import java.time.Instant;
 import java.util.Set;
@@ -24,6 +23,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
@@ -98,13 +98,14 @@ public class RewardParser implements Web3Parser {
         if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }
-        if (!ST_PS.equals(tx.getVault().getValue())
-            && !notWaitNewBlock.contains(appProperties.getStartUtil())
-            && waitNewBlock) {
+        if (!notWaitNewBlock.contains(appProperties.getStartUtil())
+            && waitNewBlock
+            && tx.getBlock().longValue() > ethBlockService.getLastBlock()
+        ) {
             log.info("Wait new block for correct parsing rewards");
             Thread.sleep(60 * 1000 * 5); //wait until new block created
         }
-        //todo if it is last block it will be not safe, create another mechanism
+        //todo if it is the last block it will be not safe, create another logic
         long nextBlock = tx.getBlock().longValue() + 1;
         String vault = tx.getVault().getValue();
         long periodFinish = functions.callPeriodFinish(vault, nextBlock).longValue();
