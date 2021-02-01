@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
@@ -394,7 +395,10 @@ public class Web3Service {
     private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
         try {
             // todo it can be bottleneck, create solution
-            queue.put(o);
+            while (!queue.offer(o, 1, TimeUnit.MINUTES)) {
+                log.warn("The queue is full for " + o);
+            }
+
             lastTxTime.set(Instant.now());
         } catch (Exception e) {
             log.error("Error write in queue", e);
