@@ -19,6 +19,7 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.erc20.TokenInfo;
 import pro.belbix.ethparser.web3.erc20.Tokens;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
@@ -89,16 +90,21 @@ public class PriceLogParser implements Web3Parser {
         if (tx == null) {
             return null;
         }
+        String sourceName = LpContracts.findNameForLpHash(tx.getSource());
         PriceDTO dto = new PriceDTO();
 
-        boolean keyCoinFirst = isKeyCoinFirst(tx, dto);
+        boolean keyCoinFirst = checkAndFillCoins(tx, dto);
         boolean buy = isBuy(tx, keyCoinFirst);
-
+        dto.setSource(sourceName);
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock().longValue());
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
         dto.setBuy(buy ? 1 : 0);
-        dto.setSource(LpContracts.findNameForLpHash(tx.getSource()));
+
+        if (!isValidSource(dto)) {
+            return null;
+        }
+
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
 
         fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
 
@@ -106,7 +112,19 @@ public class PriceLogParser implements Web3Parser {
         return dto;
     }
 
-    private static boolean isKeyCoinFirst(PriceTx tx, PriceDTO dto) {
+    private boolean isValidSource(PriceDTO dto) {
+        TokenInfo tokenInfo = Tokens.getTokenInfo(dto.getToken());
+        String currentLpName = tokenInfo.findLp(dto.getBlock()).component1();
+        boolean result = currentLpName.equals(dto.getSource());
+        if (result) {
+            return true;
+        }
+        log.warn("{} price from not actual LP {}, should be {}",
+            dto.getToken(), dto.getSource(), currentLpName);
+        return false;
+    }
+
+    private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto) {
         String lp = tx.getSource().toLowerCase();
 
         String keyCoinHash = LpContracts.keyCoinForLp.get(lp);

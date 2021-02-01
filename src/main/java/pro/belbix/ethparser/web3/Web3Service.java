@@ -117,10 +117,12 @@ public class Web3Service {
         int count = 0;
         while (true) {
             T result = null;
+            Exception lastError = null;
             try {
                 result = callable.call();
             } catch (Exception e) { //by default all errors, but can be filtered by type
-                log.warn("Retryable error " + e.getMessage());
+                log.warn("Retryable error: " + e.getMessage());
+                lastError = e;
             }
 
             if (result != null) {
@@ -128,6 +130,9 @@ public class Web3Service {
             }
             count++;
             if (count > RETRY_COUNT) {
+                if (lastError != null) {
+                    lastError.printStackTrace();
+                }
                 return null;
             }
             log.warn("Fail call web3, retry " + count);

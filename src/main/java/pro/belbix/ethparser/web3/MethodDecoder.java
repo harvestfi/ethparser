@@ -89,7 +89,7 @@ public abstract class MethodDecoder {
 
     public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
         List<Type> indexedValues = new ArrayList<>();
-        if(log == null || parameters == null) {
+        if (log == null || parameters == null || log.getData() == null) {
             return indexedValues;
         }
         final List<String> topics = log.getTopics();
