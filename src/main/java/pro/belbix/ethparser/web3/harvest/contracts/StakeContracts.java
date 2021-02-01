@@ -60,6 +60,7 @@ public class StakeContracts {
     public static final String ST_MGOOGL_UST = "0xfE83a00DF3A98dE218c08719FAF7e3741b220D0D".toLowerCase();
     public static final String ST_MTSLA_UST = "0x40C34B0E1bb6984810E17474c6B0Bcc6A6B46614".toLowerCase();
     public static final String ST_CRV_STETH = "0x2E25800957742C52b4d69b65F9C67aBc5ccbffe6".toLowerCase();
+    public static final String ST_CRV_GUSD = "0x538613A19Eb84D86a4CcfcB63548244A52Ab0B68".toLowerCase();
 
     public static final Map<String, String> hashToName = new LinkedHashMap<>();
     public static final Map<String, String> nameToHash = new LinkedHashMap<>();

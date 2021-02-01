@@ -50,6 +50,28 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultCRV_GUSD() {
+        HarvestDTO dto = harvestVaultParseTest(
+            Vaults.CRV_GUSD,
+            11768519,
+            LOG_ID,
+            "0x039223b49d56254cfe7be0242be5b4c5673feb6e",
+            "Deposit",
+            "CRV_GUSD",
+            "0x43ecc869aa5352c1ff53f4cb423c1cfca123edc9abbbda2d4689c8285044f763_121",
+            "142309,94517039",
+            "",
+            "",
+            142309L,
+            274242L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultCRV_EURS() {
         HarvestDTO dto = harvestVaultParseTest(
             Vaults.CRV_EURS,

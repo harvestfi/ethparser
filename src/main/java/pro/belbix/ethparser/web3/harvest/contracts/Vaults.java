@@ -97,6 +97,7 @@ public class Vaults {
     public static final String MGOOGL_UST = "0x07DBe6aA35EF70DaD124f4e2b748fFA6C9E1963a".toLowerCase();
     public static final String MTSLA_UST = "0xC800982d906671637E23E031e907d2e3487291Bc".toLowerCase();
     public static final String CRV_STETH = "0xc27bfE32E0a934a12681C1b35acf0DBA0e7460Ba".toLowerCase();
+    public static final String CRV_GUSD = "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E".toLowerCase();
 
     public final static Map<String, String> underlyingToken = new LinkedHashMap<>();
     public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
@@ -204,6 +205,7 @@ public class Vaults {
         vaultDividers.put(MGOOGL_UST, D18);
         vaultDividers.put(MTSLA_UST, D18);
         vaultDividers.put(CRV_STETH, D18);
+        vaultDividers.put(CRV_GUSD, D18);
 
         vaultNameToOldVaultName.put("UNI_ETH_DAI", "UNI_ETH_DAI_V0");
         vaultNameToOldVaultName.put("UNI_ETH_USDC", "UNI_ETH_USDC_V0");

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.erc20;
 
+import static pro.belbix.ethparser.web3.ContractConstants.D2;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
 import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
@@ -42,6 +43,7 @@ public class Tokens {
     public final static String YCRV_TOKEN = "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8".toLowerCase();
     public final static String _3CRV_TOKEN = "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490".toLowerCase();
     public final static String CRV_CMPND_TOKEN = "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2".toLowerCase();
+    public final static String GUSD_TOKEN = "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -72,6 +74,7 @@ public class Tokens {
     public static final String YCRV_NAME = "YCRV";
     public static final String _3CRV_NAME = "3CRV";
     public static final String CRV_CMPND_NAME = "CRV_CMPND";
+    public static final String GUSD_NAME = "GUSD";
 
     private final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -146,6 +149,7 @@ public class Tokens {
         addTokenInfo(new TokenInfo(USDT_NAME, USDT_TOKEN, 0).setDivider(D6));
         addTokenInfo(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
         addTokenInfo(new TokenInfo(UST_NAME, UST_TOKEN, 0));
+        addTokenInfo(new TokenInfo(GUSD_NAME, GUSD_TOKEN, 0).setDivider(D2));
     }
 
     private static void addTokenInfo(TokenInfo tokenInfo) {
@@ -189,6 +193,8 @@ public class Tokens {
             || "CRV_HUSD".equals(name)
             || UST_NAME.equals(name)
             || "CRV_UST".equals(name)
+            || GUSD_NAME.equals(name)
+            || "CRV_GUSD".equals(name)
             ;
     }
 

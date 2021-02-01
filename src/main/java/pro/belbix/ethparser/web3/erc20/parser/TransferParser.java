@@ -33,7 +33,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 public class TransferParser implements Web3Parser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final ERC20Decoder erc20Decoder = new ERC20Decoder();
     private final Web3Service web3Service;
