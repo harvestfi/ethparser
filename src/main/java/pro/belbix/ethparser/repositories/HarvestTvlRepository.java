@@ -3,6 +3,7 @@ package pro.belbix.ethparser.repositories;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 
 public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, String> {
@@ -27,9 +28,10 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "             t.last_price last_price,  " +
         "             date_format(from_unixtime(t.calculate_time), '%Y-%m-%d %H' ) grp  " +
         "         from harvest_tvl t  " +
+        "         where t.calculate_time between :startTime and :endTime" +
         "     ) agg  " +
         "group by agg.grp  " +
         "order by calculate_time")
-    List<HarvestTvlEntity> getHistoryOfAllTvl();
+    List<HarvestTvlEntity> getHistoryOfAllTvl(@Param("startTime") long startTime, @Param("endTime") long endTime);
 
 }

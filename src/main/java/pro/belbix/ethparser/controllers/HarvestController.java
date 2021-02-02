@@ -31,8 +31,10 @@ public class HarvestController {
     }
 
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
-    public Iterable<HarvestDTO> harvestHistoryDataForVault(@PathVariable("name") String name) {
-        return harvestRepository.findAllByVaultOrderByBlockDate(name);
+    public Iterable<HarvestDTO> harvestHistoryDataForVault(@PathVariable("name") String name,
+                                                           @RequestParam(value = "start", required = false) String start,
+                                                           @RequestParam(value = "end", required = false) String end) {
+        return harvestRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
