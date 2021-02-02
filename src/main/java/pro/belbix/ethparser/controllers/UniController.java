@@ -33,8 +33,10 @@ public class UniController {
     }
 
     @RequestMapping(value = "api/transactions/history/uni/ohcl/{name}", method = RequestMethod.GET)
-    public Iterable<OhlcProjection> ohclUniswapTx(@PathVariable("name") String name) {
-        return uniswapRepository.fetchOHLCTransactionsFromBlock(name, 1, 3600);
+    public Iterable<OhlcProjection> ohclUniswapTx(@PathVariable("name") String name,
+                                                  @RequestParam(value = "start", required = false) String start,
+                                                  @RequestParam(value = "end", required = false) String end) {
+        return uniswapRepository.fetchOHLCTransactions(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), 3600);
     }
 
     @GetMapping("/history/uni/{address}")
