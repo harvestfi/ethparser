@@ -29,15 +29,15 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
-import pro.belbix.ethparser.web3.ContractUtils;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -279,7 +279,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         BigInteger sharedPriceInt =
             functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultHash, dto.getBlock())
-                .orElseThrow();
+                .orElse(BigInteger.ZERO);
         double sharedPrice;
         if (BigInteger.ONE.equals(sharedPriceInt)) {
             sharedPrice = 0.0;
@@ -326,7 +326,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     public void fillUsdValuesForLP(HarvestDTO dto) {
         long dtoBlock = dto.getBlock();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        String lpHash = Vaults.underlyingToken.get(vaultHash);
+        String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock).orElseThrow(),
             vaultHash);

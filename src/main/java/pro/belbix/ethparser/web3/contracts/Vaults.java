@@ -3,35 +3,12 @@ package pro.belbix.ethparser.web3.contracts;
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_USDC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_USDC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_MIC_USDT;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_MIS_USDT;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_WBTC_TBTC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_BAC_DAI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BAS;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BSG;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BSGS;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DPI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MAAPL_UST;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MAMZN_UST;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MGOOGL_UST;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MTSLA_UST;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_ETH;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 
 public class Vaults {
 
@@ -98,8 +75,6 @@ public class Vaults {
     public static final String CRV_STETH = "0xc27bfE32E0a934a12681C1b35acf0DBA0e7460Ba".toLowerCase();
     public static final String CRV_GUSD = "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E".toLowerCase();
 
-    public final static Map<String, String> underlyingToken = new LinkedHashMap<>();
-    public final static Map<String, String> vaultHashToName = new LinkedHashMap<>();
     public final static Map<String, String> vaultNameToHash = new LinkedHashMap<>();
     public final static Map<String, Double> vaultDividers = new LinkedHashMap<>();
     public final static Map<String, String> vaultNameToOldVaultName = new LinkedHashMap<>();
@@ -234,7 +209,7 @@ public class Vaults {
 //        if (vaultHash == null) {
 //            throw new IllegalStateException("Vault hash not found for " + vaultName);
 //        }
-//        String underlying = Vaults.underlyingToken.get(vaultHash);
+//        String underlying = ContractUtils.vaultUnderlyingToken(vaultHash);
 //        return LpContracts.lpHashToCoinNames.containsKey(underlying);
 //    }
 
@@ -243,7 +218,7 @@ public class Vaults {
     }
 
     public static boolean isPsHash(String hash) {
-        return isPsName(Vaults.vaultHashToName.get(hash));
+        return isPsName(ContractUtils.getNameByAddress(hash, Type.VAULT).orElse(""));
     }
 
     //dangerous, but useful
@@ -256,7 +231,7 @@ public class Vaults {
             if (vaultName.startsWith("_")) {
                 vaultName = vaultName.replaceFirst("_", "");
             }
-            vaultHashToName.put((String) field.get(null), vaultName);
+//            vaultHashToName.put((String) field.get(null), vaultName);
             vaultNameToHash.put(vaultName, (String) field.get(null));
         }
     }

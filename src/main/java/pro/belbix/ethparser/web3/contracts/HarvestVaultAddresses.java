@@ -9,7 +9,7 @@ public class HarvestVaultAddresses {
     private HarvestVaultAddresses() {
     }
 
-    public static final Map<String, String> VAULTS = createUniqueMap(
+    static final Map<String, String> VAULTS = createUniqueMap(
         "YCRV_V0", "0xF2B223Eb3d2B382Ead8D85f3c1b7eF87c1D35f3A".toLowerCase(),
         "WETH_V0", "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098".toLowerCase(),
         "USDC_V0", "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f".toLowerCase(),

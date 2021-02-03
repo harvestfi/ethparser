@@ -20,6 +20,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
 import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
@@ -100,7 +102,7 @@ public class HarvestDBService {
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }
-        List<String> contracts = new ArrayList<>(Vaults.vaultHashToName.values());
+        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultAddresses());
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);

@@ -19,7 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;

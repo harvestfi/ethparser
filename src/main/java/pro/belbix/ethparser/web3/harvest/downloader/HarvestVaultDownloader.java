@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.downloader;
 import static java.util.Collections.singletonList;
 
 import java.util.List;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,10 +10,11 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
@@ -46,12 +46,13 @@ public class HarvestVaultDownloader {
     }
 
     public void start() {
-        for (Entry<String, String> entry : Vaults.vaultHashToName.entrySet()) {
-            if (contractName != null && !contractName.isEmpty() && !contractName.equals(entry.getValue())) {
+        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
+            if (contractName != null && !contractName.isEmpty()
+                && !contractName.equals(ContractUtils.getNameByAddress(vaultAddress, Type.VAULT))) {
                 continue;
             }
 
-            LoopUtils.handleLoop(from, to, (start, end) -> parse(entry.getKey(), start, end));
+            LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultAddress, start, end));
         }
     }
 

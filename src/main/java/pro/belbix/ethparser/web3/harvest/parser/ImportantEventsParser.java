@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -25,8 +26,8 @@ import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.Tokens;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 
@@ -86,7 +87,8 @@ public class ImportantEventsParser implements Web3Parser {
 
     public ImportantEventsDTO parseLog(Log ethLog) {
         if (ethLog == null ||
-            (!FARM_TOKEN.equals(ethLog.getAddress()) && !Vaults.vaultHashToName.containsKey(ethLog.getAddress()))
+            (!FARM_TOKEN.equals(ethLog.getAddress())
+                && ContractUtils.getNameByAddress(ethLog.getAddress(), Type.VAULT).isEmpty())
         ) {
             return null;
         }
@@ -132,9 +134,8 @@ public class ImportantEventsParser implements Web3Parser {
 
     private void parseVault(ImportantEventsDTO dto, String vault) {
         dto.setVault(
-            Vaults.vaultHashToName.containsKey(vault)
-                ? Vaults.vaultHashToName.get(vault)
-                : Tokens.findNameForContract(vault)
+            ContractUtils.getNameByAddress(vault, Type.VAULT)
+                .orElseGet(() -> Tokens.findNameForContract(vault))
         );
     }
 

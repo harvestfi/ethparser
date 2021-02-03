@@ -12,12 +12,14 @@ import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
 import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 public class MockUtils {
 
-    private static final List<String> vaults = new ArrayList<>(Vaults.vaultHashToName.values());
+    private static final List<String> vaults = new ArrayList<>(ContractUtils.getAllVaultNames());
     private static final List<String> harvestMethods =
         new ArrayList<>(new HarvestVaultLogDecoder().getMethodNamesByMethodId().values());
 

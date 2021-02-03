@@ -23,7 +23,9 @@ import pro.belbix.ethparser.repositories.PoolRepository;
 import pro.belbix.ethparser.repositories.TokenRepository;
 import pro.belbix.ethparser.repositories.UniPairRepository;
 import pro.belbix.ethparser.repositories.VaultRepository;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -70,16 +72,16 @@ public class ContractLoaderTest {
     @Test
     public void containsAllVaults() {
         contractLoader.load();
-        for (Entry<String, String> entryVault : Vaults.vaultHashToName.entrySet()) {
+        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
             boolean found = false;
             for (PoolEntity poolEntity : ContractLoader.poolsCacheByAddress.values()) {
-                if (entryVault.getKey().equals(poolEntity.getLpToken().getAddress())) {
+                if (vaultAddress.equals(poolEntity.getLpToken().getAddress())) {
                     found = true;
                     break;
                 }
             }
             if (!found) {
-                System.out.println("not found " + entryVault.getValue());
+                System.out.println("not found " + vaultAddress);
             }
         }
     }

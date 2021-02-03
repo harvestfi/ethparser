@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.properties;
 
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,8 +14,7 @@ import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Validated
@@ -45,8 +44,8 @@ public class SubscriptionsProperties {
         contracts.add(FARM_TOKEN);
 
         //harvest events
-        contracts.addAll(Vaults.vaultHashToName.keySet());
-        contracts.addAll(StakeContracts.hashToName.keySet());
+        contracts.addAll(ContractUtils.getAllVaultAddresses());
+        contracts.addAll(ContractUtils.getAllPoolAddresses());
 
         // FARM token Mint event parsing
         contracts.add(FARM_TOKEN);

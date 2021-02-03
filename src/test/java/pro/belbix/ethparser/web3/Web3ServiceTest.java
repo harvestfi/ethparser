@@ -36,6 +36,8 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
 import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 
@@ -88,7 +90,7 @@ public class Web3ServiceTest {
     @Test
     @Ignore
     public void checkLogsForAllVaults() {
-        for (String hash : Vaults.vaultHashToName.keySet()) {
+        for (String hash : ContractUtils.getAllVaultAddresses()) {
             List<LogResult> logs = web3Service
                 .fetchContractLogs(singletonList(hash), null, null);
             assertNotNull(logs);

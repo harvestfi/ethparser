@@ -1,5 +1,6 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.contracts;
 
+import java.util.Collection;
 import java.util.Optional;
 import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
@@ -66,10 +67,33 @@ public class ContractUtils {
     }
 
     public static boolean isLp(String vaultName) {
-        VaultEntity vaultEntity = ContractLoader.getVaultByName(vaultName).orElseThrow();
+        VaultEntity vaultEntity = ContractLoader.getVaultByName(vaultName)
+            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultName));
         return ContractLoader.getUniPairByAddress(
             vaultEntity.getUnderlying().getAddress())
             .isPresent();
+    }
+
+    public static String vaultUnderlyingToken(String vaultAddress) {
+        return ContractLoader.getVaultByAddress(vaultAddress)
+            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultAddress))
+            .getUnderlying().getAddress();
+    }
+
+    public static Collection<String> getAllPoolAddresses() {
+        return HarvestPoolAddresses.POOLS.values();
+    }
+
+    public static Collection<String> getAllPoolNames() {
+        return HarvestPoolAddresses.POOLS.keySet();
+    }
+
+    public static Collection<String> getAllVaultAddresses() {
+        return HarvestVaultAddresses.VAULTS.values();
+    }
+
+    public static Collection<String> getAllVaultNames() {
+        return HarvestVaultAddresses.VAULTS.keySet();
     }
 
 }

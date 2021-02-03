@@ -9,7 +9,7 @@ public class UniPairAddresses {
     public UniPairAddresses() {
     }
 
-    public static final Map<String, String> UNI_PAIRS = createUniqueMap(
+    static final Map<String, String> UNI_PAIRS = createUniqueMap(
         "UNI_LP_ETH_DAI", "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11".toLowerCase(),
         "UNI_LP_USDC_ETH", "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc".toLowerCase(),
         "UNI_LP_ETH_USDT", "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852".toLowerCase(),

@@ -3,12 +3,11 @@ package pro.belbix.ethparser.model;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
-import java.util.Map;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
-import pro.belbix.ethparser.web3.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class HarvestTx implements EthTransactionI {
@@ -33,8 +32,8 @@ public class HarvestTx implements EthTransactionI {
     private boolean enriched;
     private boolean migration = false;
 
-    public boolean isContainsAddress(Map<String, String> addresses) {
-        return addresses.containsKey(vault.getValue().toLowerCase());
+    public boolean isExistenceVault() {
+        return ContractUtils.getNameByAddress(vault.getValue(), Type.VAULT).isPresent();
     }
 
     public HarvestDTO toDto() {

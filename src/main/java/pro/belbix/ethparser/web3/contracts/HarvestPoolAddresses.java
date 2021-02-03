@@ -9,7 +9,7 @@ public class HarvestPoolAddresses {
     private HarvestPoolAddresses() {
     }
 
-    public static final Map<String, String> POOLS = createUniqueMap(
+    static final Map<String, String> POOLS = createUniqueMap(
         "ST_UNI_ETH_DAI", "0x7aeb36e22e60397098C2a5C51f0A5fB06e7b859c".toLowerCase(),
         "ST_UNI_ETH_USDC", "0x156733b89Ac5C704F3217FEe2949A9D4A73764b5".toLowerCase(),
         "ST_UNI_ETH_USDT", "0x75071F2653fBC902EBaff908d4c68712a5d1C960".toLowerCase(),

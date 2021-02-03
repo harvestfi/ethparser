@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.CONTROLLER;
 import static pro.belbix.ethparser.web3.FunctionsNames.GOVERNANCE;
@@ -33,6 +33,10 @@ import pro.belbix.ethparser.repositories.PoolRepository;
 import pro.belbix.ethparser.repositories.TokenRepository;
 import pro.belbix.ethparser.repositories.UniPairRepository;
 import pro.belbix.ethparser.repositories.VaultRepository;
+import pro.belbix.ethparser.web3.AddressType;
+import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.FunctionsNames;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
@@ -96,6 +100,7 @@ public class ContractLoader {
         uniPairType = findOrCreateContractType(Type.UNI_PAIR);
         infrastructureType = findOrCreateContractType(Type.INFRASTRUCTURE);
         tokenType = findOrCreateContractType(Type.TOKEN);
+        load();
     }
 
     public void load() {
@@ -311,12 +316,12 @@ public class ContractLoader {
         ContractEntity entity = contractRepository.findFirstByAddress(address);
         if (entity == null) {
             entity = new ContractEntity();
-            entity.setAddress(address);
+            entity.setAddress(address.toLowerCase());
             entity.setName(name);
             entity.setType(type);
             log.info("Created new contract {}", name);
             contractRepository.save(entity);
-        } else if (rewrite) {
+        } else if (rewrite && appProperties.isUpdateContracts()) {
             entity.setName(name);
             entity.setType(type);
             log.info("Updated contract {}", name);
@@ -339,36 +344,36 @@ public class ContractLoader {
             });
     }
 
-    public static Optional<PoolEntity> getPoolByAddress(String address) {
-        return Optional.of(poolsCacheByAddress.get(address));
+    static Optional<PoolEntity> getPoolByAddress(String address) {
+        return Optional.ofNullable(poolsCacheByAddress.get(address.toLowerCase()));
     }
 
-    public static Optional<VaultEntity> getVaultByAddress(String address) {
-        return Optional.of(vaultsCacheByAddress.get(address));
+    static Optional<VaultEntity> getVaultByAddress(String address) {
+        return Optional.ofNullable(vaultsCacheByAddress.get(address.toLowerCase()));
     }
 
-    public static Optional<UniPairEntity> getUniPairByAddress(String address) {
-        return Optional.of(uniPairsCacheByAddress.get(address));
+    static Optional<UniPairEntity> getUniPairByAddress(String address) {
+        return Optional.ofNullable(uniPairsCacheByAddress.get(address.toLowerCase()));
     }
 
-    public static Optional<TokenEntity> getTokenByAddress(String address) {
-        return Optional.of(tokensCacheByAddress.get(address));
+    static Optional<TokenEntity> getTokenByAddress(String address) {
+        return Optional.ofNullable(tokensCacheByAddress.get(address.toLowerCase()));
     }
 
-    public static Optional<PoolEntity> getPoolByName(String address) {
-        return Optional.of(poolsCacheByName.get(address));
+    static Optional<PoolEntity> getPoolByName(String name) {
+        return Optional.ofNullable(poolsCacheByName.get(name));
     }
 
-    public static Optional<VaultEntity> getVaultByName(String address) {
-        return Optional.of(vaultsCacheByName.get(address));
+    static Optional<VaultEntity> getVaultByName(String name) {
+        return Optional.ofNullable(vaultsCacheByName.get(name));
     }
 
-    public static Optional<UniPairEntity> getUniPairByName(String address) {
-        return Optional.of(uniPairsCacheByName.get(address));
+    static Optional<UniPairEntity> getUniPairByName(String name) {
+        return Optional.ofNullable(uniPairsCacheByName.get(name));
     }
 
-    public static Optional<TokenEntity> getTokenByName(String address) {
-        return Optional.of(tokensCacheByName.get(address));
+    static Optional<TokenEntity> getTokenByName(String name) {
+        return Optional.ofNullable(tokensCacheByName.get(name));
     }
 
 }

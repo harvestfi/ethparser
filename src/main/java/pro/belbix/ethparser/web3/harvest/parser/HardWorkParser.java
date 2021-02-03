@@ -20,15 +20,16 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.model.TokenTx;
-import pro.belbix.ethparser.web3.ContractUtils;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -109,11 +110,11 @@ public class HardWorkParser implements Web3Parser {
             throw new IllegalStateException("Unknown method " + tx.getMethodName());
         }
 
-        if (!Vaults.vaultHashToName.containsKey(tx.getVault())) {
+        if (ContractUtils.getNameByAddress(tx.getVault(), Type.VAULT).isEmpty()) {
             log.warn("Unknown vault " + tx.getVault());
             return null;
         }
-        String vaultName = Vaults.vaultHashToName.get(tx.getVault());
+        String vaultName = ContractUtils.getNameByAddress(tx.getVault(), Type.VAULT).orElseThrow();
         if (vaultName.endsWith("_V0")) {
             // skip old strategies
             return null;
@@ -254,7 +255,7 @@ public class HardWorkParser implements Web3Parser {
     @Deprecated
     private void fillUsdValuesForLP(HardWorkDTO dto) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        String lpHash = Vaults.underlyingToken.get(vaultHash);
+        String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
@@ -286,8 +287,8 @@ public class HardWorkParser implements Web3Parser {
             throw new IllegalStateException("Unknown coin " + vaultHash);
         }
         double vaultBalance = parseAmount(
-                functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock())
-                    .orElse(BigInteger.ZERO),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock())
+                .orElse(BigInteger.ZERO),
             vaultHash);
         double changed = dto.getShareChange() * vaultBalance;
         double usdValue = price * changed;

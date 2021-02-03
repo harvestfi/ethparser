@@ -14,12 +14,13 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 
@@ -108,7 +109,7 @@ public class HarvestTransactionsParser implements Web3Parser {
             //it is contract deploy
             return false;
         }
-        return Vaults.vaultHashToName.containsKey(tx.getTo().toLowerCase());
+        return ContractUtils.getNameByAddress(tx.getTo().toLowerCase(), Type.VAULT).isPresent();
     }
 
     private HarvestTx decodeTransaction(Transaction tx) {
@@ -123,7 +124,7 @@ public class HarvestTransactionsParser implements Web3Parser {
                 return null;
             }
 
-            if (!harvestTx.isContainsAddress(Vaults.vaultHashToName)) {
+            if (!harvestTx.isExistenceVault()) {
                 return null;
             }
             TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());

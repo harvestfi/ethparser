@@ -65,8 +65,6 @@ public class UniswapParserTest {
             "0,10113922",
             "96,43124305"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
-        assertNotNull(harvestDTO);
     }
 
     @Test

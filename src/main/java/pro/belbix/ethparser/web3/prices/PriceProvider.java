@@ -20,10 +20,10 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
@@ -83,7 +83,7 @@ public class PriceProvider {
     }
 
     public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
-        return getPairPriceForLpHash(Vaults.underlyingToken.get(strategyHash), block);
+        return getPairPriceForLpHash(ContractUtils.vaultUnderlyingToken(strategyHash), block);
     }
 
     public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {

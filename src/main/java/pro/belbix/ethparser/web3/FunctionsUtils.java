@@ -161,7 +161,7 @@ public class FunctionsUtils {
             log.error(function.getName() + " Wrong callback for hash: " + hash);
             return Optional.empty();
         }
-        return Optional.of((String) types.get(0).getValue());
+        return Optional.ofNullable((String) types.get(0).getValue());
     }
 
     private Optional<BigInteger> callUint256Function(Function function, String hash, Long block) {
@@ -170,7 +170,7 @@ public class FunctionsUtils {
             log.error(function.getName() + " Wrong callback for hash: " + hash);
             return Optional.empty();
         }
-        return Optional.of((BigInteger) types.get(0).getValue());
+        return Optional.ofNullable((BigInteger) types.get(0).getValue());
     }
 
     private static DefaultBlockParameter resolveBlock(Long block) {

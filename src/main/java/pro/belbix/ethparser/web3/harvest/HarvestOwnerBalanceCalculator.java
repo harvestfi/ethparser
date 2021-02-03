@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.StakeContracts;
 import pro.belbix.ethparser.web3.contracts.Vaults;
@@ -90,7 +90,7 @@ public class HarvestOwnerBalanceCalculator {
 
         //fill USD value
         if (ContractUtils.isLp(dto.getVault())) {
-            String lpHash = Vaults.underlyingToken.get(vaultHash);
+            String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
             if (lpHash == null) {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }

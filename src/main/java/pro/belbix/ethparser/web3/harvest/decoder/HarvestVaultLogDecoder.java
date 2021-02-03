@@ -7,11 +7,11 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
@@ -41,8 +41,8 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return Vaults.vaultHashToName.containsKey(log.getAddress())
-            || StakeContracts.hashToName.containsKey(log.getAddress());
+        return ContractUtils.getNameByAddress(log.getAddress(), ContractTypeEntity.Type.VAULT).isPresent()
+            || ContractUtils.getNameByAddress(log.getAddress(), ContractTypeEntity.Type.POOL).isPresent();
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {
