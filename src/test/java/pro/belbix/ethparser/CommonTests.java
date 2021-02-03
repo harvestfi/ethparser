@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
 
 import org.junit.Test;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.StakeContracts;
 
 public class CommonTests {
 

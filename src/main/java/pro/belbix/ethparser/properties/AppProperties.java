@@ -39,4 +39,6 @@ public class AppProperties {
     private boolean parseHarvest = false;
 
     private boolean parseLog = true;
+
+    private boolean updateContracts = false;
 }

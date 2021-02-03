@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +20,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2

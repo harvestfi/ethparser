@@ -1,9 +1,8 @@
-package pro.belbix.ethparser.web3.harvest.contracts;
+package pro.belbix.ethparser.web3.contracts;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 @SuppressWarnings("unused")
 public class StakeContracts {

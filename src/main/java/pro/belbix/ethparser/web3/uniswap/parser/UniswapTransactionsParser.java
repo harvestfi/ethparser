@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.uniswap.parser;
 
 import static pro.belbix.ethparser.model.UniswapTx.SWAP;
 import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;

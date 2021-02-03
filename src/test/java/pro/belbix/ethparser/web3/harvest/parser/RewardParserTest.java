@@ -5,10 +5,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_DAI_BSG;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_WBTC;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_DAI_BSG;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_PS;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_WBTC;
 
 import java.util.List;
 import org.junit.Before;

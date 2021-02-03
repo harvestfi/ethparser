@@ -1,26 +1,28 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.ContractUtils;
+import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
 public class HarvestOwnerBalanceCalculator {
 
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final PriceProvider priceProvider;
 
-    public HarvestOwnerBalanceCalculator(Functions functions, PriceProvider priceProvider) {
-        this.functions = functions;
+    public HarvestOwnerBalanceCalculator(FunctionsUtils functionsUtils, PriceProvider priceProvider) {
+        this.functionsUtils = functionsUtils;
         this.priceProvider = priceProvider;
     }
 
@@ -42,7 +44,8 @@ public class HarvestOwnerBalanceCalculator {
 
     private boolean balanceForPs(HarvestDTO dto) {
         String psHash = Vaults.vaultNameToHash.get(dto.getVault());
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), psHash, dto.getBlock());
+        BigInteger balanceI = functionsUtils.callIntByName(
+            BALANCE_OF, dto.getOwner(), psHash, dto.getBlock()).orElseThrow();
         if (balanceI == null) {
             log.warn("Can reach ps balance for " + dto.print());
             return false;
@@ -66,14 +69,17 @@ public class HarvestOwnerBalanceCalculator {
             if (stHash == null) {
                 throw new IllegalStateException("Not found st for " + dto.getVault());
             }
-            balanceI = functions.callBalanceOf(dto.getOwner(), stHash, block);
+            balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
+                .orElseThrow();
         } else {
-            balanceI = functions.callUnderlyingBalance(dto.getOwner(), vaultHash, block);
+            balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
+                dto.getOwner(), vaultHash, block).orElseThrow();
         }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
             //maybe strategy disabled? try balanceOf
-            balanceI = functions.callBalanceOf(dto.getOwner(), vaultHash, block);
+            balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), vaultHash, block)
+                .orElseThrow();
             if (balanceI == null) {
                 return false;
             }
@@ -83,7 +89,7 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        if (Vaults.isLp(dto.getVault())) {
+        if (ContractUtils.isLp(dto.getVault())) {
             String lpHash = Vaults.underlyingToken.get(vaultHash);
             if (lpHash == null) {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
@@ -104,7 +110,8 @@ public class HarvestOwnerBalanceCalculator {
             log.error("Not found vault/lp hash for " + dto.getVault());
             return false;
         }
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock());
+        BigInteger balanceI = functionsUtils.callIntByName(
+            BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock()).orElseThrow();
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
             return false;

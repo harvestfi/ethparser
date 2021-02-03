@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.harvest;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.WBTC;
+import static pro.belbix.ethparser.web3.contracts.Vaults.WBTC;
 
 import java.io.IOException;
 import java.util.HashMap;

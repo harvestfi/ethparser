@@ -7,7 +7,8 @@ import java.util.Map;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
+import pro.belbix.ethparser.web3.ContractUtils;
 
 @Data
 public class HarvestTx implements EthTransactionI {
@@ -41,7 +42,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block.longValue());
-        dto.setVault(removeBracers(Vaults.vaultHashToName.get(vault.getValue())));
+        dto.setVault(removeBracers(ContractUtils.getNameByAddress(vault.getValue(), Type.VAULT).orElseThrow()));
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));

@@ -19,11 +19,11 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.erc20.TokenInfo;
-import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.contracts.TokenInfo;
+import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2

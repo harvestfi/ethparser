@@ -246,7 +246,8 @@ public class Web3Service {
             return null;
         }
         if (ethCall.getError() != null) {
-            log.warn(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
+            log.warn(function.getName() + " Eth call callback is error "
+                + ethCall.getError().getMessage());
             return null;
         }
         return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
@@ -315,7 +316,8 @@ public class Web3Service {
                     Credentials.basic(appProperties.getWeb3User(), appProperties.getWeb3Password()))
                 .build());
 
-            HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
+            HttpService service =
+                new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
             web3 = Web3j.build(service);
         }
         log.info("Successfully connected to Ethereum");

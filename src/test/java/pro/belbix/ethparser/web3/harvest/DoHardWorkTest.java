@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 
 import java.util.Collections;

@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_YCRV;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_YCRV;
 
 import java.util.List;
 import org.junit.Ignore;

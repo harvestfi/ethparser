@@ -4,8 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSG;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_WBTC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BSG;
 
 import java.util.Collections;
 import java.util.List;

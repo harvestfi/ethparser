@@ -8,9 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.web3.MethodMapper;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 public enum TransferType {
     // all not specified transfers

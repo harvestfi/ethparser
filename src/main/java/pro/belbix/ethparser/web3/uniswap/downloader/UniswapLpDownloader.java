@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpNameToHash;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.lpNameToHash;
 
 import java.util.List;
 import org.slf4j.Logger;

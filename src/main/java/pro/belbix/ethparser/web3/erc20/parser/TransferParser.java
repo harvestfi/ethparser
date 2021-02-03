@@ -1,7 +1,8 @@
 package pro.belbix.ethparser.web3.erc20.parser;
 
+import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -17,12 +18,12 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -41,7 +42,7 @@ public class TransferParser implements Web3Parser {
     private final ParserInfo parserInfo;
     private final TransferDBService transferDBService;
     private final PriceProvider priceProvider;
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private Instant lastTx = Instant.now();
 
     public TransferParser(Web3Service web3Service,
@@ -49,13 +50,13 @@ public class TransferParser implements Web3Parser {
                           ParserInfo parserInfo,
                           TransferDBService transferDBService,
                           PriceProvider priceProvider,
-                          Functions functions) {
+                          FunctionsUtils functionsUtils) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.transferDBService = transferDBService;
         this.priceProvider = priceProvider;
-        this.functions = functions;
+        this.functionsUtils = functionsUtils;
     }
 
     @Override
@@ -162,7 +163,8 @@ public class TransferParser implements Web3Parser {
     }
 
     private double getBalance(String holder, String tokenAddress, long block) {
-        BigInteger balanceI = functions.callBalanceOf(holder, tokenAddress, block);
+        BigInteger balanceI = functionsUtils.callIntByName(
+            BALANCE_OF, holder, tokenAddress, block).orElseThrow();
         return MethodDecoder.parseAmount(balanceI, tokenAddress);
     }
 

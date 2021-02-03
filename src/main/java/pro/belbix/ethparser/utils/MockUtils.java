@@ -12,7 +12,7 @@ import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 public class MockUtils {

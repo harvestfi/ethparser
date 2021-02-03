@@ -2,8 +2,10 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -27,14 +29,15 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
+import pro.belbix.ethparser.web3.ContractUtils;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -53,7 +56,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final PriceProvider priceProvider;
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final ParserInfo parserInfo;
     private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     private Instant lastTx = Instant.now();
@@ -63,14 +66,14 @@ public class HarvestVaultParserV2 implements Web3Parser {
                                 HarvestDBService harvestDBService,
                                 EthBlockService ethBlockService,
                                 PriceProvider priceProvider,
-                                Functions functions,
+                                FunctionsUtils functionsUtils,
                                 ParserInfo parserInfo,
                                 HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
         this.priceProvider = priceProvider;
-        this.functions = functions;
+        this.functionsUtils = functionsUtils;
         this.parserInfo = parserInfo;
         this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     }
@@ -169,9 +172,11 @@ public class HarvestVaultParserV2 implements Web3Parser {
         String st = StakeContracts.vaultHashToStakeHash.get(vaultHash);
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         double vaultBalance = parseAmount(
-            functions.callErc20TotalSupply(st, dto.getBlock()), vaultHash);
+            functionsUtils.callIntByName(TOTAL_SUPPLY, st, dto.getBlock()).orElse(BigInteger.ZERO),
+            vaultHash);
         double allFarm = parseAmount(
-            functions.callErc20TotalSupply(FARM_TOKEN, dto.getBlock()), vaultHash)
+            functionsUtils.callIntByName(TOTAL_SUPPLY, FARM_TOKEN, dto.getBlock()).orElse(BigInteger.ZERO),
+            vaultHash)
             - BURNED_FARM;
         dto.setLastUsdTvl(price * vaultBalance);
         dto.setLastTvl(vaultBalance);
@@ -272,8 +277,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private void fillSharedPrice(HarvestDTO dto) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        BigInteger sharedPriceInt = functions
-            .callPricePerFullShare(vaultHash, dto.getBlock());
+        BigInteger sharedPriceInt =
+            functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultHash, dto.getBlock())
+                .orElseThrow();
         double sharedPrice;
         if (BigInteger.ONE.equals(sharedPriceInt)) {
             sharedPrice = 0.0;
@@ -289,7 +295,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillUsdPrice(HarvestDTO dto) {
-        if (Vaults.isLp(dto.getVault())) {
+        if (ContractUtils.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto);
         } else {
             fillUsdValues(dto);
@@ -303,7 +309,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
             throw new IllegalStateException("Unknown coin " + dto.getVault());
         }
         dto.setUnderlyingPrice(price);
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
+        double vaultBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElseThrow(),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
 //        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
@@ -320,15 +327,18 @@ public class HarvestVaultParserV2 implements Web3Parser {
         long dtoBlock = dto.getBlock();
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         String lpHash = Vaults.underlyingToken.get(vaultHash);
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dtoBlock),
+        double vaultBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock).orElseThrow(),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
 //        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dtoBlock),
 //            vaultHash);
         double vaultUnderlyingUnit = 1.0; // currently always 1
-        double lpTotalSupply = parseAmount(functions.callErc20TotalSupply(lpHash, dtoBlock), lpHash);
+        double lpTotalSupply = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dtoBlock).orElseThrow(),
+            lpHash);
 
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dtoBlock);
+        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, dtoBlock);
         if (lpUnderlyingBalances == null) {
             log.error("lpUnderlyingBalances is null. mb wrong lp contract for " + dto);
             return;

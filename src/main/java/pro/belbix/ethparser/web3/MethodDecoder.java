@@ -28,9 +28,9 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.web3.erc20.Tokens;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.Tokens;
+import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {

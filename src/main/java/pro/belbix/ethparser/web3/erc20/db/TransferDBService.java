@@ -9,9 +9,9 @@ import static pro.belbix.ethparser.web3.erc20.TransferType.NOT_TRADE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_EXIT;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.REWARD;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS;
-import static pro.belbix.ethparser.web3.harvest.contracts.Vaults.PS_V0;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_PS;
+import static pro.belbix.ethparser.web3.contracts.Vaults.PS;
+import static pro.belbix.ethparser.web3.contracts.Vaults.PS_V0;
 
 import java.util.Collection;
 import java.util.Collections;

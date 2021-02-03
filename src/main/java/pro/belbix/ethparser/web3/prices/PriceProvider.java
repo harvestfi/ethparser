@@ -2,10 +2,11 @@ package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.erc20.Tokens.isStableCoin;
-import static pro.belbix.ethparser.web3.erc20.Tokens.simplifyName;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
+import static pro.belbix.ethparser.web3.contracts.Tokens.isStableCoin;
+import static pro.belbix.ethparser.web3.contracts.Tokens.simplifyName;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,11 +20,11 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.Functions;
-import pro.belbix.ethparser.web3.erc20.TokenInfo;
-import pro.belbix.ethparser.web3.erc20.Tokens;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.TokenInfo;
+import pro.belbix.ethparser.web3.contracts.Tokens;
+import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -33,11 +34,11 @@ public class PriceProvider {
     private long updateBlockDifference = 0;
     private final Pageable limitOne = PageRequest.of(0, 1);
 
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final PriceRepository priceRepository;
 
-    public PriceProvider(Functions functions, PriceRepository priceRepository) {
-        this.functions = functions;
+    public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository) {
+        this.functionsUtils = functionsUtils;
         this.priceRepository = priceRepository;
     }
 
@@ -54,11 +55,13 @@ public class PriceProvider {
             getPriceForCoin(names.component1(), block),
             getPriceForCoin(names.component2(), block)
         );
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpAddress, block);
+        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpAddress, block);
         if (lpUnderlyingBalances == null) {
             throw new IllegalStateException("Can't reach reserves for " + lpAddress);
         }
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpAddress, block), lpAddress);
+        double lpBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block).orElseThrow(),
+            lpAddress);
         double positionFraction = amount / lpBalance;
 
         double firstCoin = positionFraction * lpUnderlyingBalances.component1();
@@ -146,7 +149,7 @@ public class PriceProvider {
             throw new IllegalStateException("Not found hash for " + tokenInfo);
         }
 
-        Tuple2<Double, Double> reserves = functions.callReserves(lpHash, block);
+        Tuple2<Double, Double> reserves = functionsUtils.callReserves(lpHash, block);
         if (reserves == null) {
             throw new IllegalStateException("Can't reach reserves for " + tokenInfo);
         }

@@ -1,9 +1,11 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -20,12 +22,13 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.model.TokenTx;
-import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.ContractUtils;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -41,18 +44,18 @@ public class HardWorkParser implements Web3Parser {
     private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
     private final ERC20Decoder erc20Decoder = new ERC20Decoder();
     private final PriceProvider priceProvider;
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final Web3Service web3Service;
     private final HardWorkDbService hardWorkDbService;
     private final ParserInfo parserInfo;
     private Instant lastTx = Instant.now();
 
     public HardWorkParser(PriceProvider priceProvider,
-                          Functions functions,
+                          FunctionsUtils functionsUtils,
                           Web3Service web3Service,
                           HardWorkDbService hardWorkDbService, ParserInfo parserInfo) {
         this.priceProvider = priceProvider;
-        this.functions = functions;
+        this.functionsUtils = functionsUtils;
         this.web3Service = web3Service;
         this.hardWorkDbService = hardWorkDbService;
         this.parserInfo = parserInfo;
@@ -130,8 +133,6 @@ public class HardWorkParser implements Web3Parser {
 
     // not in the root because it can be weekly reward
     private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
-        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
-        String underlyingTokenHash = functions.callUnderlying(vaultHash, dto.getBlock());
         TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
         boolean autoStake = isAutoStake(tr.getLogs());
         for (Log ethLog : tr.getLogs()) {
@@ -234,7 +235,7 @@ public class HardWorkParser implements Web3Parser {
     }
 
     private double calculateVaultRewardUsdPrice(String vaultName, String underlyingTokenHash, long block) {
-        if (Vaults.isLp(vaultName)) {
+        if (ContractUtils.isLp(vaultName)) {
             return priceProvider.getLpPositionAmountInUsd(underlyingTokenHash, 1, block);
         } else {
             return priceProvider.getPriceForCoin(vaultName, block);
@@ -243,7 +244,7 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValues(HardWorkDTO dto) {
-        if (Vaults.isLp(dto.getVault())) {
+        if (ContractUtils.isLp(dto.getVault())) {
             fillUsdValuesForLP(dto);
         } else {
             fillUsdValuesForRegular(dto);
@@ -254,11 +255,14 @@ public class HardWorkParser implements Web3Parser {
     private void fillUsdValuesForLP(HardWorkDTO dto) {
         String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
         String lpHash = Vaults.underlyingToken.get(vaultHash);
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()),
+        double vaultBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
 
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, dto.getBlock()), lpHash);
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, dto.getBlock());
+        double lpBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dto.getBlock()).orElse(BigInteger.ZERO),
+            lpHash);
+        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, dto.getBlock());
 
         double vaultSharedBalance = (vaultBalance * dto.getShareChange());
         double vaultFraction = vaultSharedBalance / lpBalance;
@@ -281,7 +285,10 @@ public class HardWorkParser implements Web3Parser {
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + vaultHash);
         }
-        double vaultBalance = parseAmount(functions.callErc20TotalSupply(vaultHash, dto.getBlock()), vaultHash);
+        double vaultBalance = parseAmount(
+                functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock())
+                    .orElse(BigInteger.ZERO),
+            vaultHash);
         double changed = dto.getShareChange() * vaultBalance;
         double usdValue = price * changed;
         dto.setShareChangeUsd(usdValue);

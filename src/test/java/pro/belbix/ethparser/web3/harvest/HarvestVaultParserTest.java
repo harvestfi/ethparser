@@ -22,7 +22,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 

@@ -1,9 +1,9 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.utils.Caller.silentCall;
-import static pro.belbix.ethparser.web3.Functions.SECONDS_IN_WEEK;
-import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
-import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_IN_WEEK;
+import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -16,7 +16,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service

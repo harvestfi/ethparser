@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.erc20;
+package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 

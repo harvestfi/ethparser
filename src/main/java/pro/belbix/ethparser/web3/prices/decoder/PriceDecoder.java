@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.prices.decoder;
 
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
 
 import java.math.BigInteger;
 import java.util.Arrays;

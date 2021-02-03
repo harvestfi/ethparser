@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap;
 
+import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -8,21 +9,21 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
 public class UniOwnerBalanceCalculator {
 
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final PriceProvider priceProvider;
     private final UniswapRepository uniswapRepository;
 
-    public UniOwnerBalanceCalculator(Functions functions, PriceProvider priceProvider,
+    public UniOwnerBalanceCalculator(FunctionsUtils functionsUtils, PriceProvider priceProvider,
                                      UniswapRepository uniswapRepository) {
-        this.functions = functions;
+        this.functionsUtils = functionsUtils;
         this.priceProvider = priceProvider;
         this.uniswapRepository = uniswapRepository;
     }
@@ -52,7 +53,8 @@ public class UniOwnerBalanceCalculator {
             log.error("Not found vault/lp hash for " + dto.getLp());
             return false;
         }
-        BigInteger balanceI = functions.callBalanceOf(dto.getOwner(), lpHash, dto.getBlock().longValue());
+        BigInteger balanceI = functionsUtils.callIntByName(
+                BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue()).orElseThrow();
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
             return false;

@@ -1,38 +1,37 @@
-package pro.belbix.ethparser.web3.harvest.contracts;
+package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.web3.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_USDC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.ONEINCH_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_USDC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIC_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_MIS_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.SUSHI_LP_WBTC_TBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_BAC_DAI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BAS;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSG;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_DAI_BSGS;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_DPI;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_USDT;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_ETH_WBTC;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAAPL_UST;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MAMZN_UST;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MGOOGL_UST;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_MTSLA_UST;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_ETH;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_USDC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.ONEINCH_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_USDC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_MIC_USDT;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_MIS_USDT;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.SUSHI_LP_WBTC_TBTC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_BAC_DAI;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BAS;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BSG;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_DAI_BSGS;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DAI;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DPI;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_USDT;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_WBTC;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MAAPL_UST;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MAMZN_UST;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MGOOGL_UST;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_MTSLA_UST;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_ETH;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
 
 public class Vaults {
 
@@ -114,34 +113,34 @@ public class Vaults {
         }
 
         // todo add non lp
-        underlyingToken.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
-        underlyingToken.put(UNI_ETH_USDC, UNI_LP_USDC_ETH);
-        underlyingToken.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
-        underlyingToken.put(UNI_ETH_WBTC, UNI_LP_ETH_WBTC);
-        underlyingToken.put(SUSHI_WBTC_TBTC, SUSHI_LP_WBTC_TBTC);
-        underlyingToken.put(UNI_ETH_DAI_V0, UNI_LP_ETH_DAI);
-        underlyingToken.put(UNI_ETH_USDC_V0, UNI_LP_USDC_ETH);
-        underlyingToken.put(UNI_ETH_USDT_V0, UNI_LP_ETH_USDT);
-        underlyingToken.put(UNI_ETH_WBTC_V0, UNI_LP_ETH_WBTC);
-        underlyingToken.put(SUSHI_ETH_DAI, SUSHI_LP_ETH_DAI);
-        underlyingToken.put(SUSHI_ETH_USDC, SUSHI_LP_ETH_USDC);
-        underlyingToken.put(SUSHI_ETH_USDT, SUSHI_LP_ETH_USDT);
-        underlyingToken.put(SUSHI_ETH_WBTC, SUSHI_LP_ETH_WBTC);
-        underlyingToken.put(IDX_ETH_DPI, UNI_LP_ETH_DPI);
-        underlyingToken.put(UNI_BAC_DAI, UNI_LP_BAC_DAI);
-        underlyingToken.put(UNI_DAI_BAS, UNI_LP_DAI_BAS);
-        underlyingToken.put(SUSHI_MIC_USDT, SUSHI_LP_MIC_USDT);
-        underlyingToken.put(SUSHI_MIS_USDT, SUSHI_LP_MIS_USDT);
-        underlyingToken.put(ONEINCH_ETH_DAI, ONEINCH_LP_ETH_DAI);
-        underlyingToken.put(ONEINCH_ETH_USDC, ONEINCH_LP_ETH_USDC);
-        underlyingToken.put(ONEINCH_ETH_USDT, ONEINCH_LP_ETH_USDT);
-        underlyingToken.put(ONEINCH_ETH_WBTC, ONEINCH_LP_ETH_WBTC);
-        underlyingToken.put(DAI_BSG, UNI_LP_DAI_BSG);
-        underlyingToken.put(DAI_BSGS, UNI_LP_DAI_BSGS);
-        underlyingToken.put(MAAPL_UST, UNI_LP_MAAPL_UST);
-        underlyingToken.put(MAMZN_UST, UNI_LP_MAMZN_UST);
-        underlyingToken.put(MGOOGL_UST, UNI_LP_MGOOGL_UST);
-        underlyingToken.put(MTSLA_UST, UNI_LP_MTSLA_UST);
+//        underlyingToken.put(UNI_ETH_DAI, UNI_LP_ETH_DAI);
+//        underlyingToken.put(UNI_ETH_USDC, UNI_LP_USDC_ETH);
+//        underlyingToken.put(UNI_ETH_USDT, UNI_LP_ETH_USDT);
+//        underlyingToken.put(UNI_ETH_WBTC, UNI_LP_ETH_WBTC);
+//        underlyingToken.put(SUSHI_WBTC_TBTC, SUSHI_LP_WBTC_TBTC);
+//        underlyingToken.put(UNI_ETH_DAI_V0, UNI_LP_ETH_DAI);
+//        underlyingToken.put(UNI_ETH_USDC_V0, UNI_LP_USDC_ETH);
+//        underlyingToken.put(UNI_ETH_USDT_V0, UNI_LP_ETH_USDT);
+//        underlyingToken.put(UNI_ETH_WBTC_V0, UNI_LP_ETH_WBTC);
+//        underlyingToken.put(SUSHI_ETH_DAI, SUSHI_LP_ETH_DAI);
+//        underlyingToken.put(SUSHI_ETH_USDC, SUSHI_LP_ETH_USDC);
+//        underlyingToken.put(SUSHI_ETH_USDT, SUSHI_LP_ETH_USDT);
+//        underlyingToken.put(SUSHI_ETH_WBTC, SUSHI_LP_ETH_WBTC);
+//        underlyingToken.put(IDX_ETH_DPI, UNI_LP_ETH_DPI);
+//        underlyingToken.put(UNI_BAC_DAI, UNI_LP_BAC_DAI);
+//        underlyingToken.put(UNI_DAI_BAS, UNI_LP_DAI_BAS);
+//        underlyingToken.put(SUSHI_MIC_USDT, SUSHI_LP_MIC_USDT);
+//        underlyingToken.put(SUSHI_MIS_USDT, SUSHI_LP_MIS_USDT);
+//        underlyingToken.put(ONEINCH_ETH_DAI, ONEINCH_LP_ETH_DAI);
+//        underlyingToken.put(ONEINCH_ETH_USDC, ONEINCH_LP_ETH_USDC);
+//        underlyingToken.put(ONEINCH_ETH_USDT, ONEINCH_LP_ETH_USDT);
+//        underlyingToken.put(ONEINCH_ETH_WBTC, ONEINCH_LP_ETH_WBTC);
+//        underlyingToken.put(DAI_BSG, UNI_LP_DAI_BSG);
+//        underlyingToken.put(DAI_BSGS, UNI_LP_DAI_BSGS);
+//        underlyingToken.put(MAAPL_UST, UNI_LP_MAAPL_UST);
+//        underlyingToken.put(MAMZN_UST, UNI_LP_MAMZN_UST);
+//        underlyingToken.put(MGOOGL_UST, UNI_LP_MGOOGL_UST);
+//        underlyingToken.put(MTSLA_UST, UNI_LP_MTSLA_UST);
 
         //todo get from underlying token
         vaultDividers.put(YCRV_V0, D18);
@@ -230,14 +229,14 @@ public class Vaults {
         throw new IllegalStateException("Not found vault for " + oldName);
     }
 
-    public static boolean isLp(String vaultName) {
-        String vaultHash = Vaults.vaultNameToHash.get(vaultName);
-        if (vaultHash == null) {
-            throw new IllegalStateException("Vault hash not found for " + vaultName);
-        }
-        String underlying = Vaults.underlyingToken.get(vaultHash);
-        return LpContracts.lpHashToCoinNames.containsKey(underlying);
-    }
+//    public static boolean isLp(String vaultName) {
+//        String vaultHash = Vaults.vaultNameToHash.get(vaultName);
+//        if (vaultHash == null) {
+//            throw new IllegalStateException("Vault hash not found for " + vaultName);
+//        }
+//        String underlying = Vaults.underlyingToken.get(vaultHash);
+//        return LpContracts.lpHashToCoinNames.containsKey(underlying);
+//    }
 
     public static boolean isPsName(String vaultName) {
         return "PS".equalsIgnoreCase(vaultName) || "PS_V0".equalsIgnoreCase(vaultName);

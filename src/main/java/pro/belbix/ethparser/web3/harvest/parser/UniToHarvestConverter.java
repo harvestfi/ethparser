@@ -1,13 +1,14 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.vaultHashToStakeHash;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findLpForCoins;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.findNameForLpHash;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.vaultHashToStakeHash;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.findLpForCoins;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.findNameForLpHash;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -24,7 +25,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.LpStat;
-import pro.belbix.ethparser.web3.Functions;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -43,15 +44,15 @@ public class UniToHarvestConverter implements Web3Parser {
     private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(1000);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final PriceProvider priceProvider;
-    private final Functions functions;
+    private final FunctionsUtils functionsUtils;
     private final HarvestDBService harvestDBService;
     private final ParserInfo parserInfo;
     private Instant lastTx = Instant.now();
 
-    public UniToHarvestConverter(PriceProvider priceProvider, Functions functions,
+    public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
                                  HarvestDBService harvestDBService, ParserInfo parserInfo) {
         this.priceProvider = priceProvider;
-        this.functions = functions;
+        this.functionsUtils = functionsUtils;
         this.harvestDBService = harvestDBService;
         this.parserInfo = parserInfo;
     }
@@ -121,15 +122,19 @@ public class UniToHarvestConverter implements Web3Parser {
         long block = harvestDTO.getBlock();
         String stakeHash = vaultHashToStakeHash.get(lpHash);
 
-        double lpBalance = parseAmount(functions.callErc20TotalSupply(lpHash, block), lpHash);
-        double stBalance = parseAmount(functions.callErc20TotalSupply(stakeHash, block), lpHash);
+        double lpBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block).orElseThrow(),
+            lpHash);
+        double stBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, stakeHash, block).orElseThrow(),
+            lpHash);
         harvestDTO.setLastTvl(stBalance);
         double stFraction = stBalance / lpBalance;
         if (Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
             stFraction = 0;
         }
 
-        Tuple2<Double, Double> lpUnderlyingBalances = functions.callReserves(lpHash, block);
+        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, block);
         double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
         double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 
