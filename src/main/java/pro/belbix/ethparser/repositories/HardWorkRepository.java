@@ -94,4 +94,12 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "group by vault "
         + "order by vault")
     List<HardWorkDTO> fetchLatest();
+
+    @Query(nativeQuery = true, value = "select sum(saved_gas_fees_sum) gas_saved from ( "
+        + "     select "
+        + "         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', saved_gas_fees_sum)), '_', -1) saved_gas_fees_sum "
+        + "     from hard_work "
+        + "     group by vault "
+        + " ) t")
+    Double fetchLastGasSaved();
 }
