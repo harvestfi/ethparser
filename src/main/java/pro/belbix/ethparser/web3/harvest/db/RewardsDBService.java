@@ -81,7 +81,8 @@ public class RewardsDBService {
     public void fillWeeklyApy(RewardDTO dto) {
         Instant blockDate = Instant.ofEpochSecond(dto.getBlockDate());
         long weekAgo = blockDate.minus(7, ChronoUnit.DAYS).getEpochSecond();
-        List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(dto.getVault(), weekAgo);
+        List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
+            dto.getVault(), weekAgo, dto.getBlockDate());
         double averageApy = calculateAverageApy(rewards);
         dto.setWeeklyApy(averageApy);
     }

@@ -9,6 +9,7 @@ import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_DAI_
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_PS;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_WBTC;
+import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_WETH;
 
 import java.util.List;
 import org.junit.Before;
@@ -41,6 +42,18 @@ public class RewardParserTest {
     public void setUp() {
         priceProvider.setUpdateBlockDifference(1);
         rewardParser.setWaitNewBlock(false);
+    }
+
+    @Test
+    public void shouldParseRewardST_WETH() {
+        parserTest(
+            ST_WETH,
+            11778576,
+            0,
+            "WETH",
+            "108,54400000",
+            1612897280
+        );
     }
 
     @Test

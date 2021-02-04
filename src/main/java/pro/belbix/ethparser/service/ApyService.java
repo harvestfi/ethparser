@@ -31,8 +31,10 @@ public class ApyService {
             }
         }
         lastRewards.put(pool, reward);
-        List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(pool,
-            Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond());
+        List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
+            pool,
+            Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond(),
+            Long.MAX_VALUE);
         double averageApy = calculateAverageApy(rewards);
         saveToCache(pool, days, averageApy);
         return averageApy;
@@ -52,7 +54,11 @@ public class ApyService {
             .map(RewardDTO::getApy)
             .mapToDouble(Double::doubleValue).toArray();
         DescriptiveStatistics stats = new DescriptiveStatistics(apys);
-        return stats.getMean();
+        double averageApy = stats.getMean();
+        if (Double.isNaN(averageApy) || Double.isInfinite(averageApy)) {
+            averageApy = 0;
+        }
+        return averageApy;
     }
 
     private void saveToCache(String pool, int days, double averageApy) {
