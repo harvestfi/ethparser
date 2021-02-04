@@ -9,7 +9,7 @@ import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_DAI_BSG;
 import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_PS;
 import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
 import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_WBTC;
-import static pro.belbix.ethparser.web3.harvest.contracts.StakeContracts.ST_WETH;
+import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_WETH;
 
 import java.util.List;
 import org.junit.Before;
@@ -23,8 +23,8 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
