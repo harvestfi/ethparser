@@ -24,9 +24,9 @@ public class HarvestTvlDBService {
         this.harvestTvlRepository = harvestTvlRepository;
     }
 
-    public List<TvlHistory> fetchTvlByVault(String name) {
+    public List<TvlHistory> fetchTvlByVault(String name, long startTime, long endTime) {
         log.debug("get tvl for " + name);
-        List<HarvestDTO> harvestTxEntities = harvestRepository.fetchAllByVault(name);
+        List<HarvestDTO> harvestTxEntities = harvestRepository.findAllByVaultOrderByBlockDate(name, startTime, endTime);
         List<TvlHistory> tvlHistoryDTOS = new ArrayList<>();
         if (harvestTxEntities == null) {
             return tvlHistoryDTOS;

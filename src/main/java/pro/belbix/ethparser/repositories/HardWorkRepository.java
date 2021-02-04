@@ -61,7 +61,9 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "select sum(saved_gas_fees) from hard_work where vault = :vault and block_date < :blockDate")
     Double sumSavedGasFees(@Param("vault") String vault, @Param("blockDate") long blockDate);
 
-    List<HardWorkDTO> findAllByVaultOrderByBlockDate(String vault);
+    @Query("select t from HardWorkDTO t where t.vault = :vault and t.blockDate between :startTime and :endTime order by t.blockDate")
+    List<HardWorkDTO> findAllByVaultOrderByBlockDate(@Param("vault") String vault, @Param("startTime") long startTime,
+                                                    @Param("endTime") long endTime);
 
     @Query(nativeQuery = true, value = "" +
         "select " +
@@ -94,4 +96,12 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "group by vault "
         + "order by vault")
     List<HardWorkDTO> fetchLatest();
+
+    @Query(nativeQuery = true, value = "select sum(saved_gas_fees_sum) gas_saved from ( "
+        + "     select "
+        + "         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', saved_gas_fees_sum)), '_', -1) saved_gas_fees_sum "
+        + "     from hard_work "
+        + "     group by vault "
+        + " ) t")
+    Double fetchLastGasSaved();
 }

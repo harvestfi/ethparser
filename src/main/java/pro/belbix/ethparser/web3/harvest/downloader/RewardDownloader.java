@@ -48,7 +48,8 @@ public class RewardDownloader {
     public void start() {
         priceProvider.setUpdateBlockDifference(1);
         for (Entry<String, String> entry : StakeContracts.hashToName.entrySet()) {
-            if (contractName != null && !contractName.equals(entry.getValue())) {
+            if (contractName != null && !contractName.isBlank()
+                && !contractName.equals(entry.getValue())) {
                 continue;
             }
             logger.info("Start parse rewards for " + entry.getValue());
@@ -66,7 +67,12 @@ public class RewardDownloader {
             try {
                 RewardDTO dto = rewardParser.parseLog((Log) logResult.get());
                 if (dto != null) {
-                    rewardsDBService.saveRewardDTO(dto);
+                    try {
+                        rewardsDBService.saveRewardDTO(dto);
+                    } catch (Exception e) {
+                        logger.error("error with {}", dto, e);
+                        break;
+                    }
                 }
             } catch (Exception e) {
                 logger.error("error with " + logResult.get(), e);
