@@ -11,6 +11,8 @@ import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 
+import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+
 @RestController
 @Log4j2
 public class HardWorkController {
@@ -27,8 +29,10 @@ public class HardWorkController {
     }
 
     @RequestMapping(value = "api/transactions/history/hardwork/{name}", method = RequestMethod.GET)
-    public List<HardWorkDTO> historyHardWork(@PathVariable("name") String name) {
-        return hardWorkRepository.findAllByVaultOrderByBlockDate(name);
+    public List<HardWorkDTO> historyHardWork(@PathVariable("name") String name,
+                                             @RequestParam(value = "start", required = false) String start,
+                                             @RequestParam(value = "end", required = false) String end) {
+        return hardWorkRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
     @RequestMapping(value = "api/transactions/history/hardwork", method = RequestMethod.GET)

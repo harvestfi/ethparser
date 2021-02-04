@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.RewardsRepository;
 
+import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+
 @RestController
 @Log4j2
 public class RewardController {
@@ -40,8 +42,10 @@ public class RewardController {
     }
 
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
-    public List<RewardDTO> historyReward(@PathVariable("name") String name) {
-        return rewardsRepository.getAllByVaultOrderByBlockDate(name);
+    public List<RewardDTO> historyReward(@PathVariable("name") String name,
+                                         @RequestParam(value = "start", required = false) String start,
+                                         @RequestParam(value = "end", required = false) String end) {
+        return rewardsRepository.getAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
 }
