@@ -12,7 +12,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.RewardsRepository;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -51,7 +51,7 @@ public class RewardsDBService {
         }
         Double tvl;
         double reward;
-        if (Vaults.isPsName(dto.getVault())) {
+        if (ContractUtils.isPsName(dto.getVault())) {
             tvl = harvest.getLastTvl();
             reward = dto.getReward();
         } else {

@@ -33,7 +33,7 @@ public class HarvestTx implements EthTransactionI {
     private boolean migration = false;
 
     public boolean isExistenceVault() {
-        return ContractUtils.getNameByAddress(vault.getValue(), Type.VAULT).isPresent();
+        return ContractUtils.getNameByAddress(vault.getValue()).isPresent();
     }
 
     public HarvestDTO toDto() {
@@ -41,7 +41,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block.longValue());
-        dto.setVault(removeBracers(ContractUtils.getNameByAddress(vault.getValue(), Type.VAULT).orElseThrow()));
+        dto.setVault(removeBracers(ContractUtils.getNameByAddress(vault.getValue()).orElseThrow()));
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));

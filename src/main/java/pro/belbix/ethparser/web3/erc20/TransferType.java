@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.erc20;
 
-import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -8,8 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.web3.MethodMapper;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 public enum TransferType {
@@ -90,31 +89,31 @@ public enum TransferType {
             return HARD_WORK;
         }
 
-        if (Vaults.isPsHash(recipient)) {
-            if (StakeContracts.isST_PS(owner)) {
+        if (ContractUtils.isPsAddress(recipient)) {
+            if (ContractUtils.isPsAddress(owner)) {
                 return PS_INTERNAL;
             } else {
                 return PS_STAKE;
             }
         }
 
-        if (Vaults.isPsHash(owner)) {
+        if (ContractUtils.isPsAddress(owner)) {
             // V0 reward
             if ("getReward".equalsIgnoreCase(methodName)) {
                 return REWARD;
             }
-            if (StakeContracts.isST_PS(recipient)) {
+            if (ContractUtils.isPsAddress(recipient)) {
                 return PS_INTERNAL;
             } else {
                 return PS_EXIT;
             }
         }
 
-        if (StakeContracts.hashToName.containsKey(recipient)) {
+        if (ContractUtils.isPoolAddress(recipient)) {
             return NOTIFY;
         }
 
-        if (StakeContracts.hashToName.containsKey(owner) || MethodMapper.isReward(methodName)) {
+        if (ContractUtils.isPoolAddress(owner) || MethodMapper.isReward(methodName)) {
             return REWARD;
         }
 

@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.erc20.db;
 
 import static pro.belbix.ethparser.utils.Caller.silentCall;
-import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.erc20.TransferType.KEEP_OWNERSHIP;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_BUY;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SELL;
@@ -9,9 +9,6 @@ import static pro.belbix.ethparser.web3.erc20.TransferType.NOT_TRADE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_EXIT;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
 import static pro.belbix.ethparser.web3.erc20.TransferType.REWARD;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.contracts.Vaults.PS;
-import static pro.belbix.ethparser.web3.contracts.Vaults.PS_V0;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,9 +35,9 @@ public class TransferDBService {
     private static final Set<String> notCheckableAddresses = new HashSet<>();
 
     static {
-        notCheckableAddresses.add(ST_PS);
-        notCheckableAddresses.add(PS);
-        notCheckableAddresses.add(PS_V0);
+        notCheckableAddresses.add("0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"); // st_ps
+        notCheckableAddresses.add("0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50"); //ps
+        notCheckableAddresses.add("0x59258F4e15A5fC74A7284055A8094F58108dbD4f"); // ps_v0
         notCheckableAddresses.add(ZERO_ADDRESS);
     }
 

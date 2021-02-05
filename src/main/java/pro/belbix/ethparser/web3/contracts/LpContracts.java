@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.Tokens.BAC_NAME;
 import static pro.belbix.ethparser.web3.contracts.Tokens.BAC_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.Tokens.BADGER_NAME;

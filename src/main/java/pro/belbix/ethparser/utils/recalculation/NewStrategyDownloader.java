@@ -4,9 +4,10 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.entity.eth.ContractEntity;
+import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
@@ -48,8 +49,9 @@ public class NewStrategyDownloader {
             if (harvest.getBlock().intValue() < minBlock) {
                 minBlock = harvest.getBlock().intValue();
             }
-            String stContract = StakeContracts.hashToName.get(
-                StakeContracts.vaultHashToStakeHash.get(Vaults.vaultNameToHash.get(poolName)));
+            String stContract = ContractUtils.poolByVaultName(poolName)
+                .map(PoolEntity::getAddress)
+                .map(ContractEntity::getAddress).orElseThrow();
             rewardDownloader.setContractName(stContract);
             rewardDownloader.start();
         }

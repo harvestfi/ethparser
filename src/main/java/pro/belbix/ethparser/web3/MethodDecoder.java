@@ -3,7 +3,9 @@ package pro.belbix.ethparser.web3;
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
 
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,9 +30,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.web3.contracts.Tokens;
-import pro.belbix.ethparser.web3.contracts.Vaults;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
@@ -75,16 +75,9 @@ public abstract class MethodDecoder {
         if (amount == null) {
             return 0.0;
         }
-        Map<String, Double> dividers = new HashMap<>();
-        dividers.putAll(Vaults.vaultDividers);
-        dividers.putAll(LpContracts.getLpDividers());
-        dividers.putAll(Tokens.getTokensDividers());
-        Double divider = dividers.get(address);
-        if (divider == null) {
-            throw new IllegalStateException("Divider not found for " + address);
-        }
-        return amount.doubleValue() / divider;
-        //return new BigDecimal(amount).divide(BigDecimal.valueOf(divider)).doubleValue() ;
+        return new BigDecimal(amount)
+            .divide(ContractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
+            .doubleValue();
     }
 
     public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {

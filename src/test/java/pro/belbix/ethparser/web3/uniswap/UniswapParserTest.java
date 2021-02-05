@@ -161,7 +161,7 @@ public class UniswapParserTest {
             () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "1883", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
             () -> assertEquals("LastUsdTvl", "9657721", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.504241330007,\"amount2\":4828860.303375672,\"price1\":233.93936056786774,\"price2\":1.0}",
+            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.504241330003,\"amount2\":4828860.303375671,\"price1\":233.93936056786774,\"price2\":1.0}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", "0,30169333", String.format("%.8f",  harvestDTO.getLastTvl()))
         );
@@ -188,7 +188,7 @@ public class UniswapParserTest {
             () -> assertEquals("Vault", "UNI_LP_WETH_FARM", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "50220", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
             () -> assertEquals("LastUsdTvl", "282796", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227604,\"amount2\":251.00578046192655,\"price1\":100.43960495287533,\"price2\":561.7716539993274}",
+            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192652,\"price1\":100.43960495287533,\"price2\":561.7716539993274}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", "523,39010775", String.format("%.8f",  harvestDTO.getLastTvl()))
         );
@@ -215,7 +215,7 @@ public class UniswapParserTest {
             () -> assertEquals("Vault", "UNI_LP_GRAIN_FARM", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "27356", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
             () -> assertEquals("LastUsdTvl", "219248", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.5470726851,\"amount2\":1122.239518907442,\"price1\":0.10707514707395077,\"price2\":97.68336231347396}",
+            () -> assertEquals("LpStat", "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.5470726849,\"amount2\":1122.2395189074418,\"price1\":0.10707514707395077,\"price2\":97.68336231347396}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", "33420,96359919", String.format("%.8f",  harvestDTO.getLastTvl()))
         );

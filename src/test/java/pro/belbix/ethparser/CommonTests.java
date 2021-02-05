@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
 
 import org.junit.Test;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public class CommonTests {
 
@@ -60,7 +60,8 @@ public class CommonTests {
             "0xe58f0d2956628921cdEd2eA6B195Fc821c3a2b16"
         };
         for(String address : addresses) {
-            System.out.println(address + " - " + StakeContracts.hashToName.get(address.toLowerCase()));
+            System.out.println(address + " - " +
+                ContractUtils.getNameByAddress(address.toLowerCase()).orElse("not found"));
         }
     }
 }

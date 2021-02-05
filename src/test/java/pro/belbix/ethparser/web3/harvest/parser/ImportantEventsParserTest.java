@@ -6,11 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.Vaults.USDC;
-import static pro.belbix.ethparser.web3.contracts.Vaults.DAI;
 
-import java.util.List;
 import java.time.Instant;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,8 +20,8 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -45,7 +43,7 @@ public class ImportantEventsParserTest {
     @Test
     public void shouldParseStrategyChange() {
         parserTest(
-            USDC,
+            "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
             11521350,
             0,
             "0x5DB1B2128bCCC5B49f9cA7E3086b14fd4cf2ef64",
@@ -58,7 +56,7 @@ public class ImportantEventsParserTest {
     @Test
     public void shouldParseStrategyAnnounce() {
         parserTest(
-            DAI,
+            "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
             11517785,
             0,
             "0x180c496709023CE8952003A9FF385a3bBEB8b2C3",

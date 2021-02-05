@@ -21,8 +21,6 @@ import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
@@ -71,7 +69,7 @@ public class HarvestDBService {
 
     public void fillOwnersCount(HarvestDTO dto) {
         Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
-            Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
+            dto.getVault() + "_V0", dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
@@ -84,8 +82,8 @@ public class HarvestDBService {
         dto.setAllOwnersCount(allOwnersCount);
 
         Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-            Vaults.vaultNameToHash.keySet().stream()
-                .filter(v -> !Vaults.isPsName(v))
+            ContractUtils.getAllPoolNames().stream()
+                .filter(v -> !ContractUtils.isPsName(v))
                 .collect(Collectors.toList()),
             dto.getBlockDate());
         if (allPoolsOwnerCount == null) {

@@ -20,11 +20,10 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -52,7 +51,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRV_GUSD() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.CRV_GUSD,
+            "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
             11768519,
             LOG_ID,
             "0x039223b49d56254cfe7be0242be5b4c5673feb6e",
@@ -74,7 +73,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRV_EURS() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.CRV_EURS,
+            "0x6eb941BD065b8a5bd699C5405A928c1f561e2e5a",
             11686425,
             LOG_ID,
             "0x5ae053134b7866f329f1a0a474936d3d5b9d23cc",
@@ -96,7 +95,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRV_UST() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.CRV_UST,
+            "0x84A1DfAdd698886A614fD70407936816183C0A02",
             11688348,
             LOG_ID,
             "0xe5350e927b904fdb4d2af55c566e269bb3df1941",
@@ -118,7 +117,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultMAAPL_UST() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.MAAPL_UST,
+            "0x11804D69AcaC6Ae9466798325fA7DE023f63Ab53",
             11688495,
             LOG_ID,
             "0x6aaaf98e8522491bc1006cd8cf95515220144dd3",
@@ -140,7 +139,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultMAMZN_UST() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.MAMZN_UST,
+            "0x8334A61012A779169725FcC43ADcff1F581350B7",
             11688255,
             LOG_ID,
             "0x123967b5e51eef1bea412394c51aa6702eddb675",
@@ -162,7 +161,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultMGOOGL_UST() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.MGOOGL_UST,
+            "0x07DBe6aA35EF70DaD124f4e2b748fFA6C9E1963a",
             11688264,
             LOG_ID,
             "0x252e7e8b9863f81798b1fef8cfd9741a46de653c",
@@ -184,7 +183,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultMTSLA_UST() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.MTSLA_UST,
+            "0xC800982d906671637E23E031e907d2e3487291Bc",
             11688649,
             LOG_ID,
             "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
@@ -206,7 +205,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRV_STETH() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.CRV_STETH,
+            "0xc27bfE32E0a934a12681C1b35acf0DBA0e7460Ba",
             11688707,
             LOG_ID,
             "0xfbfd491bc1e89782fb01219c5fd8462c039d0d7e",
@@ -228,7 +227,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDAI_BSG2() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.DAI_BSG,
+            "0x639d4f3F41daA5f4B94d63C2A5f3e18139ba9E54",
             11668721,
             LOG_ID,
             "0xfab1ed72a7236a6b34f47ee7ed103d6cd448c441",
@@ -250,7 +249,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDAI_BSG() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.DAI_BSG,
+            "0x639d4f3F41daA5f4B94d63C2A5f3e18139ba9E54",
             11664219,
             LOG_ID,
             "0xa35b52835dc644444881dd51563d13ad987c148c",
@@ -272,7 +271,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDAI_BSG3() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.DAI_BSG,
+            "0x639d4f3F41daA5f4B94d63C2A5f3e18139ba9E54",
             11679676,
             LOG_ID,
             "0xf2ff7c888cd0f1a38d06f89658aeb36cf6951841",
@@ -294,7 +293,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDAI_BSGS() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.DAI_BSGS,
+            "0x633C4861A4E9522353EDa0bb652878B079fb75Fd",
             11664918,
             LOG_ID,
             "0x2e3a18c95c67158342426eab5a9fd1856e869214",
@@ -316,7 +315,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultBAC() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.BAC,
+            "0x371E78676cd8547ef969f89D2ee8fA689C50F86B",
             11664832,
             LOG_ID,
             "0x7cff918c6d506557d06fb307667fca863f07f262",
@@ -338,7 +337,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultESD() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.ESD,
+            "0x45a9e027DdD8486faD6fca647Bb132AD03303EC2",
             11666935,
             LOG_ID,
             "0x19912c1c3d299b8385504d42132bc9e78552c99e",
@@ -360,7 +359,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDSD() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.DSD,
+            "0x8Bf3c1c7B1961764Ecb19b4FC4491150ceB1ABB1",
             11671555,
             LOG_ID,
             "0x7707c947b45cab9ce0fbf4505abf637bc4027a5b",
@@ -382,7 +381,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultONEINCH_ETH_DAI() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.ONEINCH_ETH_DAI,
+            "0x8e53031462e930827a8d482e7d80603b1f86e32d",
             11656737,
             LOG_ID,
             "0x856b0303e51b9cb68737a2e9d5a5260d7bb515c4",
@@ -404,7 +403,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultONEINCH_ETH_USDC() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.ONEINCH_ETH_USDC,
+            "0xd162395c21357b126c5afed6921bc8b13e48d690",
             11652370,
             LOG_ID,
             "0xdb22c56f26940803095704634d0e305901cf83af",
@@ -426,7 +425,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultONEINCH_ETH_USDT() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.ONEINCH_ETH_USDT,
+            "0x4bf633a09bd593f6fb047db3b4c25ef5b9c5b99e",
             11657337,
             LOG_ID,
             "0x3c8319dd83fa18ec1a0df2acf65277a731514d67",
@@ -448,7 +447,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultONEINCH_ETH_WBTC() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.ONEINCH_ETH_WBTC,
+            "0x859222dd0b249d0ea960f5102dab79b294d6874a",
             11660459,
             LOG_ID,
             "0xb3bd674309ba3fd345134b28326326a0f0b3c6ed",
@@ -470,7 +469,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRV_OBTC() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.CRV_OBTC,
+            "0x966A70A4d3719A6De6a94236532A0167d5246c72",
             11653428,
             LOG_ID,
             "0xde50bd8fd4e7b8e9fc048938d450120c51fd6da5",
@@ -492,7 +491,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWETH_V02() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.WETH_V0,
+            "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098",
             11289211,
             LOG_ID,
             "0xe4b73f379705eac71bf2dc17e33e069a90a4041d",
@@ -514,7 +513,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_MIS_USDT() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.SUSHI_MIS_USDT,
+            "0x145f39B3c6e6a885AA6A8fadE4ca69d64bab69c8",
             11616169,
             LOG_ID,
             "0xff21190b583e185235f5da7537f939d64ec1f6b5",
@@ -534,7 +533,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_MIC_USDT() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.SUSHI_MIC_USDT,
+            "0x6F14165c6D529eA3Bfe1814d0998449e9c8D157D",
             11615991,
             LOG_ID,
             "0x8dc06d76a63e79c0b77633f60bc7b9e14ed94d18",
@@ -554,7 +553,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_DAI_BAS() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.UNI_DAI_BAS,
+            "0xf8b7235fcfd5a75cfdcc0d7bc813817f3dd17858",
             11619379,
             LOG_ID,
             "0x068a01a3443df8230d423af83110d278d8dc9018",
@@ -574,7 +573,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_BAC_DAI() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.UNI_BAC_DAI,
+            "0x6Bccd7E983E438a56Ba2844883A664Da87E4C43b",
             11615995,
             LOG_ID,
             "0xe2bb94210b41ce4c01b9b97f3ac62e728e472f9c",
@@ -594,7 +593,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_WBTC2() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.UNI_ETH_WBTC,
+            "0x01112a60f427205dcA6E229425306923c3Cc2073",
             11082567,
             LOG_ID,
             "0x15e7e224dcfa4dba59f342f01c70007b8a8f4aa0",
@@ -614,7 +613,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_DAI_V0_migration() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI_V0,
+            "0x1a9F22b4C385f78650E7874d64e442839Dc32327",
             11050173,
             LOG_ID,
             "0xc2b27903e0281740994895c32ee40c31dac3197d",
@@ -652,14 +651,15 @@ public class HarvestVaultParserTest {
         harvestOwnerBalanceCalculator.fillBalance(migration);
         assertAll(
             () -> assertEquals("owner balance", "12657,60435602", String.format("%.8f", migration.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "583939,02122719", String.format("%.8f", migration.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance usd", "583939,02122719",
+                String.format("%.8f", migration.getOwnerBalanceUsd()))
         );
     }
 
     @Test
     public void parseVaultUNI_ETH_DAI_V0() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI_V0,
+            "0x1a9F22b4C385f78650E7874d64e442839Dc32327",
             10884882,
             LOG_ID,
             "0xa35b52835dc644444881dd51563d13ad987c148c",
@@ -684,7 +684,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultIDX_ETH_DPI() {
         HarvestDTO dto = harvestVaultParseTest(
-            Vaults.IDX_ETH_DPI,
+            "0x2a32dcbb121d48c106f6d94cf2b4714c0b4dfe48",
             11378768,
             LOG_ID,
             "0xe4b8c8e33b17ec8517403852d7bb272134a2271a",
@@ -709,7 +709,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_ETH_USDT() {
         harvestVaultParseTest(
-            Vaults.SUSHI_ETH_USDT,
+            "0x64035b583c8c694627A199243E863Bb33be60745",
             11279480,
             LOG_ID,
             "0x385153335428d17024b32614ba66259ed307c9ba",
@@ -728,7 +728,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_ETH_USDC() {
         harvestVaultParseTest(
-            Vaults.SUSHI_ETH_USDC,
+            "0x01bd09A1124960d9bE04b638b142Df9DF942b04a",
             11279940,
             LOG_ID,
             "0xa20f9874dd1edccbec1beda894f98f45069e4205",
@@ -747,7 +747,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_ETH_DAI() {
         harvestVaultParseTest(
-            Vaults.SUSHI_ETH_DAI,
+            "0x203E97aa6eB65A1A02d9E80083414058303f241E",
             11279440,
             LOG_ID,
             "0x7b5c7755dffc97bf44677a084b591c38bf894abf",
@@ -766,7 +766,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_ETH_WBTC() {
         harvestVaultParseTest(
-            Vaults.SUSHI_ETH_WBTC,
+            "0x5C0A3F55AAC52AA320Ff5F280E77517cbAF85524",
             11279665,
             LOG_ID,
             "0x9ebaff2192d2746fec76561bdf72fd249d7a73ab",
@@ -784,13 +784,13 @@ public class HarvestVaultParserTest {
 
     @Test
     public void shouldNotParseVaultSUSHI_ETH_DAI() {
-        shouldNotParse(Vaults.SUSHI_ETH_DAI, 11278329, LOG_ID);
+        shouldNotParse("0x203E97aa6eB65A1A02d9E80083414058303f241E", 11278329, LOG_ID);
     }
 
     @Test
     public void parseVaultPS_V0() {
         harvestVaultParseTest(
-            Vaults.PS_V0,
+            "0x59258F4e15A5fC74A7284055A8094F58108dbD4f",
             10798055,
             LOG_ID,
             "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
@@ -808,13 +808,13 @@ public class HarvestVaultParserTest {
 
     @Test
     public void parseVaultUSDC_V0_stake() {
-        shouldNotParse(Vaults.USDC_V0, 11021481, LOG_ID);
+        shouldNotParse("0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f", 11021481, LOG_ID);
     }
 
     @Test
     public void parseVaultPS2() {
         harvestVaultParseTest(
-            Vaults.PS,
+            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
             11262684,
             LOG_ID,
             "0xad77e73a9fd5d002bd1d043e6a4c6a456c9524fb",
@@ -833,7 +833,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultPS() {
         harvestVaultParseTest(
-            Vaults.PS,
+            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
             10964982,
             LOG_ID,
             "0x640236965becf920a70a5dcd44b5c9c18f283095",
@@ -852,7 +852,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWETH_V0() {
         harvestVaultParseTest(
-            Vaults.WETH_V0,
+            "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098",
             11037623,
             LOG_ID,
             "0x602b2d2278465ea5823898000140cef95f2b8d56",
@@ -871,7 +871,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWETH_V0_migration() {
         harvestVaultParseTest(
-            Vaults.WETH_V0,
+            "0x8e298734681adbfC41ee5d17FF8B0d6d803e7098",
             11207867,
             LOG_ID,
             "0x252e7e8b9863f81798b1fef8cfd9741a46de653c",
@@ -890,7 +890,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUSDC_V0() {
         harvestVaultParseTest(
-            Vaults.USDC_V0,
+            "0xc3F7ffb5d5869B3ade9448D094d81B0521e8326f",
             11092650,
             LOG_ID,
             "0x39075d2473005586389ef2bbc3cf85fc3e9d09cc",
@@ -909,7 +909,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWETH2() {
         harvestVaultParseTest(
-            Vaults.WETH,
+            "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
             11147169,
             LOG_ID,
             "0xc22bc5f7e5517d7a5df9273d66e254d4b549523c",
@@ -928,7 +928,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_WBTC() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_WBTC,
+            "0x01112a60f427205dcA6E229425306923c3Cc2073",
             11184877,
             LOG_ID,
             "0xd86d40ccbc02ea258c442185bf16f16d6336fc1b",
@@ -947,7 +947,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_DAI() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI,
+            "0x307E2752e8b8a9C29005001Be66B1c012CA9CDB7",
             11185593,
             LOG_ID,
             "0xefe45d46722dc95502e81f80e6398b16112b5fa7",
@@ -966,7 +966,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_DAI2() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI,
+            "0x307E2752e8b8a9C29005001Be66B1c012CA9CDB7",
             11188946,
             LOG_ID,
             "0x49b68b3c022f3531cde7e42ef5ff974193fe2576",
@@ -985,7 +985,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_DAI3() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI,
+            "0x307E2752e8b8a9C29005001Be66B1c012CA9CDB7",
             11059006,
             LOG_ID,
             "0xa51030ce6ee1f832ea559499cd4ae57c26a5c614",
@@ -1004,7 +1004,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_DAI4() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_DAI,
+            "0x307E2752e8b8a9C29005001Be66B1c012CA9CDB7",
             11059057,
             LOG_ID,
             "0x8a85ee300b04f9f1622f13941a58cbdabec14af4",
@@ -1023,7 +1023,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUSDT() {
         harvestVaultParseTest(
-            Vaults.USDT,
+            "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
             11190589,
             LOG_ID,
             "0x0e2481cdc9ffd4da1ee17b3060d41c7a0a4906b7",
@@ -1042,7 +1042,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUSDT2() {
         harvestVaultParseTest(
-            Vaults.USDT,
+            "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
             11188165,
             LOG_ID,
             "0x5dd63936fa77c6b7888cb664227ccd5b27e4f128",
@@ -1061,7 +1061,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_USDT() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_USDT,
+            "0x7DDc3ffF0612E75Ea5ddC0d6Bd4e268f70362Cff",
             11189726,
             LOG_ID,
             "0xff3083c7d442dbd4cfe9cfe2043e40df1ce2a75d",
@@ -1080,7 +1080,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_USDT2() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_USDT,
+            "0x7DDc3ffF0612E75Ea5ddC0d6Bd4e268f70362Cff",
             11188401,
             LOG_ID,
             "0xb5ccc38dee973ede2d78c071e4b9c2e49783101c",
@@ -1099,7 +1099,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWETH() {
         harvestVaultParseTest(
-            Vaults.WETH,
+            "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
             11190612,
             LOG_ID,
             "0x071fe6456f926722b2731087395a5335612269fd",
@@ -1118,7 +1118,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_USDC() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_USDC,
+            "0xA79a083FDD87F73c2f983c5551EC974685D6bb36",
             11187006,
             LOG_ID,
             "0xefc8dcba0188825ad5a35206e8d372d75c488f65",
@@ -1137,7 +1137,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUSDC() {
         harvestVaultParseTest(
-            Vaults.USDC,
+            "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
             11190589,
             LOG_ID,
             "0x0e2481cdc9ffd4da1ee17b3060d41c7a0a4906b7",
@@ -1156,7 +1156,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUSDC2() {
         harvestVaultParseTest(
-            Vaults.USDC,
+            "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
             11188063,
             LOG_ID,
             "0xe5350e927b904fdb4d2af55c566e269bb3df1941",
@@ -1175,7 +1175,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRVRENWBTC() {
         harvestVaultParseTest(
-            Vaults.CRVRENWBTC,
+            "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
             11187206,
             LOG_ID,
             "0x13e252df0cafe34116cec052177b7540afc75f76",
@@ -1194,7 +1194,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultDAI() {
         harvestVaultParseTest(
-            Vaults.DAI,
+            "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
             11189347,
             LOG_ID,
             "0xc49c90a526086b06279c205c24d0e378f4c74c3e",
@@ -1213,7 +1213,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultWBTC() {
         harvestVaultParseTest(
-            Vaults.WBTC,
+            "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB",
             11190733,
             LOG_ID,
             "0x194b379c59a82c0f903768e9fc7a0440a4794708",
@@ -1232,7 +1232,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultRENBTC() {
         harvestVaultParseTest(
-            Vaults.RENBTC,
+            "0xC391d1b08c1403313B0c28D47202DFDA015633C4",
             11187223,
             LOG_ID,
             "0xb9670cebabc4d89ed58c8cfc6393777a5cceeabe",
@@ -1251,7 +1251,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultSUSHI_WBTC_TBTC() {
         harvestVaultParseTest(
-            Vaults.SUSHI_WBTC_TBTC,
+            "0xF553E1f826f42716cDFe02bde5ee76b2a52fc7EB",
             11055609,
             LOG_ID,
             "0xe9b05bc1fa8684ee3e01460aac2e64c678b9da5d",
@@ -1270,7 +1270,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_USDC2() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_USDC,
+            "0xA79a083FDD87F73c2f983c5551EC974685D6bb36",
             11061363,
             LOG_ID,
             "0x4c8133051b300ccd66b6b35c5a0af15b6a97012a",
@@ -1289,7 +1289,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultUNI_ETH_USDC3() {
         harvestVaultParseTest(
-            Vaults.UNI_ETH_USDC,
+            "0xA79a083FDD87F73c2f983c5551EC974685D6bb36",
             11105503,
             LOG_ID,
             "0xc50b3f8f200ae3f1e8dca71ca770c3c4ea94a083",
@@ -1308,7 +1308,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultCRVRENWBTC2() {
         harvestVaultParseTest(
-            Vaults.CRVRENWBTC,
+            "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
             11105759,
             LOG_ID,
             "0x875abe6f1e2aba07bed4a3234d8555a0d7656d12",
@@ -1327,7 +1327,7 @@ public class HarvestVaultParserTest {
     @Test
     public void parseVaultTUSD() {
         harvestVaultParseTest(
-            Vaults.TUSD,
+            "0x7674622c63Bee7F46E86a4A5A18976693D54441b",
             11005889,
             LOG_ID,
             "0xb71cd2a879c8d887ea8d75155ff51116178641c0",

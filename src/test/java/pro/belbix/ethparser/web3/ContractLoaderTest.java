@@ -69,22 +69,22 @@ public class ContractLoaderTest {
         }
     }
 
-    @Test
-    public void containsAllVaults() {
-        contractLoader.load();
-        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
-            boolean found = false;
-            for (PoolEntity poolEntity : ContractLoader.poolsCacheByAddress.values()) {
-                if (vaultAddress.equals(poolEntity.getLpToken().getAddress())) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                System.out.println("not found " + vaultAddress);
-            }
-        }
-    }
+//    @Test
+//    public void containsAllVaults() {
+//        contractLoader.load();
+//        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
+//            boolean found = false;
+//            for (PoolEntity poolEntity : ContractLoader.poolsCacheByAddress.values()) {
+//                if (vaultAddress.equals(poolEntity.getLpToken().getAddress())) {
+//                    found = true;
+//                    break;
+//                }
+//            }
+//            if (!found) {
+//                System.out.println("not found " + vaultAddress);
+//            }
+//        }
+//    }
 
     @Test
     public void isLpTest() {

@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.contracts;
 
 public class ContractConstants {
 

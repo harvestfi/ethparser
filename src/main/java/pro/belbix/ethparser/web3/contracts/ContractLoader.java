@@ -37,10 +37,6 @@ import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsNames;
 import pro.belbix.ethparser.web3.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
-import pro.belbix.ethparser.web3.contracts.TokenInfo;
-import pro.belbix.ethparser.web3.contracts.Tokens;
-import pro.belbix.ethparser.web3.contracts.UniPairAddresses;
 
 @Service
 @Log4j2
@@ -63,14 +59,14 @@ public class ContractLoader {
     private ContractTypeEntity infrastructureType;
     private ContractTypeEntity tokenType;
 
-    public static final Map<String, PoolEntity> poolsCacheByAddress = new HashMap<>();
-    private static final Map<String, VaultEntity> vaultsCacheByAddress = new HashMap<>();
-    private static final Map<String, UniPairEntity> uniPairsCacheByAddress = new HashMap<>();
-    private static final Map<String, TokenEntity> tokensCacheByAddress = new HashMap<>();
-    private static final Map<String, PoolEntity> poolsCacheByName = new HashMap<>();
-    private static final Map<String, VaultEntity> vaultsCacheByName = new HashMap<>();
-    private static final Map<String, UniPairEntity> uniPairsCacheByName = new HashMap<>();
-    private static final Map<String, TokenEntity> tokensCacheByName = new HashMap<>();
+    static final Map<String, PoolEntity> poolsCacheByAddress = new HashMap<>();
+    static final Map<String, VaultEntity> vaultsCacheByAddress = new HashMap<>();
+    static final Map<String, UniPairEntity> uniPairsCacheByAddress = new HashMap<>();
+    static final Map<String, TokenEntity> tokensCacheByAddress = new HashMap<>();
+    static final Map<String, PoolEntity> poolsCacheByName = new HashMap<>();
+    static final Map<String, VaultEntity> vaultsCacheByName = new HashMap<>();
+    static final Map<String, UniPairEntity> uniPairsCacheByName = new HashMap<>();
+    static final Map<String, TokenEntity> tokensCacheByName = new HashMap<>();
 
     public ContractLoader(AppProperties appProperties,
                           FunctionsUtils functionsUtils,
@@ -213,6 +209,7 @@ public class ContractLoader {
     }
 
     private void enrichVault(VaultEntity vaultEntity) {
+        vaultEntity.setUpdatedBlock(lastBlock);
         String address = vaultEntity.getAddress().getAddress();
         vaultEntity.setController(findOrCreateContract(
             functionsUtils.callAddressByName(CONTROLLER, address, lastBlock).orElse(""),
@@ -226,6 +223,13 @@ public class ContractLoader {
             infrastructureType,
             false
         ));
+        //exclude PS vaults
+        if (address.equalsIgnoreCase("0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50")
+            || address.equalsIgnoreCase("0x59258F4e15A5fC74A7284055A8094F58108dbD4f")) {
+            vaultEntity.setName("PS vault");
+            vaultEntity.setDecimals(18L);
+            return;
+        }
         vaultEntity.setStrategy(findOrCreateContract(
             functionsUtils.callAddressByName(STRATEGY, address, lastBlock).orElse(""),
             AddressType.UNKNOWN_STRATEGY.name(),
@@ -248,7 +252,6 @@ public class ContractLoader {
         vaultEntity.setUnderlyingUnit(
             functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, lastBlock)
                 .orElse(BigInteger.ZERO).longValue());
-        vaultEntity.setUpdatedBlock(lastBlock);
     }
 
     private void enrichPool(PoolEntity poolEntity) {

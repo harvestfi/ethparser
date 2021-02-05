@@ -7,12 +7,10 @@ import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.contracts.Vaults;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -28,8 +26,8 @@ public class HarvestOwnerBalanceCalculator {
 
     public boolean fillBalance(HarvestDTO dto) {
         try {
-            if (Vaults.vaultNameToHash.containsKey(dto.getVault())) {
-                if (Vaults.isPsName(dto.getVault())) {
+            if (ContractUtils.isVaultName(dto.getVault())) {
+                if (ContractUtils.isPsName(dto.getVault())) {
                     return balanceForPs(dto);
                 }
                 return balanceForVault(dto);
@@ -43,7 +41,7 @@ public class HarvestOwnerBalanceCalculator {
     }
 
     private boolean balanceForPs(HarvestDTO dto) {
-        String psHash = Vaults.vaultNameToHash.get(dto.getVault());
+        String psHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
         BigInteger balanceI = functionsUtils.callIntByName(
             BALANCE_OF, dto.getOwner(), psHash, dto.getBlock()).orElseThrow();
         if (balanceI == null) {
@@ -60,15 +58,14 @@ public class HarvestOwnerBalanceCalculator {
 
     private boolean balanceForVault(HarvestDTO dto) {
         long block = dto.getBlock();
-        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
         BigInteger balanceI;
         if (dto.isMigrated()) {
             //migration process broken UnderlyingBalance for vault
             //but we have shortcut - after migration we can check balanceOf
-            String stHash = StakeContracts.vaultHashToStakeHash.get(vaultHash);
-            if (stHash == null) {
-                throw new IllegalStateException("Not found st for " + dto.getVault());
-            }
+            String stHash = ContractUtils.poolByVaultAddress(vaultHash)
+                .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
+                .getAddress().getAddress();
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
                 .orElseThrow();
         } else {

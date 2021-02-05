@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN0;

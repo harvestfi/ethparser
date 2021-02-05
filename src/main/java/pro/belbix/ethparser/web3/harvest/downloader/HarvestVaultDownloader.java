@@ -48,7 +48,7 @@ public class HarvestVaultDownloader {
     public void start() {
         for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
             if (contractName != null && !contractName.isEmpty()
-                && !contractName.equals(ContractUtils.getNameByAddress(vaultAddress, Type.VAULT))) {
+                && !contractName.equals(ContractUtils.getNameByAddress(vaultAddress).orElse(""))) {
                 continue;
             }
 

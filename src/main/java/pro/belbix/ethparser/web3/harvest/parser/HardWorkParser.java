@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
@@ -28,7 +28,6 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
@@ -110,11 +109,11 @@ public class HardWorkParser implements Web3Parser {
             throw new IllegalStateException("Unknown method " + tx.getMethodName());
         }
 
-        if (ContractUtils.getNameByAddress(tx.getVault(), Type.VAULT).isEmpty()) {
+        if (ContractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
             log.warn("Unknown vault " + tx.getVault());
             return null;
         }
-        String vaultName = ContractUtils.getNameByAddress(tx.getVault(), Type.VAULT).orElseThrow();
+        String vaultName = ContractUtils.getNameByAddress(tx.getVault()).orElseThrow();
         if (vaultName.endsWith("_V0")) {
             // skip old strategies
             return null;
@@ -228,7 +227,7 @@ public class HardWorkParser implements Web3Parser {
                 //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
                 log.debug("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
             }
-            String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+            String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
             double vaultReward = parseAmount(tx.getValue(), vaultHash);
             double price = calculateVaultRewardUsdPrice(dto.getVault(), underlyingTokenHash, dto.getBlock());
             dto.setShareChangeUsd(vaultReward * price);
@@ -254,7 +253,7 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForLP(HardWorkDTO dto) {
-        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
         String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElse(BigInteger.ZERO),
@@ -281,7 +280,7 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForRegular(HardWorkDTO dto) {
-        String vaultHash = Vaults.vaultNameToHash.get(dto.getVault());
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + vaultHash);

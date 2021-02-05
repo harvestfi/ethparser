@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY_TIME_LOCK;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
@@ -88,7 +88,7 @@ public class ImportantEventsParser implements Web3Parser {
     public ImportantEventsDTO parseLog(Log ethLog) {
         if (ethLog == null ||
             (!FARM_TOKEN.equals(ethLog.getAddress())
-                && ContractUtils.getNameByAddress(ethLog.getAddress(), Type.VAULT).isEmpty())
+                && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
         ) {
             return null;
         }
@@ -134,7 +134,7 @@ public class ImportantEventsParser implements Web3Parser {
 
     private void parseVault(ImportantEventsDTO dto, String vault) {
         dto.setVault(
-            ContractUtils.getNameByAddress(vault, Type.VAULT)
+            ContractUtils.getNameByAddress(vault)
                 .orElseGet(() -> Tokens.findNameForContract(vault))
         );
     }

@@ -109,7 +109,7 @@ public class HarvestTransactionsParser implements Web3Parser {
             //it is contract deploy
             return false;
         }
-        return ContractUtils.getNameByAddress(tx.getTo().toLowerCase(), Type.VAULT).isPresent();
+        return ContractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
     }
 
     private HarvestTx decodeTransaction(Transaction tx) {

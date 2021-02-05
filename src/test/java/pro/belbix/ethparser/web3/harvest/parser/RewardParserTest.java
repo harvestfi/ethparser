@@ -5,11 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_DAI_BSG;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_PS;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_SUSHI_ETH_DAI;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_WBTC;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.ST_WETH;
 
 import java.util.List;
 import org.junit.Before;
@@ -47,7 +42,7 @@ public class RewardParserTest {
     @Test
     public void shouldParseRewardST_WETH() {
         parserTest(
-            ST_WETH,
+            "0x3DA9D911301f8144bdF5c3c67886e5373DCdff8e",
             11778576,
             0,
             "WETH",
@@ -59,7 +54,7 @@ public class RewardParserTest {
     @Test
     public void shouldParseRewardST_SUSHI_ETH_DAI() {
         parserTest(
-            ST_SUSHI_ETH_DAI,
+            "0x76Aef359a33C02338902aCA543f37de4b01BA1FA",
             11733131,
             0,
             "SUSHI_ETH_DAI",
@@ -71,7 +66,7 @@ public class RewardParserTest {
     @Test
     public void shouldParseRewardST_WBTC() {
         parserTest(
-            ST_WBTC,
+            "0x917d6480Ec60cBddd6CbD0C8EA317Bcc709EA77B",
             11733131,
             0,
             "WBTC",
@@ -83,7 +78,7 @@ public class RewardParserTest {
     @Test
     public void shouldParseRewardDAI_BSG() {
         parserTest(
-            ST_DAI_BSG,
+            "0xf5b221E1d9C3a094Fb6847bC3E241152772BbbF8",
             11662009,
             0,
             "DAI_BSG",
@@ -95,7 +90,7 @@ public class RewardParserTest {
     @Test
     public void shouldParseRewardPS() {
         parserTest(
-            ST_PS,
+            "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C",
             11434688,
             0,
             "PS",

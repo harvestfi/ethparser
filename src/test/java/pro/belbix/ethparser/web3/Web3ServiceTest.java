@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
-import static pro.belbix.ethparser.web3.contracts.Vaults.WBTC;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DAI;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
 
@@ -37,8 +36,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.HarvestVaultAddresses;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 
 @RunWith(SpringRunner.class)
@@ -101,20 +98,20 @@ public class Web3ServiceTest {
     @Test
     @Ignore
     public void getBalanceTest() {
-        double balance = web3Service.fetchBalance(WBTC);
+        double balance = web3Service.fetchBalance("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB");
         assertTrue(balance > 0);
     }
 
     @Test
-    public void ethCallGET_PRICE_PER_FULL_SHARETest() {
+    public void ethCallGET_PRICE_PER_FULL_SHARE_WBTC() {
         List<Type> types = web3Service.callFunction(new Function(
             "getPricePerFullShare",
             Collections.emptyList(),
             Collections.singletonList(new TypeReference<Uint256>() {
-            })), WBTC, LATEST);
+            })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST);
         assertNotNull(types);
         assertFalse(types.isEmpty());
-        assertTrue(parseAmount((BigInteger) types.get(0).getValue(), WBTC) > 0);
+        assertTrue(parseAmount((BigInteger) types.get(0).getValue(), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
     }
 
     @Test

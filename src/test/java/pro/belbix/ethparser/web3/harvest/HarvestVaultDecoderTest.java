@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static pro.belbix.ethparser.web3.contracts.Vaults.WBTC;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,7 +39,8 @@ public class HarvestVaultDecoderTest {
     @Ignore
     public void parseVault_WBTC() {
         Map<String, Integer> topics = new HashMap<>();
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(WBTC), 11164503, null);
+        List<LogResult> logResults = web3Service.fetchContractLogs(
+            singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null);
         assertFalse(logResults.isEmpty());
         for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

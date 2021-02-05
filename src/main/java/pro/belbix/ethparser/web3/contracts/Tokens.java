@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D2;
-import static pro.belbix.ethparser.web3.ContractConstants.D6;
-import static pro.belbix.ethparser.web3.ContractConstants.D8;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D2;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D6;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D8;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.lpHashToCoinNames;
 

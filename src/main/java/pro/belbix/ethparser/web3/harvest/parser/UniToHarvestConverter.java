@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.StakeContracts.vaultHashToStakeHash;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
@@ -28,6 +27,7 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -120,13 +120,15 @@ public class UniToHarvestConverter implements Web3Parser {
 
     public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
         long block = harvestDTO.getBlock();
-        String stakeHash = vaultHashToStakeHash.get(lpHash);
+        String poolAddress = ContractUtils.poolByVaultAddress(lpHash)
+            .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
+            .getAddress().getAddress();
 
         double lpBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block).orElseThrow(),
             lpHash);
         double stBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, stakeHash, block).orElseThrow(),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block).orElseThrow(),
             lpHash);
         harvestDTO.setLastTvl(stBalance);
         double stFraction = stBalance / lpBalance;

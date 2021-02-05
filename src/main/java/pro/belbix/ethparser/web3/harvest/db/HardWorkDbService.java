@@ -16,7 +16,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.contracts.Vaults;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -183,7 +182,7 @@ public class HardWorkDbService {
         dto.setCallsQuantity(count + 1);
         int owners = harvestRepository.fetchActualOwnerQuantity(
             dto.getVault(),
-            Vaults.vaultNameToOldVaultName.get(dto.getVault()),
+            dto.getVault() + "_V0",
             dto.getBlockDate());
         dto.setPoolUsers(owners);
 
