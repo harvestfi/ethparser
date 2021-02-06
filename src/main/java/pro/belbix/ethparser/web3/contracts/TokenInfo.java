@@ -1,6 +1,6 @@
-package pro.belbix.ethparser.web3.erc20;
+package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import java.util.Map.Entry;
 import java.util.TreeMap;

@@ -15,15 +15,16 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.erc20.TokenInfo;
-import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.contracts.TokenInfo;
+import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -37,17 +38,19 @@ public class PriceLogParser implements Web3Parser {
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
     private final PriceDBService priceDBService;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
     private long count = 0;
 
     public PriceLogParser(Web3Service web3Service,
                           EthBlockService ethBlockService,
                           ParserInfo parserInfo,
-                          PriceDBService priceDBService) {
+                          PriceDBService priceDBService, AppProperties appProperties) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.priceDBService = priceDBService;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -74,6 +77,9 @@ public class PriceLogParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Error price parser loop " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();
@@ -108,7 +114,7 @@ public class PriceLogParser implements Web3Parser {
 
         fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
 
-        log.info(dto.print());
+//        log.info(dto.print());
         return dto;
     }
 

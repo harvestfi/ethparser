@@ -7,11 +7,11 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
@@ -20,9 +20,11 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (!isValidLog(ethLog)) {
             return null;
         }
-        String methodId = parseMethodId(ethLog);
+        String methodId = parseMethodId(ethLog)
+            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));;
         String methodName = methodNamesByMethodId.get(methodId);
-        List<TypeReference<Type>> parameters = findParameters(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId)
+            .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
 
         List<Type> types = extractLogIndexedValues(ethLog, parameters);
         HarvestTx tx = new HarvestTx();
@@ -41,8 +43,8 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return Vaults.vaultHashToName.containsKey(log.getAddress())
-            || StakeContracts.hashToName.containsKey(log.getAddress());
+        return ContractUtils.isVaultAddress(log.getAddress())
+            || ContractUtils.isPoolAddress(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

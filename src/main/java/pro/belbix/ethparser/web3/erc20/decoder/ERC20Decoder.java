@@ -17,9 +17,9 @@ public class ERC20Decoder extends MethodDecoder {
             return null;
         }
 
-        String methodId = parseMethodId(ethLog);
+        String methodId = parseMethodId(ethLog).orElse("");
         String methodName = methodNamesByMethodId.get(methodId);
-        List<TypeReference<Type>> parameters = findParameters(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId).orElse(null);
 
         List<Type> types = extractLogIndexedValues(ethLog, parameters);
         TokenTx tx = new TokenTx();
@@ -38,6 +38,9 @@ public class ERC20Decoder extends MethodDecoder {
     }
 
     private void enrich(List<Type> types, TokenTx tx) {
+        if (types == null) {
+            return;
+        }
         if ("Transfer".equals(tx.getMethodName())) {
             tx.setOwner((String) types.get(0).getValue());
             tx.setRecipient((String) types.get(1).getValue());

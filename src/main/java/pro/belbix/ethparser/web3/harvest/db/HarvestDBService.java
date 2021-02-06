@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +20,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -69,7 +69,7 @@ public class HarvestDBService {
 
     public void fillOwnersCount(HarvestDTO dto) {
         Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
-            Vaults.vaultNameToOldVaultName.get(dto.getVault()), dto.getBlockDate());
+            dto.getVault() + "_V0", dto.getBlockDate());
         if (ownerCount == null) {
             ownerCount = 0;
         }
@@ -82,8 +82,8 @@ public class HarvestDBService {
         dto.setAllOwnersCount(allOwnersCount);
 
         Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-            Vaults.vaultNameToHash.keySet().stream()
-                .filter(v -> !Vaults.isPsName(v))
+            ContractUtils.getAllPoolNames().stream()
+                .filter(v -> !ContractUtils.isPsName(v))
                 .collect(Collectors.toList()),
             dto.getBlockDate());
         if (allPoolsOwnerCount == null) {
@@ -100,7 +100,7 @@ public class HarvestDBService {
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }
-        List<String> contracts = new ArrayList<>(Vaults.vaultHashToName.values());
+        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultAddresses());
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);

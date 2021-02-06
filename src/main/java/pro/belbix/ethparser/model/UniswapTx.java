@@ -1,13 +1,13 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.web3.erc20.Tokens.findNameForContract;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.amountToDouble;
+import static pro.belbix.ethparser.web3.contracts.Tokens.findNameForContract;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.amountToDouble;
 
 import java.math.BigInteger;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Data
 public class UniswapTx implements EthTransactionI {

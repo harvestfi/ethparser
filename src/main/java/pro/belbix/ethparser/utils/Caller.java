@@ -12,7 +12,7 @@ public class Caller {
             if (result == null) {
                 return Optional.empty();
             }
-            return Optional.of(result);
+            return Optional.ofNullable(result);
         } catch (Exception e) {
             e.printStackTrace();
         }

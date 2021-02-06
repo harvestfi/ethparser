@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
@@ -89,17 +89,24 @@ public class Web3Service {
     public TransactionReceipt fetchTransactionReceipt(String hash) {
         checkInit();
 
-        EthGetTransactionReceipt ethGetTransactionReceipt =
-            callWithRetry(() -> web3.ethGetTransactionReceipt(hash).send());
-        Error error = ethGetTransactionReceipt.getError();
-        if (error != null) {
-            log.error("Got " + error.getCode() + " " + error.getMessage() + " " + error.getData());
-        } else {
-            return ethGetTransactionReceipt.getTransactionReceipt()
-                .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
-        }
-
-        return null;
+        EthGetTransactionReceipt result =
+            callWithRetry(() -> {
+                EthGetTransactionReceipt ethGetTransactionReceipt
+                    = web3.ethGetTransactionReceipt(hash).send();
+                if (ethGetTransactionReceipt == null) {
+                    log.error("Null receipt for hash: " + hash);
+                    return null;
+                }
+                Error error = ethGetTransactionReceipt.getError();
+                if (error != null) {
+                    log.error("Got " + error.getCode() + " " + error.getMessage()
+                        + " " + error.getData());
+                    return null;
+                }
+                return ethGetTransactionReceipt;
+            });
+        return result.getTransactionReceipt()
+            .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
     }
 
     private void checkInit() {
@@ -151,32 +158,39 @@ public class Web3Service {
 
     public Block findBlock(String blockHash) {
         checkInit();
-        EthBlock ethBlock =
-            callWithRetry(() -> web3.ethGetBlockByHash(blockHash, false).send());
-
-        if (ethBlock != null && ethBlock.getError() != null) {
-            log.error("Error fetching block " + ethBlock.getError().getMessage());
-            return null;
-        }
-
-        if (ethBlock != null) {
-            return ethBlock.getBlock();
-        }
-        return null;
+        EthBlock result = callWithRetry(() -> {
+            EthBlock ethBlock = web3.ethGetBlockByHash(blockHash, false).send();
+            if (ethBlock == null) {
+                log.error("Error fetching block with hash " + blockHash);
+                return null;
+            }
+            if (ethBlock.getError() != null) {
+                log.error("Error fetching block " + ethBlock.getError().getMessage());
+                return null;
+            }
+            return ethBlock;
+        });
+        return result.getBlock();
     }
 
     public double fetchAverageGasPrice() {
         checkInit();
-        EthGasPrice gasPrice = callWithRetry(() -> web3.ethGasPrice().send());
-
-        if (gasPrice != null && gasPrice.getError() != null) {
-            log.error("Error gas fetching " + gasPrice.getError().getMessage());
+        EthGasPrice result = callWithRetry(() -> {
+            EthGasPrice gasPrice = web3.ethGasPrice().send();
+            if (gasPrice == null) {
+                log.error("Null gas fetching result");
+                return null;
+            }
+            if (gasPrice.getError() != null) {
+                log.error("Error gas fetching " + gasPrice.getError().getMessage());
+                return null;
+            }
+            return gasPrice;
+        });
+        if (result == null) {
             return 0.0;
         }
-        if (gasPrice != null) {
-            return gasPrice.getGasPrice().doubleValue() / 1000_000_000;
-        }
-        return 0.0;
+        return result.getGasPrice().doubleValue() / 1000_000_000;
     }
 
     public List<LogResult> fetchContractLogs(List<String> addresses, Integer start,
@@ -196,43 +210,61 @@ public class Web3Service {
         }
         EthFilter filter = new EthFilter(fromBlock,
             toBlock, addresses);
-        EthLog ethLog = callWithRetry(() -> web3.ethGetLogs(filter).send());
-
-        if (ethLog == null) {
-            return new ArrayList<>();
+        EthLog result = callWithRetry(() -> {
+            EthLog ethLog = web3.ethGetLogs(filter).send();
+            if (ethLog == null) {
+                log.error("get logs null result");
+                return null;
+            }
+            if (ethLog.getError() != null) {
+                log.error("Can't get eth log. " + ethLog.getError().getMessage());
+                return null;
+            }
+            return ethLog;
+        });
+        if (result == null) {
+            return List.of();
         }
-        if (ethLog.getError() != null) {
-            log.error("Can't get eth log. " + ethLog.getError().getMessage());
-            return new ArrayList<>();
-        }
-        return ethLog.getLogs();
+        return result.getLogs();
     }
 
     public double fetchBalance(String hash) {
         checkInit();
-        EthGetBalance ethGetBalance = callWithRetry(() -> web3.ethGetBalance(hash, LATEST).send());
-        if (ethGetBalance == null) {
+        EthGetBalance result = callWithRetry(() -> {
+            EthGetBalance ethGetBalance = web3.ethGetBalance(hash, LATEST).send();
+            if (ethGetBalance == null) {
+                log.error("Get balance response is null");
+                return null;
+            }
+            if (ethGetBalance.getError() != null) {
+                log.error("Get balance error callback " + ethGetBalance.getError().getMessage());
+                return null;
+            }
+            return ethGetBalance;
+        });
+        if (result == null) {
             return 0.0;
         }
-        if (ethGetBalance.getError() != null) {
-            log.error("Get balance error callback " + ethGetBalance.getError().getMessage());
-            return 0.0;
-        }
-        return ethGetBalance.getBalance().doubleValue();
+        return result.getBalance().doubleValue();
     }
 
     public BigInteger fetchCurrentBlock() {
-        EthBlockNumber ethBlockNumber = callWithRetry(() -> web3.ethBlockNumber().send());
-
-        if (ethBlockNumber == null) {
-            log.error("Null callback last block");
+        EthBlockNumber result = callWithRetry(() -> {
+            EthBlockNumber ethBlockNumber = web3.ethBlockNumber().send();
+            if (ethBlockNumber == null) {
+                log.error("Null callback last block");
+                return null;
+            }
+            if (ethBlockNumber.getError() != null) {
+                log.error("Error from last block: " + ethBlockNumber.getError());
+                return null;
+            }
+            return ethBlockNumber;
+        });
+        if (result == null) {
             return BigInteger.ZERO;
         }
-        if (ethBlockNumber.getError() != null) {
-            log.error("Error from last block: " + ethBlockNumber.getError());
-            return BigInteger.ZERO;
-        }
-        return ethBlockNumber.getBlockNumber();
+        return result.getBlockNumber();
     }
 
     public List<Type> callFunction(Function function, String contractAddress, DefaultBlockParameter block) {
@@ -240,16 +272,24 @@ public class Web3Service {
             org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                 ZERO_ADDRESS, contractAddress, FunctionEncoder.encode(function));
 
-        EthCall ethCall = callWithRetry(() -> web3.ethCall(transaction, block).send());
-        if (ethCall == null) {
-            log.warn("Eth call is null " + function.getName());
+        EthCall result = callWithRetry(() -> {
+            EthCall ethCall = web3.ethCall(transaction, block).send();
+            if (ethCall == null) {
+                log.warn("Eth call is null " + function.getName());
+                return null;
+            }
+            if (ethCall.getError() != null) {
+                log.warn(function.getName() + " Eth call callback is error "
+                    + ethCall.getError().getMessage());
+                return null;
+            }
+            return ethCall;
+        });
+        if (result == null) {
             return null;
         }
-        if (ethCall.getError() != null) {
-            log.warn(function.getName() + "Eth call callback is error " + ethCall.getError().getMessage());
-            return null;
-        }
-        return FunctionReturnDecoder.decode(ethCall.getValue(), function.getOutputParameters());
+
+        return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
     }
 
     public void subscribeOnTransactions(BlockingQueue<Transaction> queue) {
@@ -315,7 +355,8 @@ public class Web3Service {
                     Credentials.basic(appProperties.getWeb3User(), appProperties.getWeb3Password()))
                 .build());
 
-            HttpService service = new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
+            HttpService service =
+                new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
             web3 = Web3j.build(service);
         }
         log.info("Successfully connected to Ethereum");
@@ -502,4 +543,7 @@ public class Web3Service {
         }
     }
 
+    public Web3j getWeb3() {
+        return web3;
+    }
 }

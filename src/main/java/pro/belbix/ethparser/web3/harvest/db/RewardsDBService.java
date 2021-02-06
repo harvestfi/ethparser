@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
-import static pro.belbix.ethparser.web3.Functions.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_OF_YEAR;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -12,7 +12,7 @@ import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.RewardsRepository;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -51,7 +51,7 @@ public class RewardsDBService {
         }
         Double tvl;
         double reward;
-        if (Vaults.isPsName(dto.getVault())) {
+        if (ContractUtils.isPsName(dto.getVault())) {
             tvl = harvest.getLastTvl();
             reward = dto.getReward();
         } else {

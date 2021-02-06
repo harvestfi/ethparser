@@ -3,11 +3,11 @@ package pro.belbix.ethparser.model;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
-import java.util.Map;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class HarvestTx implements EthTransactionI {
@@ -32,8 +32,8 @@ public class HarvestTx implements EthTransactionI {
     private boolean enriched;
     private boolean migration = false;
 
-    public boolean isContainsAddress(Map<String, String> addresses) {
-        return addresses.containsKey(vault.getValue().toLowerCase());
+    public boolean isExistenceVault() {
+        return ContractUtils.getNameByAddress(vault.getValue()).isPresent();
     }
 
     public HarvestDTO toDto() {
@@ -41,7 +41,9 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block.longValue());
-        dto.setVault(removeBracers(Vaults.vaultHashToName.get(vault.getValue())));
+        dto.setVault(ContractUtils.getNameByAddress(vault.getValue())
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
+        );
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
@@ -54,12 +56,12 @@ public class HarvestTx implements EthTransactionI {
         return dto;
     }
 
-    public static String removeBracers(String s) {
-        if (s.equals("_3CRV")) {
-            return "3CRV";
-        }
-        return s;
-    }
+//    public static String removeBracers(String s) {
+//        if (s.equals("_3CRV")) {
+//            return "3CRV";
+//        }
+//        return s;
+//    }
 
     private void enrichMethodDepend(HarvestDTO dto) {
         switch (methodName) {

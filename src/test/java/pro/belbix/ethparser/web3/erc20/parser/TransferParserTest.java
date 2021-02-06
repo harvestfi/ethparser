@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.util.List;
 import org.junit.Before;
@@ -349,6 +349,20 @@ public class TransferParserTest {
             "5,85376525",
             "HARD_WORK",
             "doHardWork#V2"
+        );
+    }
+
+    @Test
+    public void testParseFARM_swapExactTokensForETH() {
+        parserTest(FARM_TOKEN,
+            10777107,
+            0,
+            "FARM",
+            "0xefd0199657b444856e3259ed8e3c39ee43cf51dc",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "25,00000000",
+            "LP_SELL",
+            "swapExactTokensForETH"
         );
     }
 

@@ -15,7 +15,7 @@ import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
