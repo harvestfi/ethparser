@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.entity.eth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -8,13 +10,14 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.Data;
 
 @Entity
 @Table(name = "eth_pools", indexes = {
-    @Index(name = "idx_eth_pools", columnList = "address")
+    @Index(name = "idx_eth_pools", columnList = "contract")
 })
 @Data
 public class PoolEntity {
@@ -23,8 +26,8 @@ public class PoolEntity {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address", unique = true)
-    private ContractEntity address;
+    @JoinColumn(name = "contract", unique = true)
+    private ContractEntity contract;
     private Long updatedBlock;
 
     // contract info
@@ -44,6 +47,10 @@ public class PoolEntity {
     @JoinColumn(name = "reward_token")
     private ContractEntity rewardToken;
 
+    @JsonIgnore
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name="pool_id")
+    private List<VaultToPoolEntity> vaultToPoolEntries;
 
 
 }

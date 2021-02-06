@@ -9,12 +9,12 @@ import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.KEY_BLOCKS_FOR_LOADING;
 import static pro.belbix.ethparser.web3.contracts.HarvestPoolAddresses.POOLS;
 
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
@@ -26,13 +26,16 @@ import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
 import pro.belbix.ethparser.entity.eth.UniPairEntity;
 import pro.belbix.ethparser.entity.eth.VaultEntity;
+import pro.belbix.ethparser.entity.eth.VaultToPoolEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.ContractRepository;
-import pro.belbix.ethparser.repositories.ContractTypeRepository;
-import pro.belbix.ethparser.repositories.PoolRepository;
-import pro.belbix.ethparser.repositories.TokenRepository;
-import pro.belbix.ethparser.repositories.UniPairRepository;
-import pro.belbix.ethparser.repositories.VaultRepository;
+import pro.belbix.ethparser.properties.SubscriptionsProperties;
+import pro.belbix.ethparser.repositories.eth.ContractRepository;
+import pro.belbix.ethparser.repositories.eth.ContractTypeRepository;
+import pro.belbix.ethparser.repositories.eth.PoolRepository;
+import pro.belbix.ethparser.repositories.eth.TokenRepository;
+import pro.belbix.ethparser.repositories.eth.UniPairRepository;
+import pro.belbix.ethparser.repositories.eth.VaultRepository;
+import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsNames;
@@ -51,8 +54,10 @@ public class ContractLoader {
     private final VaultRepository vaultRepository;
     private final UniPairRepository uniPairRepository;
     private final TokenRepository tokenRepository;
+    private final VaultToPoolRepository vaultToPoolRepository;
+    private final SubscriptionsProperties subscriptionsProperties;
 
-    private long lastBlock;
+    private long currentBlock;
     private ContractTypeEntity vaultType;
     private ContractTypeEntity poolType;
     private ContractTypeEntity uniPairType;
@@ -67,6 +72,7 @@ public class ContractLoader {
     static final Map<String, VaultEntity> vaultsCacheByName = new HashMap<>();
     static final Map<String, UniPairEntity> uniPairsCacheByName = new HashMap<>();
     static final Map<String, TokenEntity> tokensCacheByName = new HashMap<>();
+    static final Map<Integer, VaultToPoolEntity> vaultToPoolsCache = new HashMap<>();
 
     public ContractLoader(AppProperties appProperties,
                           FunctionsUtils functionsUtils,
@@ -76,7 +82,9 @@ public class ContractLoader {
                           PoolRepository poolRepository,
                           VaultRepository vaultRepository,
                           UniPairRepository uniPairRepository,
-                          TokenRepository tokenRepository) {
+                          TokenRepository tokenRepository,
+                          VaultToPoolRepository vaultToPoolRepository,
+                          SubscriptionsProperties subscriptionsProperties) {
         this.appProperties = appProperties;
         this.functionsUtils = functionsUtils;
         this.ethBlockService = ethBlockService;
@@ -86,61 +94,80 @@ public class ContractLoader {
         this.vaultRepository = vaultRepository;
         this.uniPairRepository = uniPairRepository;
         this.tokenRepository = tokenRepository;
+        this.vaultToPoolRepository = vaultToPoolRepository;
+        this.subscriptionsProperties = subscriptionsProperties;
     }
 
     @PostConstruct
     private void init() {
-        lastBlock = ethBlockService.getLastBlock();
+        currentBlock = ethBlockService.getLastBlock();
         vaultType = findOrCreateContractType(Type.VAULT);
         poolType = findOrCreateContractType(Type.POOL);
         uniPairType = findOrCreateContractType(Type.UNI_PAIR);
         infrastructureType = findOrCreateContractType(Type.INFRASTRUCTURE);
         tokenType = findOrCreateContractType(Type.TOKEN);
         load();
+        subscriptionsProperties.init();
     }
 
-    public void load() {
-        log.info("Start load contracts");
-        loadPools();
+    public synchronized void load() {
+        log.info("Start load contracts on block {}", currentBlock);
         loadVaults();
+        loadPools();
         loadUniPairs();
         loadTokens();
+        linkVaultToPools();
         log.info("Contracts loading ended");
+    }
+
+    public void loadKeyBlocks() {
+        for (Integer block : KEY_BLOCKS_FOR_LOADING) {
+            currentBlock = block;
+            load();
+        }
     }
 
     private void loadTokens() {
         for (TokenInfo tokenInfo : Tokens.tokenInfos) {
+            if (tokenInfo.getCreatedOnBlock() > currentBlock) {
+                log.info("Token not created yet, skip {}", tokenInfo.getTokenName());
+            }
             ContractEntity tokenContract = findOrCreateContract(
                 tokenInfo.getTokenAddress(),
-                tokenInfo.getTokenName()
-                , tokenType,
+                tokenInfo.getTokenName(),
+                tokenType,
+                tokenInfo.getCreatedOnBlock(),
                 true);
-            TokenEntity tokenEntity = tokenRepository.findFirstByAddress(tokenContract);
+            TokenEntity tokenEntity = tokenRepository.findFirstByContract(tokenContract);
             if (tokenEntity == null) {
                 tokenEntity = new TokenEntity();
-                tokenEntity.setAddress(tokenContract);
+                tokenEntity.setContract(tokenContract);
                 enrichToken(tokenEntity);
                 tokenRepository.save(tokenEntity);
             } else if (appProperties.isUpdateContracts()) {
                 enrichToken(tokenEntity);
                 tokenRepository.save(tokenEntity);
             }
-            tokensCacheByAddress.put(tokenEntity.getAddress().getAddress(), tokenEntity);
+            tokensCacheByAddress.put(tokenEntity.getContract().getAddress(), tokenEntity);
             tokensCacheByName.put(tokenInfo.getTokenName(), tokenEntity);
         }
     }
 
     private void loadVaults() {
-        for (Entry<String, String> entry : HarvestVaultAddresses.VAULTS.entrySet()) {
-            String name = entry.getKey();
-            String hash = entry.getValue();
+        for (Contract vault : HarvestVaultAddresses.VAULTS) {
+            if (vault.getCreatedOnBlock() > currentBlock) {
+                log.info("Vault {} not created yet, skip", vault.getName());
+                continue;
+            }
+            String name = vault.getName();
+            String hash = vault.getAddress();
 
             ContractEntity vaultContract =
-                findOrCreateContract(hash, name, vaultType, true);
-            VaultEntity vaultEntity = vaultRepository.findFirstByAddress(vaultContract);
+                findOrCreateContract(hash, name, vaultType, vault.getCreatedOnBlock(), true);
+            VaultEntity vaultEntity = vaultRepository.findFirstByContract(vaultContract);
             if (vaultEntity == null) {
                 vaultEntity = new VaultEntity();
-                vaultEntity.setAddress(vaultContract);
+                vaultEntity.setContract(vaultContract);
                 enrichVault(vaultEntity);
                 vaultRepository.save(vaultEntity);
             } else if (appProperties.isUpdateContracts()) {
@@ -153,16 +180,20 @@ public class ContractLoader {
     }
 
     private void loadPools() {
-        for (Entry<String, String> entry : POOLS.entrySet()) {
-            String name = entry.getKey();
-            String hash = entry.getValue();
+        for (Contract pool : POOLS) {
+            if (pool.getCreatedOnBlock() > currentBlock) {
+                log.info("Pool {} not created yet, skip", pool.getName());
+                continue;
+            }
+            String name = pool.getName();
+            String hash = pool.getAddress();
 
             ContractEntity poolContract =
-                findOrCreateContract(hash, name, poolType, true);
-            PoolEntity poolEntity = poolRepository.findFirstByAddress(poolContract);
+                findOrCreateContract(hash, name, poolType, pool.getCreatedOnBlock(), true);
+            PoolEntity poolEntity = poolRepository.findFirstByContract(poolContract);
             if (poolEntity == null) {
                 poolEntity = new PoolEntity();
-                poolEntity.setAddress(poolContract);
+                poolEntity.setContract(poolContract);
                 enrichPool(poolEntity);
                 poolRepository.save(poolEntity);
             } else if (appProperties.isUpdateContracts()) {
@@ -175,16 +206,16 @@ public class ContractLoader {
     }
 
     private void loadUniPairs() {
-        for (Entry<String, String> entry : UniPairAddresses.UNI_PAIRS.entrySet()) {
-            String name = entry.getKey();
-            String hash = entry.getValue();
+        for (Contract uniPair : UniPairAddresses.UNI_PAIRS) {
+            String name = uniPair.getName();
+            String hash = uniPair.getAddress();
 
             ContractEntity poolContract =
-                findOrCreateContract(hash, name, uniPairType, true);
-            UniPairEntity uniPairEntity = uniPairRepository.findFirstByAddress(poolContract);
+                findOrCreateContract(hash, name, uniPairType, uniPair.getCreatedOnBlock(), true);
+            UniPairEntity uniPairEntity = uniPairRepository.findFirstByContract(poolContract);
             if (uniPairEntity == null) {
                 uniPairEntity = new UniPairEntity();
-                uniPairEntity.setAddress(poolContract);
+                uniPairEntity.setContract(poolContract);
                 enrichUniPair(uniPairEntity);
                 uniPairRepository.save(uniPairEntity);
             } else if (appProperties.isUpdateContracts()) {
@@ -197,30 +228,32 @@ public class ContractLoader {
     }
 
     private void enrichToken(TokenEntity tokenEntity) {
-        String address = tokenEntity.getAddress().getAddress();
+        String address = tokenEntity.getContract().getAddress();
         tokenEntity.setName(
-            functionsUtils.callStrByName(FunctionsNames.NAME, address, lastBlock).orElse(""));
+            functionsUtils.callStrByName(FunctionsNames.NAME, address, currentBlock).orElse(""));
         tokenEntity.setSymbol(
-            functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, lastBlock).orElse(""));
+            functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, currentBlock).orElse(""));
         tokenEntity.setDecimals(
-            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, lastBlock)
+            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, currentBlock)
                 .orElse(BigInteger.ZERO).longValue());
-        tokenEntity.setUpdatedBlock(lastBlock);
+        tokenEntity.setUpdatedBlock(currentBlock);
     }
 
     private void enrichVault(VaultEntity vaultEntity) {
-        vaultEntity.setUpdatedBlock(lastBlock);
-        String address = vaultEntity.getAddress().getAddress();
+        vaultEntity.setUpdatedBlock(currentBlock);
+        String address = vaultEntity.getContract().getAddress();
         vaultEntity.setController(findOrCreateContract(
-            functionsUtils.callAddressByName(CONTROLLER, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(CONTROLLER, address, currentBlock).orElse(""),
             AddressType.CONTROLLER.name(),
             infrastructureType,
+            0,
             false
         ));
         vaultEntity.setGovernance(findOrCreateContract(
-            functionsUtils.callAddressByName(GOVERNANCE, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(GOVERNANCE, address, currentBlock).orElse(""),
             AddressType.GOVERNANCE.name(),
             infrastructureType,
+            0,
             false
         ));
         //exclude PS vaults
@@ -231,87 +264,149 @@ public class ContractLoader {
             return;
         }
         vaultEntity.setStrategy(findOrCreateContract(
-            functionsUtils.callAddressByName(STRATEGY, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(STRATEGY, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_STRATEGY.name(),
             infrastructureType,
+            0,
             false
         ));
         vaultEntity.setUnderlying(findOrCreateContract(
-            functionsUtils.callAddressByName(UNDERLYING, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(UNDERLYING, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_UNDERLYING.name(),
             infrastructureType,
+            0,
             false
         ));
         vaultEntity.setName(
-            functionsUtils.callStrByName(FunctionsNames.NAME, address, lastBlock).orElse(""));
+            functionsUtils.callStrByName(FunctionsNames.NAME, address, currentBlock).orElse(""));
         vaultEntity.setSymbol(
-            functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, lastBlock).orElse(""));
+            functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, currentBlock).orElse(""));
         vaultEntity.setDecimals(
-            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, lastBlock)
+            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, currentBlock)
                 .orElse(BigInteger.ZERO).longValue());
         vaultEntity.setUnderlyingUnit(
-            functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, lastBlock)
+            functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, currentBlock)
                 .orElse(BigInteger.ZERO).longValue());
     }
 
     private void enrichPool(PoolEntity poolEntity) {
-        String address = poolEntity.getAddress().getAddress();
+        String address = poolEntity.getContract().getAddress();
         poolEntity.setController(findOrCreateContract(
-            functionsUtils.callAddressByName(CONTROLLER, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(CONTROLLER, address, currentBlock).orElse(""),
             AddressType.CONTROLLER.name(),
             infrastructureType,
+            0,
             false
         ));
         poolEntity.setGovernance(findOrCreateContract(
-            functionsUtils.callAddressByName(GOVERNANCE, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(GOVERNANCE, address, currentBlock).orElse(""),
             AddressType.GOVERNANCE.name(),
             infrastructureType,
+            0,
             false
         ));
         poolEntity.setOwner(findOrCreateContract(
-            functionsUtils.callAddressByName(OWNER, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(OWNER, address, currentBlock).orElse(""),
             AddressType.OWNER.name(),
             infrastructureType,
+            0,
             false
         ));
         poolEntity.setLpToken(findOrCreateContract(
-            functionsUtils.callAddressByName(LP_TOKEN, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(LP_TOKEN, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_VAULT.name(),
             infrastructureType,
+            0,
             false
         ));
         poolEntity.setRewardToken(findOrCreateContract(
-            functionsUtils.callAddressByName(REWARD_TOKEN, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(REWARD_TOKEN, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_REWARD_TOKEN.name(),
             infrastructureType,
+            0,
             false
         ));
-        poolEntity.setUpdatedBlock(lastBlock);
+        poolEntity.setUpdatedBlock(currentBlock);
     }
 
     private void enrichUniPair(UniPairEntity uniPairEntity) {
-        String address = uniPairEntity.getAddress().getAddress();
+        String address = uniPairEntity.getContract().getAddress();
         uniPairEntity.setDecimals(
-            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, lastBlock)
+            functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, currentBlock)
                 .orElse(BigInteger.ZERO).longValue());
         uniPairEntity.setToken0(findOrCreateContract(
-            functionsUtils.callAddressByName(TOKEN0, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(TOKEN0, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_TOKEN.name(),
             tokenType,
+            0,
             false
         ));
         uniPairEntity.setToken1(findOrCreateContract(
-            functionsUtils.callAddressByName(TOKEN1, address, lastBlock).orElse(""),
+            functionsUtils.callAddressByName(TOKEN1, address, currentBlock).orElse(""),
             AddressType.UNKNOWN_TOKEN.name(),
             tokenType,
+            0,
             false
         ));
-        uniPairEntity.setUpdatedBlock(lastBlock);
+        uniPairEntity.setUpdatedBlock(currentBlock);
+    }
+
+    private void linkVaultToPools() {
+        for (PoolEntity poolEntity : poolsCacheByName.values()) {
+            if (poolEntity.getLpToken() == null) {
+                continue;
+            }
+
+            ContractEntity currentLpToken = poolEntity.getLpToken();
+            String lpAddress = currentLpToken.getAddress();
+            if (currentLpToken.getType().getType() == Type.VAULT.getId()) {
+                VaultEntity vaultEntity = vaultsCacheByAddress.get(lpAddress);
+                if (vaultEntity == null) {
+                    log.warn("Not found vault for address {}", lpAddress);
+                    continue;
+                }
+                VaultToPoolEntity vaultToPoolEntity = findOrCreateVaultToPool(vaultEntity, poolEntity);
+                vaultToPoolsCache.put(vaultToPoolEntity.getId(), vaultToPoolEntity);
+            } else if (currentLpToken.getType().getType() == Type.UNI_PAIR.getId()) {
+                //todo create another one link entity
+                log.info("Uni lp links temporally disabled");
+//                UniPairEntity uniPairEntity = uniPairsCacheByAddress.get(lpAddress);
+//                if (uniPairEntity == null) {
+//                    log.warn("Not found vault for address {}", lpAddress);
+//                    continue;
+//                }
+            } else {
+                log.error("Unknown lp token type {} in pool {}",
+                    currentLpToken.getType().getType(), poolEntity.getContract().getName());
+            }
+        }
+    }
+
+    private VaultToPoolEntity findOrCreateVaultToPool(VaultEntity vaultEntity, PoolEntity poolEntity) {
+        VaultToPoolEntity vaultToPoolEntity =
+            vaultToPoolRepository.findFirstByVaultAndPool(vaultEntity, poolEntity);
+        if (vaultToPoolEntity == null) {
+            if (vaultToPoolRepository.findFirstByVault(vaultEntity) != null) {
+                log.info("We already had linked vault " + vaultEntity.getContract().getName());
+            }
+            if (vaultToPoolRepository.findFirstByPool(poolEntity) != null) {
+                log.info("We already had linked pool " + poolEntity.getContract().getName());
+            }
+            vaultToPoolEntity = new VaultToPoolEntity();
+            vaultToPoolEntity.setPool(poolEntity);
+            vaultToPoolEntity.setVault(vaultEntity);
+            vaultToPoolEntity.setBlockStart(currentBlock);
+            vaultToPoolRepository.save(vaultToPoolEntity);
+            log.info("Create new {} to {} link",
+                vaultEntity.getContract().getName(), poolEntity.getContract().getName());
+        }
+        return vaultToPoolEntity;
     }
 
     private ContractEntity findOrCreateContract(String address,
                                                 String name,
                                                 ContractTypeEntity type,
+                                                long created,
                                                 boolean rewrite) {
         if (address == null || address.isBlank()) {
             return null;
@@ -322,12 +417,12 @@ public class ContractLoader {
             entity.setAddress(address.toLowerCase());
             entity.setName(name);
             entity.setType(type);
+            entity.setCreated(created);
             log.info("Created new contract {}", name);
             contractRepository.save(entity);
-        } else if (rewrite && appProperties.isUpdateContracts()) {
+        } else if (rewrite) {
             entity.setName(name);
             entity.setType(type);
-            log.info("Updated contract {}", name);
             contractRepository.save(entity);
         }
         return entity;
@@ -378,5 +473,4 @@ public class ContractLoader {
     static Optional<TokenEntity> getTokenByName(String name) {
         return Optional.ofNullable(tokensCacheByName.get(name));
     }
-
 }

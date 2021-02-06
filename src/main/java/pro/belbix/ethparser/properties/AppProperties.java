@@ -41,4 +41,5 @@ public class AppProperties {
     private boolean parseLog = true;
 
     private boolean updateContracts = false;
+    private boolean stopOnParseError = false;
 }

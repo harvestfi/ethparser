@@ -17,6 +17,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
@@ -43,6 +44,7 @@ public class TransferParser implements Web3Parser {
     private final TransferDBService transferDBService;
     private final PriceProvider priceProvider;
     private final FunctionsUtils functionsUtils;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
 
     public TransferParser(Web3Service web3Service,
@@ -50,13 +52,14 @@ public class TransferParser implements Web3Parser {
                           ParserInfo parserInfo,
                           TransferDBService transferDBService,
                           PriceProvider priceProvider,
-                          FunctionsUtils functionsUtils) {
+                          FunctionsUtils functionsUtils, AppProperties appProperties) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.transferDBService = transferDBService;
         this.priceProvider = priceProvider;
         this.functionsUtils = functionsUtils;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -79,6 +82,9 @@ public class TransferParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Error parse token info from " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();

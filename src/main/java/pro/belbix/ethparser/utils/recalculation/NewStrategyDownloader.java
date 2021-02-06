@@ -50,7 +50,7 @@ public class NewStrategyDownloader {
                 minBlock = harvest.getBlock().intValue();
             }
             String stContract = ContractUtils.poolByVaultName(poolName)
-                .map(PoolEntity::getAddress)
+                .map(PoolEntity::getContract)
                 .map(ContractEntity::getAddress).orElseThrow();
             rewardDownloader.setContractName(stContract);
             rewardDownloader.start();

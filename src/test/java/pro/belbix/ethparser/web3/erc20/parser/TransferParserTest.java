@@ -352,6 +352,20 @@ public class TransferParserTest {
         );
     }
 
+    @Test
+    public void testParseFARM_swapExactTokensForETH() {
+        parserTest(FARM_TOKEN,
+            10777107,
+            0,
+            "FARM",
+            "0xefd0199657b444856e3259ed8e3c39ee43cf51dc",
+            "0x514906fc121c7878424a5c928cad1852cc545892",
+            "25,00000000",
+            "LP_SELL",
+            "swapExactTokensForETH"
+        );
+    }
+
     private TransferDTO parserTest(
         String contractHash,
         int onBlock,

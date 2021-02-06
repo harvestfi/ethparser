@@ -80,6 +80,9 @@ public class RewardParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Error parse reward from " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();

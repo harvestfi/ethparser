@@ -226,10 +226,12 @@ public class TransferDBService {
                     boughtUsd -= coveredUsd;
                     double sellUsd = sell * sellPrice;
                     double sellProfit = sellUsd - coveredUsd;
-                    transfer.setProfit(sellProfit / transfer.getPrice()); // it is synthetic value for compatibility
-                    transfer.setProfitUsd(sellProfit);
-                    if (i == transfers.size() - 1) {
-                        profit = sellProfit / transfer.getPrice();
+                    if(transfer.getPrice() != 0) {
+                        transfer.setProfit(sellProfit / transfer.getPrice()); // it is synthetic value for compatibility
+                        transfer.setProfitUsd(sellProfit);
+                        if (i == transfers.size() - 1) {
+                            profit = sellProfit / transfer.getPrice();
+                        }
                     }
                 }
             }

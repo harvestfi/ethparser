@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
-import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -45,6 +45,7 @@ public class ImportantEventsParser implements Web3Parser {
     private final ParserInfo parserInfo;
     private final EthBlockService ethBlockService;
     private final FunctionsUtils functionsUtils;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
 
     public ImportantEventsParser(
@@ -52,12 +53,13 @@ public class ImportantEventsParser implements Web3Parser {
         ImportantEventsDbService importantEventsDbService,
         ParserInfo parserInfo,
         EthBlockService ethBlockService,
-        FunctionsUtils functionsUtils) {
+        FunctionsUtils functionsUtils, AppProperties appProperties) {
         this.web3Service = web3Service;
         this.importantEventsDbService = importantEventsDbService;
         this.parserInfo = parserInfo;
         this.ethBlockService = ethBlockService;
         this.functionsUtils = functionsUtils;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -80,6 +82,9 @@ public class ImportantEventsParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Can't save " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();

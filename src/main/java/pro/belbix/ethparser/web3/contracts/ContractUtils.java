@@ -16,22 +16,22 @@ public class ContractUtils {
 
     public static Optional<String> getNameByAddress(String address) {
         Optional<String> name = ContractLoader.getVaultByAddress(address)
-            .map(VaultEntity::getAddress)
+            .map(VaultEntity::getContract)
             .map(ContractEntity::getName);
 
         if (name.isEmpty()) {
             name = ContractLoader.getPoolByAddress(address)
-                .map(PoolEntity::getAddress)
+                .map(PoolEntity::getContract)
                 .map(ContractEntity::getName);
         }
         if (name.isEmpty()) {
             name = ContractLoader.getUniPairByAddress(address)
-                .map(UniPairEntity::getAddress)
+                .map(UniPairEntity::getContract)
                 .map(ContractEntity::getName);
         }
         if (name.isEmpty()) {
             name = ContractLoader.getTokenByAddress(address)
-                .map(TokenEntity::getAddress)
+                .map(TokenEntity::getContract)
                 .map(ContractEntity::getName);
         }
         return name;
@@ -39,27 +39,27 @@ public class ContractUtils {
 
     public static Optional<String> getAddressByName(String name) {
         Optional<String> address = ContractLoader.getVaultByName(name)
-            .map(VaultEntity::getAddress)
+            .map(VaultEntity::getContract)
             .map(ContractEntity::getAddress);
         if (address.isEmpty()) {
             address = ContractLoader.getPoolByName(name)
-                .map(PoolEntity::getAddress)
+                .map(PoolEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
 
         if (address.isEmpty()) {
             address = ContractLoader.getUniPairByName(name)
-                .map(UniPairEntity::getAddress)
+                .map(UniPairEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
         if (address.isEmpty()) {
             address = ContractLoader.getUniPairByName(name)
-                .map(UniPairEntity::getAddress)
+                .map(UniPairEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
         if (address.isEmpty()) {
             address = ContractLoader.getTokenByName(name)
-                .map(TokenEntity::getAddress)
+                .map(TokenEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
         return address;
@@ -85,7 +85,7 @@ public class ContractUtils {
             name = name.replace("_V0", "");
         }
         return ContractLoader.getVaultByName(name)
-            .map(VaultEntity::getAddress)
+            .map(VaultEntity::getContract)
             .map(ContractEntity::getAddress)
             .flatMap(adr -> ContractLoader.poolsCacheByAddress.values().stream()
                 .filter(pool -> pool.getLpToken().getAddress().equals(adr))
@@ -180,20 +180,19 @@ public class ContractUtils {
         return new BigDecimal(10L).pow((int) decimals);
     }
 
-    // todo find solution how to remove dependency on static values
     public static Collection<String> getAllPoolAddresses() {
-        return HarvestPoolAddresses.POOLS.values();
+        return ContractLoader.poolsCacheByAddress.keySet();
     }
 
     public static Collection<String> getAllPoolNames() {
-        return HarvestPoolAddresses.POOLS.keySet();
+        return ContractLoader.poolsCacheByName.keySet();
     }
 
     public static Collection<String> getAllVaultAddresses() {
-        return HarvestVaultAddresses.VAULTS.values();
+        return ContractLoader.vaultsCacheByAddress.keySet();
     }
 
     public static Collection<String> getAllVaultNames() {
-        return HarvestVaultAddresses.VAULTS.keySet();
+        return ContractLoader.vaultsCacheByName.keySet();
     }
 }

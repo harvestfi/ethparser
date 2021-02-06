@@ -23,7 +23,9 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.model.LpStat;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -47,14 +49,17 @@ public class UniToHarvestConverter implements Web3Parser {
     private final FunctionsUtils functionsUtils;
     private final HarvestDBService harvestDBService;
     private final ParserInfo parserInfo;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
 
     public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
-                                 HarvestDBService harvestDBService, ParserInfo parserInfo) {
+                                 HarvestDBService harvestDBService, ParserInfo parserInfo,
+                                 AppProperties appProperties) {
         this.priceProvider = priceProvider;
         this.functionsUtils = functionsUtils;
         this.harvestDBService = harvestDBService;
         this.parserInfo = parserInfo;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -76,6 +81,9 @@ public class UniToHarvestConverter implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Can't save harvest dto for" + uniswapDTO, e);
+                    if (appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();
@@ -120,15 +128,27 @@ public class UniToHarvestConverter implements Web3Parser {
 
     public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
         long block = harvestDTO.getBlock();
-        String poolAddress = ContractUtils.poolByVaultAddress(lpHash)
+        ContractEntity poolContract = ContractUtils.poolByVaultAddress(lpHash)
             .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
-            .getAddress().getAddress();
+            .getContract();
+        if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
+            log.warn("Pool not created yet {} ", poolContract.getName());
+            harvestDTO.setLastTvl(0.0);
+            harvestDTO.setLpStat("");
+            harvestDTO.setLastUsdTvl(0.0);
+            harvestDTO.setUsdAmount(0L);
+            harvestDTO.setAmount(0.0);
+            return;
+        }
+        String poolAddress = poolContract.getAddress();
 
         double lpBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block).orElseThrow(),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block)
+                .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
             lpHash);
         double stBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block).orElseThrow(),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block)
+                .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
             lpHash);
         harvestDTO.setLastTvl(stBalance);
         double stFraction = stBalance / lpBalance;

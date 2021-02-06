@@ -68,6 +68,24 @@ public class UniswapParserTest {
     }
 
     @Test
+    public void parseUNI_LP_USDC_FARM_testUniToHarvest() {
+        UniswapDTO dto = uniswapParseTest(UNI_LP_USDC_FARM,
+            10777016,
+            3,
+            "0x07877aa1dd7d5e4e675e5b79b210b87028ff7cc246f1e1834efc1f7a372b1732_14",
+            "0x843002b1d545ef7abb71c716e6179570582faa40",
+            "200,00000000",
+            "ADD",
+            USDC_NAME,
+            "3000,00000000",
+            "15,00000000"
+        );
+
+        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        assertNotNull(harvestDTO);
+    }
+
+    @Test
     public void parseUNI_LP_USDC_FARM_ADD2() {
         UniswapDTO dto = uniswapParseTest(UNI_LP_USDC_FARM,
             10777202,

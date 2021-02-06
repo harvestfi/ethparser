@@ -1,19 +1,21 @@
 package pro.belbix.ethparser.properties;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
 import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 
@@ -24,12 +26,12 @@ public class SubscriptionsProperties {
 
     private List<String> logSubscriptions;
 
-    @PostConstruct
-    private void init() {
+    public void init() {
         // if filled up from app config skip default values
         if (logSubscriptions != null && !logSubscriptions.isEmpty()) {
             return;
         }
+
         Set<String> contracts = new HashSet<>();
 
         //FARM prices

@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.repositories.eth.ContractRepository;
+import pro.belbix.ethparser.repositories.eth.ContractTypeRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)

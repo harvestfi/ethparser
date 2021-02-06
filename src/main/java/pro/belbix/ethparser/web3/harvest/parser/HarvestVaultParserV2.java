@@ -31,6 +31,7 @@ import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -58,6 +59,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private final PriceProvider priceProvider;
     private final FunctionsUtils functionsUtils;
     private final ParserInfo parserInfo;
+    private final AppProperties appProperties;
     private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     private Instant lastTx = Instant.now();
     private long count = 0;
@@ -68,6 +70,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
                                 PriceProvider priceProvider,
                                 FunctionsUtils functionsUtils,
                                 ParserInfo parserInfo,
+                                AppProperties appProperties,
                                 HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
@@ -75,6 +78,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         this.priceProvider = priceProvider;
         this.functionsUtils = functionsUtils;
         this.parserInfo = parserInfo;
+        this.appProperties = appProperties;
         this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     }
 
@@ -96,6 +100,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
                     handleDto(dto);
                 } catch (Exception e) {
                     log.error("Can't save " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();
@@ -171,7 +178,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
         String st = ContractUtils.poolByVaultAddress(vaultHash)
             .orElseThrow(() -> new IllegalStateException("Not found pool for " + vaultHash))
-            .getAddress().getAddress();
+            .getContract().getAddress();
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, st, dto.getBlock()).orElse(BigInteger.ZERO),
@@ -214,7 +221,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
             harvestTx.setOwner(harvestTx.getAddressFromArgs1().getValue());
         } else {
             String poolAddress = ContractUtils.poolByVaultAddress(ethLog.getAddress())
-                .map(PoolEntity::getAddress)
+                .map(PoolEntity::getContract)
                 .map(ContractEntity::getAddress)
                 .orElse(""); // if we don't have a pool assume that it was migration
             if (isMigration(harvestTx, poolAddress)) {
@@ -235,7 +242,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         String newVaultHash = ContractUtils.getAddressByName(newVault).orElseThrow();
         String poolAddress = ContractUtils.poolByVaultAddress(newVaultHash)
             .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
-            .getAddress().getAddress();
+            .getContract().getAddress();
 
         List<LogResult> logResults = web3Service
             .fetchContractLogs(singletonList(poolAddress), onBlock, onBlock);

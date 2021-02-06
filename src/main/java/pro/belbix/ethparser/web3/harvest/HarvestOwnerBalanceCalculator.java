@@ -65,7 +65,7 @@ public class HarvestOwnerBalanceCalculator {
             //but we have shortcut - after migration we can check balanceOf
             String stHash = ContractUtils.poolByVaultAddress(vaultHash)
                 .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
-                .getAddress().getAddress();
+                .getContract().getAddress();
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
                 .orElseThrow();
         } else {

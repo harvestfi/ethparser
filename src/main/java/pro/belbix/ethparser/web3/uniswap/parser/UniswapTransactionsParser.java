@@ -17,6 +17,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -39,16 +40,19 @@ public class UniswapTransactionsParser implements Web3Parser {
     private final UniswapDbService uniswapDbService;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
+    private final AppProperties appProperties;
     private double lastPrice = 0.0;
     private long parsedTxCount = 0;
     private Instant lastTx = Instant.now();
 
     public UniswapTransactionsParser(Web3Service web3Service, UniswapDbService uniswapDbService,
-                                     EthBlockService ethBlockService, ParserInfo parserInfo) {
+                                     EthBlockService ethBlockService, ParserInfo parserInfo,
+                                     AppProperties appProperties) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
+        this.appProperties = appProperties;
     }
 
     public void startParse() {
@@ -72,6 +76,9 @@ public class UniswapTransactionsParser implements Web3Parser {
                         }
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
+                        if(appProperties.isStopOnParseError()) {
+                            System.exit(-1);
+                        }
                     }
                 }
             }

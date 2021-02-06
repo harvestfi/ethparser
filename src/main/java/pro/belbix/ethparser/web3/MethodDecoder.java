@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
@@ -108,22 +109,13 @@ public abstract class MethodDecoder {
         return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
     }
 
-    protected String parseMethodId(Log ethLog) {
+    protected Optional<String> parseMethodId(Log ethLog) {
         String topic0 = ethLog.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
-
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
-        return methodId;
+        return Optional.ofNullable(methodIdByFullHex.get(topic0));
     }
 
-    protected List<TypeReference<Type>> findParameters(String methodId) {
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for " + methodId);
-        }
-        return parameters;
+    protected Optional<List<TypeReference<Type>>> findParameters(String methodId) {
+        return Optional.ofNullable(parametersByMethodId.get(methodId));
     }
 
     public EthTransactionI decodeInputData(Transaction transaction) {

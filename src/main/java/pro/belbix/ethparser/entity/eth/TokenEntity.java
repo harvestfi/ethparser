@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "eth_tokens", indexes = {
-    @Index(name = "idx_eth_tokens", columnList = "address")
+    @Index(name = "idx_eth_tokens", columnList = "contract")
 })
 @Data
 public class TokenEntity {
@@ -22,8 +22,8 @@ public class TokenEntity {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address", unique = true)
-    private ContractEntity address;
+    @JoinColumn(name = "contract", unique = true)
+    private ContractEntity contract;
     private Long updatedBlock;
 
     // contract info

@@ -13,6 +13,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -38,6 +39,7 @@ public class UniswapLpLogParser implements Web3Parser {
     private final UniToHarvestConverter uniToHarvestConverter;
     private final ParserInfo parserInfo;
     private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
     private long count = 0;
 
@@ -47,7 +49,8 @@ public class UniswapLpLogParser implements Web3Parser {
                               PriceProvider priceProvider,
                               UniToHarvestConverter uniToHarvestConverter,
                               ParserInfo parserInfo,
-                              UniOwnerBalanceCalculator uniOwnerBalanceCalculator) {
+                              UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
+                              AppProperties appProperties) {
         this.web3Service = web3Service;
         this.uniswapDbService = uniswapDbService;
         this.ethBlockService = ethBlockService;
@@ -55,6 +58,7 @@ public class UniswapLpLogParser implements Web3Parser {
         this.uniToHarvestConverter = uniToHarvestConverter;
         this.parserInfo = parserInfo;
         this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -83,7 +87,10 @@ public class UniswapLpLogParser implements Web3Parser {
                         }
                     }
                 } catch (Exception e) {
-                    UniswapLpLogParser.log.error("Error uniswap parser loop " + ethLog, e);
+                    log.error("Error uniswap parser loop " + ethLog, e);
+                    if (appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();

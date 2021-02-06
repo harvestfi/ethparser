@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "eth_uni_pairs", indexes = {
-    @Index(name = "idx_eth_uni_pairs", columnList = "address")
+    @Index(name = "idx_eth_uni_pairs", columnList = "contract")
 })
 @Data
 public class UniPairEntity {
@@ -23,8 +23,8 @@ public class UniPairEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address", unique = true)
-    private ContractEntity address;
+    @JoinColumn(name = "contract", unique = true)
+    private ContractEntity contract;
     private Long updatedBlock;
 
     // contract info

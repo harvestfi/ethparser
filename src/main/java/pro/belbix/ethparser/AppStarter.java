@@ -85,7 +85,6 @@ public class AppStarter {
     }
 
     public void start() {
-        contractLoader.load();
         if (conf.isOnlyApi()) {
             return;
         }

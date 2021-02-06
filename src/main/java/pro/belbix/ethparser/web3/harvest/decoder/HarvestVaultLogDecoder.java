@@ -20,9 +20,11 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (!isValidLog(ethLog)) {
             return null;
         }
-        String methodId = parseMethodId(ethLog);
+        String methodId = parseMethodId(ethLog)
+            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));;
         String methodName = methodNamesByMethodId.get(methodId);
-        List<TypeReference<Type>> parameters = findParameters(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId)
+            .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
 
         List<Type> types = extractLogIndexedValues(ethLog, parameters);
         HarvestTx tx = new HarvestTx();
@@ -41,7 +43,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return ContractUtils.getNameByAddress(log.getAddress()).isPresent();
+        return ContractUtils.isVaultAddress(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

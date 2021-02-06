@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
@@ -20,9 +21,9 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.entity.eth.ContractTypeEntity.Type;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.model.TokenTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -36,8 +37,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HardWorkParser implements Web3Parser {
-
-    public static final String CONTROLLER = "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase();
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -48,17 +47,20 @@ public class HardWorkParser implements Web3Parser {
     private final Web3Service web3Service;
     private final HardWorkDbService hardWorkDbService;
     private final ParserInfo parserInfo;
+    private final AppProperties appProperties;
     private Instant lastTx = Instant.now();
 
     public HardWorkParser(PriceProvider priceProvider,
                           FunctionsUtils functionsUtils,
                           Web3Service web3Service,
-                          HardWorkDbService hardWorkDbService, ParserInfo parserInfo) {
+                          HardWorkDbService hardWorkDbService, ParserInfo parserInfo,
+                          AppProperties appProperties) {
         this.priceProvider = priceProvider;
         this.functionsUtils = functionsUtils;
         this.web3Service = web3Service;
         this.hardWorkDbService = hardWorkDbService;
         this.parserInfo = parserInfo;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -81,6 +83,9 @@ public class HardWorkParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Can't save " + ethLog, e);
+                    if(appProperties.isStopOnParseError()) {
+                        System.exit(-1);
+                    }
                 }
             }
         }).start();

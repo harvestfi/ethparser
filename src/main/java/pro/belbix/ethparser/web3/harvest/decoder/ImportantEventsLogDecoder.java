@@ -27,9 +27,9 @@ public class ImportantEventsLogDecoder extends MethodDecoder {
         if (!isValidLog(ethLog)) {
             return null;
         }
-        String methodId = parseMethodId(ethLog);
+        String methodId = parseMethodId(ethLog).orElse("");
         String methodName = methodNamesByMethodId.get(methodId);
-        List<TypeReference<Type>> parameters = findParameters(methodId);
+        List<TypeReference<Type>> parameters = findParameters(methodId).orElse(null);
 
         if (!allowedMethods.contains(methodName)) {
             return null;

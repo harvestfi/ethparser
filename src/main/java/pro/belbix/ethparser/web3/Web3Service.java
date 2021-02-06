@@ -543,4 +543,7 @@ public class Web3Service {
         }
     }
 
+    public Web3j getWeb3() {
+        return web3;
+    }
 }
