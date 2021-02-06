@@ -7,6 +7,9 @@ import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -116,10 +119,9 @@ public class RewardParser implements Web3Parser {
         long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
             .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
             .longValue();
-        double rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
-            .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress))
-            .doubleValue();
-        if (periodFinish == 0 || rewardRate == 0) {
+        BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
+            .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
+        if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
             log.error("Wrong values for " + ethLog);
             return null;
         }
@@ -127,7 +129,10 @@ public class RewardParser implements Web3Parser {
 
         double farmRewardsForPeriod = 0.0;
         if (periodFinish > blockTime) {
-            farmRewardsForPeriod = (rewardRate / D18) * (periodFinish - blockTime);
+            farmRewardsForPeriod = new BigDecimal(rewardRate)
+                .divide(new BigDecimal(D18), 999, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf((double) (periodFinish - blockTime)))
+                .doubleValue();
         }
 
         double farmBalance = parseAmount(

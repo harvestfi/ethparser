@@ -100,7 +100,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
                     handleDto(dto);
                 } catch (Exception e) {
                     log.error("Can't save " + ethLog, e);
-                    if(appProperties.isStopOnParseError()) {
+                    if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
                 }
@@ -125,7 +125,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     public HarvestDTO parseVaultLog(Log ethLog) {
-        if (ethLog == null) {
+        if (!isValidLog(ethLog)) {
             return null;
         }
         HarvestTx harvestTx;
@@ -157,7 +157,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         //enrich date
         dto.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(), ethLog.getBlockNumber().longValue()));
+            ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(),
+                ethLog.getBlockNumber().longValue()));
 
         if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
             fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue());
@@ -175,13 +176,17 @@ public class HarvestVaultParserV2 implements Web3Parser {
         return dto;
     }
 
+    private boolean isValidLog(Log ethLog) {
+        return ethLog != null && ContractUtils.isVaultAddress(ethLog.getAddress());
+    }
+
     private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash) {
-        String st = ContractUtils.poolByVaultAddress(vaultHash)
+        String poolAddress = ContractUtils.poolByVaultAddress(vaultHash)
             .orElseThrow(() -> new IllegalStateException("Not found pool for " + vaultHash))
             .getContract().getAddress();
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         double vaultBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, st, dto.getBlock()).orElse(BigInteger.ZERO),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
         double allFarm = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, FARM_TOKEN, dto.getBlock()).orElse(BigInteger.ZERO),
