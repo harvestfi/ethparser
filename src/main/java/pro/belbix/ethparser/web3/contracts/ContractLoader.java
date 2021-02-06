@@ -58,6 +58,7 @@ public class ContractLoader {
     private final SubscriptionsProperties subscriptionsProperties;
 
     private long currentBlock;
+    boolean loaded = false;
     private ContractTypeEntity vaultType;
     private ContractTypeEntity poolType;
     private ContractTypeEntity uniPairType;
@@ -106,11 +107,17 @@ public class ContractLoader {
         uniPairType = findOrCreateContractType(Type.UNI_PAIR);
         infrastructureType = findOrCreateContractType(Type.INFRASTRUCTURE);
         tokenType = findOrCreateContractType(Type.TOKEN);
-        load();
+        if(appProperties.isDevMod()) {
+            load();
+        }
         subscriptionsProperties.init();
     }
 
     public synchronized void load() {
+        if(loaded) {
+            log.info("Contracts already loaded");
+            return;
+        }
         log.info("Start load contracts on block {}", currentBlock);
         loadVaults();
         loadPools();
@@ -154,6 +161,7 @@ public class ContractLoader {
     }
 
     private void loadVaults() {
+        log.info("Start load vaults on block {}", currentBlock);
         for (Contract vault : HarvestVaultAddresses.VAULTS) {
             if (vault.getCreatedOnBlock() > currentBlock) {
                 log.info("Vault {} not created yet, skip", vault.getName());
@@ -161,7 +169,7 @@ public class ContractLoader {
             }
             String name = vault.getName();
             String hash = vault.getAddress();
-
+            log.info("Load {}", name);
             ContractEntity vaultContract =
                 findOrCreateContract(hash, name, vaultType, vault.getCreatedOnBlock(), true);
             VaultEntity vaultEntity = vaultRepository.findFirstByContract(vaultContract);
@@ -180,6 +188,7 @@ public class ContractLoader {
     }
 
     private void loadPools() {
+        log.info("Start load pools on block {}", currentBlock);
         for (Contract pool : POOLS) {
             if (pool.getCreatedOnBlock() > currentBlock) {
                 log.info("Pool {} not created yet, skip", pool.getName());
@@ -187,7 +196,7 @@ public class ContractLoader {
             }
             String name = pool.getName();
             String hash = pool.getAddress();
-
+            log.info("Load {}", name);
             ContractEntity poolContract =
                 findOrCreateContract(hash, name, poolType, pool.getCreatedOnBlock(), true);
             PoolEntity poolEntity = poolRepository.findFirstByContract(poolContract);
@@ -206,10 +215,11 @@ public class ContractLoader {
     }
 
     private void loadUniPairs() {
+        log.info("Start load uni pairs on block {}", currentBlock);
         for (Contract uniPair : UniPairAddresses.UNI_PAIRS) {
             String name = uniPair.getName();
             String hash = uniPair.getAddress();
-
+            log.info("Load {}", name);
             ContractEntity poolContract =
                 findOrCreateContract(hash, name, uniPairType, uniPair.getCreatedOnBlock(), true);
             UniPairEntity uniPairEntity = uniPairRepository.findFirstByContract(poolContract);
@@ -352,11 +362,11 @@ public class ContractLoader {
     }
 
     private void linkVaultToPools() {
+        log.info("Start link pools to vaults on block {}", currentBlock);
         for (PoolEntity poolEntity : poolsCacheByName.values()) {
             if (poolEntity.getLpToken() == null) {
                 continue;
             }
-
             ContractEntity currentLpToken = poolEntity.getLpToken();
             String lpAddress = currentLpToken.getAddress();
             if (currentLpToken.getType().getType() == Type.VAULT.getId()) {
@@ -421,9 +431,12 @@ public class ContractLoader {
             log.info("Created new contract {}", name);
             contractRepository.save(entity);
         } else if (rewrite) {
-            entity.setName(name);
-            entity.setType(type);
-            contractRepository.save(entity);
+            // for db optimization
+            if (!name.equals(entity.getName()) || !type.getType().equals(entity.getType().getType())) {
+                entity.setName(name);
+                entity.setType(type);
+                contractRepository.save(entity);
+            }
         }
         return entity;
     }

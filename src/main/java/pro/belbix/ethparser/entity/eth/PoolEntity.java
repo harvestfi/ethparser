@@ -47,10 +47,10 @@ public class PoolEntity {
     @JoinColumn(name = "reward_token")
     private ContractEntity rewardToken;
 
-    @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="pool_id")
-    private List<VaultToPoolEntity> vaultToPoolEntries;
+//    @JsonIgnore
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @JoinColumn(name="pool_id")
+//    private List<VaultToPoolEntity> vaultToPoolEntries;
 
 
 }

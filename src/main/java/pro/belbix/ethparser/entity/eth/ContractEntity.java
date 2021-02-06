@@ -34,20 +34,20 @@ public class ContractEntity {
     @JoinColumn(name = "type")
     private ContractTypeEntity type;
 
-    @JsonIgnore
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
-    private PoolEntity pool;
-
-    @JsonIgnore
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
-    private VaultEntity vault;
-
-    @JsonIgnore
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
-    private UniPairEntity uniPair;
-
-    @JsonIgnore
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
-    private TokenEntity token;
+//    @JsonIgnore
+//    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
+//    private PoolEntity pool;
+//
+//    @JsonIgnore
+//    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
+//    private VaultEntity vault;
+//
+//    @JsonIgnore
+//    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
+//    private UniPairEntity uniPair;
+//
+//    @JsonIgnore
+//    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)
+//    private TokenEntity token;
 
 }

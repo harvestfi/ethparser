@@ -13,6 +13,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.Data;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "eth_vaults", indexes = {
@@ -30,21 +32,21 @@ public class VaultEntity {
     private Long updatedBlock;
 
     // contract info
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity controller;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity governance;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity strategy;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity underlying;
     private String name;
     private String symbol;
     private Long decimals;
     private Long underlyingUnit;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name="vault_id")
-    private List<VaultToPoolEntity> vaultToPoolEntries;
+//    @OneToMany(fetch = FetchType.EAGER)
+//    @JoinColumn(name="vault_id")
+//    private List<VaultToPoolEntity> vaultToPoolEntries;
 
 }
