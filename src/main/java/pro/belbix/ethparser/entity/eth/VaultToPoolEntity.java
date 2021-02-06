@@ -10,6 +10,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.Data;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "eth_vault_to_pool")
@@ -21,11 +23,13 @@ public class VaultToPoolEntity {
     private Integer id;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="vault_id", nullable=false)
+    @Fetch(FetchMode.JOIN)
     private VaultEntity vault;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="pool_id", nullable=false)
+    @Fetch(FetchMode.JOIN)
     private PoolEntity pool;
     private Long blockStart;
 

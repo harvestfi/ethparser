@@ -58,7 +58,7 @@ public class ContractLoaderTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-//    @Ignore
+    @Ignore
     public void fullRunShouldBeOk() throws JsonProcessingException {
 //        appProperties.setUpdateContracts(true);
         contractLoader.load();

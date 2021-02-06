@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.Data;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "eth_contracts", indexes = {
@@ -32,6 +34,7 @@ public class ContractEntity {
     private Long created;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "type")
+    @Fetch(FetchMode.JOIN)
     private ContractTypeEntity type;
 
 //    @JsonIgnore

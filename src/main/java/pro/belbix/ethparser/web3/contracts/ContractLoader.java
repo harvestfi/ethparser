@@ -107,14 +107,14 @@ public class ContractLoader {
         uniPairType = findOrCreateContractType(Type.UNI_PAIR);
         infrastructureType = findOrCreateContractType(Type.INFRASTRUCTURE);
         tokenType = findOrCreateContractType(Type.TOKEN);
-        if(appProperties.isDevMod()) {
+        if (appProperties.isDevMod()) {
             load();
         }
         subscriptionsProperties.init();
     }
 
     public synchronized void load() {
-        if(loaded) {
+        if (loaded) {
             log.info("Contracts already loaded");
             return;
         }
@@ -139,6 +139,7 @@ public class ContractLoader {
             if (tokenInfo.getCreatedOnBlock() > currentBlock) {
                 log.info("Token not created yet, skip {}", tokenInfo.getTokenName());
             }
+            log.info("Load {}", tokenInfo.getTokenName());
             ContractEntity tokenContract = findOrCreateContract(
                 tokenInfo.getTokenAddress(),
                 tokenInfo.getTokenName(),

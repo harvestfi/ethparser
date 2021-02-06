@@ -28,17 +28,22 @@ public class VaultEntity {
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "contract", unique = true)
+    @Fetch(FetchMode.JOIN)
     private ContractEntity contract;
     private Long updatedBlock;
 
     // contract info
     @ManyToOne(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     private ContractEntity controller;
     @ManyToOne(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     private ContractEntity governance;
     @ManyToOne(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     private ContractEntity strategy;
     @ManyToOne(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     private ContractEntity underlying;
     private String name;
     private String symbol;
