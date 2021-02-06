@@ -51,7 +51,8 @@ public class NewStrategyDownloader {
             }
             String stContract = ContractUtils.poolByVaultName(poolName)
                 .map(PoolEntity::getContract)
-                .map(ContractEntity::getAddress).orElseThrow();
+                .map(ContractEntity::getAddress)
+                .orElseThrow(() -> new IllegalStateException("Not found vault by pool name " + poolName));
             rewardDownloader.setContractName(stContract);
             rewardDownloader.start();
         }

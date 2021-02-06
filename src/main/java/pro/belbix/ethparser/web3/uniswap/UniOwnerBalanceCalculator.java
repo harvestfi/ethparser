@@ -54,7 +54,8 @@ public class UniOwnerBalanceCalculator {
             return false;
         }
         BigInteger balanceI = functionsUtils.callIntByName(
-                BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue()).orElseThrow();
+                BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue())
+            .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
             return false;

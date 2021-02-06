@@ -118,7 +118,8 @@ public class HardWorkParser implements Web3Parser {
             log.warn("Unknown vault " + tx.getVault());
             return null;
         }
-        String vaultName = ContractUtils.getNameByAddress(tx.getVault()).orElseThrow();
+        String vaultName = ContractUtils.getNameByAddress(tx.getVault())
+            .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
         if (vaultName.endsWith("_V0")) {
             // skip old strategies
             return null;
@@ -232,7 +233,8 @@ public class HardWorkParser implements Web3Parser {
                 //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
                 log.debug("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
             }
-            String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
+            String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+                .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
             double vaultReward = parseAmount(tx.getValue(), vaultHash);
             double price = calculateVaultRewardUsdPrice(dto.getVault(), underlyingTokenHash, dto.getBlock());
             dto.setShareChangeUsd(vaultReward * price);
@@ -258,7 +260,8 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForLP(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElse(BigInteger.ZERO),
@@ -285,7 +288,8 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForRegular(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + vaultHash);

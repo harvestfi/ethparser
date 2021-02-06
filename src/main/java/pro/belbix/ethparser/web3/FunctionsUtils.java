@@ -60,8 +60,10 @@ public class FunctionsUtils {
     }
 
     private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block) {
-        String coin0 = callAddressByName(TOKEN0, lpAddress, block).orElseThrow();
-        String coin1 = callAddressByName(TOKEN1, lpAddress, block).orElseThrow();
+        String coin0 = callAddressByName(TOKEN0, lpAddress, block)
+            .orElseThrow(() -> new IllegalStateException("Error get token0 for " + lpAddress));
+        String coin1 = callAddressByName(TOKEN1, lpAddress, block)
+            .orElseThrow(() -> new IllegalStateException("Error get token1 for " + lpAddress));
 
         double coin0Balance = 0;
         double coin1Balance = 0;

@@ -41,7 +41,9 @@ public class HarvestTx implements EthTransactionI {
         dto.setId(hash + "_" + logId);
         dto.setHash(hash);
         dto.setBlock(block.longValue());
-        dto.setVault(removeBracers(ContractUtils.getNameByAddress(vault.getValue()).orElseThrow()));
+        dto.setVault(ContractUtils.getNameByAddress(vault.getValue())
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
+        );
         dto.setConfirmed(success);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
@@ -54,12 +56,12 @@ public class HarvestTx implements EthTransactionI {
         return dto;
     }
 
-    public static String removeBracers(String s) {
-        if (s.equals("_3CRV")) {
-            return "3CRV";
-        }
-        return s;
-    }
+//    public static String removeBracers(String s) {
+//        if (s.equals("_3CRV")) {
+//            return "3CRV";
+//        }
+//        return s;
+//    }
 
     private void enrichMethodDepend(HarvestDTO dto) {
         switch (methodName) {

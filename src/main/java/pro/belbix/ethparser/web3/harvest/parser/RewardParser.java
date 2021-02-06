@@ -114,9 +114,11 @@ public class RewardParser implements Web3Parser {
         long nextBlock = tx.getBlock().longValue() + 1;
         String poolAddress = tx.getVault().getValue();
         long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
-            .orElseThrow().longValue();
+            .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
+            .longValue();
         double rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
-            .orElseThrow().doubleValue();
+            .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress))
+            .doubleValue();
         if (periodFinish == 0 || rewardRate == 0) {
             log.error("Wrong values for " + ethLog);
             return null;
@@ -129,7 +131,8 @@ public class RewardParser implements Web3Parser {
         }
 
         double farmBalance = parseAmount(
-            functionsUtils.callIntByName(BALANCE_OF, poolAddress, FARM_TOKEN, nextBlock).orElseThrow(),
+            functionsUtils.callIntByName(BALANCE_OF, poolAddress, FARM_TOKEN, nextBlock)
+                .orElseThrow(() -> new IllegalStateException("Error get balance from " + FARM_TOKEN)),
             FARM_TOKEN);
 
         RewardDTO dto = new RewardDTO();

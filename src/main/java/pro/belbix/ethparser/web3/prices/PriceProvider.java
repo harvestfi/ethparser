@@ -60,7 +60,8 @@ public class PriceProvider {
             throw new IllegalStateException("Can't reach reserves for " + lpAddress);
         }
         double lpBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block).orElseThrow(),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block)
+                .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
             lpAddress);
         double positionFraction = amount / lpBalance;
 

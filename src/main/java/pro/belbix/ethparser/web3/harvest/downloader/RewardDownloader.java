@@ -53,7 +53,9 @@ public class RewardDownloader {
             }
             logger.info("Start parse rewards for " + poolName);
             handleLoop(from, to, (from, end) -> parse(from, end,
-                ContractUtils.getAddressByName(poolName).orElseThrow()));
+                ContractUtils.getAddressByName(poolName)
+                    .orElseThrow(() -> new IllegalStateException("Not found address by " + poolName))
+            ));
         }
     }
 

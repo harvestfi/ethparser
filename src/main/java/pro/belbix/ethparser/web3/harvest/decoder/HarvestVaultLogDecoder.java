@@ -43,7 +43,8 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return ContractUtils.isVaultAddress(log.getAddress());
+        return ContractUtils.isVaultAddress(log.getAddress())
+            || ContractUtils.isPoolAddress(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

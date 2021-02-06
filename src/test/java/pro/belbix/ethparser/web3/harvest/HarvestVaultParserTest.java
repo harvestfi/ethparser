@@ -49,6 +49,28 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_3CRV_from88mph() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
+            11800597,
+            LOG_ID,
+            "0xf18124581a86d11436684b0124a46efa935a3510",
+            "Deposit",
+            "_3CRV",
+            "0xe8b198aff379d80be359ea70c9ea595d5754dbd30dcff8ec96174ef969af7582_335",
+            "45027,59778072",
+            "",
+            "",
+            46025L,
+            28930799L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVaultCRV_GUSD() {
         HarvestDTO dto = harvestVaultParseTest(
             "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",

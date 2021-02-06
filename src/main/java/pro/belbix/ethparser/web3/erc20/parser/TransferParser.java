@@ -170,7 +170,8 @@ public class TransferParser implements Web3Parser {
 
     private double getBalance(String holder, String tokenAddress, long block) {
         BigInteger balanceI = functionsUtils.callIntByName(
-            BALANCE_OF, holder, tokenAddress, block).orElseThrow();
+            BALANCE_OF, holder, tokenAddress, block)
+            .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
         return MethodDecoder.parseAmount(balanceI, tokenAddress);
     }
 

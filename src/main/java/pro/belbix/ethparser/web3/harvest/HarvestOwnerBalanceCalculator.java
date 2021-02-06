@@ -41,9 +41,11 @@ public class HarvestOwnerBalanceCalculator {
     }
 
     private boolean balanceForPs(HarvestDTO dto) {
-        String psHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
+        String psHash = ContractUtils.getAddressByName(dto.getVault())
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         BigInteger balanceI = functionsUtils.callIntByName(
-            BALANCE_OF, dto.getOwner(), psHash, dto.getBlock()).orElseThrow();
+            BALANCE_OF, dto.getOwner(), psHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get balance from " + psHash));
         if (balanceI == null) {
             log.warn("Can reach ps balance for " + dto.print());
             return false;
@@ -58,7 +60,8 @@ public class HarvestOwnerBalanceCalculator {
 
     private boolean balanceForVault(HarvestDTO dto) {
         long block = dto.getBlock();
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault()).orElseThrow();
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         BigInteger balanceI;
         if (dto.isMigrated()) {
             //migration process broken UnderlyingBalance for vault
@@ -67,16 +70,17 @@ public class HarvestOwnerBalanceCalculator {
                 .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
                 .getContract().getAddress();
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalStateException("Error get balance from " + stHash));
         } else {
             balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
-                dto.getOwner(), vaultHash, block).orElseThrow();
+                dto.getOwner(), vaultHash, block)
+                .orElseThrow(() -> new IllegalStateException("Error get uBalance from " + vaultHash));
         }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
             //maybe strategy disabled? try balanceOf
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), vaultHash, block)
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalStateException("Error get balance from " + vaultHash));
             if (balanceI == null) {
                 return false;
             }
@@ -108,7 +112,8 @@ public class HarvestOwnerBalanceCalculator {
             return false;
         }
         BigInteger balanceI = functionsUtils.callIntByName(
-            BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock()).orElseThrow();
+            BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
             return false;
