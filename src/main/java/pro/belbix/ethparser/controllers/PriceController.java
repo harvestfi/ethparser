@@ -12,9 +12,9 @@ import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.erc20.Tokens;
+import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @RestController
 @RequestMapping(value = "/price")

@@ -4,7 +4,6 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +12,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -47,12 +46,16 @@ public class RewardDownloader {
 
     public void start() {
         priceProvider.setUpdateBlockDifference(1);
-        for (Entry<String, String> entry : StakeContracts.hashToName.entrySet()) {
-            if (contractName != null && !contractName.equals(entry.getValue())) {
+        for (String poolName : ContractUtils.getAllPoolNames()) {
+            if (contractName != null && !contractName.isBlank()
+                && !contractName.equals(poolName)) {
                 continue;
             }
-            logger.info("Start parse rewards for " + entry.getValue());
-            handleLoop(from, to, (from, end) -> parse(from, end, entry.getKey()));
+            logger.info("Start parse rewards for " + poolName);
+            handleLoop(from, to, (from, end) -> parse(from, end,
+                ContractUtils.getAddressByName(poolName)
+                    .orElseThrow(() -> new IllegalStateException("Not found address by " + poolName))
+            ));
         }
     }
 
@@ -66,7 +69,12 @@ public class RewardDownloader {
             try {
                 RewardDTO dto = rewardParser.parseLog((Log) logResult.get());
                 if (dto != null) {
-                    rewardsDBService.saveRewardDTO(dto);
+                    try {
+                        rewardsDBService.saveRewardDTO(dto);
+                    } catch (Exception e) {
+                        logger.error("error with {}", dto, e);
+                        break;
+                    }
                 }
             } catch (Exception e) {
                 logger.error("error with " + logResult.get(), e);

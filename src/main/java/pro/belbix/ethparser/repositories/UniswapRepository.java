@@ -68,12 +68,13 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_price)), '_', -1) close,  " +
         "       sum(amount) volume  " +
         "from uni_tx  " +
-        "where coin = :coin and block_date >= :fromTs " +
+        "where coin = :coin and block_date between :startTime and :endTime " +
         "GROUP BY FLOOR(block_date/:period)  " +
         "order by timestamp;")
-    List<OhlcProjection> fetchOHLCTransactionsFromBlock(
+    List<OhlcProjection> fetchOHLCTransactions(
         @Param("coin") String coin,
-        @Param("fromTs") long fromTs,
+        @Param("startTime") long startTime,
+        @Param("endTime") long endTime,
         @Param("period") int period);
 
     interface OhlcProjection {

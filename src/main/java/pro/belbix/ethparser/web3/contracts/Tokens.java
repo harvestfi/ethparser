@@ -1,10 +1,10 @@
-package pro.belbix.ethparser.web3.erc20;
+package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.ContractConstants.D2;
-import static pro.belbix.ethparser.web3.ContractConstants.D6;
-import static pro.belbix.ethparser.web3.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.lpHashToCoinNames;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D2;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D6;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D8;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.lpHashToCoinNames;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,7 +76,7 @@ public class Tokens {
     public static final String CRV_CMPND_NAME = "CRV_CMPND";
     public static final String GUSD_NAME = "GUSD";
 
-    private final static Set<TokenInfo> tokenInfos = new HashSet<>();
+    public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
     static {
         addTokenInfo(new TokenInfo(FARM_NAME, FARM_TOKEN, 10777201)

@@ -19,7 +19,6 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 
 @RunWith(SpringRunner.class)
@@ -39,7 +38,7 @@ public class HarvestOwnerBalanceCalculatorTest {
     @Test
     public void shouldCalculateForUSDT_V0() {
         assertHarvest(
-            Vaults.USDT_V0,
+            "0xc7EE21406BB581e741FBb8B21f213188433D9f2F",
             10780101,
             1,
             "4990,85837900",
@@ -50,7 +49,7 @@ public class HarvestOwnerBalanceCalculatorTest {
     @Test
     public void shouldCalculateForDAI_V0() {
         assertHarvest(
-            Vaults.DAI_V0,
+            "0xe85C8581e60D7Cd32Bbfd86303d2A4FA6a951Dac",
             10780382,
             0,
             "0,00000000",

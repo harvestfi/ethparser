@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.*;
-import static pro.belbix.ethparser.web3.erc20.Tokens.BAS_NAME;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WBTC_BADGER;
+import static pro.belbix.ethparser.web3.contracts.Tokens.BAS_NAME;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 
 import org.junit.Before;
 import org.junit.Test;

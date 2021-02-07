@@ -19,6 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
@@ -41,7 +42,7 @@ public class AppStarter {
     private final UniswapTransactionsParser uniswapTransactionsParser;
     private final HarvestTransactionsParser harvestTransactionsParser;
     private final UniswapLpLogParser uniswapLpLogParser;
-    private final HarvestVaultParserV2 harvestVaultParser;
+    private final HarvestVaultParserV2 harvestVaultParserV2;
     private final RewardParser rewardParser;
     private final HardWorkParser hardWorkParser;
     private final ImportantEventsParser importantEventsParser;
@@ -50,6 +51,7 @@ public class AppStarter {
     private final WsService ws;
     private final AppProperties conf;
     private final PriceLogParser priceLogParser;
+    private final ContractLoader contractLoader;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
@@ -65,12 +67,12 @@ public class AppStarter {
                       UniToHarvestConverter uniToHarvestConverter,
                       TransferParser transferParser, WsService wsService,
                       AppProperties appProperties,
-                      PriceLogParser priceLogParser) {
+                      PriceLogParser priceLogParser, ContractLoader contractLoader) {
         this.web3Service = web3Service;
         this.uniswapTransactionsParser = uniswapTransactionsParser;
         this.harvestTransactionsParser = harvestTransactionsParser;
         this.uniswapLpLogParser = uniswapLpLogParser;
-        this.harvestVaultParser = harvestVaultParserV2;
+        this.harvestVaultParserV2 = harvestVaultParserV2;
         this.rewardParser = rewardParser;
         this.hardWorkParser = hardWorkParser;
         this.importantEventsParser = importantEventsParser;
@@ -79,6 +81,7 @@ public class AppStarter {
         this.ws = wsService;
         this.conf = appProperties;
         this.priceLogParser = priceLogParser;
+        this.contractLoader = contractLoader;
     }
 
     public void start() {
@@ -89,6 +92,7 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
+            contractLoader.load();
             if (conf.isParseTransactions()) {
                 startParse(web3Service, uniswapTransactionsParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, false);
             }
@@ -102,7 +106,7 @@ public class AppStarter {
             }
 
             if (conf.isParseHarvestLog()) {
-                startParse(web3Service, harvestVaultParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(web3Service, harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHardWorkLog()) {

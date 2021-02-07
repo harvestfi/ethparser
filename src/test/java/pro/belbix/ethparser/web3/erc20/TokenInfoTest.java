@@ -1,12 +1,13 @@
 package pro.belbix.ethparser.web3.erc20;
 
 import static org.junit.Assert.assertEquals;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.erc20.Tokens.USDC_NAME;
-import static pro.belbix.ethparser.web3.erc20.Tokens.WETH_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.USDC_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.WETH_NAME;
 
 import org.junit.Test;
+import pro.belbix.ethparser.web3.contracts.TokenInfo;
 
 public class TokenInfoTest {
 

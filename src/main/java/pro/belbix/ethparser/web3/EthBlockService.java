@@ -42,6 +42,9 @@ public class EthBlockService {
     }
 
     public long getLastBlock() {
+        if (lastBlock == 0) {
+            lastBlock = web3.fetchCurrentBlock().longValue();
+        }
         return lastBlock;
     }
 

@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;

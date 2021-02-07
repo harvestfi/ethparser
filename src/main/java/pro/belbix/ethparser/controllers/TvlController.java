@@ -1,13 +1,12 @@
 package pro.belbix.ethparser.controllers;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.model.TvlHistory;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
+
+import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 @RestController
 public class TvlController {
@@ -22,13 +21,16 @@ public class TvlController {
     }
 
     @RequestMapping(value = "api/transactions/history/tvl/{name}", method = RequestMethod.GET)
-    public Iterable<TvlHistory> tvlHistoryByVault(@PathVariable("name") String name) {
-        return harvestTvlDBService.fetchTvlByVault(name);
+    public Iterable<TvlHistory> tvlHistoryByVault(@PathVariable("name") String name,
+                                                  @RequestParam(value = "start", required = false) String start,
+                                                  @RequestParam(value = "end", required = false) String end) {
+        return harvestTvlDBService.fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
     @RequestMapping(value = "api/transactions/history/alltvl", method = RequestMethod.GET)
-    public Iterable<HarvestTvlEntity> allTvlHistoryData() {
-        return harvestTvlRepository.getHistoryOfAllTvl();
+    public Iterable<HarvestTvlEntity> allTvlHistoryData(@RequestParam(value = "start", required = false) String start,
+                                                        @RequestParam(value = "end", required = false) String end) {
+        return harvestTvlRepository.getHistoryOfAllTvl(parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
 }

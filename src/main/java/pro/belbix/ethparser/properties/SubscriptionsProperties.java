@@ -1,28 +1,37 @@
 package pro.belbix.ethparser.properties;
 
-import static pro.belbix.ethparser.web3.erc20.Tokens.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.harvest.parser.HardWorkParser.CONTROLLER;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_GRAIN_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
+import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-import pro.belbix.ethparser.web3.harvest.contracts.StakeContracts;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
-import pro.belbix.ethparser.web3.uniswap.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Validated
 @ConfigurationProperties(prefix = "subscription")
+@Data
 public class SubscriptionsProperties {
 
-    private List<String> logSubscriptions = addAllContracts();
+    private List<String> logSubscriptions;
 
-    private static List<String> addAllContracts() {
+    public void init() {
+        // if filled up from app config skip default values
+        if (logSubscriptions != null && !logSubscriptions.isEmpty()) {
+            return;
+        }
+
         Set<String> contracts = new HashSet<>();
 
         //FARM prices
@@ -37,23 +46,16 @@ public class SubscriptionsProperties {
         contracts.add(FARM_TOKEN);
 
         //harvest events
-        contracts.addAll(Vaults.vaultHashToName.keySet());
-        contracts.addAll(StakeContracts.hashToName.keySet());
+        contracts.addAll(ContractUtils.getAllVaultAddresses());
+        contracts.addAll(ContractUtils.getAllPoolAddresses());
 
         // FARM token Mint event parsing
         contracts.add(FARM_TOKEN);
 
         // contracts for price parsing
         contracts.addAll(LpContracts.keyCoinForLp.keySet());
-        return new ArrayList<>(contracts);
-    }
 
-    public List<String> getLogSubscriptions() {
-        return logSubscriptions;
-    }
-
-    public void setLogSubscriptions(List<String> logSubscriptions) {
-        this.logSubscriptions = logSubscriptions;
+        logSubscriptions = new ArrayList<>(contracts);
     }
 
 }

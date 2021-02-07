@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.erc20.Tokens.firstCoinIsKey;
-import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToCoin;
-import static pro.belbix.ethparser.web3.erc20.Tokens.mapLpAddressToOtherCoin;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.uniswap.contracts.LpContracts.parsable;
+import static pro.belbix.ethparser.web3.contracts.Tokens.firstCoinIsKey;
+import static pro.belbix.ethparser.web3.contracts.Tokens.mapLpAddressToCoin;
+import static pro.belbix.ethparser.web3.contracts.Tokens.mapLpAddressToOtherCoin;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.parsable;
 
 import java.math.BigInteger;
 import java.util.Arrays;

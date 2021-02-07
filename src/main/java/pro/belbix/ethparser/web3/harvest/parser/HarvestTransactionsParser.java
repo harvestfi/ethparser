@@ -15,11 +15,12 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.harvest.contracts.Vaults;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 
@@ -35,16 +36,19 @@ public class HarvestTransactionsParser implements Web3Parser {
     private final HarvestDBService harvestDBService;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
+    private final AppProperties appProperties;
     private long parsedTxCount = 0;
     private Instant lastTx = Instant.now();
 
     public HarvestTransactionsParser(Web3Service web3Service,
                                      HarvestDBService harvestDBService,
-                                     EthBlockService ethBlockService, ParserInfo parserInfo) {
+                                     EthBlockService ethBlockService, ParserInfo parserInfo,
+                                     AppProperties appProperties) {
         this.web3Service = web3Service;
         this.harvestDBService = harvestDBService;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
+        this.appProperties = appProperties;
     }
 
     public void startParse() {
@@ -68,6 +72,9 @@ public class HarvestTransactionsParser implements Web3Parser {
                         }
                     } catch (Exception e) {
                         log.error("Can't save " + dto.toString(), e);
+                        if(appProperties.isStopOnParseError()) {
+                            System.exit(-1);
+                        }
                     }
                 }
             }
@@ -108,7 +115,7 @@ public class HarvestTransactionsParser implements Web3Parser {
             //it is contract deploy
             return false;
         }
-        return Vaults.vaultHashToName.containsKey(tx.getTo().toLowerCase());
+        return ContractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
     }
 
     private HarvestTx decodeTransaction(Transaction tx) {
@@ -123,7 +130,7 @@ public class HarvestTransactionsParser implements Web3Parser {
                 return null;
             }
 
-            if (!harvestTx.isContainsAddress(Vaults.vaultHashToName)) {
+            if (!harvestTx.isExistenceVault()) {
                 return null;
             }
             TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
