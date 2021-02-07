@@ -78,7 +78,7 @@ public class HarvestVaultParserTest {
             LOG_ID,
             "0xf18124581a86d11436684b0124a46efa935a3510",
             "Deposit",
-            "_3CRV",
+            "3CRV",
             "0xe8b198aff379d80be359ea70c9ea595d5754dbd30dcff8ec96174ef969af7582_335",
             "45027,59778072",
             "",

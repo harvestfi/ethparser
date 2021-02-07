@@ -98,13 +98,7 @@ public class ImportantEventsParser implements Web3Parser {
             return null;
         }
 
-        ImportantEventsTx tx;
-        try {
-            tx = importantEventsLogDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode " + ethLog, e);
-            return null;
-        }
+        ImportantEventsTx tx = importantEventsLogDecoder.decode(ethLog);
         if (tx == null) {
             return null;
         }

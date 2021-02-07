@@ -96,13 +96,7 @@ public class HardWorkParser implements Web3Parser {
             return null;
         }
 
-        HardWorkTx tx;
-        try {
-            tx = hardWorkLogDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode " + ethLog, e);
-            return null;
-        }
+        HardWorkTx tx = hardWorkLogDecoder.decode(ethLog);
         if (tx == null) {
             return null;
         }

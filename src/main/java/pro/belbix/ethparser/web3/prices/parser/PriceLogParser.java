@@ -87,12 +87,8 @@ public class PriceLogParser implements Web3Parser {
 
     // keep this parsing lightweight as more as possible
     public PriceDTO parse(Log ethLog) {
-        PriceTx tx = null;
-        try {
-            tx = priceDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode price " + ethLog, e);
-        }
+        PriceTx tx = priceDecoder.decode(ethLog);
+
         if (tx == null) {
             return null;
         }

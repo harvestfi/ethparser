@@ -96,13 +96,7 @@ public class RewardParser implements Web3Parser {
             return null;
         }
 
-        HarvestTx tx;
-        try {
-            tx = harvestVaultLogDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode " + ethLog, e);
-            return null;
-        }
+        HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
         if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
             return null;
         }

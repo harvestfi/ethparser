@@ -82,7 +82,7 @@ public class HarvestDBService {
         dto.setAllOwnersCount(allOwnersCount);
 
         Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-            ContractUtils.getAllPoolNames().stream()
+            ContractUtils.getAllVaultNames().stream()
                 .filter(v -> !ContractUtils.isPsName(v))
                 .collect(Collectors.toList()),
             dto.getBlockDate());

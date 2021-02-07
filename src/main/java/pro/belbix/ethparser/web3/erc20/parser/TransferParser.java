@@ -95,13 +95,7 @@ public class TransferParser implements Web3Parser {
             return null;
         }
 
-        TokenTx tx;
-        try {
-            tx = erc20Decoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode " + ethLog, e);
-            return null;
-        }
+        TokenTx tx = erc20Decoder.decode(ethLog);
 
         if (tx == null
             || !"Transfer".equals(tx.getMethodName())) {
