@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
@@ -22,6 +23,7 @@ import pro.belbix.ethparser.web3.contracts.LpContracts;
 @Validated
 @ConfigurationProperties(prefix = "subscription")
 @Data
+@Log4j2
 public class SubscriptionsProperties {
 
     private List<String> logSubscriptions;
@@ -29,6 +31,7 @@ public class SubscriptionsProperties {
     public void init() {
         // if filled up from app config skip default values
         if (logSubscriptions != null && !logSubscriptions.isEmpty()) {
+            log.info("Subscriptions already filled up");
             return;
         }
 
