@@ -110,7 +110,7 @@ public class UniToHarvestConverter implements Web3Parser {
         harvestDTO.setId(uniswapDTO.getId());
         harvestDTO.setHash(uniswapDTO.getHash());
         harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
-        harvestDTO.setConfirmed(true);
+        harvestDTO.setConfirmed(1);
         harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
         harvestDTO.setOwner(uniswapDTO.getOwner());
         harvestDTO.setVault(findNameForLpHash(lpHash));

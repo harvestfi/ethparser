@@ -50,7 +50,7 @@ public class MockUtils {
         harvestDTO.setHash("0x" + seed);
         harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
         harvestDTO.setLastUsdTvl(currentCount * 1000000);
-        harvestDTO.setConfirmed(new Random().nextBoolean());
+        harvestDTO.setConfirmed(1);
         harvestDTO.setLastGas(currentCount / 6);
         harvestDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
         harvestDTO.setLastAllUsdTvl(seed * 5.1);

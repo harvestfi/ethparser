@@ -1449,8 +1449,7 @@ public class HarvestVaultParserTest {
             () -> assertEquals("UsdAmount", String.format("%.0f", usdAmount.doubleValue()),
                 String.format("%.0f", dto.getUsdAmount().doubleValue())),
             () -> assertEquals("usdTvl", String.format("%.0f", usdTvl.doubleValue()),
-                String.format("%.0f", dto.getLastUsdTvl())),
-            () -> assertEquals("Confirmed", confirmed, dto.isConfirmed())
+                String.format("%.0f", dto.getLastUsdTvl()))
         );
     }
 }

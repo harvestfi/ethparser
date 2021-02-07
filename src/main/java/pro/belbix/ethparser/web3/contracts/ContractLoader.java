@@ -110,7 +110,6 @@ public class ContractLoader {
         if (appProperties.isDevMod()) {
             load();
         }
-        subscriptionsProperties.init();
     }
 
     public synchronized void load() {
@@ -125,6 +124,8 @@ public class ContractLoader {
         loadTokens();
         linkVaultToPools();
         log.info("Contracts loading ended");
+        // should subscribe only after contract loading
+        subscriptionsProperties.init();
     }
 
     public void loadKeyBlocks() {
