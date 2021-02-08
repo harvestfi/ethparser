@@ -40,10 +40,18 @@ public class Tokens {
     public final static String MAMZN_TOKEN = "0x0cae9e4d663793c2a2a0b211c1cf4bbca2b9caa7".toLowerCase();
     public final static String MGOOGL_TOKEN = "0x59A921Db27Dd6d4d974745B7FfC5c33932653442".toLowerCase();
     public final static String MTSLA_TOKEN = "0x21ca39943e91d704678f5d00b6616650f066fd63".toLowerCase();
+    public final static String GUSD_TOKEN = "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd".toLowerCase();
     public final static String YCRV_TOKEN = "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8".toLowerCase();
     public final static String _3CRV_TOKEN = "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490".toLowerCase();
     public final static String CRV_CMPND_TOKEN = "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2".toLowerCase();
-    public final static String GUSD_TOKEN = "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd".toLowerCase();
+    public final static String CRV_BUSD_TOKEN = "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B".toLowerCase();
+    public final static String CRV_USDN_TOKEN = "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522".toLowerCase();
+    public final static String HUSD_TOKEN = "0xdF574c24545E5FfEcb9a659c229253D4111d87e1".toLowerCase();
+    public final static String CRV_UST_TOKEN = "0x94e131324b6054c0D789b190b2dAC504e4361b53".toLowerCase();
+    public final static String CRV_GUSD_TOKEN = "0xD2967f45c4f384DEEa880F807Be904762a3DeA07".toLowerCase();
+    public final static String CRV_EURS_TOKEN = "0x194eBd173F6cDacE046C53eACcE9B953F28411d1".toLowerCase();
+    public final static String CRV_OBTC_TOKEN = "0x2fE94ea3d5d4a175184081439753DE15AeF9d614".toLowerCase();
+    public final static String CRV_STETH_TOKEN = "0x06325440D014e39736583c165C2963BA99fAf14E".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -71,10 +79,19 @@ public class Tokens {
     public static final String MAMZN_NAME = "MAMZN";
     public static final String MGOOGL_NAME = "MGOOGL";
     public static final String MTSLA_NAME = "MTSLA";
+    public static final String GUSD_NAME = "GUSD";
     public static final String YCRV_NAME = "YCRV";
     public static final String _3CRV_NAME = "3CRV";
     public static final String CRV_CMPND_NAME = "CRV_CMPND";
-    public static final String GUSD_NAME = "GUSD";
+    public static final String CRV_BUSD_NAME = "CRV_BUSD";
+    public static final String CRV_USDN_NAME = "CRV_USDN";
+    public static final String HUSD_NAME = "HUSD";
+    public static final String CRV_HUSD_NAME = "CRV_HUSD";
+    public static final String CRV_UST_NAME = "CRV_UST";
+    public static final String CRV_GUSD_NAME = "CRV_GUSD";
+    public static final String CRV_EURS_NAME = "CRV_EURS";
+    public static final String CRV_OBTC_NAME = "CRV_OBTC";
+    public static final String CRV_STETH_NAME = "CRV_STETH";
 
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -150,6 +167,17 @@ public class Tokens {
         addTokenInfo(new TokenInfo(TUSD_NAME, TUSD_TOKEN, 0));
         addTokenInfo(new TokenInfo(UST_NAME, UST_TOKEN, 0));
         addTokenInfo(new TokenInfo(GUSD_NAME, GUSD_TOKEN, 0).setDivider(D2));
+        addTokenInfo(new TokenInfo(YCRV_NAME, YCRV_TOKEN, 0));
+        addTokenInfo(new TokenInfo(_3CRV_NAME, _3CRV_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_CMPND_NAME, CRV_CMPND_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_BUSD_NAME, CRV_BUSD_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_USDN_NAME, CRV_USDN_TOKEN, 0));
+        addTokenInfo(new TokenInfo(HUSD_NAME, HUSD_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_UST_NAME, CRV_UST_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_GUSD_NAME, CRV_GUSD_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_EURS_NAME, CRV_EURS_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_OBTC_NAME, CRV_OBTC_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_STETH_NAME, CRV_STETH_TOKEN, 0));
     }
 
     private static void addTokenInfo(TokenInfo tokenInfo) {
