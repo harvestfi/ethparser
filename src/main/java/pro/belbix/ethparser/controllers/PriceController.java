@@ -12,9 +12,9 @@ import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @RestController
 @RequestMapping(value = "/price")
@@ -49,7 +49,7 @@ public class PriceController {
                 lpAddress.toLowerCase(), amount, block);
             return RestResponse.ok(String.format("%.8f", amountUsd)).addBlock(block);
         } catch (Exception e) {
-            log.error("Error lp request", e);
+            log.warn("Error lp request", e);
             return RestResponse.error("Server error");
         }
     }
@@ -58,17 +58,24 @@ public class PriceController {
     public RestResponse token(@PathVariable("token") String token) {
         try {
             String tokenName = token;
+            long block = ethBlockService.getLastBlock();
             if (token.startsWith("0x")) {
+                if (LpContracts.lpHashToName.containsKey(token.toLowerCase())) {
+                    return RestResponse.ok(String.format("%.8f",
+                        priceProvider.getLpPositionAmountInUsd(
+                            token.toLowerCase(), 1, ethBlockService.getLastBlock())
+                        )
+                    ).addBlock(block);
+                }
                 tokenName = Tokens.findNameForContract(token.toLowerCase());
                 if (tokenName == null) {
                     return RestResponse.error("Token " + token + " not supported");
                 }
             }
-            long block = ethBlockService.getLastBlock();
-            double amountUsd = priceProvider.getPriceForCoin(tokenName, block);
-            return RestResponse.ok(String.format("%.8f", amountUsd)).addBlock(block);
+            double usdPrice = priceProvider.getPriceForCoin(tokenName, block);
+            return RestResponse.ok(String.format("%.8f", usdPrice)).addBlock(block);
         } catch (Exception e) {
-            log.error("Error token request", e);
+            log.warn("Error token request", e);
             return RestResponse.error("Server error");
         }
     }
