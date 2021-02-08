@@ -126,6 +126,7 @@ public class ContractLoader {
         log.info("Contracts loading ended");
         // should subscribe only after contract loading
         subscriptionsProperties.init();
+        loaded = true;
     }
 
     public void loadKeyBlocks() {
