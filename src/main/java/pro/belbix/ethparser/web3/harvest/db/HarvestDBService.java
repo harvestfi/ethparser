@@ -100,7 +100,7 @@ public class HarvestDBService {
         if (uniswapDTO != null) {
             farmPrice = uniswapDTO.getLastPrice();
         }
-        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultAddresses());
+        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
             .forEach(contracts::add);
