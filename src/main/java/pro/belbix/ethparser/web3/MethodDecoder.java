@@ -87,11 +87,15 @@ public abstract class MethodDecoder {
             return indexedValues;
         }
         final List<String> topics = log.getTopics();
-
-        List<Type> nonIndexedValues =
-            FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
+        List<Type> nonIndexedValues;
+        try {
+            nonIndexedValues = FunctionReturnDecoder.decode(log.getData(), getNonIndexedParameters(parameters));
+        } catch (NullPointerException e) {
+            // it is an odd bug with loader sometimes happens when the app is not warmed up
+            e.printStackTrace();
+            return null;
+        }
         List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
-
         for (int i = 0; i < indexedParameters.size(); i++) {
             String topic = topics.get(i + 1);
             Type value = decodeIndexedValue(topic, indexedParameters.get(i));

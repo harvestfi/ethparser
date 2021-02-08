@@ -43,7 +43,7 @@ public class UniToHarvestConverter implements Web3Parser {
         UNI_LP_GRAIN_FARM
     ));
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(1000);
+    private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final PriceProvider priceProvider;
     private final FunctionsUtils functionsUtils;

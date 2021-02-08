@@ -38,7 +38,7 @@ public class RewardParser implements Web3Parser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(1000);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
     private final FunctionsUtils functionsUtils;

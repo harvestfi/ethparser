@@ -42,4 +42,5 @@ public class AppProperties {
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
+    private boolean skipSimilarPrices = true;
 }
