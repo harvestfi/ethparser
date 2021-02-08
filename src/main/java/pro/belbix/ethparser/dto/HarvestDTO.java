@@ -36,6 +36,7 @@ public class HarvestDTO implements DtoI {
     private Integer ownerCount;
     private Double sharePrice;
     private Long usdAmount;
+    @Column(columnDefinition = "TEXT")
     private String prices;
     private String lpStat;
     private Double lastAllUsdTvl;
