@@ -4,9 +4,9 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
 import static pro.belbix.ethparser.web3.contracts.Tokens.isStableCoin;
 import static pro.belbix.ethparser.web3.contracts.Tokens.simplifyName;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,11 +20,11 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -128,12 +128,13 @@ public class PriceProvider {
             log.warn("Saved price not found for " + name + " at block " + block);
             return getPriceForCoinWithoutCacheOld(name, block);
         }
+        if (block - priceDTO.getBlock() > 1000) {
+            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
+            return getPriceForCoinWithoutCacheOld(name, block);
+        }
         if (!priceDTO.getToken().equalsIgnoreCase(name)
             && !priceDTO.getOtherToken().equalsIgnoreCase(name)) {
             throw new IllegalStateException("Wrong source for " + name);
-        }
-        if (block - priceDTO.getBlock() > 1000) {
-            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
         }
 
         double otherTokenPrice = getPriceForCoin(priceDTO.getOtherToken(), block);

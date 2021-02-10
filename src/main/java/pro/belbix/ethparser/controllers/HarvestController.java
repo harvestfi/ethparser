@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.HarvestRepository.UserBalance;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 
 @RestController
@@ -48,6 +49,11 @@ public class HarvestController {
                                                   @RequestParam(value = "from", required = false) String from,
                                                   @RequestParam(value = "to", required = false) String to) {
         return harvestRepository.fetchAllByOwner(address, parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
+    }
+
+    @GetMapping("/user_balances")
+    public List<UserBalance> userBalances() {
+        return harvestRepository.fetchOwnerBalances();
     }
 
 }

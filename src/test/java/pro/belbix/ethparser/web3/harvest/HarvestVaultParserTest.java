@@ -49,6 +49,62 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_USDC_migration() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+            11094671,
+            LOG_ID,
+            "0xf00dd244228f51547f0563e60bca65a30fbf5f7f",
+            "Deposit",
+            "USDC",
+            "0x64b552fd99d6abb1127c06cc866e328e9670f82f201f14dfc9895158a927386a_42",
+            "99555832,75969400",
+            "97541818",
+            "97541818",
+            42064610L,
+            295051243L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_CRVRENWBTC_badger() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
+            11823682,
+            LOG_ID,
+            "0xda25ee226e534d868f0dd8a459536b03fee9079b",
+            "Deposit",
+            "CRVRENWBTC",
+            "0xf78f241567e2472e78b345a4fc962adbf93e3953a4bbd738b1efe93e435d53cc_354",
+            "899,91949809",
+            "",
+            "",
+            42064610L,
+            295051243L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "899,91949809", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "41876663,46140079", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
     public void parseVault_PS() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",

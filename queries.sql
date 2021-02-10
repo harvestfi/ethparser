@@ -129,8 +129,8 @@ select avg(ps_income) from (
 -- last hard works ---------------------
 select
     FROM_UNIXTIME(block_date) date,
-       block,
-       block_date,
+#        block,
+#        block_date,
        round(share_change_usd, 0) vault_income_usd,
        round(farm_buyback, 0) ps_income_farm,
        vault,

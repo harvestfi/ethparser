@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYER;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
@@ -87,6 +88,12 @@ public class HarvestOwnerBalanceCalculator {
         }
 
         double balance = parseAmount(balanceI, vaultHash);
+        if (balance == 0
+            && dto.getAmount() != 0
+            && "Deposit".equals(dto.getMethodName())) {
+            log.info("Zero balance for deposit, assume owner is external contract");
+            //todo investigate how to determinate the balance for contracts
+        }
         dto.setOwnerBalance(balance);
 
         //fill USD value
