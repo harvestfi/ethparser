@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYER;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
@@ -103,7 +102,7 @@ public class HarvestOwnerBalanceCalculator {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
             double amountUsd = priceProvider
-                .getLpPositionAmountInUsd(lpHash, balance, block);
+                .getLpTokenUsdPrice(lpHash, balance, block);
             dto.setOwnerBalanceUsd(amountUsd);
         } else {
             double price = priceProvider.getPriceForCoin(dto.getVault(), block);
@@ -129,7 +128,7 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock());
+        double amountUsd = priceProvider.getLpTokenUsdPrice(lpHash, balance, dto.getBlock());
         dto.setOwnerBalanceUsd(amountUsd);
         return true;
     }

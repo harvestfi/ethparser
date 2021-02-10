@@ -105,6 +105,9 @@ public class Web3Service {
                 }
                 return ethGetTransactionReceipt;
             });
+        if(result == null) {
+            return null;
+        }
         return result.getTransactionReceipt()
             .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
     }

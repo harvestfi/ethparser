@@ -45,7 +45,7 @@ public class PriceController {
                 }
             }
             long block = ethBlockService.getLastBlock();
-            double amountUsd = priceProvider.getLpPositionAmountInUsd(
+            double amountUsd = priceProvider.getLpTokenUsdPrice(
                 lpAddress.toLowerCase(), amount, block);
             return RestResponse.ok(String.format("%.8f", amountUsd)).addBlock(block);
         } catch (Exception e) {
@@ -62,7 +62,7 @@ public class PriceController {
             if (token.startsWith("0x")) {
                 if (LpContracts.lpHashToName.containsKey(token.toLowerCase())) {
                     return RestResponse.ok(String.format("%.8f",
-                        priceProvider.getLpPositionAmountInUsd(
+                        priceProvider.getLpTokenUsdPrice(
                             token.toLowerCase(), 1, ethBlockService.getLastBlock())
                         )
                     ).addBlock(block);

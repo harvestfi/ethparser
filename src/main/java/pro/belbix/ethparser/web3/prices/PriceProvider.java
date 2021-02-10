@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.FunctionsUtils;
@@ -36,37 +37,83 @@ public class PriceProvider {
 
     private final FunctionsUtils functionsUtils;
     private final PriceRepository priceRepository;
+    private final AppProperties appProperties;
 
-    public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository) {
+    public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
+                         AppProperties appProperties) {
         this.functionsUtils = functionsUtils;
         this.priceRepository = priceRepository;
+        this.appProperties = appProperties;
     }
 
     public void setUpdateBlockDifference(long updateBlockDifference) {
         this.updateBlockDifference = updateBlockDifference;
     }
 
-    public double getLpPositionAmountInUsd(String lpAddress, double amount, long block) {
-        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpAddress);
-        if (names == null) {
-            throw new IllegalStateException("Not found names for " + lpAddress);
+    public double getLpTokenUsdPrice(String lpAddress, double amount, long block) {
+        String lpName = ContractUtils.getNameByAddress(lpAddress)
+            .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
+        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+            .filter(Caller::isFilledList)
+            .map(l -> l.get(0))
+            .orElse(null);
+        if (priceDTO == null) {
+            log.warn("Saved price not found for " + lpName + " at block " + block);
+            return getLpTokenUsdPriceFromEth(lpAddress, amount, block);
         }
-        Tuple2<Double, Double> usdPrices = new Tuple2<>(
-            getPriceForCoin(names.component1(), block),
-            getPriceForCoin(names.component2(), block)
+        if (priceDTO.getLpTotalSupply() == null
+            || priceDTO.getLpToken0Pooled() == null
+            || priceDTO.getLpToken1Pooled() == null) {
+            log.warn("Saved price has wrong data for " + lpName + " at block " + block);
+            return getLpTokenUsdPriceFromEth(lpAddress, amount, block);
+        }
+        Tuple2<Double, Double> lpPooled = new Tuple2<>(
+            priceDTO.getLpToken0Pooled(),
+            priceDTO.getLpToken1Pooled()
         );
-        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpAddress, block);
-        if (lpUnderlyingBalances == null) {
+        double lpBalance = priceDTO.getLpTotalSupply();
+        return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);
+    }
+
+    public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block) {
+        if (appProperties.isOnlyApi()) {
+            return 0.0;
+        }
+
+        Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, block);
+        if (lpPooled == null) {
             throw new IllegalStateException("Can't reach reserves for " + lpAddress);
         }
         double lpBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block)
                 .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
             lpAddress);
+        double usdValue = calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);
+        log.info("{} USD value fetched {} for {} at block {}",
+            lpAddress, amount, usdValue, block);
+        return usdValue;
+    }
+
+    private double calculateLpTokenPrice(String lpAddress,
+                                         Tuple2<Double, Double> lpPooled,
+                                         double lpBalance,
+                                         double amount,
+                                         long block
+    ) {
+        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpAddress);
+        if (names == null) {
+            throw new IllegalStateException("Not found names for " + lpAddress);
+        }
+
+        Tuple2<Double, Double> usdPrices = new Tuple2<>(
+            getPriceForCoin(names.component1(), block),
+            getPriceForCoin(names.component2(), block)
+        );
+
         double positionFraction = amount / lpBalance;
 
-        double firstCoin = positionFraction * lpUnderlyingBalances.component1();
-        double secondCoin = positionFraction * lpUnderlyingBalances.component2();
+        double firstCoin = positionFraction * lpPooled.component1();
+        double secondCoin = positionFraction * lpPooled.component2();
 
         double firstVaultUsdAmount = firstCoin * usdPrices.component1();
         double secondVaultUsdAmount = secondCoin * usdPrices.component2();
@@ -126,11 +173,11 @@ public class PriceProvider {
             .orElse(null);
         if (priceDTO == null) {
             log.warn("Saved price not found for " + name + " at block " + block);
-            return getPriceForCoinWithoutCacheOld(name, block);
+            return getPriceForCoinFromEth(name, block);
         }
         if (block - priceDTO.getBlock() > 1000) {
             log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
-            return getPriceForCoinWithoutCacheOld(name, block);
+            return getPriceForCoinFromEth(name, block);
         }
         if (!priceDTO.getToken().equalsIgnoreCase(name)
             && !priceDTO.getOtherToken().equalsIgnoreCase(name)) {
@@ -141,8 +188,10 @@ public class PriceProvider {
         return priceDTO.getPrice() * otherTokenPrice;
     }
 
-    @Deprecated
-    private double getPriceForCoinWithoutCacheOld(String name, Long block) {
+    private double getPriceForCoinFromEth(String name, Long block) {
+        if (appProperties.isOnlyApi()) {
+            return 0.0;
+        }
         TokenInfo tokenInfo = Tokens.getTokenInfo(name);
         String lpName = tokenInfo.findLp(block).component1();
         String otherTokenName = tokenInfo.findLp(block).component2();
