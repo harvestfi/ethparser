@@ -248,7 +248,7 @@ public class HarvestDBService {
                 continue;
             }
 
-            double sharePrice = transfer.getSharePrice();
+            Double sharePrice = transfer.getSharePrice();
             if (transfer.getSharePrice() == null
                 || transfer.getSharePrice() == 0.0) {
                 sharePrice = 1.0;
@@ -273,7 +273,7 @@ public class HarvestDBService {
         return profit;
     }
 
-    private double calculateProfitUsd(HarvestDTO dto) {
+    static double calculateProfitUsd(HarvestDTO dto) {
         if (dto.getLastUsdTvl() == null
             || dto.getLastUsdTvl() == 0.0
             || dto.getLastTvl() == null
