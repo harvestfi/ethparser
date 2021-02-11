@@ -104,17 +104,17 @@ public class Tokens {
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
     static {
-        addTokenInfo(new TokenInfo(FARM_NAME, FARM_TOKEN, 10770079)
+        addTokenInfo(new TokenInfo(FARM_NAME, FARM_TOKEN, 10777201)
             .addLp("UNI_LP_USDC_FARM", 0, USDC_NAME)
             .addLp("UNI_LP_WETH_FARM", 11609000, WETH_NAME));
 
-        addTokenInfo(new TokenInfo(DPI_NAME, DPI_TOKEN, 10830516)
+        addTokenInfo(new TokenInfo(DPI_NAME, DPI_TOKEN, 10868422)
             .addLp("UNI_LP_ETH_DPI", 0, WETH_NAME));
 
-        addTokenInfo(new TokenInfo(GRAIN_NAME, GRAIN_TOKEN, 11342057)
+        addTokenInfo(new TokenInfo(GRAIN_NAME, GRAIN_TOKEN, 11408083)
             .addLp("UNI_LP_GRAIN_FARM", 0, FARM_NAME));
 
-        addTokenInfo(new TokenInfo(BADGER_NAME, BADGER_TOKEN, 11348423)
+        addTokenInfo(new TokenInfo(BADGER_NAME, BADGER_TOKEN, 10868422)
             .addLp("UNI_LP_WBTC_BADGER", 0, WBTC_NAME));
 
         addTokenInfo(new TokenInfo(WETH_NAME, WETH_TOKEN, 0)
@@ -123,49 +123,49 @@ public class Tokens {
         addTokenInfo(new TokenInfo(WBTC_NAME, WBTC_TOKEN, 0).setDivider(D8)
             .addLp("UNI_LP_ETH_WBTC", 0, WETH_NAME));
 
-        addTokenInfo(new TokenInfo(BAC_NAME, BAC_TOKEN, 11355386)
+        addTokenInfo(new TokenInfo(BAC_NAME, BAC_TOKEN, 11356492)
             .addLp("UNI_LP_BAC_DAI", 0, DAI_NAME));
 
-        addTokenInfo(new TokenInfo(BAS_NAME, BAS_TOKEN, 11355392)
+        addTokenInfo(new TokenInfo(BAS_NAME, BAS_TOKEN, 11356501)
             .addLp("UNI_LP_DAI_BAS", 0, DAI_NAME));
 
-        addTokenInfo(new TokenInfo(MIC_NAME, MIC_TOKEN, 11548901)
+        addTokenInfo(new TokenInfo(MIC_NAME, MIC_TOKEN, 11551514)
             .addLp("SUSHI_LP_MIC_USDT", 0, USDT_NAME));
 
-        addTokenInfo(new TokenInfo(MIS_NAME, MIS_TOKEN, 11548905)
+        addTokenInfo(new TokenInfo(MIS_NAME, MIS_TOKEN, 11551671)
             .addLp("SUSHI_LP_MIS_USDT", 0, USDT_NAME));
 
         addTokenInfo(new TokenInfo(IDX_NAME, IDX_TOKEN, 0)
             .addLp("UNI_LP_IDX_ETH", 0, WETH_NAME));
 
-        addTokenInfo(new TokenInfo(BSG_NAME, BSG_TOKEN, 11644470)
+        addTokenInfo(new TokenInfo(BSG_NAME, BSG_TOKEN, 11644918)
             .addLp("UNI_LP_DAI_BSG", 0, DAI_NAME));
 
-        addTokenInfo(new TokenInfo(BSGS_NAME, BSGS_TOKEN, 11644478)
+        addTokenInfo(new TokenInfo(BSGS_NAME, BSGS_TOKEN, 11647863)
             .addLp("UNI_LP_DAI_BSGS", 0, DAI_NAME));
 
-        addTokenInfo(new TokenInfo(ESD_NAME, ESD_TOKEN, 10722554)
+        addTokenInfo(new TokenInfo(ESD_NAME, ESD_TOKEN, 10770511)
             .addLp("UNI_LP_ESD_USDC", 0, USDC_NAME));
 
-        addTokenInfo(new TokenInfo(DSD_NAME, DSD_TOKEN, 11330242)
+        addTokenInfo(new TokenInfo(DSD_NAME, DSD_TOKEN, 11334505)
             .addLp("UNI_LP_USDC_DSD", 0, USDC_NAME));
 
         addTokenInfo(new TokenInfo(TBTC_NAME, TBTC_TOKEN, 0)
             .addLp("SUSHI_LP_WBTC_TBTC", 0, WBTC_NAME));
 
-        addTokenInfo(new TokenInfo(EURS_NAME, EURS_TOKEN, 5835251).setDivider(100)
+        addTokenInfo(new TokenInfo(EURS_NAME, EURS_TOKEN, 11386529).setDivider(100)
             .addLp("UNI_LP_USDC_EURS", 0, USDC_NAME));
 
-        addTokenInfo(new TokenInfo(MAAPL_NAME, MAAPL_TOKEN, 11345258)
+        addTokenInfo(new TokenInfo(MAAPL_NAME, MAAPL_TOKEN, 11383561)
             .addLp("UNI_LP_MAAPL_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MAMZN_NAME, MAMZN_TOKEN, 11345296)
+        addTokenInfo(new TokenInfo(MAMZN_NAME, MAMZN_TOKEN, 11383561)
             .addLp("UNI_LP_MAMZN_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MGOOGL_NAME, MGOOGL_TOKEN, 11345264)
+        addTokenInfo(new TokenInfo(MGOOGL_NAME, MGOOGL_TOKEN, 11383561)
             .addLp("UNI_LP_MGOOGL_UST", 0, UST_NAME));
 
-        addTokenInfo(new TokenInfo(MTSLA_NAME, MTSLA_TOKEN, 11345271)
+        addTokenInfo(new TokenInfo(MTSLA_NAME, MTSLA_TOKEN, 11383561)
             .addLp("UNI_LP_MTSLA_UST", 0, UST_NAME));
 
         addTokenInfo(new TokenInfo(SUSHI_NAME, SUSHI_TOKEN, 10736094)
