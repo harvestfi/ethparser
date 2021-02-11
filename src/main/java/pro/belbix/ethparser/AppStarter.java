@@ -4,13 +4,7 @@ import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createImportantEventsDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
-import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.IMPORTANT_EVENTS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.PRICES_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
+import static pro.belbix.ethparser.ws.WsService.*;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +16,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestTransactionsParser;
@@ -52,6 +47,7 @@ public class AppStarter {
     private final AppProperties conf;
     private final PriceLogParser priceLogParser;
     private final ContractLoader contractLoader;
+    private final DeployerTransactionsParser deployerTransactionsParser;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
@@ -67,7 +63,8 @@ public class AppStarter {
                       UniToHarvestConverter uniToHarvestConverter,
                       TransferParser transferParser, WsService wsService,
                       AppProperties appProperties,
-                      PriceLogParser priceLogParser, ContractLoader contractLoader) {
+                      PriceLogParser priceLogParser, ContractLoader contractLoader,
+                      DeployerTransactionsParser deployerTransactionsParser) {
         this.web3Service = web3Service;
         this.uniswapTransactionsParser = uniswapTransactionsParser;
         this.harvestTransactionsParser = harvestTransactionsParser;
@@ -82,6 +79,7 @@ public class AppStarter {
         this.conf = appProperties;
         this.priceLogParser = priceLogParser;
         this.contractLoader = contractLoader;
+        this.deployerTransactionsParser = deployerTransactionsParser;
     }
 
     public void start() {
@@ -93,7 +91,7 @@ public class AppStarter {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
             contractLoader.load();
-            if (conf.isParseTransactions()) {
+            if (conf.isParseUniswapTransactions()) {
                 startParse(web3Service, uniswapTransactionsParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, false);
             }
 
@@ -129,6 +127,9 @@ public class AppStarter {
             }
             if (conf.isParsePrices()) {
                 startParse(web3Service, priceLogParser, ws, PRICES_TOPIC_NAME, true);
+            }
+            if (conf.isParseDeployerTransactions()) {
+                startParse(web3Service, deployerTransactionsParser, ws, DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
             }
         }
     }
