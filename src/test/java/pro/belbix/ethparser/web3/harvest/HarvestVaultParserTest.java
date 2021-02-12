@@ -49,6 +49,34 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_SUSHI_SUSHI_ETH() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x5aDe382F38A09A1F8759D06fFE2067992ab5c78e",
+            11833261,
+            LOG_ID,
+            "0xb9bcd154b5a636bb3b049e7dea7da4cb47d6cc81",
+            "Deposit",
+            "SUSHI_SUSHI_ETH",
+            "0xdc7b3578dcccc8cbefe8b38317ed55bc703499bdce37048348abf240b2560bd4_249",
+            "358,92678598",
+            "",
+            "",
+            130020L,
+            338498L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "359,94131414", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "130019,75772826", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
     public void parseVault_CRV_AAVE() {
         HarvestDTO dto = harvestVaultParseTest(
             "0xc3EF8C4043D7cf1D15B6bb4cd307C844E0BA9d42",

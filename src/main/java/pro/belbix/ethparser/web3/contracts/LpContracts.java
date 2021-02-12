@@ -37,6 +37,8 @@ import static pro.belbix.ethparser.web3.contracts.Tokens.MIS_NAME;
 import static pro.belbix.ethparser.web3.contracts.Tokens.MIS_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.Tokens.MTSLA_NAME;
 import static pro.belbix.ethparser.web3.contracts.Tokens.MTSLA_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.Tokens.SUSHI_NAME;
+import static pro.belbix.ethparser.web3.contracts.Tokens.SUSHI_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.Tokens.TBTC_NAME;
 import static pro.belbix.ethparser.web3.contracts.Tokens.USDC_NAME;
 import static pro.belbix.ethparser.web3.contracts.Tokens.USDT_NAME;
@@ -94,6 +96,7 @@ public class LpContracts {
     public static final String UNI_LP_MGOOGL_UST = "0x4b70ccD1Cf9905BE1FaEd025EADbD3Ab124efe9a".toLowerCase();
     public static final String UNI_LP_MTSLA_UST = "0x5233349957586A8207c52693A959483F9aeAA50C".toLowerCase();
     public static final String UNI_LP_USDC_EURS = "0x767055e2a9f15783b1ec5ef134a89acf3165332f".toLowerCase();
+    public static final String SUSHI_LP_SUSHI_ETH = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0".toLowerCase();
 
     public static final Map<String, String> lpNameToHash = new LinkedHashMap<>();
     public static final Map<String, Double> lpHashToDividers = new LinkedHashMap<>();
@@ -144,6 +147,7 @@ public class LpContracts {
         lpHashToCoinNames.put(UNI_LP_MAMZN_UST, new Tuple2<>(MAMZN_NAME, UST_NAME));
         lpHashToCoinNames.put(UNI_LP_MGOOGL_UST, new Tuple2<>(MGOOGL_NAME, UST_NAME));
         lpHashToCoinNames.put(UNI_LP_MTSLA_UST, new Tuple2<>(MTSLA_NAME, UST_NAME));
+        lpHashToCoinNames.put(SUSHI_LP_SUSHI_ETH, new Tuple2<>(SUSHI_NAME, WETH_NAME));
 
         // this LPs use for get price for the key token
         keyCoinForLp.put(UNI_LP_USDC_FARM, FARM_TOKEN);
@@ -166,6 +170,7 @@ public class LpContracts {
         keyCoinForLp.put(UNI_LP_MAMZN_UST, MAMZN_TOKEN);
         keyCoinForLp.put(UNI_LP_MGOOGL_UST, MGOOGL_TOKEN);
         keyCoinForLp.put(UNI_LP_MTSLA_UST, MTSLA_TOKEN);
+        keyCoinForLp.put(SUSHI_LP_SUSHI_ETH, SUSHI_TOKEN);
 
         parsable.add(UNI_LP_USDC_FARM);
         parsable.add(UNI_LP_WETH_FARM);
