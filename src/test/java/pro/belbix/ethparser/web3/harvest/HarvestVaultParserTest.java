@@ -49,6 +49,34 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_CRV_AAVE() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xc3EF8C4043D7cf1D15B6bb4cd307C844E0BA9d42",
+            11836887,
+            LOG_ID,
+            "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
+            "Deposit",
+            "CRV_AAVE",
+            "0x3e4399ec429da3e0d2ce6680ff4f20a52735940b36a8f60a81186b741d52dfed_170",
+            "68,32630764",
+            "",
+            "",
+            68L,
+            68L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "68,32630764", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "68,32630764", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
     public void parseVault_USDC_migration() {
         HarvestDTO dto = harvestVaultParseTest(
             "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",

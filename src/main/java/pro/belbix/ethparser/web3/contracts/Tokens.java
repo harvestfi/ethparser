@@ -52,6 +52,7 @@ public class Tokens {
     public final static String CRV_EURS_TOKEN = "0x194eBd173F6cDacE046C53eACcE9B953F28411d1".toLowerCase();
     public final static String CRV_OBTC_TOKEN = "0x2fE94ea3d5d4a175184081439753DE15AeF9d614".toLowerCase();
     public final static String CRV_STETH_TOKEN = "0x06325440D014e39736583c165C2963BA99fAf14E".toLowerCase();
+    public final static String CRV_AAVE_TOKEN = "0xfd2a8fa60abd58efe3eee34dd494cd491dc14900".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -92,6 +93,7 @@ public class Tokens {
     public static final String CRV_EURS_NAME = "CRV_EURS";
     public static final String CRV_OBTC_NAME = "CRV_OBTC";
     public static final String CRV_STETH_NAME = "CRV_STETH";
+    public static final String CRV_AAVE_NAME = "CRV_AAVE";
 
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -178,6 +180,7 @@ public class Tokens {
         addTokenInfo(new TokenInfo(CRV_EURS_NAME, CRV_EURS_TOKEN, 0));
         addTokenInfo(new TokenInfo(CRV_OBTC_NAME, CRV_OBTC_TOKEN, 0));
         addTokenInfo(new TokenInfo(CRV_STETH_NAME, CRV_STETH_TOKEN, 0));
+        addTokenInfo(new TokenInfo(CRV_AAVE_NAME, CRV_AAVE_TOKEN, 11497098));
     }
 
     private static void addTokenInfo(TokenInfo tokenInfo) {
@@ -209,20 +212,21 @@ public class Tokens {
         return "USD".equals(name)
             || USDC_NAME.equals(name)
             || USDT_NAME.equals(name)
-            || "YCRV".equals(name)
-            || "3CRV".equals(name)
+            || YCRV_NAME.equals(name)
             || "_3CRV".equals(name)
+            || _3CRV_NAME.equals(name)
             || TUSD_NAME.equals(name)
             || DAI_NAME.equals(name)
-            || "CRV_CMPND".equals(name)
-            || "CRV_BUSD".equals(name)
-            || "CRV_USDN".equals(name)
-            || "HUSD".equals(name)
-            || "CRV_HUSD".equals(name)
+            || CRV_CMPND_NAME.equals(name)
+            || CRV_BUSD_NAME.equals(name)
+            || CRV_USDN_NAME.equals(name)
+            || HUSD_NAME.equals(name)
+            || CRV_HUSD_NAME.equals(name)
             || UST_NAME.equals(name)
-            || "CRV_UST".equals(name)
+            || CRV_UST_NAME.equals(name)
             || GUSD_NAME.equals(name)
-            || "CRV_GUSD".equals(name)
+            || CRV_GUSD_NAME.equals(name)
+            || CRV_AAVE_NAME.equals(name)
             ;
     }
 
