@@ -5,7 +5,6 @@ import pro.belbix.ethparser.dto.DeployerDTO;
 
 import java.util.List;
 
-public interface DeployerRepository extends JpaRepository<DeployerDTO, String>
-{
-    List<DeployerDTO> findAllByOrderByBlockDate();
+public interface DeployerRepository extends JpaRepository<DeployerDTO, String> {
+  List<DeployerDTO> findAllByOrderByBlockDate();
 }
