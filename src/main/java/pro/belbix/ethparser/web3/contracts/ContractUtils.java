@@ -107,7 +107,7 @@ public class ContractUtils {
     }
 
     public static Optional<VaultEntity> vaultByPoolAddress(String address) {
-        return Optional.ofNullable(ContractLoader.poolsCacheByAddress.get(address))
+        return Optional.ofNullable(ContractLoader.poolsCacheByAddress.get(address.toLowerCase()))
             .map(PoolEntity::getLpToken)
             .flatMap(c -> ContractLoader.getVaultByAddress(c.getAddress()));
     }
