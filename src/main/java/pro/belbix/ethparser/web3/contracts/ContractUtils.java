@@ -100,9 +100,16 @@ public class ContractUtils {
         if (poolEntity.isPresent()) {
             return poolEntity;
         }
+        // try to find pool by name, it should work for old vaults and PS pools
         String vaultName = getNameByAddress(address)
             .orElseThrow(() -> new IllegalStateException("Vault not found for " + address));
         return ContractLoader.getPoolByName("ST_" + vaultName);
+    }
+
+    public static Optional<VaultEntity> vaultByPoolAddress(String address) {
+        return Optional.ofNullable(ContractLoader.poolsCacheByAddress.get(address))
+            .map(PoolEntity::getLpToken)
+            .flatMap(c -> ContractLoader.getVaultByAddress(c.getAddress()));
     }
 
     public static boolean isVaultName(String name) {

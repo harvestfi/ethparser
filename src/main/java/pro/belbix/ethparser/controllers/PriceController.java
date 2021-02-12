@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,9 +10,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.entity.eth.VaultEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -60,6 +63,7 @@ public class PriceController {
             String tokenName = token;
             long block = ethBlockService.getLastBlock();
             if (token.startsWith("0x")) {
+                //shortcut for LP tokens from the dashboard
                 if (LpContracts.lpHashToName.containsKey(token.toLowerCase())) {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getLpTokenUsdPrice(
@@ -67,6 +71,21 @@ public class PriceController {
                         )
                     ).addBlock(block);
                 }
+
+                //shortcut for fTokens tokens for the dashboard
+                if (ContractUtils.isPoolAddress(token)) {
+                    Optional<VaultEntity> vaultO = ContractUtils.vaultByPoolAddress(token);
+                    if (vaultO.isEmpty()) {
+                        return RestResponse.error("Not found underlying token");
+                    }
+                    return RestResponse.ok(String.format("%.8f",
+                        priceProvider.getPriceForCoin(
+                            vaultO.get().getContract().getName(),
+                            ethBlockService.getLastBlock())
+                        )
+                    ).addBlock(block);
+                }
+
                 tokenName = Tokens.findNameForContract(token.toLowerCase());
                 if (tokenName == null) {
                     return RestResponse.error("Token " + token + " not supported");
