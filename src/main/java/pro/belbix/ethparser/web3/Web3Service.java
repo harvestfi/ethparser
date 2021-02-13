@@ -408,22 +408,22 @@ public class Web3Service {
         log.info("Subscribe to Transaction Flowable");
     }
 
-    public void subscribeTransactionFlowableRange(Integer start, Integer end)
-    {
-        checkInit();
-        Flowable<Transaction> flowable;
-        log.info("Start flow for block range " + start + " - " + end);
-        flowable = callWithRetry(() -> web3.replayPastTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(start.toString())),
-                DefaultBlockParameter.valueOf(new BigInteger(end.toString()))));
-        Disposable subscription = flowable
-                .subscribe(tx -> transactionConsumers.forEach(queue ->
-                                writeInQueue(queue, tx)),
-                        e -> log.error("Transaction flowable error", e));
-        subscriptions.add(subscription);
-        initChecker();
-        log.info("Subscribe to Transaction Flowable Range");
-    }
+  public Disposable getTransactionFlowableRangeSubscription(
+      BlockingQueue<Transaction> transactionQueue,
+      DefaultBlockParameter start,
+      DefaultBlockParameter end) {
+    checkInit();
+    log.info("Start flow for block range " + start + " - " + end);
+    Flowable<Transaction> flowable =
+        callWithRetry(() -> web3.replayPastTransactionsFlowable(start, end));
+    Disposable subscription =
+        flowable.subscribe(
+            tx -> writeInQueue(transactionQueue, tx),
+            e -> log.error("Transaction flowable error", e));
+    initChecker();
+    log.info("Subscribed to Transaction Flowable Range");
+    return subscription;
+  }
 
     private BigInteger findEarliestLastBlock() {
         BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
@@ -465,28 +465,6 @@ public class Web3Service {
         } catch (Exception e) {
             log.error("Error write in queue", e);
         }
-    }
-
-    /**
-     * For use specifically with downloaders using method subscribeTransactionFlowableRange
-     */
-    public boolean isLogFlowableRangeComplete()
-    {
-        boolean complete = false;
-        if (subscriptions.stream().anyMatch(Disposable::isDisposed))
-        {
-            complete = true;
-        }
-        return complete;
-    }
-
-    /**
-     * For use specifically with downloaders using method subscribeTransactionFlowableRange
-     */
-    public void shutdown()
-    {
-        subscriptions.clear();
-        web3Checker.stop();
     }
 
     public static class LogFlowable implements Runnable {
