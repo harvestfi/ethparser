@@ -413,7 +413,9 @@ public class Web3Service {
       DefaultBlockParameter start,
       DefaultBlockParameter end) {
     checkInit();
-    log.info("Start flow for block range " + start + " - " + end);
+    String logStart = start.getValue().startsWith("0x") ? Long.decode(start.getValue()).toString() : start.getValue();
+    String logEnd = end.getValue().startsWith("0x") ? Long.decode(end.getValue()).toString() : end.getValue();
+    log.info("Start flow for block range " + logStart + " - " + logEnd);
     Flowable<Transaction> flowable =
         callWithRetry(() -> web3.replayPastTransactionsFlowable(start, end));
     Disposable subscription =
