@@ -55,6 +55,7 @@ public class Tokens {
     public final static String CRV_AAVE_TOKEN = "0xfd2a8fa60abd58efe3eee34dd494cd491dc14900".toLowerCase();
     public final static String SUSHI_TOKEN = "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase();
     public final static String HBTC_TOKEN = "0x0316eb71485b0ab14103307bf65a021042c6d380".toLowerCase();
+    public final static String SBTC_TOKEN = "0xfE18be6b3Bd88A2D2A7f928d00292E7a9963CfC6".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -98,6 +99,7 @@ public class Tokens {
     public static final String CRV_AAVE_NAME = "CRV_AAVE";
     public static final String SUSHI_NAME = "SUSHI";
     public static final String HBTC_NAME = "HBTC";
+    public static final String SBTC_NAME = "SBTC";
 
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -171,6 +173,10 @@ public class Tokens {
 
         addTokenInfo(new TokenInfo(HBTC_NAME, HBTC_TOKEN, 9076087)
             .addLp("UNI_LP_HBTC_ETH", 0, WETH_NAME));
+
+        // todo implement via curve, don't have UNI liquidity
+        addTokenInfo(new TokenInfo(SBTC_NAME, SBTC_TOKEN, Integer.MAX_VALUE)
+            .addLp("", Integer.MAX_VALUE, WETH_NAME));
 
         //todo stablecoins
         addTokenInfo(new TokenInfo(USDC_NAME, USDC_TOKEN, 0).setDivider(D6));
