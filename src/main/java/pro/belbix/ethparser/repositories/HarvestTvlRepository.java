@@ -10,6 +10,8 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
 
     HarvestTvlEntity findFirstByCalculateTimeAndLastTvl(long time, double lastTvl);
 
+    List<HarvestTvlEntity> findAllByOrderByCalculateTime();
+
     @Query(nativeQuery = true, value = "" +
         "select " +
         "       MAX(agg.calculate_hash) calculate_hash,  " +
