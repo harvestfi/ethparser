@@ -54,6 +54,7 @@ public class Tokens {
     public final static String CRV_STETH_TOKEN = "0x06325440D014e39736583c165C2963BA99fAf14E".toLowerCase();
     public final static String CRV_AAVE_TOKEN = "0xfd2a8fa60abd58efe3eee34dd494cd491dc14900".toLowerCase();
     public final static String SUSHI_TOKEN = "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase();
+    public final static String HBTC_TOKEN = "0x0316eb71485b0ab14103307bf65a021042c6d380".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -96,6 +97,7 @@ public class Tokens {
     public static final String CRV_STETH_NAME = "CRV_STETH";
     public static final String CRV_AAVE_NAME = "CRV_AAVE";
     public static final String SUSHI_NAME = "SUSHI";
+    public static final String HBTC_NAME = "HBTC";
 
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -166,6 +168,9 @@ public class Tokens {
 
         addTokenInfo(new TokenInfo(SUSHI_NAME, SUSHI_TOKEN, 10736094)
             .addLp("SUSHI_LP_SUSHI_ETH", 0, WETH_NAME));
+
+        addTokenInfo(new TokenInfo(HBTC_NAME, HBTC_TOKEN, 9076087)
+            .addLp("UNI_LP_HBTC_ETH", 0, WETH_NAME));
 
         //todo stablecoins
         addTokenInfo(new TokenInfo(USDC_NAME, USDC_TOKEN, 0).setDivider(D6));
