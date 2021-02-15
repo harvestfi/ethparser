@@ -38,10 +38,10 @@ public class AppProperties {
     private String startBlock = "";
     private boolean parseHarvest = false;
     private boolean parseUniswapTransactions = false;
-    private boolean parseDeployerTransactions = false;
+    private boolean parseDeployerTransactions = true;
 
     private boolean parseLog = true;
-    private boolean parseTransactions = false;
+    private boolean parseTransactions = true;
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
