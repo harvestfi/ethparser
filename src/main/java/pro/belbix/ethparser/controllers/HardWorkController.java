@@ -2,6 +2,7 @@ package pro.belbix.ethparser.controllers;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,6 +14,7 @@ import pro.belbix.ethparser.repositories.HardWorkRepository;
 
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @Log4j2
 public class HardWorkController {

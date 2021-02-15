@@ -9,21 +9,18 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.HarvestDTO;
 import pro.belbix.ethparser.model.TvlHistory;
 import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 
 @Service
 @Log4j2
 public class HarvestTvlDBService {
 
     private final HarvestRepository harvestRepository;
-    private final HarvestTvlRepository harvestTvlRepository;
 
-    public HarvestTvlDBService(HarvestRepository harvestRepository,
-                               HarvestTvlRepository harvestTvlRepository) {
+    public HarvestTvlDBService(HarvestRepository harvestRepository) {
         this.harvestRepository = harvestRepository;
-        this.harvestTvlRepository = harvestTvlRepository;
     }
 
+    //todo move calculation on the frontend
     public List<TvlHistory> fetchTvlByVault(String name, long startTime, long endTime) {
         log.debug("get tvl for " + name);
         List<HarvestDTO> harvestTxEntities = harvestRepository.findAllByVaultOrderByBlockDate(name, startTime, endTime);
@@ -42,9 +39,7 @@ public class HarvestTvlDBService {
                 TvlHistory tvlHistoryDTO = new TvlHistory();
                 tvlHistoryDTO.setCalculateTime(harvestTxEntity.getBlockDate());
                 tvlHistoryDTO.setLastTvl(harvestTxEntity.getLastUsdTvl());
-                if (harvestTxEntity.getLastTvl() != null) {
-                    tvlHistoryDTO.setLastTvlNative(harvestTxEntity.getLastTvl());
-                }
+                tvlHistoryDTO.setLastTvlNative(harvestTxEntity.getLastTvl());
                 tvlHistoryDTO.setSharePrice(harvestTxEntity.getSharePrice());
                 tvlHistoryDTO.setLastOwnersCount(harvestTxEntity.getOwnerCount());
 

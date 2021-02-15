@@ -64,7 +64,7 @@ public class UniOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+        double amountUsd = priceProvider.getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue());
         dto.setOwnerBalanceUsd(amountUsd);
         return true;
     }

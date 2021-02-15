@@ -68,10 +68,12 @@ public class FunctionsUtils {
         double coin0Balance = 0;
         double coin1Balance = 0;
         if (!ZERO_ADDRESS.equals(coin0)) {
-            coin0Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin0, block).orElse(ZERO), coin0);
+            coin0Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin0, block)
+                .orElse(ZERO), coin0);
         }
         if (!ZERO_ADDRESS.equals(coin1)) {
-            coin1Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin1, block).orElse(ZERO), coin1);
+            coin1Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin1, block)
+                .orElse(ZERO), coin1);
         }
         return new Tuple2<>(coin0Balance, coin1Balance);
     }

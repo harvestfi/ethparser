@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.*;
 import pro.belbix.ethparser.entity.HarvestTvlEntity;
 import pro.belbix.ethparser.model.TvlHistory;
@@ -8,6 +9,7 @@ import pro.belbix.ethparser.service.HarvestTvlDBService;
 
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 public class TvlController {
 

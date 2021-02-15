@@ -87,6 +87,12 @@ public class HarvestOwnerBalanceCalculator {
         }
 
         double balance = parseAmount(balanceI, vaultHash);
+        if (balance == 0
+            && dto.getAmount() != 0
+            && "Deposit".equals(dto.getMethodName())) {
+            log.info("Zero balance for deposit, assume owner is external contract");
+            //todo investigate how to determinate the balance for contracts
+        }
         dto.setOwnerBalance(balance);
 
         //fill USD value
@@ -96,7 +102,7 @@ public class HarvestOwnerBalanceCalculator {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
             double amountUsd = priceProvider
-                .getLpPositionAmountInUsd(lpHash, balance, block);
+                .getLpTokenUsdPrice(lpHash, balance, block);
             dto.setOwnerBalanceUsd(amountUsd);
         } else {
             double price = priceProvider.getPriceForCoin(dto.getVault(), block);
@@ -122,7 +128,7 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock());
+        double amountUsd = priceProvider.getLpTokenUsdPrice(lpHash, balance, dto.getBlock());
         dto.setOwnerBalanceUsd(amountUsd);
         return true;
     }

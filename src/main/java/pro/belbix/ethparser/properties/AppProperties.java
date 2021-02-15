@@ -16,6 +16,7 @@ public class AppProperties {
     private String web3Password = "";
 
     private boolean onlyApi = false;
+    private boolean onlyParse = false;
     private boolean testWs = false;
     private int testWsRate = 1000;
     private boolean devMod = false;

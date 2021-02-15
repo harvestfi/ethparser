@@ -237,7 +237,7 @@ public class HardWorkParser implements Web3Parser {
 
     private double calculateVaultRewardUsdPrice(String vaultName, String underlyingTokenHash, long block) {
         if (ContractUtils.isLp(vaultName)) {
-            return priceProvider.getLpPositionAmountInUsd(underlyingTokenHash, 1, block);
+            return priceProvider.getLpTokenUsdPrice(underlyingTokenHash, 1, block);
         } else {
             return priceProvider.getPriceForCoin(vaultName, block);
         }

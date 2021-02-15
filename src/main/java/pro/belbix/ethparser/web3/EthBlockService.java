@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3;
 
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import pro.belbix.ethparser.entity.BlockCacheEntity;
@@ -43,7 +44,9 @@ public class EthBlockService {
 
     public long getLastBlock() {
         if (lastBlock == 0) {
-            lastBlock = web3.fetchCurrentBlock().longValue();
+            lastBlock = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
+                .map(BlockCacheEntity::getBlock)
+                .orElse(0L);
         }
         return lastBlock;
     }

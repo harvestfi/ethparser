@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -19,9 +20,11 @@ import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
@@ -41,19 +44,23 @@ public class PriceLogParser implements Web3Parser {
     private final ParserInfo parserInfo;
     private final PriceDBService priceDBService;
     private final AppProperties appProperties;
+    private final FunctionsUtils functionsUtils;
     private Instant lastTx = Instant.now();
     private long count = 0;
-    private Map<String, PriceDTO> lastPrices = new HashMap<>();
+    private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
     public PriceLogParser(Web3Service web3Service,
                           EthBlockService ethBlockService,
                           ParserInfo parserInfo,
-                          PriceDBService priceDBService, AppProperties appProperties) {
+                          PriceDBService priceDBService,
+                          AppProperties appProperties,
+                          FunctionsUtils functionsUtils) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.priceDBService = priceDBService;
         this.appProperties = appProperties;
+        this.functionsUtils = functionsUtils;
     }
 
     @Override
@@ -114,9 +121,26 @@ public class PriceLogParser implements Web3Parser {
         if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
             return null;
         }
+
+        // for lpToken price we should know staked amounts
+        fillLpStats(dto);
+
         dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
         log.info(dto.print());
         return dto;
+    }
+
+    private void fillLpStats(PriceDTO dto) {
+        String lpAddress = ContractUtils.getAddressByName(dto.getSource())
+            .orElseThrow(() -> new IllegalStateException("Lp address not found for " + dto.getSource()));
+        Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, dto.getBlock());
+        double lpBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
+                .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
+            lpAddress);
+        dto.setLpTotalSupply(lpBalance);
+        dto.setLpToken0Pooled(lpPooled.component1());
+        dto.setLpToken1Pooled(lpPooled.component2());
     }
 
     private boolean skipSimilar(PriceDTO dto) {

@@ -93,13 +93,47 @@ public class HarvestDBService {
     }
 
     public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
-        double tvl = 0.0;
-        Double farmPrice = 0.0;
-        UniswapDTO uniswapDTO = uniswapRepository
-            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
-        if (uniswapDTO != null) {
-            farmPrice = uniswapDTO.getLastPrice();
+        if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
+            log.warn("Found the same harvestTvl record for " + dto);
         }
+        HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+        harvestTvl.setCalculateHash(dto.getId());
+        harvestTvl.setCalculateTime(dto.getBlockDate());
+
+        fillLastFarmPrice(dto, harvestTvl);
+        fillSimpleDataFromDto(dto, harvestTvl);
+        //should be after price filling
+        fillTvl(dto, harvestTvl);
+        return harvestTvl;
+    }
+
+    public void fillSimpleDataFromDto(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
+        if (dto.getAllPoolsOwnersCount() != null) {
+            harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
+        if (dto.getAllOwnersCount() != null) {
+            harvestTvl.setLastAllOwnersCount(dto.getAllOwnersCount());
+        } else {
+            log.warn("Empty AllPoolsOwnersCount " + dto.print());
+        }
+    }
+
+    public void fillLastFarmPrice(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
+        UniswapDTO uniswapDTO = uniswapRepository
+            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(
+                dto.getBlockDate(), "FARM");
+        if (uniswapDTO != null) {
+            harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
+        } else {
+            harvestTvl.setLastPrice(0.0);
+        }
+    }
+
+    public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
+        double tvl = 0.0;
+
         List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
         allowContracts.stream()
             .map(LpContracts.lpHashToName::get)
@@ -113,34 +147,10 @@ public class HarvestDBService {
             if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
                 lastHarvest = dto; // for avoiding JPA wrong synchronisation
             }
-            tvl += calculateActualTvl(lastHarvest, farmPrice);
+            tvl += calculateActualTvl(lastHarvest, harvestTvl.getLastPrice());
         }
 
-        HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
-        harvestTvl.setCalculateTime(dto.getBlockDate());
         harvestTvl.setLastTvl(tvl);
-        if (dto.getAllPoolsOwnersCount() != null) {
-            harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
-        } else {
-            log.warn("Empty AllPoolsOwnersCount " + dto.print());
-        }
-        if (dto.getAllOwnersCount() != null) {
-            harvestTvl.setLastAllOwnersCount(dto.getAllOwnersCount());
-        } else {
-            log.warn("Empty AllPoolsOwnersCount " + dto.print());
-        }
-        harvestTvl.setCalculateHash(dto.getHash());
-        harvestTvl.setLastPrice(farmPrice);
-
-        if (uniswapDTO != null) {
-            harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
-        }
-
-        if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
-            log.info("Found the same (" + tvl + ") last TVL record for " + dto);
-        }
-        dto.setLastAllUsdTvl(tvl);
-        return harvestTvl;
     }
 
     private double calculateActualTvl(HarvestDTO dto, Double farmPrice) {
@@ -248,7 +258,7 @@ public class HarvestDBService {
                 continue;
             }
 
-            double sharePrice = transfer.getSharePrice();
+            Double sharePrice = transfer.getSharePrice();
             if (transfer.getSharePrice() == null
                 || transfer.getSharePrice() == 0.0) {
                 sharePrice = 1.0;
@@ -273,7 +283,7 @@ public class HarvestDBService {
         return profit;
     }
 
-    private double calculateProfitUsd(HarvestDTO dto) {
+    static double calculateProfitUsd(HarvestDTO dto) {
         if (dto.getLastUsdTvl() == null
             || dto.getLastUsdTvl() == 0.0
             || dto.getLastTvl() == null
