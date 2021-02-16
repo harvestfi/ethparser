@@ -43,7 +43,7 @@ public class TransferDownloader {
     }
 
     public void start() {
-        if (contractName == null) {
+        if (contractName == null || contractName.isEmpty()) {
             throw new IllegalStateException("Empty contract");
         }
         handleLoop(from, to, (from, end) -> parse(from, end, Tokens.findContractForName(contractName)));
