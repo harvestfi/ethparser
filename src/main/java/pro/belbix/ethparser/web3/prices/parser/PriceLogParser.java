@@ -173,8 +173,10 @@ public class PriceLogParser implements Web3Parser {
         String keyCoinName = Tokens.findNameForContract(keyCoinHash);
         Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lp);
         Tuple2<String, String> tokensNames = new Tuple2<>(
-            ContractUtils.getNameByAddress(tokensAdr.component1()).orElse("unknown"),
-            ContractUtils.getNameByAddress(tokensAdr.component2()).orElse("unknown")
+            ContractUtils.getNameByAddress(tokensAdr.component1())
+                .orElseThrow(() -> new IllegalStateException("Not found token name for " + tokensAdr.component1())),
+            ContractUtils.getNameByAddress(tokensAdr.component2())
+                .orElseThrow(() -> new IllegalStateException("Not found token name for " + tokensAdr.component2()))
         );
 
         if (tokensNames.component1().equals(keyCoinName)) {

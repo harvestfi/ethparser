@@ -29,6 +29,23 @@ public class PriceLogParserTest {
     @Autowired
     private Web3Service web3Service;
 
+//    @Test
+//    public void priceParseUNI_LP_USDC_IDX() {
+//        assertOnBlock(
+//            "0xc372089019614e5791b08b5036f298d002a8cbef",
+//            11856484,
+//            1,
+//            "0x6107429ff8cbd2f7e6b54f1d337201aa89f2a234a632ea4b0c888ce50d05c250",
+//            "",
+//            1,
+//            "",
+//            9.95014151163403E-4,
+//            "",
+//            200.16815759936367,
+//            201171.166626445
+//        );
+//    }
+
     @Test
     public void priceParseUNI_LP_DAI_BSG() {
         assertOnBlock(

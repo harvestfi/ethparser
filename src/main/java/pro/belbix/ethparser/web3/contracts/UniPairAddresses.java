@@ -18,8 +18,8 @@ class UniPairAddresses {
         new LpContract(10092348, "UNI_LP_USDC_WBTC", "", "0x004375dff511095cc5a197a54140a24efef3a416"),
         new LpContract(10777016, "UNI_LP_USDC_FARM", "FARM", "0x514906fc121c7878424a5c928cad1852cc545892"),
         new LpContract(10777652, "UNI_LP_WETH_FARM", "FARM", "0x56feaccb7f750b997b36a68625c7c596f0b41a58"),
-        new LpContract(11004221, "UNI_LP_IDX_ETH", "", "0x3452a7f30a712e415a0674c0341d44ee9d9786f9"),
-        new LpContract(11096263, "UNI_LP_USDC_IDX", "IDX", "0xc372089019614e5791b08b5036f298d002a8cbef"),
+        new LpContract(11004221, "UNI_LP_IDX_ETH", "IDX", "0x3452a7f30a712e415a0674c0341d44ee9d9786f9"),
+        new LpContract(11096263, "UNI_LP_USDC_IDX", "", "0xc372089019614e5791b08b5036f298d002a8cbef"),
         new LpContract(10836224, "UNI_LP_ETH_DPI", "DPI", "0x4d5ef58aac27d99935e5b6b4a6778ff292059991"),
         new LpContract(11380633, "UNI_LP_WBTC_BADGER", "BADGER", "0xcd7989894bc033581532d2cd88da5db0a4b12859"),
         new LpContract(10829331, "SUSHI_LP_ETH_DAI", "", "0xc3d03e4f041fd4cd388c549ee2a29a9e5075882f"),
@@ -45,6 +45,7 @@ class UniPairAddresses {
         new LpContract(11380570, "UNI_LP_MTSLA_UST", "MTSLA", "0x5233349957586A8207c52693A959483F9aeAA50C"),
         new LpContract(10097736, "UNI_LP_USDC_EURS", "EURS", "0x767055e2a9f15783b1ec5ef134a89acf3165332f"),
         new LpContract(10829340, "SUSHI_LP_SUSHI_ETH", "SUSHI", "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0"),
-        new LpContract(11038392, "UNI_LP_HBTC_ETH", "HBTC", "0xa6f4eae7fdaa20e632c45d4cd39e4f3961892322")
+        new LpContract(11038392, "UNI_LP_HBTC_ETH", "HBTC", "0xa6f4eae7fdaa20e632c45d4cd39e4f3961892322"),
+        new LpContract(10161671, "UNI_LP_ETH_RENBTC", "RENBTC", "0x81fbef4704776cc5bba0a5df3a90056d2c6900b3")
     );
 }

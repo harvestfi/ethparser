@@ -19,7 +19,7 @@ public class Tokens {
     public final static String DAI_TOKEN = "0x6b175474e89094c44da98b954eedeac495271d0f".toLowerCase();
     public final static String TBTC_TOKEN = "0x8daebade922df735c38c80c7ebd708af50815faa".toLowerCase();
     public final static String USDT_TOKEN = "0xdac17f958d2ee523a2206206994597c13d831ec7".toLowerCase();
-    public final static String IDX_TOKEN = "0x95b3497bbcccc46a8f45f5cf54b0878b39f8d96c".toLowerCase();
+    public final static String IDX_TOKEN = "0x0954906da0Bf32d5479e25f46056d22f08464cab".toLowerCase();
     public final static String DPI_TOKEN = "0x1494ca1f11d487c2bbe4543e90080aeba4ba3c2b".toLowerCase();
     public final static String GRAIN_TOKEN = "0x6589fe1271A0F29346796C6bAf0cdF619e25e58e".toLowerCase();
     public final static String TUSD_TOKEN = "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase();
@@ -53,6 +53,7 @@ public class Tokens {
     public final static String SUSHI_TOKEN = "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase();
     public final static String HBTC_TOKEN = "0x0316eb71485b0ab14103307bf65a021042c6d380".toLowerCase();
     public final static String SBTC_TOKEN = "0xfE18be6b3Bd88A2D2A7f928d00292E7a9963CfC6".toLowerCase();
+    public final static String RENBTC_TOKEN = "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D".toLowerCase();
 
     public static final String FARM_NAME = "FARM";
     public static final String BADGER_NAME = "BADGER";
@@ -97,6 +98,7 @@ public class Tokens {
     public static final String SUSHI_NAME = "SUSHI";
     public static final String HBTC_NAME = "HBTC";
     public static final String SBTC_NAME = "SBTC";
+    public static final String RENBTC_NAME = "RENBTC";
 
     public final static Set<TokenInfo> tokenInfos = new HashSet<>();
 
@@ -170,6 +172,9 @@ public class Tokens {
 
         addTokenInfo(new TokenInfo(HBTC_NAME, HBTC_TOKEN, 9076087)
             .addLp("UNI_LP_HBTC_ETH", 0, WETH_NAME));
+
+        addTokenInfo(new TokenInfo(RENBTC_NAME, RENBTC_TOKEN, 9736969)
+            .addLp("UNI_LP_ETH_RENBTC", 0, WETH_NAME));
 
         // todo implement via curve, don't have UNI liquidity
         addTokenInfo(new TokenInfo(SBTC_NAME, SBTC_TOKEN, Integer.MAX_VALUE)

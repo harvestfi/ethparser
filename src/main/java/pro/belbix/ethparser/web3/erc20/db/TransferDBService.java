@@ -87,7 +87,7 @@ public class TransferDBService {
             balance = 0.0;
         }
         if (Math.abs(balance - expectedBalance) > 1) {
-            log.info("Wrong balance for " + holder + " dbBalance: " + balance + " != " + expectedBalance);
+            log.info("Balance for " + holder + " dbBalance: " + balance + " != " + expectedBalance);
             return false;
         }
         return true;
