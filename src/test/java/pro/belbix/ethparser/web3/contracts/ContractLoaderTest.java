@@ -3,13 +3,9 @@ package pro.belbix.ethparser.web3.contracts;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.reactivex.disposables.Disposable;
-import java.math.BigInteger;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
@@ -146,61 +140,5 @@ public class ContractLoaderTest {
             () -> assertTrue("MGOOGL_UST", ContractUtils.isLp("MGOOGL_UST")),
             () -> assertTrue("MTSLA_UST", ContractUtils.isLp("MTSLA_UST"))
         );
-    }
-
-    @Test
-    @Ignore
-    public void getCreateDate() throws InterruptedException {
-        DefaultBlockParameter start = DefaultBlockParameter
-            .valueOf(new BigInteger("10770072"));
-        DefaultBlockParameter end = DefaultBlockParameter
-            .valueOf(new BigInteger("11792110"));
-
-//        DefaultBlockParameter start = DefaultBlockParameter
-//            .valueOf(new BigInteger("11792065"));
-        // , 10770072, 11792110
-        AtomicInteger counter = new AtomicInteger();
-        Disposable disposable = web3Service.getWeb3().replayPastTransactionsFlowable(start, end)
-            .subscribe(tx -> {
-                counter.incrementAndGet();
-                if (counter.get() % 10000 == 0) {
-                    System.out.println("Handle " + counter.get() + " " + tx.getBlockNumber());
-                }
-                if (DEPLOYER.equals(tx.getFrom())) {
-                    TransactionReceipt receipt = web3Service.fetchTransactionReceipt(tx.getHash());
-
-                    Contract vault = HarvestVaultAddresses.VAULTS.stream()
-                        .filter(v -> v.getAddress().equals(receipt.getContractAddress()))
-                        .findFirst().orElse(null);
-                    if (vault != null) {
-                        System.out.println(receipt.getBlockNumber() + " " + vault.getName());
-                        vault.setCreatedOnBlock(receipt.getBlockNumber().intValue());
-                    }
-
-                    Contract pool = HarvestPoolAddresses.POOLS.stream()
-                        .filter(v -> v.getAddress().equals(receipt.getContractAddress()))
-                        .findFirst().orElse(null);
-                    if (pool != null) {
-                        System.out.println(receipt.getBlockNumber() + " " + pool.getName());
-                        pool.setCreatedOnBlock(receipt.getBlockNumber().intValue());
-                    }
-                }
-            });
-        while (!disposable.isDisposed()) {
-            Thread.sleep(100);
-        }
-        System.out.println("***************************************************");
-        System.out.println("******************* POOLS ********************************");
-        System.out.println("***************************************************");
-        HarvestPoolAddresses.POOLS.forEach(c ->
-            System.out.println(c.getCreatedOnBlock() + " " + c.getName()));
-
-        System.out.println("***************************************************");
-        System.out.println("******************* VAULTS ********************************");
-        System.out.println("***************************************************");
-
-        HarvestVaultAddresses.VAULTS.forEach(c ->
-            System.out.println(c.getCreatedOnBlock() + " " + c.getName()));
-
     }
 }

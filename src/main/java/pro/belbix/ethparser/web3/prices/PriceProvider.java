@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.isDivisionSequenceSecondDividesFirst;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.Tokens.isStableCoin;
 import static pro.belbix.ethparser.web3.contracts.Tokens.simplifyName;
 
@@ -22,8 +22,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
 
@@ -100,28 +100,27 @@ public class PriceProvider {
                                          double amount,
                                          long block
     ) {
-        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpAddress);
-        if (names == null) {
-            throw new IllegalStateException("Not found names for " + lpAddress);
-        }
-
-        Tuple2<Double, Double> usdPrices = new Tuple2<>(
-            getPriceForCoin(names.component1(), block),
-            getPriceForCoin(names.component2(), block)
-        );
+        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lpAddress);
 
         double positionFraction = amount / lpBalance;
 
         double firstCoin = positionFraction * lpPooled.component1();
         double secondCoin = positionFraction * lpPooled.component2();
 
-        double firstVaultUsdAmount = firstCoin * usdPrices.component1();
-        double secondVaultUsdAmount = secondCoin * usdPrices.component2();
+        double firstVaultUsdAmount = firstCoin * getPriceForCoin(tokensAdr.component1(), block);
+        double secondVaultUsdAmount = secondCoin * getPriceForCoin(tokensAdr.component2(), block);
         return firstVaultUsdAmount + secondVaultUsdAmount;
     }
 
     // you can use Vault name instead of coinName if it is not a LP
     public Double getPriceForCoin(String coinName, long block) {
+        if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
+            return 0.0;
+        }
+        if (coinName.startsWith("0x")) {
+            coinName = ContractUtils.getNameByAddress(coinName)
+                .orElseThrow(() -> new IllegalStateException("Wrong input"));
+        }
         String coinNameSimple = simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
         if (isStableCoin(coinNameSimple)) {
@@ -135,13 +134,19 @@ public class PriceProvider {
     }
 
     public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {
-        Tuple2<String, String> names = LpContracts.lpHashToCoinNames.get(lpHash);
-        if (names == null) {
-            throw new IllegalStateException("Not found names for " + lpHash);
+        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lpHash);
+        String token0 = tokensAdr.component1();
+        String token1 = tokensAdr.component2();
+        // zero address in 1inch should be replaced with ETH
+        if (ZERO_ADDRESS.equalsIgnoreCase(token0)) {
+            token0 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+        }
+        if (ZERO_ADDRESS.equalsIgnoreCase(token1)) {
+            token1 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
         }
         return new Tuple2<>(
-            getPriceForCoin(names.component1(), block),
-            getPriceForCoin(names.component2(), block)
+            getPriceForCoin(token0, block),
+            getPriceForCoin(token1, block)
         );
     }
 
@@ -195,17 +200,15 @@ public class PriceProvider {
         TokenInfo tokenInfo = Tokens.getTokenInfo(name);
         String lpName = tokenInfo.findLp(block).component1();
         String otherTokenName = tokenInfo.findLp(block).component2();
-        String lpHash = LpContracts.lpNameToHash.get(lpName);
-        if (lpHash == null) {
-            throw new IllegalStateException("Not found hash for " + tokenInfo);
-        }
+        String lpHash = ContractUtils.getAddressByName(lpName, ContractType.UNI_PAIR)
+            .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
 
         Tuple2<Double, Double> reserves = functionsUtils.callReserves(lpHash, block);
         if (reserves == null) {
             throw new IllegalStateException("Can't reach reserves for " + tokenInfo);
         }
         double price;
-        if (isDivisionSequenceSecondDividesFirst(lpHash)) {
+        if (ContractUtils.isDivisionSequenceSecondDividesFirst(lpHash, tokenInfo.getTokenAddress())) {
             price = reserves.component2() / reserves.component1();
         } else {
             price = reserves.component1() / reserves.component2();

@@ -20,10 +20,10 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)

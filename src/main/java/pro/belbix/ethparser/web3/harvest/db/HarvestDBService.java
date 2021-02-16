@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -21,7 +21,6 @@ import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -135,8 +134,9 @@ public class HarvestDBService {
         double tvl = 0.0;
 
         List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
-        allowContracts.stream()
-            .map(LpContracts.lpHashToName::get)
+        PARSABLE_UNI_PAIRS.stream()
+            .map(c -> ContractUtils.getNameByAddress(c)
+                .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
             .forEach(contracts::add);
 
         for (String vaultName : contracts) {

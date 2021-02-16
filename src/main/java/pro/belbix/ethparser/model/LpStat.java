@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class LpStat {
@@ -25,10 +25,10 @@ public class LpStat {
                                     double secondCoinPrice
     ) {
         try {
-            Tuple2<String, String> coinNames = LpContracts.lpHashToCoinNames.get(lpHash);
+            Tuple2<String, String> lpTokens = ContractUtils.uniPairTokensByAddress(lpHash);
             LpStat lpStat = new LpStat();
-            lpStat.setCoin1(coinNames.component1());
-            lpStat.setCoin2(coinNames.component2());
+            lpStat.setCoin1(ContractUtils.getNameByAddress(lpTokens.component1()).orElse("unknown"));
+            lpStat.setCoin2(ContractUtils.getNameByAddress(lpTokens.component2()).orElse("unknown"));
             lpStat.setAmount1(firstCoinAmount);
             lpStat.setAmount2(secondCoinAmount);
             lpStat.setPrice1(firstCoinPrice);

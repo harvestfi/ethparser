@@ -2,9 +2,6 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WBTC_BADGER;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -36,20 +33,20 @@ public class UniswapLPLogParseTest {
 
     @Test
     @Ignore
-    public void parseFarmLp() {
-        parseLp(UNI_LP_USDC_FARM, 11165610, null);
+    public void parseUNI_LP_USDC_FARM() {
+        parseLp("0x514906fc121c7878424a5c928cad1852cc545892", 11165610, null);
     }
 
     @Test
     @Ignore
     public void parseEthFarmLp() {
-        parseLp(UNI_LP_WETH_FARM, 11165610, null);
+        parseLp("0x56feaccb7f750b997b36a68625c7c596f0b41a58", 11165610, null);
     }
 
     @Test
     @Ignore
     public void parseBtcBadgerLp() {
-        parseLp(UNI_LP_WBTC_BADGER, 11381099, 11382099);
+        parseLp("0xcd7989894bc033581532d2cd88da5db0a4b12859", 11381099, 11382099);
     }
 
     private void parseLp(String contract, Integer start, Integer end) {

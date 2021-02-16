@@ -14,8 +14,8 @@ import pro.belbix.ethparser.entity.eth.VaultEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -42,7 +42,10 @@ public class PriceController {
         try {
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
-                lpAddress = LpContracts.lpNameToHash.get(lp);
+                if(!ContractUtils.isUniPairName(lp)) {
+                    return RestResponse.error("Not UniPair address");
+                }
+                lpAddress = ContractUtils.getAddressByName(lp, ContractType.UNI_PAIR).orElse(null);
                 if (lpAddress == null) {
                     return RestResponse.error("LP " + lp + " not supported");
                 }
@@ -64,7 +67,7 @@ public class PriceController {
             long block = ethBlockService.getLastBlock();
             if (token.startsWith("0x")) {
                 //shortcut for LP tokens from the dashboard
-                if (LpContracts.lpHashToName.containsKey(token.toLowerCase())) {
+                if (ContractUtils.isUniPairAddress(token)) {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getLpTokenUsdPrice(
                             token.toLowerCase(), 1, ethBlockService.getLastBlock())

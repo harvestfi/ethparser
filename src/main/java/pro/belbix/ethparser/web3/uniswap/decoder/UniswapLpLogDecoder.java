@@ -1,10 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.contracts.Tokens.firstCoinIsKey;
-import static pro.belbix.ethparser.web3.contracts.Tokens.mapLpAddressToCoin;
-import static pro.belbix.ethparser.web3.contracts.Tokens.mapLpAddressToOtherCoin;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.parsable;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -16,9 +12,11 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class UniswapLpLogDecoder extends MethodDecoder {
@@ -51,7 +49,8 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         tx.setLogId(log.getLogIndex().longValue());
         tx.setBlock(log.getBlockNumber());
         tx.setSuccess(true);
-        tx.setCoinAddress(keyCoinForLp.get(log.getAddress()));
+        tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(log.getAddress())
+            .orElseThrow(() -> new IllegalStateException("Not found key token for " + log.getAddress())));
         tx.setLpAddress(log.getAddress());
         tx.setMethodName(methodName);
         enrich(types, methodName, tx, log);
@@ -61,7 +60,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
         if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return parsable.contains(log.getAddress());
+        return PARSABLE_UNI_PAIRS.contains(log.getAddress());
     }
 
     private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {
@@ -89,15 +88,15 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 }
 
                 if (
-                    (amount1In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
-                        || (amount0In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                    (amount1In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
+                        || (amount0In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
                 ) {
                     tx.setBuy(false);
                     tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
                     tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
                 } else if (
-                    (amount0In.equals(BigInteger.ZERO) && firstCoinIsKey(log.getAddress()))
-                        || (amount1In.equals(BigInteger.ZERO) && !firstCoinIsKey(log.getAddress()))
+                    (amount0In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
+                        || (amount1In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
                 ) {
                     tx.setBuy(true);
                     tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
@@ -112,7 +111,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 tx.setBuy(true);
                 tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
                 tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
-                if (firstCoinIsKey(log.getAddress())) {
+                if (firstTokenIsKey(log.getAddress())) {
                     tx.setAmountOut((BigInteger) types.get(1).getValue());
                     tx.setAmountIn((BigInteger) types.get(2).getValue());
                 } else {
@@ -126,7 +125,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 tx.setBuy(false);
                 tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
                 tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                if (firstCoinIsKey(log.getAddress())) {
+                if (firstTokenIsKey(log.getAddress())) {
                     tx.setAmountIn((BigInteger) types.get(2).getValue());
                     tx.setAmountOut((BigInteger) types.get(3).getValue());
                 } else {
@@ -137,6 +136,65 @@ public class UniswapLpLogDecoder extends MethodDecoder {
                 return;
         }
         throw new IllegalStateException("Unknown method " + methodName);
+    }
+
+    public static boolean firstTokenIsKey(String lpAddress) {
+        Tuple2<String, String> tokens = ContractUtils.uniPairTokensByAddress(lpAddress);
+        String keyCoin = ContractUtils.findKeyTokenForUniPair(lpAddress)
+            .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
+        if (tokens.component1().equalsIgnoreCase(keyCoin)) {
+            return true;
+        } else if (tokens.component2().equalsIgnoreCase(keyCoin)) {
+            return false;
+        } else {
+            throw new IllegalStateException("Not found key name in lp " + lpAddress);
+        }
+    }
+
+    private static String mapLpAddressToOtherCoin(String address) {
+        return mapLpAddress(address, false);
+    }
+
+    private static String mapLpAddressToCoin(String address) {
+        return mapLpAddress(address, true);
+    }
+
+    private static String mapLpAddress(String address, boolean isKeyCoin) {
+        String keyCoinAdr = ContractUtils.findKeyTokenForUniPair(address)
+            .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
+        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(address);
+
+        int i;
+        if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {
+            i = 1;
+        } else if (tokensAdr.component2().equalsIgnoreCase(keyCoinAdr)) {
+            i = 2;
+        } else {
+            throw new IllegalStateException("Key coin not found in " + tokensAdr);
+        }
+        if (isKeyCoin) {
+            return getStringFromPair(tokensAdr, i, false);
+        } else {
+            return getStringFromPair(tokensAdr, i, true);
+        }
+    }
+
+    private static String getStringFromPair(Tuple2<String, String> pair, int i, boolean inverse) {
+        if (i == 1) {
+            if (inverse) {
+                return pair.component2();
+            } else {
+                return pair.component1();
+            }
+        } else if (i == 2) {
+            if (inverse) {
+                return pair.component1();
+            } else {
+                return pair.component2();
+            }
+        } else {
+            throw new IllegalStateException("Wrong index for pair " + i);
+        }
     }
 
     @Override

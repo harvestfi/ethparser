@@ -12,6 +12,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.RewardDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
@@ -53,7 +54,7 @@ public class RewardDownloader {
             }
             logger.info("Start parse rewards for " + poolName);
             handleLoop(from, to, (from, end) -> parse(from, end,
-                ContractUtils.getAddressByName(poolName)
+                ContractUtils.getAddressByName(poolName, ContractType.POOL)
                     .orElseThrow(() -> new IllegalStateException("Not found address by " + poolName))
             ));
         }

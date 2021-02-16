@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY_TIME_LOCK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

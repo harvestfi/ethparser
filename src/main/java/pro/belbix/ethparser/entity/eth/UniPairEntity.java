@@ -29,6 +29,11 @@ public class UniPairEntity {
     @Fetch(FetchMode.JOIN)
     private ContractEntity contract;
     private Long updatedBlock;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "key_token")
+    @Fetch(FetchMode.JOIN)
+    private TokenEntity keyToken;
+    private int type;
 
     // contract info
     private Long decimals;

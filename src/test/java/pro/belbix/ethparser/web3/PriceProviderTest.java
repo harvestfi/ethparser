@@ -1,8 +1,7 @@
 package pro.belbix.ethparser.web3;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static pro.belbix.ethparser.web3.contracts.Tokens.BAS_NAME;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WBTC_BADGER;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +29,7 @@ public class PriceProviderTest {
     @Test
     public void getLpPositionAmountInUsdWithNonNullBlockTest() {
         double amountUsd =
-            priceProvider.getLpTokenUsdPrice(UNI_LP_WBTC_BADGER, 0.00000630081174343, 11387098L);
+            priceProvider.getLpTokenUsdPrice("0xcd7989894bc033581532d2cd88da5db0a4b12859", 0.00000630081174343, 11387098L);
         assertEquals("437,96", String.format("%.2f", amountUsd));
     }
 

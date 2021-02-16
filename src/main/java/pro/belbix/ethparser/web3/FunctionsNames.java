@@ -26,5 +26,7 @@ public class FunctionsNames {
     public static final String SYMBOL = "symbol";
     public static final String DECIMALS = "decimals";
     public static final String UNDERLYING_UNIT = "underlyingUnit";
+    public static final String FACTORY = "factory";
+    public static final String MOONISWAP_FACTORY_GOVERNANCE  = "mooniswapFactoryGovernance";
 
 }

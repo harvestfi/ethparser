@@ -3,14 +3,11 @@ package pro.belbix.ethparser.web3.contracts;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D2;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D6;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D8;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.lpHashToCoinNames;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.web3j.tuples.generated.Tuple2;
 
 public class Tokens {
 
@@ -255,28 +252,6 @@ public class Tokens {
         throw new IllegalStateException("Not found token info for " + tokenName);
     }
 
-    public static boolean firstCoinIsKey(String lpAddress) {
-        Tuple2<String, String> names = lpHashToCoinNames.get(lpAddress);
-        if (names == null) {
-            throw new IllegalStateException("Names not found for " + lpAddress);
-        }
-        String keyCoin = keyCoinForLp.get(lpAddress);
-        if (keyCoin == null) {
-            throw new IllegalStateException("Key coin not found for " + lpAddress);
-        }
-        String keyCoinName = findNameForContract(keyCoin);
-        if (keyCoinName == null) {
-            throw new IllegalStateException("Key coin name not found for " + keyCoin);
-        }
-        if (names.component1().equals(keyCoinName)) {
-            return true;
-        } else if (names.component2().equals(keyCoinName)) {
-            return false;
-        } else {
-            throw new IllegalStateException("Not found key name in lp " + lpAddress);
-        }
-    }
-
     public static String findNameForContract(String contract) {
         for (TokenInfo info : tokenInfos) {
             if (info.getTokenAddress().equals(contract)) {
@@ -286,68 +261,8 @@ public class Tokens {
         throw new IllegalStateException("Not found name for " + contract);
     }
 
-    public static String mapLpAddressToCoin(String address) {
-        return mapLpAddress(address, true);
-    }
-
-    private static String mapLpAddress(String address, boolean isKeyCoin) {
-        String keyCoin = keyCoinForLp.get(address);
-        if (keyCoin == null) {
-            throw new IllegalStateException("Not found key coin for " + address);
-        }
-        String keyCoinName = findNameForContract(keyCoin);
-        if (keyCoinName == null) {
-            throw new IllegalStateException("Not found key coin name for " + keyCoin);
-        }
-        Tuple2<String, String> pairNames = lpHashToCoinNames.get(address);
-        if (pairNames == null) {
-            throw new IllegalStateException("Unknown contract " + address);
-        }
-        int i;
-        if (pairNames.component1().equals(keyCoinName)) {
-            i = 1;
-        } else if (pairNames.component2().equals(keyCoinName)) {
-            i = 2;
-        } else {
-            throw new IllegalStateException("Key coin not found in " + pairNames);
-        }
-        String pairName;
-        if (isKeyCoin) {
-            pairName = getStringFromPair(pairNames, i, false);
-        } else {
-            pairName = getStringFromPair(pairNames, i, true);
-        }
-        String hash = findContractForName(pairName);
-        if (hash == null) {
-            throw new IllegalStateException("Hash not found for " + pairNames.component2());
-        }
-        return hash;
-    }
-
-    private static String getStringFromPair(Tuple2<String, String> pair, int i, boolean inverse) {
-        if (i == 1) {
-            if (inverse) {
-                return pair.component2();
-            } else {
-                return pair.component1();
-            }
-        } else if (i == 2) {
-            if (inverse) {
-                return pair.component1();
-            } else {
-                return pair.component2();
-            }
-        } else {
-            throw new IllegalStateException("Wrong index for pair " + i);
-        }
-    }
-
     public static String findContractForName(String name) {
         return getTokenInfo(name).getTokenAddress();
-    }
-
-    public static String mapLpAddressToOtherCoin(String address) {
-        return mapLpAddress(address, false);
     }
 
     public static String simplifyName(String name) {

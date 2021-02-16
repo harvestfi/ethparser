@@ -3,6 +3,8 @@ package pro.belbix.ethparser.web3.contracts;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
@@ -37,33 +39,28 @@ public class ContractUtils {
         return name;
     }
 
-    public static Optional<String> getAddressByName(String name) {
-        Optional<String> address = ContractLoader.getVaultByName(name)
-            .map(VaultEntity::getContract)
-            .map(ContractEntity::getAddress);
-        if (address.isEmpty()) {
-            address = ContractLoader.getPoolByName(name)
+    public static Optional<String> getAddressByName(String name, ContractType type) {
+        if (type == ContractType.VAULT) {
+            return ContractLoader.getVaultByName(name)
+                .map(VaultEntity::getContract)
+                .map(ContractEntity::getAddress);
+        }
+        if (type == ContractType.POOL) {
+            return ContractLoader.getPoolByName(name)
                 .map(PoolEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
-
-        if (address.isEmpty()) {
-            address = ContractLoader.getUniPairByName(name)
+        if (type == ContractType.UNI_PAIR) {
+            return ContractLoader.getUniPairByName(name)
                 .map(UniPairEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
-        if (address.isEmpty()) {
-            address = ContractLoader.getUniPairByName(name)
-                .map(UniPairEntity::getContract)
-                .map(ContractEntity::getAddress);
-        }
-        if (address.isEmpty()) {
-            address = ContractLoader.getTokenByName(name)
+        if (type == ContractType.TOKEN) {
+            return ContractLoader.getTokenByName(name)
                 .map(TokenEntity::getContract)
                 .map(ContractEntity::getAddress);
         }
-        return address;
-
+        throw new IllegalStateException("unknown type" + type);
     }
 
     public static boolean isLp(String vaultName) {
@@ -160,6 +157,34 @@ public class ContractUtils {
             ;
     }
 
+    public static Tuple2<String, String> uniPairTokensByAddress(String address) {
+        UniPairEntity uniPair = ContractLoader.getUniPairByAddress(address)
+            .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
+        return new Tuple2<>(
+            uniPair.getToken0().getAddress(),
+            uniPair.getToken1().getAddress()
+        );
+    }
+
+    public static String findUniPairForTokens(String token0, String token1) {
+        for (UniPairEntity uniPair :
+            ContractLoader.uniPairsCacheByAddress.values()) {
+            String t0 = uniPair.getToken0().getAddress();
+            String t1 = uniPair.getToken1().getAddress();
+            if (
+                (t0.equalsIgnoreCase(token0)
+                    || t1.equalsIgnoreCase(token0))
+                    && (
+                    t0.equalsIgnoreCase(token1)
+                        || t1.equalsIgnoreCase(token1)
+                )
+            ) {
+                return uniPair.getContract().getAddress();
+            }
+        }
+        throw new IllegalStateException("Not found LP for " + token0 + " and " + token1);
+    }
+
     public static BigDecimal getDividerByAddress(String address) {
         address = address.toLowerCase();
         long decimals;
@@ -171,7 +196,7 @@ public class ContractUtils {
                 .getLpToken().getAddress();
             String vaultName = getNameByAddress(vaultAddress).orElseThrow();
             if (vaultName.endsWith("_V0")) {
-                vaultAddress = getAddressByName(vaultName.replace("_V0", ""))
+                vaultAddress = getAddressByName(vaultName.replace("_V0", ""), ContractType.VAULT)
                     .orElseThrow(() -> new IllegalStateException("Not found address for " + vaultName));
             }
             decimals = ContractLoader.vaultsCacheByAddress.get(vaultAddress).getDecimals();
@@ -185,6 +210,41 @@ public class ContractUtils {
             throw new IllegalStateException("Unknown address " + address);
         }
         return new BigDecimal(10L).pow((int) decimals);
+    }
+
+    public static Tuple2<TokenEntity, TokenEntity> getUniPairTokens(String address) {
+        UniPairEntity uniPair = Optional.ofNullable(ContractLoader.uniPairsCacheByAddress.get(address))
+            .orElseThrow(() -> new IllegalStateException("Not found uniPair by " + address));
+        return new Tuple2<>(
+            Optional.ofNullable(ContractLoader.tokensCacheByAddress.get(uniPair.getToken0().getAddress()))
+                .orElseThrow(() -> new IllegalStateException("Not found token by " + uniPair.getToken0().getAddress())),
+            Optional.ofNullable(ContractLoader.tokensCacheByAddress.get(uniPair.getToken1().getAddress()))
+                .orElseThrow(() -> new IllegalStateException("Not found token by " + uniPair.getToken1().getAddress()))
+        );
+    }
+
+    public static boolean isDivisionSequenceSecondDividesFirst(String uniPairAddress, String tokenAddress) {
+        Tuple2<TokenEntity, TokenEntity> tokens = getUniPairTokens(uniPairAddress);
+        if (tokens.component1().getContract().getAddress().equalsIgnoreCase(tokenAddress)) {
+            return true;
+        } else if (tokens.component2().getContract().getAddress().equalsIgnoreCase(tokenAddress)) {
+            return false;
+        } else {
+            throw new IllegalStateException("UniPair doesn't contain " + tokenAddress);
+        }
+    }
+
+    public static Optional<String> findKeyTokenForUniPair(String address) {
+        return Optional.ofNullable(ContractLoader.uniPairsCacheByAddress.get(address))
+            .map(UniPairEntity::getKeyToken)
+            .map(TokenEntity::getContract)
+            .map(ContractEntity::getAddress);
+    }
+
+    public static int getUniPairType(String address) {
+        return Optional.ofNullable(ContractLoader.uniPairsCacheByAddress.get(address))
+            .map(UniPairEntity::getType)
+            .orElse(0);
     }
 
     public static Collection<String> getAllPoolAddresses() {
@@ -201,5 +261,13 @@ public class ContractUtils {
 
     public static Collection<String> getAllVaultNames() {
         return ContractLoader.vaultsCacheByName.keySet();
+    }
+
+    public static Collection<String> getAllUniPairAddressesWithKeys() {
+        return ContractLoader.uniPairsCacheByAddress.values().stream()
+            .filter(u -> u.getKeyToken() != null)
+            .map(UniPairEntity::getContract)
+            .map(ContractEntity::getAddress)
+            .collect(Collectors.toList());
     }
 }
