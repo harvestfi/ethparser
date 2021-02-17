@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.assertEquals;
-import static pro.belbix.ethparser.web3.contracts.Tokens.BAS_NAME;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +34,7 @@ public class PriceProviderTest {
 
     @Test
     public void priceForBAS() {
-        double price = priceProvider.getPriceForCoin(BAS_NAME, 11619379L);
+        double price = priceProvider.getPriceForCoin("BAS", 11619379L);
         assertEquals("143,06", String.format("%.2f", price));
     }
 }

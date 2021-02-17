@@ -11,7 +11,8 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.contracts.Tokens;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -46,7 +47,10 @@ public class TransferDownloader {
         if (contractName == null) {
             throw new IllegalStateException("Empty contract");
         }
-        handleLoop(from, to, (from, end) -> parse(from, end, Tokens.findContractForName(contractName)));
+        handleLoop(from, to, (from, end) -> parse(from, end,
+            ContractUtils.getAddressByName(contractName, ContractType.TOKEN)
+                .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
+        ));
     }
 
     private void parse(Integer start, Integer end, String contract) {

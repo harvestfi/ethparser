@@ -1,5 +1,8 @@
 package pro.belbix.ethparser.web3.contracts;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
@@ -8,6 +11,7 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
+import pro.belbix.ethparser.entity.eth.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.eth.UniPairEntity;
 import pro.belbix.ethparser.entity.eth.VaultEntity;
 
@@ -125,14 +129,6 @@ public class ContractUtils {
         return ContractLoader.tokensCacheByName.containsKey(name);
     }
 
-    public static boolean isPsName(String vaultName) {
-        return "PS".equalsIgnoreCase(vaultName)
-            || "PS_V0".equalsIgnoreCase(vaultName)
-            || "ST_PS".equalsIgnoreCase(vaultName)
-            || "ST_PS_V0".equalsIgnoreCase(vaultName)
-            ;
-    }
-
     public static boolean isVaultAddress(String address) {
         return ContractLoader.vaultsCacheByAddress.containsKey(address.toLowerCase());
     }
@@ -149,15 +145,30 @@ public class ContractUtils {
         return ContractLoader.tokensCacheByAddress.containsKey(address.toLowerCase());
     }
 
-    public static boolean isPsAddress(String address) {
-        return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(address) // ST_PS
-            || "0xa0246c9032bc3a600820415ae600c6388619a14d".equalsIgnoreCase(address) // ST_PS_V0
-            || "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50".equalsIgnoreCase(address) // PS
-            || "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".equalsIgnoreCase(address) // PS_V0
-            ;
+    public static boolean isPsName(String name) {
+        return isPsAddress(getAddressByName(name, ContractType.POOL).orElse(""))
+            || isPsAddress(getAddressByName(name, ContractType.VAULT).orElse(""));
     }
 
-    public static Tuple2<String, String> uniPairTokensByAddress(String address) {
+    public static boolean isPsAddress(String address) {
+        return PS_ADDRESSES.contains(address);
+    }
+
+    public static boolean isStableCoin(String name) {
+        return ONE_DOLLAR_TOKENS.contains(name);
+    }
+
+    public static boolean isTokenCreated(String tokenName, long block) {
+        return ContractLoader.tokensCacheByName.get(tokenName)
+            .getContract().getCreated() < block;
+    }
+
+    public static boolean isUniPairCreated(String uniPairName, long block) {
+        return ContractLoader.uniPairsCacheByName.get(uniPairName)
+            .getContract().getCreated() < block;
+    }
+
+    public static Tuple2<String, String> tokenAddressesByUniPairAddress(String address) {
         UniPairEntity uniPair = ContractLoader.getUniPairByAddress(address)
             .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
         return new Tuple2<>(
@@ -245,6 +256,26 @@ public class ContractUtils {
         return Optional.ofNullable(ContractLoader.uniPairsCacheByAddress.get(address))
             .map(UniPairEntity::getType)
             .orElse(0);
+    }
+
+    public static String findUniPairNameForTokenName(String tokenName, long block) {
+        TokenToUniPairEntity freshest = null;
+        for (TokenToUniPairEntity tokenToUniPairEntity : ContractLoader.tokenToUniPairCache.values()) {
+            if (!tokenToUniPairEntity.getToken().getContract().getName().equals(tokenName)) {
+                continue;
+            }
+            if (freshest == null
+                || freshest.getBlockStart() < tokenToUniPairEntity.getBlockStart()) {
+                if (tokenToUniPairEntity.getBlockStart() > block) {
+                    continue;
+                }
+                freshest = tokenToUniPairEntity;
+            }
+        }
+        if (freshest == null) {
+            throw new IllegalStateException("Not found uni pair for " + tokenName);
+        }
+        return freshest.getUniPair().getContract().getName();
     }
 
     public static Collection<String> getAllPoolAddresses() {

@@ -26,8 +26,6 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.TokenInfo;
-import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
@@ -154,8 +152,7 @@ public class PriceLogParser implements Web3Parser {
     }
 
     private boolean isValidSource(PriceDTO dto) {
-        TokenInfo tokenInfo = Tokens.getTokenInfo(dto.getToken());
-        String currentLpName = tokenInfo.findLp(dto.getBlock()).component1();
+        String currentLpName = ContractUtils.findUniPairNameForTokenName(dto.getToken(), dto.getBlock());
         boolean result = currentLpName.equals(dto.getSource());
         if (result) {
             return true;
@@ -170,8 +167,9 @@ public class PriceLogParser implements Web3Parser {
 
         String keyCoinHash = ContractUtils.findKeyTokenForUniPair(lp)
             .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-        String keyCoinName = Tokens.findNameForContract(keyCoinHash);
-        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lp);
+        String keyCoinName = ContractUtils.getNameByAddress(keyCoinHash)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
+        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lp);
         Tuple2<String, String> tokensNames = new Tuple2<>(
             ContractUtils.getNameByAddress(tokensAdr.component1())
                 .orElseThrow(() -> new IllegalStateException("Not found token name for " + tokensAdr.component1())),
@@ -235,7 +233,10 @@ public class PriceLogParser implements Web3Parser {
     }
 
     private static double parseAmountFromTx(PriceTx tx, int i, String name) {
-        return parseAmount(tx.getIntegers()[i], Tokens.findContractForName(name));
+        return parseAmount(tx.getIntegers()[i],
+            ContractUtils.getAddressByName(name, ContractType.TOKEN)
+                .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
+        );
     }
 
     private static boolean isZero(PriceTx tx, int i) {

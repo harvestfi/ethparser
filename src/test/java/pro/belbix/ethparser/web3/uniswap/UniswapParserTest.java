@@ -6,9 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.contracts.Tokens.USDC_NAME;
-import static pro.belbix.ethparser.web3.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import org.junit.Before;
@@ -58,7 +55,7 @@ public class UniswapParserTest {
             "0x1125917201ed36700f86c3cecec8c5dafae280d1",
             "0,62171546",
             "REM",
-            WETH_NAME,
+            "ETH",
             "0,10113922",
             "96,43124305"
         );
@@ -73,7 +70,7 @@ public class UniswapParserTest {
             "0x843002b1d545ef7abb71c716e6179570582faa40",
             "200,00000000",
             "ADD",
-            USDC_NAME,
+            "USDC",
             "3000,00000000",
             "15,00000000"
         );
@@ -91,7 +88,7 @@ public class UniswapParserTest {
             "0xe2a6b5d2c244b0f9ba4c4abe8ed3d3ef0a89bfeb",
             "4,08147853",
             "ADD",
-            USDC_NAME,
+            "USDC",
             "945,85450400",
             "231,74310394"
         );
@@ -118,7 +115,7 @@ public class UniswapParserTest {
             "0x2b01755949aec1c8479b4d6dd1ea1e725091b21e",
             "1784,61622059",
             "BUY",
-            FARM_NAME,
+            "FARM",
             "2,02599871",
             "0,11354850"
         );
@@ -133,7 +130,7 @@ public class UniswapParserTest {
             "0x05310c5594a3c961f212308317ff3a4fdd8f82af",
             "1,00000000",
             "SELL",
-            WETH_NAME,
+            "ETH",
             "0,14924968",
             "91,38680102"
         );
@@ -148,7 +145,7 @@ public class UniswapParserTest {
             "0xbd9fe62f10df42f6d58d88a280c798de865fac86",
             "10,00000000",
             "BUY",
-            USDC_NAME,
+            "USDC",
             "891,77695300",
             "88,91016221"
         );
@@ -163,7 +160,7 @@ public class UniswapParserTest {
             "0x0d089508d5fcdc92363fe84c84a44738863d9201",
             "4,02461788",
             "ADD",
-            USDC_NAME,
+            "USDC",
             "941,51653400",
             "233,93936051"
         );
@@ -191,7 +188,7 @@ public class UniswapParserTest {
             "0x51d2c880493ac63140ffe0e645cc99afc228ab59",
             "250,00000000",
             "ADD",
-            WETH_NAME,
+            "ETH",
             "44,45189785",
             "99,88726471"
         );
@@ -218,7 +215,7 @@ public class UniswapParserTest {
             "0xbb830af11a5bf085e63ee04bf4f3da50955e8eb5",
             "127744,24825310",
             "ADD",
-            FARM_NAME,
+            "FARM",
             "140,02624240",
             "0,10707515"
         );

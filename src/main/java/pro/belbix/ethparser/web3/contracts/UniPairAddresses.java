@@ -10,9 +10,9 @@ class UniPairAddresses {
     }
 
     static final List<LpContract> UNI_PAIRS = createLpContracts(
-        new LpContract(10042267, "UNI_LP_ETH_DAI", "", "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"),
+        new LpContract(10042267, "UNI_LP_ETH_DAI", "DAI", "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"),
         new LpContract(10008355, "UNI_LP_USDC_ETH", "ETH", "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"),
-        new LpContract(10093341, "UNI_LP_ETH_USDT", "", "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852"),
+        new LpContract(10093341, "UNI_LP_ETH_USDT", "USDT", "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852"),
         new LpContract(10091097, "UNI_LP_ETH_WBTC", "WBTC", "0xBb2b8038a1640196FbE3e38816F3e67Cba72D940"),
         new LpContract(10994541, "SUSHI_LP_WBTC_TBTC", "TBTC", "0x2Dbc7dD86C6cd87b525BD54Ea73EBeeBbc307F68"),
         new LpContract(10092348, "UNI_LP_USDC_WBTC", "", "0x004375dff511095cc5a197a54140a24efef3a416"),
@@ -46,6 +46,10 @@ class UniPairAddresses {
         new LpContract(10097736, "UNI_LP_USDC_EURS", "EURS", "0x767055e2a9f15783b1ec5ef134a89acf3165332f"),
         new LpContract(10829340, "SUSHI_LP_SUSHI_ETH", "SUSHI", "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0"),
         new LpContract(11038392, "UNI_LP_HBTC_ETH", "HBTC", "0xa6f4eae7fdaa20e632c45d4cd39e4f3961892322"),
-        new LpContract(10161671, "UNI_LP_ETH_RENBTC", "RENBTC", "0x81fbef4704776cc5bba0a5df3a90056d2c6900b3")
+        new LpContract(10161671, "UNI_LP_ETH_RENBTC", "RENBTC", "0x81fbef4704776cc5bba0a5df3a90056d2c6900b3"),
+        new LpContract(10161671, "UNI_LP_TUSD_ETH", "TUSD", "0xb4d0d9df2738abe81b87b66c80851292492d1404"),
+        new LpContract(10161671, "UNI_LP_UST_USDT", "UST", "0xc50ef7861153c51d383d9a7d48e6c9467fb90c38"),
+        new LpContract(10161671, "UNI_LP_GUSD_ETH", "GUSD", "0x61247d8aca1c485a50728e1336d9b26c8339e701"),
+        new LpContract(10161671, "UNI_LP_USDT_HUSD", "HUSD", "0xe53bfffd5d9a53250a3f30409fdc463cb5ed05e1")
     );
 }

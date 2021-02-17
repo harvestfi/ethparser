@@ -13,9 +13,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 @Entity
-@Table(name = "eth_vault_to_pool")
+@Table(name = "eth_token_to_uni_pair")
 @Data
-public class VaultToPoolEntity {
+public class TokenToUniPairEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,13 +23,15 @@ public class VaultToPoolEntity {
     private Long blockStart;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="vault_id", nullable=false)
+    @JoinColumn(name="token_id", nullable=false)
     @Fetch(FetchMode.JOIN)
-    private VaultEntity vault;
+    private TokenEntity token;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="pool_id", nullable=false)
+    @JoinColumn(name="uni_pair_id", nullable=false)
     @Fetch(FetchMode.JOIN)
-    private PoolEntity pool;
+    private UniPairEntity uniPair;
+
+
 
 }

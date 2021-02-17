@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -181,14 +180,14 @@ public class HardWorkParser implements Web3Parser {
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
-                double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                 double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                 dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
 
                 if (!autoStake) {
-                    double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                     double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                     dto.setShareChangeUsd(stReward);
                 }

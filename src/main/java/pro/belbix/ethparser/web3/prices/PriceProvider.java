@@ -5,8 +5,6 @@ import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.Tokens.isStableCoin;
-import static pro.belbix.ethparser.web3.contracts.Tokens.simplifyName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,10 +20,9 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.TokenInfo;
-import pro.belbix.ethparser.web3.contracts.Tokens;
 
 @Service
 @Log4j2
@@ -100,7 +97,7 @@ public class PriceProvider {
                                          double amount,
                                          long block
     ) {
-        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lpAddress);
+        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lpAddress);
 
         double positionFraction = amount / lpBalance;
 
@@ -121,9 +118,9 @@ public class PriceProvider {
             coinName = ContractUtils.getNameByAddress(coinName)
                 .orElseThrow(() -> new IllegalStateException("Wrong input"));
         }
-        String coinNameSimple = simplifyName(coinName);
+        String coinNameSimple = ContractConstants.simplifyName(coinName);
         updateUSDPrice(coinNameSimple, block);
-        if (isStableCoin(coinNameSimple)) {
+        if (ContractUtils.isStableCoin(coinNameSimple)) {
             return 1.0;
         }
         return getLastPrice(coinNameSimple, block);
@@ -134,7 +131,7 @@ public class PriceProvider {
     }
 
     public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {
-        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(lpHash);
+        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lpHash);
         String token0 = tokensAdr.component1();
         String token1 = tokensAdr.component2();
         // zero address in 1inch should be replaced with ETH
@@ -151,11 +148,11 @@ public class PriceProvider {
     }
 
     private void updateUSDPrice(String coinName, long block) {
-        if (!Tokens.isCreated(coinName, (int) block)) {
+        if (!ContractUtils.isTokenCreated(coinName, block)) {
             savePrice(0.0, coinName, block);
             return;
         }
-        if (isStableCoin(coinName)) {
+        if (ContractUtils.isStableCoin(coinName)) {
             // todo parse stablecoin prices
             return;
         }
@@ -170,8 +167,7 @@ public class PriceProvider {
     }
 
     private double getPriceForCoinWithoutCache(String name, Long block) {
-        TokenInfo tokenInfo = Tokens.getTokenInfo(name);
-        String lpName = tokenInfo.findLp(block).component1();
+        String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
         PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
             .filter(Caller::isFilledList)
             .map(l -> l.get(0))
@@ -197,23 +193,37 @@ public class PriceProvider {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
-        TokenInfo tokenInfo = Tokens.getTokenInfo(name);
-        String lpName = tokenInfo.findLp(block).component1();
-        String otherTokenName = tokenInfo.findLp(block).component2();
+        String tokenAdr = ContractUtils.getAddressByName(name, ContractType.TOKEN)
+            .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
+        String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
+        if (!ContractUtils.isUniPairCreated(lpName, block)) {
+            return 0.0;
+        }
         String lpHash = ContractUtils.getAddressByName(lpName, ContractType.UNI_PAIR)
             .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
 
         Tuple2<Double, Double> reserves = functionsUtils.callReserves(lpHash, block);
         if (reserves == null) {
-            throw new IllegalStateException("Can't reach reserves for " + tokenInfo);
+            throw new IllegalStateException("Can't reach reserves for " + lpName);
         }
         double price;
-        if (ContractUtils.isDivisionSequenceSecondDividesFirst(lpHash, tokenInfo.getTokenAddress())) {
+        if (ContractUtils.isDivisionSequenceSecondDividesFirst(lpHash, tokenAdr)) {
             price = reserves.component2() / reserves.component1();
         } else {
             price = reserves.component1() / reserves.component2();
         }
 
+        Tuple2<String, String> lpTokenAdr = ContractUtils.tokenAddressesByUniPairAddress(lpHash);
+        String otherTokenName;
+        if (lpTokenAdr.component1().equalsIgnoreCase(tokenAdr)) {
+            otherTokenName = ContractUtils.getNameByAddress(lpTokenAdr.component2())
+                .orElseThrow();
+        } else if (lpTokenAdr.component2().equalsIgnoreCase(tokenAdr)) {
+            otherTokenName = ContractUtils.getNameByAddress(lpTokenAdr.component1())
+                .orElseThrow();
+        } else {
+            throw new IllegalStateException("Not found token in lp pair");
+        }
         price *= getPriceForCoin(otherTokenName, block);
         log.info("Price {} fetched {} on block {}", name, price, block);
         return price;

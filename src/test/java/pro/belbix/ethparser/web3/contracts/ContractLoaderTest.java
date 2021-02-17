@@ -16,12 +16,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
+import pro.belbix.ethparser.entity.eth.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.eth.UniPairEntity;
 import pro.belbix.ethparser.entity.eth.VaultEntity;
 import pro.belbix.ethparser.entity.eth.VaultToPoolEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
 import pro.belbix.ethparser.repositories.eth.TokenRepository;
+import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
@@ -47,15 +49,17 @@ public class ContractLoaderTest {
     @Autowired
     private VaultToPoolRepository vaultToPoolRepository;
     @Autowired
+    private TokenToUniPairRepository tokenToUniPairRepository;
+    @Autowired
     private Web3Service web3Service;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @Ignore
+//    @Ignore
     public void fullRunShouldBeOk() throws JsonProcessingException {
 //        appProperties.setUpdateContracts(true);
-        contractLoader.load();
+//        contractLoader.load();
         System.out.println("**************** VAULTS ************************");
         for (VaultEntity vaultEntity : vaultRepository.findAll()) {
             assertNotNull(vaultEntity);
@@ -80,6 +84,11 @@ public class ContractLoaderTest {
         for (VaultToPoolEntity vaultToPoolEntity : vaultToPoolRepository.findAll()) {
             assertNotNull(vaultToPoolEntity);
             System.out.println(objectMapper.writeValueAsString(vaultToPoolEntity));
+        }
+        System.out.println("**************** TOKEN TO UNI ************************");
+        for (TokenToUniPairEntity tokenToUniPairEntity : tokenToUniPairRepository.findAll()) {
+            assertNotNull(tokenToUniPairEntity);
+            System.out.println(objectMapper.writeValueAsString(tokenToUniPairEntity));
         }
     }
 

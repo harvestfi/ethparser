@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.Tokens.USDC_NAME;
 
 import java.util.List;
 import org.junit.Before;
@@ -56,7 +55,7 @@ public class UniToHarvestConverterTest {
                 "0xe6765078ca6e641ec9637cd145ecfad30aa53a4a",
                 "58,70106387",
                 "ADD",
-                USDC_NAME,
+            "USDC",
                 "15800,00000000",
                 "269,16036881"
         );

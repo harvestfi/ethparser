@@ -25,7 +25,7 @@ public class LpStat {
                                     double secondCoinPrice
     ) {
         try {
-            Tuple2<String, String> lpTokens = ContractUtils.uniPairTokensByAddress(lpHash);
+            Tuple2<String, String> lpTokens = ContractUtils.tokenAddressesByUniPairAddress(lpHash);
             LpStat lpStat = new LpStat();
             lpStat.setCoin1(ContractUtils.getNameByAddress(lpTokens.component1()).orElse("unknown"));
             lpStat.setCoin2(ContractUtils.getNameByAddress(lpTokens.component2()).orElse("unknown"));

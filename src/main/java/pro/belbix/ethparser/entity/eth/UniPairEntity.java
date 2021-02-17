@@ -29,7 +29,7 @@ public class UniPairEntity {
     @Fetch(FetchMode.JOIN)
     private ContractEntity contract;
     private Long updatedBlock;
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "key_token")
     @Fetch(FetchMode.JOIN)
     private TokenEntity keyToken;

@@ -16,7 +16,6 @@ import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RestController
@@ -42,7 +41,7 @@ public class PriceController {
         try {
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
-                if(!ContractUtils.isUniPairName(lp)) {
+                if (!ContractUtils.isUniPairName(lp)) {
                     return RestResponse.error("Not UniPair address");
                 }
                 lpAddress = ContractUtils.getAddressByName(lp, ContractType.UNI_PAIR).orElse(null);
@@ -89,7 +88,7 @@ public class PriceController {
                     ).addBlock(block);
                 }
 
-                tokenName = Tokens.findNameForContract(token.toLowerCase());
+                tokenName = ContractUtils.getNameByAddress(token).orElse(null);
                 if (tokenName == null) {
                     return RestResponse.error("Token " + token + " not supported");
                 }

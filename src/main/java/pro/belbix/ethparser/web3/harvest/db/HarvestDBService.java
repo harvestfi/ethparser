@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -169,14 +168,14 @@ public class HarvestDBService {
                 LpStat lpStat = objectMapper.readValue(lpStatStr, LpStat.class);
 
                 double coin1Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin1())) {
                     coin1Price = farmPrice;
                 } else {
                     coin1Price = lpStat.getPrice1();
                 }
 
                 double coin2Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin2())) {
                     coin2Price = farmPrice;
                 } else {
                     coin2Price = lpStat.getPrice2();

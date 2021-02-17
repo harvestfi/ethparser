@@ -139,7 +139,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     }
 
     public static boolean firstTokenIsKey(String lpAddress) {
-        Tuple2<String, String> tokens = ContractUtils.uniPairTokensByAddress(lpAddress);
+        Tuple2<String, String> tokens = ContractUtils.tokenAddressesByUniPairAddress(lpAddress);
         String keyCoin = ContractUtils.findKeyTokenForUniPair(lpAddress)
             .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
         if (tokens.component1().equalsIgnoreCase(keyCoin)) {
@@ -162,7 +162,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     private static String mapLpAddress(String address, boolean isKeyCoin) {
         String keyCoinAdr = ContractUtils.findKeyTokenForUniPair(address)
             .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
-        Tuple2<String, String> tokensAdr = ContractUtils.uniPairTokensByAddress(address);
+        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(address);
 
         int i;
         if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {

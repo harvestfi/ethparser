@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.model;
 
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.Tokens.findNameForContract;
 
 import java.math.BigInteger;
 import lombok.Data;
@@ -66,10 +65,10 @@ public class UniswapTx implements EthTransactionI {
         uniswapDTO.setHash(hash);
         uniswapDTO.setOwner(owner);
         uniswapDTO.setBlock(block);
-        uniswapDTO.setCoin(findNameForContract(coinAddress));
+        uniswapDTO.setCoin(ContractUtils.getNameByAddress(coinAddress).orElseThrow());
         uniswapDTO.setConfirmed(success);
         uniswapDTO.setLp(ContractUtils.getNameByAddress(lpAddress)
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + lpAddress)));
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + lpAddress)));
         uniswapDTO.setMethodName(methodName);
 
         if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
@@ -113,6 +112,7 @@ public class UniswapTx implements EthTransactionI {
     }
 
     private static String addrToStr(Address adr) {
-        return findNameForContract(adr.getValue());
+        return ContractUtils.getNameByAddress(adr.getValue())
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
     }
 }
