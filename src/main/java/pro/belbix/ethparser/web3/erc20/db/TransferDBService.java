@@ -23,6 +23,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.comparator.TransferDTOComparator;
 import pro.belbix.ethparser.dto.TransferDTO;
 import pro.belbix.ethparser.repositories.TransferRepository;
 import pro.belbix.ethparser.utils.Caller;
@@ -32,6 +33,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class TransferDBService {
 
+    private final TransferDTOComparator transferDTOComparator = new TransferDTOComparator();
     private static final Set<String> notCheckableAddresses = new HashSet<>();
 
     static {
@@ -131,6 +133,7 @@ public class TransferDBService {
         if (isNotContainsDto(transfers, dto.getId())) {
             transfers.add(dto);
         }
+        transfers.sort(transferDTOComparator);
         double profit = calculateSellProfits(transfers, dto.getOwner());
         dto.setProfit(profit);
         dto.setProfitUsd(profit * dto.getPrice());
