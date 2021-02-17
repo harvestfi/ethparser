@@ -1,5 +1,13 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
+import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
+
+import java.time.Instant;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -12,15 +20,6 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
-
-import javax.annotation.PreDestroy;
-import java.time.Instant;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
 
 @Service
 @Log4j2

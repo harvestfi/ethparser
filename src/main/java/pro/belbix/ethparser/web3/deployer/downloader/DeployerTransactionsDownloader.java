@@ -1,6 +1,10 @@
 package pro.belbix.ethparser.web3.deployer.downloader;
 
 import io.reactivex.disposables.Disposable;
+import java.math.BigInteger;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,11 +15,6 @@ import pro.belbix.ethparser.dto.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
-
-import java.math.BigInteger;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Log4j2

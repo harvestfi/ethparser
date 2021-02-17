@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class HarvestVaultAddresses {
+class HarvestVaultAddresses {
 
     private HarvestVaultAddresses() {
     }

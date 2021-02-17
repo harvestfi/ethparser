@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.deployer.decoder;
 
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Type;
@@ -11,8 +12,6 @@ import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-
-import java.util.List;
 
 @SuppressWarnings({"rawtypes"})
 @Component

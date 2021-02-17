@@ -37,7 +37,6 @@ public class AppProperties {
 
     private String startBlock = "";
     private boolean parseHarvest = false;
-    private boolean parseUniswapTransactions = false;
     private boolean parseDeployerTransactions = true;
 
     private boolean parseLog = true;

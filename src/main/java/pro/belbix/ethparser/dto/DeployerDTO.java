@@ -1,11 +1,14 @@
 package pro.belbix.ethparser.dto;
 
-import lombok.Data;
-
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
+import javax.persistence.Cacheable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(

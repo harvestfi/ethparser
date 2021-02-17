@@ -1,8 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -21,7 +20,6 @@ import pro.belbix.ethparser.repositories.HarvestRepository;
 import pro.belbix.ethparser.repositories.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -135,8 +133,9 @@ public class HarvestDBService {
         double tvl = 0.0;
 
         List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
-        allowContracts.stream()
-            .map(LpContracts.lpHashToName::get)
+        PARSABLE_UNI_PAIRS.stream()
+            .map(c -> ContractUtils.getNameByAddress(c)
+                .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
             .forEach(contracts::add);
 
         for (String vaultName : contracts) {
@@ -169,14 +168,14 @@ public class HarvestDBService {
                 LpStat lpStat = objectMapper.readValue(lpStatStr, LpStat.class);
 
                 double coin1Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin1())) {
                     coin1Price = farmPrice;
                 } else {
                     coin1Price = lpStat.getPrice1();
                 }
 
                 double coin2Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin2())) {
                     coin2Price = farmPrice;
                 } else {
                     coin2Price = lpStat.getPrice2();

@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_OF_YEAR;
-import static pro.belbix.ethparser.web3.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -186,7 +185,7 @@ public class HardWorkDbService {
             dto.getBlockDate());
         dto.setPoolUsers(owners);
 
-        double ethPrice = priceProvider.getPriceForCoin(WETH_NAME, dto.getBlock());
+        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
 
         dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
 
