@@ -25,7 +25,10 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', other_token)), '_', -1)     other_token, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', other_token_amount)), '_', -1)     other_token_amount, " +
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', price)), '_', -1)     price, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', buy)), '_', -1)     buy " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', buy)), '_', -1)     buy, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_token0pooled)), '_', -1)     lp_token0pooled, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_token1pooled)), '_', -1)     lp_token1pooled, " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_total_supply)), '_', -1)     lp_total_supply " +
         "from prices " +
         "group by source")
     List<PriceDTO> fetchLastPrices();

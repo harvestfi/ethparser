@@ -23,7 +23,7 @@ public class HarvestDTO implements DtoI {
     private String id;
     private String hash;
     private Long block;
-    private boolean confirmed = false;
+    private int confirmed;
     private Long blockDate;
     private String methodName;
     private String owner;
@@ -36,7 +36,7 @@ public class HarvestDTO implements DtoI {
     private Integer ownerCount;
     private Double sharePrice;
     private Long usdAmount;
-    @Column(columnDefinition = "LONGTEXT") //todo create price entity
+    @Column(columnDefinition = "TEXT")
     private String prices;
     private String lpStat;
     private Double lastAllUsdTvl;

@@ -3,6 +3,7 @@ package pro.belbix.ethparser.controllers;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import pro.belbix.ethparser.repositories.UniswapRepository;
 import pro.belbix.ethparser.repositories.UniswapRepository.OhlcProjection;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 public class UniController {
 

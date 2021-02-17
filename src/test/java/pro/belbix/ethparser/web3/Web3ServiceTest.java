@@ -134,4 +134,11 @@ public class Web3ServiceTest {
             .divide(new BigInteger("1000000000000000000")).longValue() > 0);
         assertTrue(((Uint32) types.get(2)).getValue().longValue() > 0);
     }
+
+    @Test
+    public void getReceiptShouldWork() {
+        TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(
+                "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
+        assertNotNull(transactionReceipt);
+    }
 }

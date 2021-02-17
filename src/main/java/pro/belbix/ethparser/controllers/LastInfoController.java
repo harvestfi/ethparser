@@ -1,11 +1,13 @@
 package pro.belbix.ethparser.controllers;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @RequestMapping(value = "/last")
 public class LastInfoController {

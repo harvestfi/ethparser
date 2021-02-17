@@ -146,11 +146,7 @@ public class HarvestTransactionsParser implements Web3Parser {
     }
 
     private void print(HarvestDTO dto) {
-        if (dto.isConfirmed()) {
-            log.info(dto.print());
-        } else {
-            log.debug(dto.print());
-        }
+        log.info(dto.print());
     }
 
     @Override

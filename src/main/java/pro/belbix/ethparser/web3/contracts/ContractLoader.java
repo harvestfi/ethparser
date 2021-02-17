@@ -110,7 +110,6 @@ public class ContractLoader {
         if (appProperties.isDevMod()) {
             load();
         }
-        subscriptionsProperties.init();
     }
 
     public synchronized void load() {
@@ -125,6 +124,9 @@ public class ContractLoader {
         loadTokens();
         linkVaultToPools();
         log.info("Contracts loading ended");
+        // should subscribe only after contract loading
+        subscriptionsProperties.init();
+        loaded = true;
     }
 
     public void loadKeyBlocks() {
@@ -239,6 +241,9 @@ public class ContractLoader {
     }
 
     private void enrichToken(TokenEntity tokenEntity) {
+        if(appProperties.isOnlyApi()) {
+            return;
+        }
         String address = tokenEntity.getContract().getAddress();
         tokenEntity.setName(
             functionsUtils.callStrByName(FunctionsNames.NAME, address, currentBlock).orElse(""));
@@ -251,6 +256,9 @@ public class ContractLoader {
     }
 
     private void enrichVault(VaultEntity vaultEntity) {
+        if(appProperties.isOnlyApi()) {
+            return;
+        }
         vaultEntity.setUpdatedBlock(currentBlock);
         String address = vaultEntity.getContract().getAddress();
         vaultEntity.setController(findOrCreateContract(
@@ -301,6 +309,9 @@ public class ContractLoader {
     }
 
     private void enrichPool(PoolEntity poolEntity) {
+        if(appProperties.isOnlyApi()) {
+            return;
+        }
         String address = poolEntity.getContract().getAddress();
         poolEntity.setController(findOrCreateContract(
             functionsUtils.callAddressByName(CONTROLLER, address, currentBlock).orElse(""),
@@ -341,6 +352,9 @@ public class ContractLoader {
     }
 
     private void enrichUniPair(UniPairEntity uniPairEntity) {
+        if(appProperties.isOnlyApi()) {
+            return;
+        }
         String address = uniPairEntity.getContract().getAddress();
         uniPairEntity.setDecimals(
             functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, currentBlock)
@@ -377,6 +391,10 @@ public class ContractLoader {
                     continue;
                 }
                 VaultToPoolEntity vaultToPoolEntity = findOrCreateVaultToPool(vaultEntity, poolEntity);
+                if(vaultToPoolEntity == null) {
+                    log.warn("Not found vault to pool {}", lpAddress);
+                    continue;
+                }
                 vaultToPoolsCache.put(vaultToPoolEntity.getId(), vaultToPoolEntity);
             } else if (currentLpToken.getType().getType() == Type.UNI_PAIR.getId()) {
                 //todo create another one link entity
@@ -396,6 +414,9 @@ public class ContractLoader {
     private VaultToPoolEntity findOrCreateVaultToPool(VaultEntity vaultEntity, PoolEntity poolEntity) {
         VaultToPoolEntity vaultToPoolEntity =
             vaultToPoolRepository.findFirstByVaultAndPool(vaultEntity, poolEntity);
+        if(appProperties.isOnlyApi()) {
+            return vaultToPoolEntity;
+        }
         if (vaultToPoolEntity == null) {
             if (vaultToPoolRepository.findFirstByVault(vaultEntity) != null) {
                 log.info("We already had linked vault " + vaultEntity.getContract().getName());
@@ -423,6 +444,9 @@ public class ContractLoader {
             return null;
         }
         ContractEntity entity = contractRepository.findFirstByAddress(address);
+        if(appProperties.isOnlyApi()) {
+            return entity;
+        }
         if (entity == null) {
             entity = new ContractEntity();
             entity.setAddress(address.toLowerCase());
@@ -448,6 +472,9 @@ public class ContractLoader {
         }
         return contractTypeRepository.findById(type.getId())
             .orElseGet(() -> {
+                if(appProperties.isOnlyApi()) {
+                    return null;
+                }
                 ContractTypeEntity contractTypeEntity = new ContractTypeEntity();
                 contractTypeEntity.setType(type.getId());
                 contractTypeRepository.save(contractTypeEntity);

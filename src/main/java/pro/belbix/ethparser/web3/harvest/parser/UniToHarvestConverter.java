@@ -43,7 +43,7 @@ public class UniToHarvestConverter implements Web3Parser {
         UNI_LP_GRAIN_FARM
     ));
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(1000);
+    private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final PriceProvider priceProvider;
     private final FunctionsUtils functionsUtils;
@@ -110,7 +110,7 @@ public class UniToHarvestConverter implements Web3Parser {
         harvestDTO.setId(uniswapDTO.getId());
         harvestDTO.setHash(uniswapDTO.getHash());
         harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
-        harvestDTO.setConfirmed(true);
+        harvestDTO.setConfirmed(1);
         harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
         harvestDTO.setOwner(uniswapDTO.getOwner());
         harvestDTO.setVault(findNameForLpHash(lpHash));

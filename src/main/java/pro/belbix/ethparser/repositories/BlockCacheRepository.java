@@ -5,4 +5,6 @@ import pro.belbix.ethparser.entity.BlockCacheEntity;
 
 public interface BlockCacheRepository extends JpaRepository<BlockCacheEntity, Long> {
 
+    BlockCacheEntity findFirstByOrderByBlockDateDesc();
+
 }

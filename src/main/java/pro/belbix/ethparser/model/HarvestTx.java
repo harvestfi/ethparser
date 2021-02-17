@@ -44,7 +44,7 @@ public class HarvestTx implements EthTransactionI {
         dto.setVault(ContractUtils.getNameByAddress(vault.getValue())
             .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
         );
-        dto.setConfirmed(success);
+        dto.setConfirmed(1);
         dto.setMethodName(methodName);
         dto.setAmount(parseAmount(amount, vault.getValue()));
         if (amountIn != null) {

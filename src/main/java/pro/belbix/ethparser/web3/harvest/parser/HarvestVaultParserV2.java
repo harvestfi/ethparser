@@ -128,13 +128,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         if (!isValidLog(ethLog)) {
             return null;
         }
-        HarvestTx harvestTx;
-        try {
-            harvestTx = harvestVaultLogDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode " + ethLog, e);
-            return null;
-        }
+        HarvestTx harvestTx = harvestVaultLogDecoder.decode(ethLog);
         if (harvestTx == null) {
             return null;
         }

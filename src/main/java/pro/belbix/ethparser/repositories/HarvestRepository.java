@@ -71,15 +71,20 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "     ) t2")
     Integer fetchAllUsersQuantity(@Param("block_date") long blockDate);
 
+    //todo if last balance < 10 we don't count it. fix and reparse
     @Query(nativeQuery = true, value = ""
-        + "select count(owner) owners "
-        + "from (select owner, "
-        + "                      SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
-        + "               from harvest_tx "
-        + "               where vault in :vaults and block_date < :block_date"
-        + "               group by owner "
-        + "              ) t "
-        + "    where balance > 10")
+        + "select count(owner) from ( "
+        + "    select t.owner, sum(t.b) balance "
+        + "    from (select owner, "
+        + "                 SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', "
+        + "                                            owner_balance_usd)), '|', -1) b "
+        + "          from harvest_tx "
+        + "          where vault in :vaults and block_date < :block_date "
+        + "          group by vault, owner) t "
+        + "                   where t.b > 10 "
+        + "    group by t.owner "
+        + "    order by balance desc "
+        + ") t2")
     Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults, @Param("block_date") long blockDate);
 
     HarvestDTO findFirstByOrderByBlockDesc();
@@ -195,4 +200,22 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<HarvestDTO> fetchLatestSinceLastWithdraw(@Param("owner") String owner,
                                                   @Param("vault") String vault,
                                                   @Param("blockDate") long blockDate);
+
+    @Query(nativeQuery = true, value = ""
+        + "select t.owner, sum(t.b) balance from "
+        + "(select owner, "
+        + "        SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', owner_balance_usd)), '|', -1) b "
+        + " from harvest_tx "
+        + " group by vault, owner) t "
+        + "where t.b > 50000 " //for optimization
+        + "group by t.owner "
+        + "order by balance desc")
+    List<UserBalance> fetchOwnerBalances();
+
+    interface UserBalance {
+
+        String getOwner();
+
+        double getBalance();
+    }
 }

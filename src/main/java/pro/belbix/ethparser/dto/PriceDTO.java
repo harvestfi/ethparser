@@ -25,6 +25,9 @@ public class PriceDTO implements DtoI {
     private Double price;
     private Integer buy;
     private String source;
+    private Double lpTotalSupply;
+    private Double lpToken0Pooled;
+    private Double lpToken1Pooled;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

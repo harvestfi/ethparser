@@ -1,9 +1,12 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
+import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -17,14 +20,16 @@ import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.LpContracts;
 import pro.belbix.ethparser.web3.contracts.TokenInfo;
 import pro.belbix.ethparser.web3.contracts.Tokens;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -32,25 +37,30 @@ public class PriceLogParser implements Web3Parser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final PriceDecoder priceDecoder = new PriceDecoder();
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(10000);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(10000);
+    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
     private final Web3Service web3Service;
     private final EthBlockService ethBlockService;
     private final ParserInfo parserInfo;
     private final PriceDBService priceDBService;
     private final AppProperties appProperties;
+    private final FunctionsUtils functionsUtils;
     private Instant lastTx = Instant.now();
     private long count = 0;
+    private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
     public PriceLogParser(Web3Service web3Service,
                           EthBlockService ethBlockService,
                           ParserInfo parserInfo,
-                          PriceDBService priceDBService, AppProperties appProperties) {
+                          PriceDBService priceDBService,
+                          AppProperties appProperties,
+                          FunctionsUtils functionsUtils) {
         this.web3Service = web3Service;
         this.ethBlockService = ethBlockService;
         this.parserInfo = parserInfo;
         this.priceDBService = priceDBService;
         this.appProperties = appProperties;
+        this.functionsUtils = functionsUtils;
     }
 
     @Override
@@ -77,7 +87,7 @@ public class PriceLogParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Error price parser loop " + ethLog, e);
-                    if(appProperties.isStopOnParseError()) {
+                    if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
                 }
@@ -87,12 +97,8 @@ public class PriceLogParser implements Web3Parser {
 
     // keep this parsing lightweight as more as possible
     public PriceDTO parse(Log ethLog) {
-        PriceTx tx = null;
-        try {
-            tx = priceDecoder.decode(ethLog);
-        } catch (Exception e) {
-            log.error("Error decode price " + ethLog, e);
-        }
+        PriceTx tx = priceDecoder.decode(ethLog);
+
         if (tx == null) {
             return null;
         }
@@ -110,12 +116,40 @@ public class PriceLogParser implements Web3Parser {
             return null;
         }
 
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
-
         fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
 
-//        log.info(dto.print());
+        if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
+            return null;
+        }
+
+        // for lpToken price we should know staked amounts
+        fillLpStats(dto);
+
+        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
+        log.info(dto.print());
         return dto;
+    }
+
+    private void fillLpStats(PriceDTO dto) {
+        String lpAddress = ContractUtils.getAddressByName(dto.getSource())
+            .orElseThrow(() -> new IllegalStateException("Lp address not found for " + dto.getSource()));
+        Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, dto.getBlock());
+        double lpBalance = parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
+                .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
+            lpAddress);
+        dto.setLpTotalSupply(lpBalance);
+        dto.setLpToken0Pooled(lpPooled.component1());
+        dto.setLpToken1Pooled(lpPooled.component2());
+    }
+
+    private boolean skipSimilar(PriceDTO dto) {
+        PriceDTO lastPrice = lastPrices.get(dto.getToken());
+        if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
+            return true;
+        }
+        lastPrices.put(dto.getToken(), dto);
+        return false;
     }
 
     private boolean isValidSource(PriceDTO dto) {

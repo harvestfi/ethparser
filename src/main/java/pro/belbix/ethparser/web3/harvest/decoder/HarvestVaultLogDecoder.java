@@ -7,11 +7,10 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.entity.eth.ContractTypeEntity;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
@@ -21,7 +20,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             return null;
         }
         String methodId = parseMethodId(ethLog)
-            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));;
+            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
         String methodName = methodNamesByMethodId.get(methodId);
         List<TypeReference<Type>> parameters = findParameters(methodId)
             .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
@@ -48,6 +47,9 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
     }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {
+        if (types == null) {
+            return;
+        }
         switch (methodName) {
             case "Deposit":
             case "Withdraw":
