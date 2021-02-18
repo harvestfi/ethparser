@@ -26,12 +26,14 @@ speed-measure-plugin.json
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
+.vscode
+.factorypath
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
+.history/
 
 # misc
 /.sass-cache
@@ -47,3 +49,4 @@ testem.log
 .DS_Store
 Thumbs.db
 src/test/resources/
+src/main/resources/

@@ -2,7 +2,9 @@ package pro.belbix.ethparser.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
+import pro.belbix.ethparser.entity.eth.VaultEntity;
+
+import java.util.Collection;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;;
@@ -12,20 +14,20 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;;
 public class VaultsResponse {
 
     @JsonInclude(Include.NON_NULL)
-    private List<VaultsModel> vaults;
+    private Collection<VaultEntity> vaults;
     @JsonInclude(Include.NON_NULL)
-    private VaultsModel vault;
+    private VaultEntity vault;
     private String code;
     private String status;
     
 
-    public VaultsResponse(List<VaultsModel> vaults, String code, String status) {
+    public VaultsResponse(Collection<VaultEntity> vaults, String code, String status) {
         this.vaults = vaults;
         this.code = code;
         this.status = status;
     }
 
-    public VaultsResponse(VaultsModel vault, String code, String status) {
+    public VaultsResponse(VaultEntity vault, String code, String status) {
         this.vault = vault;
         this.code = code;
         this.status = status;
@@ -43,7 +45,7 @@ public class VaultsResponse {
         );
     }
 
-    public static VaultsResponse vaults(List<VaultsModel> vaults) {
+    public static VaultsResponse vaults(Collection<VaultEntity> vaults) {
         return new VaultsResponse(
             vaults,
             "200",
@@ -51,7 +53,7 @@ public class VaultsResponse {
         );
     }
 
-    public static VaultsResponse vault(VaultsModel vault) {
+    public static VaultsResponse vault(VaultEntity vault) {
         return new VaultsResponse(
             vault,
             "200",
