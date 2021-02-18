@@ -118,32 +118,32 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/unipair/{uniPair}")
-    RestResponse unipairDetail(@PathVariable("uniPair") String uniPair) {
-        Optional<UniPairEntity> unipairEntity;
+    RestResponse uniPairDetail(@PathVariable("uniPair") String uniPair) {
+        Optional<UniPairEntity> uniPairEntity;
         try {
             if (uniPair.startsWith("0x")) {
-                unipairEntity = ContractUtils.getUniPairByAddress(uniPair);              
+                uniPairEntity = ContractUtils.getUniPairByAddress(uniPair);              
             } else {
-                unipairEntity = ContractUtils.getUniPairByName(uniPair);
+                uniPairEntity = ContractUtils.getUniPairByName(uniPair);
             }
 
-            if (unipairEntity.isEmpty()) {
+            if (uniPairEntity.isEmpty()) {
                 return RestResponse.error("UniPair " + uniPair + " not found");
             }
-            return RestResponse.ok(objectMapper.writeValueAsString(unipairEntity.get()));
+            return RestResponse.ok(objectMapper.writeValueAsString(uniPairEntity.get()));
         } catch (Exception e) {
-            log.error("Error unipair request", e.fillInStackTrace());
+            log.error("Error uniPair request", e.fillInStackTrace());
             return RestResponse.error("Server error");
         }
     }
 
     @GetMapping(value = "/contracts/unipairs")
-    RestResponse unipairs() {
+    RestResponse uniPairs() {
         try {
             Collection<UniPairEntity> uniPairs = ContractUtils.getAllUniPairs();
             return RestResponse.ok(objectMapper.writeValueAsString(uniPairs));
         } catch (Exception e) {
-            log.error("Error unipairs request", e.fillInStackTrace());
+            log.error("Error uniPairs request", e.fillInStackTrace());
             return RestResponse.error("Server error");
         }
     }
