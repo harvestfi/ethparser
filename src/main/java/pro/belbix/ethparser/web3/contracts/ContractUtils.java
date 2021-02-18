@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.contracts;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Optional;
 import pro.belbix.ethparser.entity.eth.ContractEntity;
 import pro.belbix.ethparser.entity.eth.PoolEntity;
@@ -65,9 +64,6 @@ public class ContractUtils {
         }
         return address;
 
-    }
-    public static Optional<VaultEntity> vaultByName(String vaultName) {
-        return ContractLoader.getVaultByName(vaultName);
     }
 
     public static boolean isLp(String vaultName) {

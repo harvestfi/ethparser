@@ -49,4 +49,3 @@ testem.log
 .DS_Store
 Thumbs.db
 src/test/resources/
-src/main/resources/
