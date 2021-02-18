@@ -294,6 +294,54 @@ public class ContractUtils {
         return ContractLoader.vaultsCacheByName.keySet();
     }
 
+    public static Collection<VaultEntity> getAllVaults() {
+        return ContractLoader.vaultsCacheByAddress.values();
+    }
+    
+    public static Optional<VaultEntity> getVaultByName(String name) {
+        return Optional.ofNullable(ContractLoader.vaultsCacheByName.get(name.toUpperCase()));
+    }
+
+    public static Optional<VaultEntity> getVaultByAddress(String address) {
+        return Optional.ofNullable(ContractLoader.vaultsCacheByAddress.get(address.toLowerCase()));
+    }
+
+    public static Collection<PoolEntity> getAllPools() {
+        return ContractLoader.poolsCacheByAddress.values();
+    }
+    
+    public static Optional<PoolEntity> getPoolByName(String name) {
+        return Optional.ofNullable(ContractLoader.poolsCacheByName.get(name.toUpperCase()));
+    }
+
+    public static Optional<PoolEntity> getPoolByAddress(String address) {
+        return Optional.ofNullable(ContractLoader.poolsCacheByAddress.get(address.toLowerCase()));
+    }
+
+    public static Collection<TokenEntity> getAllTokens() {
+        return ContractLoader.tokensCacheByAddress.values();
+    }
+    
+    public static Optional<TokenEntity> getTokenByName(String name) {
+        return Optional.ofNullable(ContractLoader.tokensCacheByName.get(name.toUpperCase()));
+    }
+
+    public static Optional<TokenEntity> getTokenByAddress(String address) {
+        return Optional.ofNullable(ContractLoader.tokensCacheByAddress.get(address.toLowerCase()));
+    }
+
+    public static Collection<UniPairEntity> getAllUniPairs() {
+        return ContractLoader.uniPairsCacheByAddress.values();
+    }
+    
+    public static Optional<UniPairEntity> getUniPairByName(String name) {
+        return Optional.ofNullable(ContractLoader.uniPairsCacheByName.get(name.toUpperCase()));
+    }
+
+    public static Optional<UniPairEntity> getUniPairByAddress(String address) {
+        return Optional.ofNullable(ContractLoader.uniPairsCacheByAddress.get(address.toLowerCase()));
+    }
+
     public static Collection<String> getAllUniPairAddressesWithKeys() {
         return ContractLoader.uniPairsCacheByAddress.values().stream()
             .filter(u -> u.getKeyToken() != null)
