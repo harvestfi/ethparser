@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.erc20.decoder;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 

@@ -3,16 +3,9 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_GRAIN_FARM;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.findLpForCoins;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.findNameForLpHash;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +22,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -37,11 +31,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class UniToHarvestConverter implements Web3Parser {
 
-    public static final Set<String> allowContracts = new HashSet<>(Arrays.asList(
-        UNI_LP_USDC_FARM,
-        UNI_LP_WETH_FARM,
-        UNI_LP_GRAIN_FARM
-    ));
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -93,8 +82,13 @@ public class UniToHarvestConverter implements Web3Parser {
         if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
             return null;
         }
-        String lpHash = findLpForCoins(uniswapDTO.getCoin(), uniswapDTO.getOtherCoin());
-        if (!allowContracts.contains(lpHash)) {
+        String lpHash = ContractUtils.findUniPairForTokens(
+            ContractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
+                .orElseThrow(() -> new IllegalStateException("Not found address for " + uniswapDTO.getCoin())),
+            ContractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
+                .orElseThrow(() -> new IllegalStateException("Not found address for " + uniswapDTO.getOtherCoin()))
+        );
+        if (!PARSABLE_UNI_PAIRS.contains(lpHash)) {
             return null;
         }
         HarvestDTO harvestDTO = new HarvestDTO();
@@ -113,7 +107,8 @@ public class UniToHarvestConverter implements Web3Parser {
         harvestDTO.setConfirmed(1);
         harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
         harvestDTO.setOwner(uniswapDTO.getOwner());
-        harvestDTO.setVault(findNameForLpHash(lpHash));
+        harvestDTO.setVault(ContractUtils.getNameByAddress(lpHash)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
         harvestDTO.setLastGas(uniswapDTO.getLastGas());
         harvestDTO.setSharePrice(1.0);
         harvestDTO.setOwnerBalance(uniswapDTO.getOwnerBalance());

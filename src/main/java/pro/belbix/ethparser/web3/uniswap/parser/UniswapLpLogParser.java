@@ -106,22 +106,8 @@ public class UniswapLpLogParser implements Web3Parser {
         UniswapDTO dto = tx.toDto();
 
         //enrich owner
-        //todo alchemy.io can't return it immediately and return empty response
-        int retryCount = 0;
-        while (retryCount < 100) {
-            try {
-                TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
-                dto.setOwner(receipt.getFrom());
-                break;
-            } catch (Exception e) {
-                log.error("Empty receipt for " + dto.getHash());
-            }
-            retryCount++;
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-        }
+        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+        dto.setOwner(receipt.getFrom());
 
         //enrich date
         dto.setBlockDate(

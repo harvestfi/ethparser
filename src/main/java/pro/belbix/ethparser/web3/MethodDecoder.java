@@ -32,6 +32,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
@@ -124,7 +125,8 @@ public abstract class MethodDecoder {
 
     public EthTransactionI decodeInputData(Transaction transaction) {
         String data = transaction.getInput();
-        if (data.length() < 74) {
+        // Corporate 2/9/21 -- Changed length from 74 to 10 to decode txns that only have method id.
+        if (data.length() < 10) {
             return null;
         }
         String methodID = data.substring(0, 10);
@@ -889,6 +891,73 @@ public abstract class MethodDecoder {
                 parameters.put("executeMint",
                     Collections.singletonList(
                         TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_FEE_REWARD_FORWARDER.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_REWARD_DISTRIBUTION.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_PATH.getMethodName(),
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("bytes32"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address[]")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_LIQUIDITY_LOAN_TARGET.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put(DeployerActivityEnum.SETTLE_LOAN.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put(DeployerActivityEnum.ADD_DEX.getMethodName(),
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("bytes32"),
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_CONTROLLER.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_HARD_REWARDS.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.ADD_VAULT.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_TOKEN_POOL.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_OPERATOR.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_TEAM.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.NOTIFY_REWARD_AMOUNT.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("uint256")
+                    ));
+                parameters.put(DeployerActivityEnum.RENOUNCE_MINTER.getMethodName(), Collections.emptyList());
+                parameters.put(DeployerActivityEnum.ADD_HARD_WORKER.getMethodName(),
+                    Collections.singletonList(
+                        TypeReference.makeTypeReference("address")
+                    ));
+                parameters.put(DeployerActivityEnum.SET_CONVERSION_PATH.getMethodName(),
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("address[]")
                     ));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();

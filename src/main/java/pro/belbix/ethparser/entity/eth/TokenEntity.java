@@ -21,7 +21,7 @@ import org.hibernate.annotations.FetchMode;
 public class TokenEntity {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "contract", unique = true)
