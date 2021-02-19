@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.comparator;
 
-import pro.belbix.ethparser.dto.TransferDTO;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 
 import java.util.Comparator;
 

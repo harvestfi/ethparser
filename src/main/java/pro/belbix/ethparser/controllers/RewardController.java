@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.repositories.RewardsRepository;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.dto.RewardDTO;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;

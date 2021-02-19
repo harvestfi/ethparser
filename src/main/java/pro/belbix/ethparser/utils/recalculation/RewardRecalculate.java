@@ -4,8 +4,8 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.repositories.RewardsRepository;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 

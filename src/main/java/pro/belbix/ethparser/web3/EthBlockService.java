@@ -3,8 +3,8 @@ package pro.belbix.ethparser.web3;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
-import pro.belbix.ethparser.entity.BlockCacheEntity;
-import pro.belbix.ethparser.repositories.BlockCacheRepository;
+import pro.belbix.ethparser.entity.v0.BlockCacheEntity;
+import pro.belbix.ethparser.repositories.v0.BlockCacheRepository;
 
 @Service
 public class EthBlockService {
@@ -23,7 +23,7 @@ public class EthBlockService {
         if (cachedBlock != null) {
             return cachedBlock.getBlockDate();
         }
-        Block block = web3.findBlock(blockHash);
+        Block block = web3.findBlock(blockHash, false).getBlock();
         if (block == null) {
             return 0;
         }

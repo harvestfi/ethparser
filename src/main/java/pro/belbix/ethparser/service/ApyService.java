@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.repositories.RewardsRepository;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 
 @Service
 public class ApyService {

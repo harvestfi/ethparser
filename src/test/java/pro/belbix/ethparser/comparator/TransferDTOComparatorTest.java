@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import pro.belbix.ethparser.dto.TransferDTO;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 
 import java.util.Arrays;
 import java.util.List;

@@ -6,7 +6,7 @@ import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;

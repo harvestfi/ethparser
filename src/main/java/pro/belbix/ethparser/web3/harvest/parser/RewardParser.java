@@ -19,7 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.RewardDTO;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;

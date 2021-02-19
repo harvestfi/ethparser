@@ -5,7 +5,7 @@ import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import java.math.BigInteger;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
-import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data

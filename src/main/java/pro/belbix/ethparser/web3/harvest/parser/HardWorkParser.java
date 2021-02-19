@@ -19,7 +19,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;

@@ -2,9 +2,9 @@ package pro.belbix.ethparser.web3.harvest.db;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.ImportantEventsDTO;
+import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.ImportantEventsRepository;
+import pro.belbix.ethparser.repositories.v0.ImportantEventsRepository;
 
 @Service
 @Log4j2

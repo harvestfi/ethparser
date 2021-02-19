@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.dto.DeployerDTO;
+import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;

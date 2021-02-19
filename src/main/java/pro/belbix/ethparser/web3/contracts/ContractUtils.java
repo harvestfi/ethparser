@@ -8,12 +8,12 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.entity.eth.ContractEntity;
-import pro.belbix.ethparser.entity.eth.PoolEntity;
-import pro.belbix.ethparser.entity.eth.TokenEntity;
-import pro.belbix.ethparser.entity.eth.TokenToUniPairEntity;
-import pro.belbix.ethparser.entity.eth.UniPairEntity;
-import pro.belbix.ethparser.entity.eth.VaultEntity;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.PoolEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public class ContractUtils {
 

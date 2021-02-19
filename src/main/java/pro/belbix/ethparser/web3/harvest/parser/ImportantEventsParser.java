@@ -16,7 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.ImportantEventsDTO;
+import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;

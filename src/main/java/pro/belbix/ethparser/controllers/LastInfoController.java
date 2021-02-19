@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController

@@ -74,7 +74,10 @@ public class Web3ServiceTest {
 
     @Test
     public void testFetchBlock() {
-        Block block = web3Service.findBlock("0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832");
+        Block block = web3Service.findBlock(
+            "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
+            , false)
+            .getBlock();
         assertNotNull(block);
         Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
         assertEquals(Instant.ofEpochSecond(1603810501L), date);
@@ -134,7 +137,7 @@ public class Web3ServiceTest {
     @Test
     public void getReceiptShouldWork() {
         TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(
-                "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
+            "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
         assertNotNull(transactionReceipt);
     }
 }
