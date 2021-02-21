@@ -1,20 +1,17 @@
 package pro.belbix.ethparser.entity.a_layer;
 
+import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Data;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.NaturalId;
 
 @Entity
-@Table(name = "a_eth_address", indexes = {
-//    @Index(name = "idx_eth_index", columnList = "index")
-})
+@Table(name = "a_eth_address")
 @Data
-public class EthAddressEntity {
+public class EthAddressEntity implements Serializable {
 
     @Id
     private String address;

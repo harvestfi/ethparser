@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.entity.a_layer;
 
+import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -8,11 +9,9 @@ import lombok.Data;
 import org.hibernate.annotations.NaturalId;
 
 @Entity
-@Table(name = "a_eth_hash", indexes = {
-//    @Index(name = "idx_eth_index", columnList = "index")
-})
+@Table(name = "a_eth_hash")
 @Data
-public class EthHashEntity {
+public class EthHashEntity implements Serializable {
 
     @Id
     private String hash;

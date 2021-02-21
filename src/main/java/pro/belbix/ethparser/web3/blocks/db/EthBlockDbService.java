@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -21,12 +25,20 @@ import pro.belbix.ethparser.service.SequenceService;
 @Log4j2
 public class EthBlockDbService {
 
+    private static final int MAX_TASKS = 10;
     private final static long MAX_SEQ = 100000;
 
     private final EthBlockRepository ethBlockRepository;
     private final EthHashRepository ethHashRepository;
     private final EthAddressRepository ethAddressRepository;
     private final SequenceService sequenceService;
+
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(
+        0,
+        MAX_TASKS,
+        1L, TimeUnit.SECONDS,
+        new SynchronousQueue<>()
+    );
 
     public EthBlockDbService(EthBlockRepository ethBlockRepository,
                              EthHashRepository ethHashRepository,
@@ -38,20 +50,41 @@ public class EthBlockDbService {
         this.sequenceService = sequenceService;
     }
 
-    public EthBlockEntity save(EthBlockEntity block) {
+    public CompletableFuture<EthBlockEntity> save(EthBlockEntity block) {
         if (ethBlockRepository.existsById(block.getNumber())) {
             log.warn("Duplicate eth block " + block.getNumber());
             return null;
         }
-        AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
-        long startSeq = seq.get();
-        EntityCollector collector = collectEntities(block, seq);
-        new EntityUpdater(block, collector.getHashes(), collector.getAddresses()).update();
-        if (seq.get() - startSeq > MAX_SEQ) {
-            throw new IllegalStateException("Sequence more than " + MAX_SEQ);
+        return startWorker(block);
+    }
+
+    private CompletableFuture<EthBlockEntity> startWorker(EthBlockEntity block) {
+        waitFreeExecutors(executor);
+        return CompletableFuture.supplyAsync(() -> {
+            Thread.currentThread().setName(block.getNumber() + " block saver");
+
+            AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
+            long startSeq = seq.get();
+            EntityCollector collector = collectEntities(block, seq);
+            new EntityUpdater(block, collector.getHashes(), collector.getAddresses()).update();
+            if (seq.get() - startSeq > MAX_SEQ) {
+                throw new IllegalStateException("Sequence more than " + MAX_SEQ);
+            }
+            ethBlockRepository.save(block);
+            return block;
+        }, executor);
+    }
+
+    private void waitFreeExecutors(ThreadPoolExecutor executor) {
+        log.debug("Active block executors {}", executor.getActiveCount());
+        while (executor.getActiveCount() == MAX_TASKS) {
+            log.warn("Block task queue is full, wait a second");
+            try {
+                //noinspection BusyWait
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
         }
-        ethBlockRepository.save(block);
-        return block;
     }
 
     private EntityCollector collectEntities(EthBlockEntity block, AtomicLong seq) {

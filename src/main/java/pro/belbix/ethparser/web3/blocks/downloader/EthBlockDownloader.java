@@ -20,8 +20,6 @@ import pro.belbix.ethparser.web3.blocks.parser.EthBlockParser;
 @Log4j2
 public class EthBlockDownloader {
 
-    private static final int MAX_TASKS = 10;
-
     private final Web3Service web3Service;
     private final EthBlockDbService ethBlockDbService;
     private final EthBlockParser ethBlockParser;
@@ -31,12 +29,6 @@ public class EthBlockDownloader {
     @Value("${block-download.to:}")
     private Integer to;
 
-    ThreadPoolExecutor executor = new ThreadPoolExecutor(
-        0,
-        MAX_TASKS,
-        1L, TimeUnit.SECONDS,
-        new SynchronousQueue<>()
-    );
     AtomicInteger count = new AtomicInteger(0);
 
     public EthBlockDownloader(Web3Service web3Service,
@@ -65,8 +57,7 @@ public class EthBlockDownloader {
     private void parseAndSave(long block) {
         Instant timer = Instant.now();
 
-        EthBlock ethBlock =
-            web3Service.findBlockByNumber(block, true);
+        EthBlock ethBlock = web3Service.findBlockByNumber(block, true);
         log.debug("Fetched via web3 {} {}", block,
             Duration.between(timer, Instant.now()).toMillis());
         timer = Instant.now();
@@ -74,41 +65,25 @@ public class EthBlockDownloader {
         log.debug("Parsed {} {}", block,
             Duration.between(timer, Instant.now()).toMillis());
 
-        save(ethBlockEntity);
-    }
-
-    private void save(EthBlockEntity ethBlockEntity) {
-        waitFreeExecutors(executor);
-        executor.submit(() -> {
-            Thread.currentThread().setName(ethBlockEntity.getNumber() + " worker");
-            try {
-                Instant taskTimer = Instant.now();
-                if (ethBlockDbService.save(ethBlockEntity) != null) {
-                    log.info("{} Saved block {} {}", count.get(), ethBlockEntity.getNumber(),
-                        Duration.between(taskTimer, Instant.now()).toMillis());
-                } else {
-                    log.info("{} Block have not saved {} {}", count.get(), ethBlockEntity.getNumber(),
-                        Duration.between(taskTimer, Instant.now()).toMillis());
+        final long blockNum = ethBlockEntity.getNumber();
+        ethBlockDbService.save(ethBlockEntity)
+            .thenAccept(persistedBlock -> {
+                try {
+                    Instant taskTimer = Instant.now();
+                    if (persistedBlock != null) {
+                        log.info("{} Saved block {} {}", count.get(), blockNum,
+                            Duration.between(taskTimer, Instant.now()).toMillis());
+                    } else {
+                        log.info("{} Block have not saved {} {}", count.get(), blockNum,
+                            Duration.between(taskTimer, Instant.now()).toMillis());
+                    }
+                } catch (Exception e) {
+                    log.error("Error save {}", blockNum, e);
+                    // try to parse it again
+                    parseAndSave(blockNum);
                 }
-            } catch (Exception e) {
-                log.error("Error save {}", ethBlockEntity.getNumber(), e);
-                parseAndSave(ethBlockEntity.getNumber());
-            }
-            count.incrementAndGet();
-        });
+                count.incrementAndGet();
+            });
     }
-
-    private void waitFreeExecutors(ThreadPoolExecutor executor) {
-        log.debug("Active executors {}", executor.getActiveCount());
-        while (executor.getActiveCount() == MAX_TASKS) {
-            log.info("Task queue is full, wait a second");
-            try {
-                //noinspection BusyWait
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
 
 }

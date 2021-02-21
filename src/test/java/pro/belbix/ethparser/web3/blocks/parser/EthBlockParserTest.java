@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,21 +32,24 @@ public class EthBlockParserTest {
     private EthBlockRepository ethBlockRepository;
 
     @Test
-    public void smokeTest() throws JsonProcessingException {
+    public void smokeTest() throws JsonProcessingException, ExecutionException, InterruptedException {
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0x5643714128cc4a04c3c555355702dfbf92601dae44f443e9767841c346759254",
+            "0xaa20f7bde5be60603f11a45fc4923aab7552be775403fc00c2e6b805e6297dbe",
             true
         ));
         assertNotNull(ethBlockEntity);
         String entityStr = new ObjectMapper().writeValueAsString(ethBlockEntity);
         assertNotNull(entityStr);
 //        System.out.println(new ObjectMapper().writeValueAsString(ethBlockEntity));
-                EthBlockEntity persistEntity = ethBlockDbService.save(ethBlockEntity);
-        if (persistEntity != null) {
-            String persisted = new ObjectMapper().writeValueAsString(persistEntity);
+        EthBlockEntity persistedEntity = ethBlockDbService.save(ethBlockEntity).get();
+        if (persistedEntity != null) {
+            String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
             assertNotNull(persisted);
+            ethBlockRepository.flush();
 //            System.out.println(persisted);
-            ethBlockRepository.delete(persistEntity);
+            persistedEntity = ethBlockRepository.findById(persistedEntity.getNumber())
+                .orElseThrow();
+            ethBlockRepository.delete(persistedEntity);
         }
     }
 }
