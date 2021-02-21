@@ -104,4 +104,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "     group by vault "
         + " ) t")
     Double fetchLastGasSaved();
+
+    @Query(nativeQuery = true, value = "select block_date from hard_work "
+        + "where vault = :vault and block_date < :block_date order by block_date desc limit 0,1")
+    Long fetchPreviousBlockDateByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
 }
