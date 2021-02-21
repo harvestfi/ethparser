@@ -31,7 +31,7 @@ public class EthLogEntity {
     private EthHashEntity hash;
     private long logId;
     private int removed;
-    private String transactionIndex;
+    private long transactionIndex;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;

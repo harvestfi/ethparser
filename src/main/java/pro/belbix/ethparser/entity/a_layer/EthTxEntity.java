@@ -36,7 +36,7 @@ public class EthTxEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;
-    private String transactionIndex;
+    private long transactionIndex;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "from_address", referencedColumnName = "index")
     private EthAddressEntity fromAddress;
@@ -44,8 +44,8 @@ public class EthTxEntity {
     @JoinColumn(name = "to_address", referencedColumnName = "index")
     private EthAddressEntity toAddress;
     private String value;
-    private String gasPrice;
-    private String gas;
+    private long gasPrice;
+    private long gas;
     @Column(columnDefinition = "TEXT")
     private String input;
     private String creates;

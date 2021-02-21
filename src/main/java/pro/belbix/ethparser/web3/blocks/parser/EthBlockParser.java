@@ -120,15 +120,15 @@ public class EthBlockParser implements Web3Parser {
         EthTxEntity ethTxEntity = new EthTxEntity();
 
         ethTxEntity.setHash(new EthHashEntity(transaction.getHash()));
-        ethTxEntity.setNonce(transaction.getNonceRaw());
+        ethTxEntity.setNonce(transaction.getNonce().toString());
         ethTxEntity.setBlockHash(new EthHashEntity(transaction.getBlockHash()));
-        ethTxEntity.setTransactionIndex(transaction.getTransactionIndexRaw());
+        ethTxEntity.setTransactionIndex(transaction.getTransactionIndex().longValue());
         ethTxEntity.setBlockNumber(transaction.getBlockNumber().longValue());
         ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom()));
         ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo()));
-        ethTxEntity.setValue(transaction.getValueRaw());
-        ethTxEntity.setGasPrice(transaction.getGasPriceRaw());
-        ethTxEntity.setGas(transaction.getGasRaw());
+        ethTxEntity.setValue(transaction.getValue().toString());
+        ethTxEntity.setGasPrice(transaction.getGasPrice().longValue());
+        ethTxEntity.setGas(transaction.getGas().longValue());
         ethTxEntity.setInput(transaction.getInput());
         ethTxEntity.setCreates(transaction.getCreates());
         ethTxEntity.setPublicKey(transaction.getPublicKey());
@@ -145,7 +145,7 @@ public class EthBlockParser implements Web3Parser {
         ethBlockEntity.setNumber(block.getNumber().longValue());
         ethBlockEntity.setHash(new EthHashEntity(block.getHash()));
         ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash()));
-        ethBlockEntity.setNonce(block.getNonceRaw());
+        ethBlockEntity.setNonce(block.getNonce().toString());
         ethBlockEntity.setSha3Uncles(block.getSha3Uncles());
 //        ethBlockEntity.setLogsBloom(block.getLogsBloom());
         ethBlockEntity.setTransactionsRoot(new EthHashEntity(block.getTransactionsRoot()));
@@ -154,13 +154,13 @@ public class EthBlockParser implements Web3Parser {
         ethBlockEntity.setAuthor(block.getAuthor());
         ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner()));
         ethBlockEntity.setMixHash(new EthHashEntity(block.getMixHash()));
-        ethBlockEntity.setDifficulty(block.getDifficultyRaw());
-        ethBlockEntity.setTotalDifficulty(block.getTotalDifficultyRaw());
+        ethBlockEntity.setDifficulty(block.getDifficulty().toString());
+        ethBlockEntity.setTotalDifficulty(block.getTotalDifficulty().toString());
         ethBlockEntity.setExtraData(block.getExtraData());
-        ethBlockEntity.setSize(block.getSizeRaw());
-        ethBlockEntity.setGasLimit(block.getGasLimitRaw());
-        ethBlockEntity.setGasUsed(block.getGasUsedRaw());
-        ethBlockEntity.setTimestamp(block.getTimestampRaw());
+        ethBlockEntity.setSize(block.getSize().longValue());
+        ethBlockEntity.setGasLimit(block.getGasLimit().longValue());
+        ethBlockEntity.setGasUsed(block.getGasUsed().longValue());
+        ethBlockEntity.setTimestamp(block.getTimestamp().longValue());
         return ethBlockEntity;
     }
 
@@ -199,11 +199,11 @@ public class EthBlockParser implements Web3Parser {
         EthReceiptEntity ethReceiptEntity = new EthReceiptEntity();
 
         ethReceiptEntity.setHash(new EthHashEntity(receipt.getTransactionHash()));
-        ethReceiptEntity.setTransactionIndex(receipt.getTransactionIndexRaw());
+        ethReceiptEntity.setTransactionIndex(receipt.getTransactionIndex().longValue());
         ethReceiptEntity.setBlockHash(new EthHashEntity(receipt.getBlockHash()));
-        ethReceiptEntity.setBlockNumber(receipt.getBlockNumberRaw());
-        ethReceiptEntity.setCumulativeGasUsed(receipt.getCumulativeGasUsedRaw());
-        ethReceiptEntity.setGasUsed(receipt.getCumulativeGasUsedRaw());
+        ethReceiptEntity.setBlockNumber(receipt.getBlockNumber().longValue());
+        ethReceiptEntity.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
+        ethReceiptEntity.setGasUsed(receipt.getCumulativeGasUsed().longValue());
         ethReceiptEntity.setContractAddress(receipt.getContractAddress());
         ethReceiptEntity.setRoot(receipt.getRoot());
         ethReceiptEntity.setStatus(receipt.getStatus());
@@ -226,7 +226,7 @@ public class EthBlockParser implements Web3Parser {
         ethLogEntity.setHash(new EthHashEntity(ethLog.getTransactionHash()));
         ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
         ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
-        ethLogEntity.setTransactionIndex(ethLog.getTransactionIndexRaw());
+        ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
         ethLogEntity.setBlockHash(new EthHashEntity(ethLog.getBlockHash()));
         ethLogEntity.setBlockNumber(ethLog.getBlockNumber().longValue());
         ethLogEntity.setAddress(new EthAddressEntity(ethLog.getAddress()));

@@ -30,13 +30,13 @@ public class EthReceiptEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hash", referencedColumnName = "index", unique = true)
     private EthHashEntity hash;
-    private String transactionIndex;
+    private long transactionIndex;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;
-    private String blockNumber;
-    private String cumulativeGasUsed;
-    private String gasUsed;
+    private long blockNumber;
+    private long cumulativeGasUsed;
+    private long gasUsed;
     private String contractAddress;
     private String root;
     private String status;

@@ -55,10 +55,10 @@ public class EthBlockEntity implements DtoI {
     private String difficulty;
     private String totalDifficulty;
     private String extraData;
-    private String size;
-    private String gasLimit;
-    private String gasUsed;
-    private String timestamp;
+    private long size;
+    private long gasLimit;
+    private long gasUsed;
+    private long timestamp;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "blockNumber",
         fetch = FetchType.LAZY, orphanRemoval = true)

@@ -1,25 +1,22 @@
 spring:
   jpa:
     #    open-in-view: false
-    database: mysql
-    show-sql: false
+    database: postgresql
+#    show-sql: true
     hibernate:
       ddl-auto: update
     properties.hibernate:
-      dialect: org.hibernate.dialect.MySQL8Dialect
+      dialect: org.hibernate.dialect.PostgreSQLDialect
       jdbc.lob.non_contextual_creation: true
 
   datasource:
-    platform: mysql
-    url: jdbc:mysql://localhost:3306/harvest
+    platform: postgresql
+    url: jdbc:postgresql://localhost:5432/postgres
     username:
     password:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 4
-      max-lifetime: 500000
-    tomcat:
-      max-active: 4
+      maximum-pool-size: 20
 
 
 server:
