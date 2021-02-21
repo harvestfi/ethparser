@@ -68,7 +68,7 @@ public class ContractLoader {
     private final VaultToPoolRepository vaultToPoolRepository;
     private final SubscriptionsProperties subscriptionsProperties;
 
-    private long currentBlock;
+    private Long currentBlock;
     boolean loaded = false;
     private ContractTypeEntity vaultType;
     private ContractTypeEntity poolType;
@@ -147,7 +147,7 @@ public class ContractLoader {
 
     public void loadKeyBlocks() {
         for (Integer block : KEY_BLOCKS_FOR_LOADING) {
-            currentBlock = block;
+            currentBlock = block.longValue();
             load();
         }
     }

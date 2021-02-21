@@ -74,7 +74,7 @@ public class Web3ServiceTest {
 
     @Test
     public void testFetchBlock() {
-        Block block = web3Service.findBlock(
+        Block block = web3Service.findBlockByHash(
             "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
             , false)
             .getBlock();

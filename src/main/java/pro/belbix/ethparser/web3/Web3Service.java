@@ -190,7 +190,7 @@ public class Web3Service {
         return callWithRetry(() -> web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
     }
 
-    public EthBlock findBlock(String blockHash, boolean returnFullTransactionObjects) {
+    public EthBlock findBlockByHash(String blockHash, boolean returnFullTransactionObjects) {
         checkInit();
         EthBlock result = callWithRetry(() -> {
             EthBlock ethBlock = web3.ethGetBlockByHash(blockHash, returnFullTransactionObjects).send();
@@ -205,6 +205,24 @@ public class Web3Service {
             return ethBlock;
         });
         return result;
+    }
+
+    public EthBlock findBlockByNumber(long number, boolean returnFullTransactionObjects) {
+        checkInit();
+        return callWithRetry(() -> {
+            EthBlock ethBlock = web3.ethGetBlockByNumber(
+                DefaultBlockParameter.valueOf(BigInteger.valueOf(number)),
+                returnFullTransactionObjects).send();
+            if (ethBlock == null) {
+                log.error("Error fetching block with number " + number);
+                return null;
+            }
+            if (ethBlock.getError() != null) {
+                log.error("Error fetching block " + ethBlock.getError().getMessage());
+                return null;
+            }
+            return ethBlock;
+        });
     }
 
     public double fetchAverageGasPrice() {

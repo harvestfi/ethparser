@@ -23,7 +23,7 @@ public class EthBlockService {
         if (cachedBlock != null) {
             return cachedBlock.getBlockDate();
         }
-        Block block = web3.findBlock(blockHash, false).getBlock();
+        Block block = web3.findBlockByHash(blockHash, false).getBlock();
         if (block == null) {
             return 0;
         }
@@ -46,7 +46,7 @@ public class EthBlockService {
         if (lastBlock == 0) {
             lastBlock = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
                 .map(BlockCacheEntity::getBlock)
-                .orElse(0L);
+                .orElseGet(() -> web3.fetchCurrentBlock().longValue());
         }
         return lastBlock;
     }

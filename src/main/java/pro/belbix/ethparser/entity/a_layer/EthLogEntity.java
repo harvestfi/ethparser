@@ -2,6 +2,7 @@ package pro.belbix.ethparser.entity.a_layer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -26,21 +27,24 @@ public class EthLogEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="hash", nullable=false)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "hash", referencedColumnName = "index")
     private EthHashEntity hash;
     private long logId;
     private int removed;
     private String transactionIndex;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;
     private long blockNumber;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "address", referencedColumnName = "index")
     private EthAddressEntity address;
     @Column(columnDefinition = "TEXT")
     private String data;
     private String type;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "first_topic", referencedColumnName = "index")
     private EthHashEntity firstTopic;
     @Column(columnDefinition = "TEXT")
     private String topics;

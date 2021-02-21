@@ -27,11 +27,12 @@ public class EthReceiptEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(unique = true)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="hash", referencedColumnName = "index", unique = true)
     private EthHashEntity hash;
     private String transactionIndex;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;
     private String blockNumber;
     private String cumulativeGasUsed;
@@ -39,9 +40,11 @@ public class EthReceiptEntity {
     private String contractAddress;
     private String root;
     private String status;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="from_address", referencedColumnName = "index")
     private EthAddressEntity fromAddress;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="to_address", referencedColumnName = "index")
     private EthAddressEntity toAddress;
     // bloom indexes disabled due to no reason to hold
 //    @Column(columnDefinition = "TEXT")

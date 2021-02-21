@@ -25,26 +25,32 @@ public class EthBlockEntity implements DtoI {
 
     @Id
     private long number;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="hash", nullable=false, unique = true)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="hash", referencedColumnName = "index", unique = true)
     private EthHashEntity hash;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="parent_hash", referencedColumnName = "index")
     private EthHashEntity parentHash;
     private String nonce;
     private String sha3Uncles;
     // bloom indexes disabled due to no reason to hold
 //    @Column(columnDefinition = "TEXT")
 //    private String logsBloom;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="transactions_root", referencedColumnName = "index")
     private EthHashEntity transactionsRoot;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="state_root", referencedColumnName = "index")
     private EthHashEntity stateRoot;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="receipts_root", referencedColumnName = "index")
     private EthHashEntity receiptsRoot;
     private String author;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="miner", referencedColumnName = "index")
     private EthAddressEntity miner;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="mix_hash", referencedColumnName = "index")
     private EthHashEntity mixHash;
     private String difficulty;
     private String totalDifficulty;
@@ -54,7 +60,8 @@ public class EthBlockEntity implements DtoI {
     private String gasUsed;
     private String timestamp;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "blockNumber", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "blockNumber",
+        fetch = FetchType.LAZY, orphanRemoval=true)
     private List<EthTxEntity> transactions;
 
 }

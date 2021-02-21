@@ -73,9 +73,9 @@ public class EthBlockParser implements Web3Parser {
                     EthBlockEntity entity = parse(ethBlock);
                     if (entity != null) {
                         lastTx = Instant.now();
-                        boolean success = ethBlockDbService.save(entity);
-                        if (success) {
-                            output.put(entity);
+                        EthBlockEntity persistEntity = ethBlockDbService.save(entity);
+                        if (persistEntity != null) {
+                            output.put(persistEntity);
                         }
                     }
                 } catch (Exception e) {

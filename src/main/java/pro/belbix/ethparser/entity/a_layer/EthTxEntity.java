@@ -3,6 +3,7 @@ package pro.belbix.ethparser.entity.a_layer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,16 +30,20 @@ public class EthTxEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="hash", referencedColumnName = "index")
     private EthHashEntity hash;
     private String nonce;
     private long blockNumber;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="block_hash", referencedColumnName = "index")
     private EthHashEntity blockHash;
     private String transactionIndex;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="from_address", referencedColumnName = "index")
     private EthAddressEntity fromAddress;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="to_address", referencedColumnName = "index")
     private EthAddressEntity toAddress;
     private String value;
     private String gasPrice;
@@ -48,14 +53,16 @@ public class EthTxEntity {
     private String creates;
     private String publicKey;
     private String raw;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinColumn(name="r", referencedColumnName = "index")
     private EthHashEntity r;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="s", referencedColumnName = "index")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     private EthHashEntity s;
     private long v;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "hash")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "receipt")
     @Fetch(FetchMode.JOIN)
     private EthReceiptEntity receipt;
 
