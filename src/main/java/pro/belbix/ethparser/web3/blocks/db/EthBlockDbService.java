@@ -19,18 +19,20 @@ import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthAddressRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthHashRepository;
+import pro.belbix.ethparser.repositories.a_layer.EthLogRepository;
 import pro.belbix.ethparser.service.SequenceService;
 
 @Service
 @Log4j2
 public class EthBlockDbService {
 
-    private static final int MAX_TASKS = 10;
+    private static final int MAX_TASKS = 1; // DON'T TURN ON! mt broken
     private final static long MAX_SEQ = 100000;
 
     private final EthBlockRepository ethBlockRepository;
     private final EthHashRepository ethHashRepository;
     private final EthAddressRepository ethAddressRepository;
+    private final EthLogRepository ethLogRepository;
     private final SequenceService sequenceService;
 
     ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -43,10 +45,12 @@ public class EthBlockDbService {
     public EthBlockDbService(EthBlockRepository ethBlockRepository,
                              EthHashRepository ethHashRepository,
                              EthAddressRepository ethAddressRepository,
+                             EthLogRepository ethLogRepository,
                              SequenceService sequenceService) {
         this.ethBlockRepository = ethBlockRepository;
         this.ethHashRepository = ethHashRepository;
         this.ethAddressRepository = ethAddressRepository;
+        this.ethLogRepository = ethLogRepository;
         this.sequenceService = sequenceService;
     }
 
@@ -55,24 +59,25 @@ public class EthBlockDbService {
             log.warn("Duplicate eth block " + block.getNumber());
             return null;
         }
-        return startWorker(block);
+        waitFreeExecutors(executor);
+        return CompletableFuture.supplyAsync(() -> startWorker(block), executor);
     }
 
-    private CompletableFuture<EthBlockEntity> startWorker(EthBlockEntity block) {
-        waitFreeExecutors(executor);
-        return CompletableFuture.supplyAsync(() -> {
+    @Transactional
+    EthBlockEntity startWorker(EthBlockEntity block) {
+        try {
             Thread.currentThread().setName(block.getNumber() + " block saver");
 
             AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
             long startSeq = seq.get();
-            EntityCollector collector = collectEntities(block, seq);
-            new EntityUpdater(block, collector.getHashes(), collector.getAddresses()).update();
-            if (seq.get() - startSeq > MAX_SEQ) {
-                throw new IllegalStateException("Sequence more than " + MAX_SEQ);
-            }
+            EntityCollector collector = persistChildEntities(block, seq, startSeq);
+            new EntityUpdater(block, collector).update();
             ethBlockRepository.save(block);
             return block;
-        }, executor);
+        } catch (Exception e) {
+            log.error("Error handle {}", block.getNumber(), e);
+            throw e;
+        }
     }
 
     private void waitFreeExecutors(ThreadPoolExecutor executor) {
@@ -87,16 +92,15 @@ public class EthBlockDbService {
         }
     }
 
-    private EntityCollector collectEntities(EthBlockEntity block, AtomicLong seq) {
+    private EntityCollector persistChildEntities(EthBlockEntity block, AtomicLong seq, long startSeq) {
         EntityCollector collector = new EntityCollector(block);
         collector.collectFromBlock();
-        persistHashes(collector.getHashes(), seq);
-        persistAddresses(collector.getAddresses(), seq);
+        persistHashes(collector.getHashes(), seq, startSeq);
+        persistAddresses(collector.getAddresses(), seq, startSeq);
         return collector;
     }
 
-    @Transactional
-    void persistHashes(Map<String, EthHashEntity> hashes, AtomicLong seq) {
+    private void persistHashes(Map<String, EthHashEntity> hashes, AtomicLong seq, long startSeq) {
         List<EthHashEntity> persistent = ethHashRepository.findAllById(hashes.keySet());
         Map<String, EthHashEntity> persistentMap = persistent.stream()
             .collect(Collectors.toMap(EthHashEntity::getHash, item -> item));
@@ -112,6 +116,7 @@ public class EthBlockDbService {
                 continue;
             }
             entry.getValue().setIndex(seq.incrementAndGet());
+            checkSeq(seq, startSeq);
             notPersistent.add(entry.getValue());
         }
         if (!notPersistent.isEmpty()) {
@@ -120,8 +125,7 @@ public class EthBlockDbService {
         }
     }
 
-    @Transactional
-    void persistAddresses(Map<String, EthAddressEntity> addresses, AtomicLong seq) {
+    private void persistAddresses(Map<String, EthAddressEntity> addresses, AtomicLong seq, long startSeq) {
         List<EthAddressEntity> persistent = ethAddressRepository.findAllById(addresses.keySet());
         Map<String, EthAddressEntity> persistentMap = persistent.stream()
             .collect(Collectors.toMap(EthAddressEntity::getAddress, item -> item));
@@ -137,11 +141,18 @@ public class EthBlockDbService {
                 continue;
             }
             entry.getValue().setIndex(seq.incrementAndGet());
+            checkSeq(seq, startSeq);
             notPersistent.add(entry.getValue());
         }
         if (!notPersistent.isEmpty()) {
             ethAddressRepository.saveAll(notPersistent);
             ethAddressRepository.flush();
+        }
+    }
+
+    private void checkSeq(AtomicLong seq, long startSeq) {
+        if ((seq.get() - startSeq) > MAX_SEQ) {
+            throw new IllegalStateException("Sequence more than " + MAX_SEQ);
         }
     }
 

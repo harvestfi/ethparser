@@ -3,6 +3,7 @@ package pro.belbix.ethparser.entity.a_layer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,11 +11,42 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import pro.belbix.ethparser.dto.DtoI;
 
+//@NamedEntityGraph(
+//    name = "block-graph.all",
+//    attributeNodes = {
+//        @NamedAttributeNode("hash"),
+//        @NamedAttributeNode("parentHash"),
+//        @NamedAttributeNode("transactionsRoot"),
+//        @NamedAttributeNode("stateRoot"),
+//        @NamedAttributeNode("receiptsRoot"),
+//        @NamedAttributeNode("miner"),
+//        @NamedAttributeNode("mixHash"),
+//        @NamedAttributeNode(value = "transactions", subgraph = "tx.all"),
+//    },
+//    subgraphs = {
+//        @NamedSubgraph(
+//            name = "tx.all",
+//            attributeNodes = {
+//                @NamedAttributeNode("hash"),
+//                @NamedAttributeNode("blockHash"),
+//                @NamedAttributeNode("fromAddress"),
+//                @NamedAttributeNode("toAddress"),
+//                @NamedAttributeNode("r"),
+//                @NamedAttributeNode("s"),
+//            }
+//        ),
+//    }
+//)
 @Entity
 @Table(name = "a_eth_block", indexes = {
     @Index(name = "idx_eth_block_hash", columnList = "hash")
@@ -25,33 +57,8 @@ public class EthBlockEntity implements DtoI {
 
     @Id
     private long number;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "hash", referencedColumnName = "index", unique = true)
-    private EthHashEntity hash;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_hash", referencedColumnName = "index")
-    private EthHashEntity parentHash;
     private String nonce;
-    private String sha3Uncles;
-    // bloom indexes disabled due to no reason to hold
-//    @Column(columnDefinition = "TEXT")
-//    private String logsBloom;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transactions_root", referencedColumnName = "index")
-    private EthHashEntity transactionsRoot;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_root", referencedColumnName = "index")
-    private EthHashEntity stateRoot;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receipts_root", referencedColumnName = "index")
-    private EthHashEntity receiptsRoot;
     private String author;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "miner", referencedColumnName = "index")
-    private EthAddressEntity miner;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mix_hash", referencedColumnName = "index")
-    private EthHashEntity mixHash;
     private String difficulty;
     private String totalDifficulty;
     private String extraData;
@@ -60,8 +67,21 @@ public class EthBlockEntity implements DtoI {
     private long gasUsed;
     private long timestamp;
 
+    @ManyToOne
+    @JoinColumn(name = "hash", referencedColumnName = "index", unique = true)
+    private EthHashEntity hash;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_hash", referencedColumnName = "index")
+    private EthHashEntity parentHash;
+
+    @ManyToOne
+    @JoinColumn(name = "miner", referencedColumnName = "index")
+    private EthAddressEntity miner;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "blockNumber",
-        fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<EthTxEntity> transactions;
+        fetch = FetchType.EAGER, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<EthTxEntity> transactions;
 
 }

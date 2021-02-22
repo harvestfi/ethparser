@@ -1,11 +1,11 @@
 package pro.belbix.ethparser.web3.blocks.parser;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +25,6 @@ import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
-import pro.belbix.ethparser.entity.a_layer.EthReceiptEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -100,7 +99,7 @@ public class EthBlockParser implements Web3Parser {
         Block block = ethBlock.getBlock();
         EthBlockEntity ethBlockEntity = blockToEntity(block);
 
-        List<EthTxEntity> ethTxEntities = new ArrayList<>();
+        Set<EthTxEntity> ethTxEntities = new HashSet<>();
         Map<String, EthTxEntity> txMap = new HashMap<>();
         //noinspection unchecked
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
@@ -121,9 +120,8 @@ public class EthBlockParser implements Web3Parser {
 
         ethTxEntity.setHash(new EthHashEntity(transaction.getHash()));
         ethTxEntity.setNonce(transaction.getNonce().toString());
-        ethTxEntity.setBlockHash(new EthHashEntity(transaction.getBlockHash()));
         ethTxEntity.setTransactionIndex(transaction.getTransactionIndex().longValue());
-        ethTxEntity.setBlockNumber(transaction.getBlockNumber().longValue());
+        ethTxEntity.setBlockNumber(ethBlockEntity);
         ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom()));
         ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo()));
         ethTxEntity.setValue(transaction.getValue().toString());
@@ -133,9 +131,6 @@ public class EthBlockParser implements Web3Parser {
         ethTxEntity.setCreates(transaction.getCreates());
         ethTxEntity.setPublicKey(transaction.getPublicKey());
         ethTxEntity.setRaw(transaction.getRaw());
-        ethTxEntity.setR(new EthHashEntity(transaction.getR()));
-        ethTxEntity.setS(new EthHashEntity(transaction.getS()));
-        ethTxEntity.setV(transaction.getV());
 
         return ethTxEntity;
     }
@@ -146,14 +141,8 @@ public class EthBlockParser implements Web3Parser {
         ethBlockEntity.setHash(new EthHashEntity(block.getHash()));
         ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash()));
         ethBlockEntity.setNonce(block.getNonce().toString());
-        ethBlockEntity.setSha3Uncles(block.getSha3Uncles());
-//        ethBlockEntity.setLogsBloom(block.getLogsBloom());
-        ethBlockEntity.setTransactionsRoot(new EthHashEntity(block.getTransactionsRoot()));
-        ethBlockEntity.setStateRoot(new EthHashEntity(block.getStateRoot()));
-        ethBlockEntity.setReceiptsRoot(new EthHashEntity(block.getReceiptsRoot()));
         ethBlockEntity.setAuthor(block.getAuthor());
         ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner()));
-        ethBlockEntity.setMixHash(new EthHashEntity(block.getMixHash()));
         ethBlockEntity.setDifficulty(block.getDifficulty().toString());
         ethBlockEntity.setTotalDifficulty(block.getTotalDifficulty().toString());
         ethBlockEntity.setExtraData(block.getExtraData());
@@ -180,9 +169,7 @@ public class EthBlockParser implements Web3Parser {
                     return;
                 }
 
-                EthReceiptEntity ethReceiptEntity = receiptToEntity(receipt);
-                ethTxEntity.setReceipt(ethReceiptEntity);
-
+                fillTxFromReceipt(ethTxEntity, receipt);
                 txMap.remove(receipt.getTransactionHash());
             });
         if (!txMap.isEmpty()) {
@@ -195,45 +182,31 @@ public class EthBlockParser implements Web3Parser {
         }
     }
 
-    private EthReceiptEntity receiptToEntity(TransactionReceipt receipt) {
-        EthReceiptEntity ethReceiptEntity = new EthReceiptEntity();
+    private void fillTxFromReceipt(EthTxEntity tx, TransactionReceipt receipt) {
+        tx.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
+        tx.setGasUsed(receipt.getCumulativeGasUsed().longValue());
+        tx.setContractAddress(receipt.getContractAddress());
+        tx.setRoot(receipt.getRoot());
+        tx.setStatus(receipt.getStatus());
+        tx.setRevertReason(receipt.getRevertReason());
 
-        ethReceiptEntity.setHash(new EthHashEntity(receipt.getTransactionHash()));
-        ethReceiptEntity.setTransactionIndex(receipt.getTransactionIndex().longValue());
-        ethReceiptEntity.setBlockHash(new EthHashEntity(receipt.getBlockHash()));
-        ethReceiptEntity.setBlockNumber(receipt.getBlockNumber().longValue());
-        ethReceiptEntity.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
-        ethReceiptEntity.setGasUsed(receipt.getCumulativeGasUsed().longValue());
-        ethReceiptEntity.setContractAddress(receipt.getContractAddress());
-        ethReceiptEntity.setRoot(receipt.getRoot());
-        ethReceiptEntity.setStatus(receipt.getStatus());
-        ethReceiptEntity.setFromAddress(new EthAddressEntity(receipt.getFrom()));
-        ethReceiptEntity.setToAddress(new EthAddressEntity(receipt.getTo()));
-//        ethReceiptEntity.setLogsBloom(receipt.getLogsBloom());
-        ethReceiptEntity.setRevertReason(receipt.getRevertReason());
-
-        ethReceiptEntity.setLogs(receipt.getLogs().stream()
-            .map(this::ethLogToEntity)
-            .collect(Collectors.toList())
+        tx.setLogs(receipt.getLogs().stream()
+            .map(l -> ethLogToEntity(l, tx))
+            .collect(Collectors.toSet())
         );
-
-        return ethReceiptEntity;
     }
 
-    private EthLogEntity ethLogToEntity(Log ethLog) {
+    private EthLogEntity ethLogToEntity(Log ethLog, EthTxEntity tx) {
         EthLogEntity ethLogEntity = new EthLogEntity();
 
-        ethLogEntity.setHash(new EthHashEntity(ethLog.getTransactionHash()));
         ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
         ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
         ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
-        ethLogEntity.setBlockHash(new EthHashEntity(ethLog.getBlockHash()));
-        ethLogEntity.setBlockNumber(ethLog.getBlockNumber().longValue());
-        ethLogEntity.setAddress(new EthAddressEntity(ethLog.getAddress()));
         ethLogEntity.setData(ethLog.getData());
         ethLogEntity.setType(ethLog.getType());
+        ethLogEntity.setTx(tx);
 
-        if (!ethLog.getTopics().isEmpty()) {
+        if (ethLog.getTopics() != null && !ethLog.getTopics().isEmpty()) {
             ethLogEntity.setFirstTopic(new EthHashEntity(ethLog.getTopics().remove(0)));
             ethLogEntity.setTopics(String.join(",", ethLog.getTopics()));
         }

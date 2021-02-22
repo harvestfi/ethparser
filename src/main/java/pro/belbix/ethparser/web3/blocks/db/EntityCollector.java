@@ -6,7 +6,6 @@ import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
-import pro.belbix.ethparser.entity.a_layer.EthReceiptEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
 public class EntityCollector {
@@ -22,10 +21,6 @@ public class EntityCollector {
     public void collectFromBlock() {
         saveHash(block.getHash());
         saveHash(block.getParentHash());
-        saveHash(block.getTransactionsRoot());
-        saveHash(block.getStateRoot());
-        saveHash(block.getReceiptsRoot());
-        saveHash(block.getMixHash());
         saveAddress(block.getMiner());
 
         block.getTransactions().forEach(this::collectFromTx);
@@ -33,29 +28,14 @@ public class EntityCollector {
 
     private void collectFromTx(EthTxEntity tx) {
         saveHash(tx.getHash());
-        saveHash(tx.getBlockHash());
-        saveHash(tx.getR());
-        saveHash(tx.getS());
         saveAddress(tx.getFromAddress());
         saveAddress(tx.getToAddress());
 
-        collectFromReceipt(tx.getReceipt());
-    }
-
-    private void collectFromReceipt(EthReceiptEntity receipt) {
-        saveHash(receipt.getHash());
-        saveHash(receipt.getBlockHash());
-        saveAddress(receipt.getFromAddress());
-        saveAddress(receipt.getToAddress());
-
-        receipt.getLogs().forEach(this::collectFromLog);
+        tx.getLogs().forEach(this::collectFromLog);
     }
 
     private void collectFromLog(EthLogEntity log) {
-        saveHash(log.getHash());
-        saveHash(log.getBlockHash());
         saveHash(log.getFirstTopic());
-        saveAddress(log.getAddress());
     }
 
     private void saveHash(EthHashEntity hash) {

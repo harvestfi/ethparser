@@ -2,9 +2,6 @@ package pro.belbix.ethparser.web3.blocks.downloader;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.log4j.Log4j2;
@@ -69,20 +66,21 @@ public class EthBlockDownloader {
         final Instant taskTimer = Instant.now();
         ethBlockDbService.save(ethBlockEntity)
             .thenAccept(persistedBlock -> {
-                try {
-                    if (persistedBlock != null) {
-                        log.info("{} Saved block {} {}", count.get(), blockNum,
-                            Duration.between(taskTimer, Instant.now()).toMillis());
-                    } else {
-                        log.info("{} Block have not saved {} {}", count.get(), blockNum,
-                            Duration.between(taskTimer, Instant.now()).toMillis());
-                    }
-                } catch (Exception e) {
-                    log.error("Error save {}", blockNum, e);
-                    // try to parse it again
-                    parseAndSave(blockNum);
+                if (persistedBlock != null) {
+                    log.info("{} Saved block {} {}", count.get(), blockNum,
+                        Duration.between(taskTimer, Instant.now()).toMillis());
+                } else {
+                    log.info("{} Block have not saved {} {}", count.get(), blockNum,
+                        Duration.between(taskTimer, Instant.now()).toMillis());
                 }
+
                 count.incrementAndGet();
+            })
+            .exceptionally(e -> {
+                log.error("Error save {}", blockNum, e);
+                // try to parse it again
+                parseAndSave(blockNum);
+                return null;
             });
     }
 

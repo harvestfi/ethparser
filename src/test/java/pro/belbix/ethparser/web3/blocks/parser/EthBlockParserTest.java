@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,15 +42,19 @@ public class EthBlockParserTest {
         String entityStr = new ObjectMapper().writeValueAsString(ethBlockEntity);
         assertNotNull(entityStr);
 //        System.out.println(new ObjectMapper().writeValueAsString(ethBlockEntity));
-        EthBlockEntity persistedEntity = ethBlockDbService.save(ethBlockEntity).get();
-        if (persistedEntity != null) {
-            String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
-            assertNotNull(persisted);
-            ethBlockRepository.flush();
-            System.out.println(persisted);
-            persistedEntity = ethBlockRepository.findById(persistedEntity.getNumber())
-                .orElseThrow();
-            ethBlockRepository.delete(persistedEntity);
+        CompletableFuture<EthBlockEntity> result = ethBlockDbService.save(ethBlockEntity);
+        if(result != null) {
+            EthBlockEntity persistedEntity = result.join();
+            if (persistedEntity != null) {
+                String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
+                assertNotNull(persisted);
+                ethBlockRepository.flush();
+                System.out.println(persisted);
+            }
         }
+        System.out.println("load entity");
+        EthBlockEntity saved = ethBlockRepository.findById(ethBlockEntity.getNumber()).orElseThrow();
+        System.out.println("delete entity");
+//        ethBlockRepository.delete(saved);
     }
 }

@@ -1,7 +1,9 @@
 package pro.belbix.ethparser.entity.a_layer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,38 +13,41 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+//@NamedEntityGraph(
+//    name = "tx-graph.all",
+//    attributeNodes = {
+//        @NamedAttributeNode("hash"),
+//        @NamedAttributeNode("blockHash"),
+//        @NamedAttributeNode("fromAddress"),
+//        @NamedAttributeNode("toAddress"),
+//        @NamedAttributeNode("r"),
+//        @NamedAttributeNode("s"),
+//    }
+//)
 @Entity
-@Table(name = "a_eth_tx", indexes = {
-//    @Index(name = "idx_eth_tx_block", columnList = "block")
-})
+@Table(name = "a_eth_tx")
 @Data
+@EqualsAndHashCode(exclude = {"logs", "blockNumber"})
 @JsonInclude(Include.NON_NULL)
 public class EthTxEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "hash", referencedColumnName = "index")
-    private EthHashEntity hash;
     private String nonce;
-    private long blockNumber;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "block_hash", referencedColumnName = "index")
-    private EthHashEntity blockHash;
     private long transactionIndex;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "from_address", referencedColumnName = "index")
-    private EthAddressEntity fromAddress;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "to_address", referencedColumnName = "index")
-    private EthAddressEntity toAddress;
     private String value;
     private long gasPrice;
     private long gas;
@@ -51,17 +56,35 @@ public class EthTxEntity {
     private String creates;
     private String publicKey;
     private String raw;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "r", referencedColumnName = "index")
-    private EthHashEntity r;
-    @JoinColumn(name = "s", referencedColumnName = "index")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private EthHashEntity s;
-    private long v;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "receipt")
-    @Fetch(FetchMode.JOIN)
-    private EthReceiptEntity receipt;
+    // receipt info
+    private long cumulativeGasUsed;
+    private long gasUsed;
+    private String contractAddress;
+    private String root;
+    private String status;
+    private String revertReason;
+
+    @ManyToOne
+    @JoinColumn(name = "hash", referencedColumnName = "index")
+    private EthHashEntity hash;
+
+    @ManyToOne
+    @JoinColumn(name = "from_address", referencedColumnName = "index")
+    private EthAddressEntity fromAddress;
+
+    @ManyToOne
+    @JoinColumn(name = "to_address", referencedColumnName = "index")
+    private EthAddressEntity toAddress;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "block_number", referencedColumnName = "number")
+    private EthBlockEntity blockNumber;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "tx",
+        fetch = FetchType.EAGER, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<EthLogEntity> logs;
 
 }
