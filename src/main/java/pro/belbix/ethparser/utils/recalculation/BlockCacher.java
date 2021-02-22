@@ -29,7 +29,7 @@ public class BlockCacher {
         int bulkSize = 100;
         for (HarvestDTO dto : harvestDTOS) {
             count++;
-            long block = dto.getBlock().longValue();
+            long block = dto.getBlock();
             if (!blockCacheRepository.existsById(block)) {
                 BlockCacheEntity blockCacheEntity = new BlockCacheEntity();
                 blockCacheEntity.setBlock(block);

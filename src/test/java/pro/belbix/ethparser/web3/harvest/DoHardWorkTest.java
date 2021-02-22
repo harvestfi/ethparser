@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,10 +19,10 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -169,7 +168,7 @@ public class DoHardWorkTest {
         double vaultRewardUsd = dto.getShareChangeUsd();
         if (vaultRewardUsd != 0) {
             double psReward = dto.getFarmBuyback();
-            double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+            double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
             double psRewardUsd = psReward * farmPrice;
             double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
             double wholeRewardBasedOnVaultReward = vaultRewardUsd / 0.7;

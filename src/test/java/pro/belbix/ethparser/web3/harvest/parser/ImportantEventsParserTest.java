@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +20,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
@@ -69,7 +69,7 @@ public class ImportantEventsParserTest {
     @Test
     public void shouldParseMint() {
         parserTest(
-            FARM_TOKEN,
+            ContractConstants.FARM_TOKEN,
             10776715, 
             0, 
             "null",

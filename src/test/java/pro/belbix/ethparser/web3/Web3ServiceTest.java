@@ -8,8 +8,6 @@ import static org.junit.Assert.assertTrue;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_ETH_DAI;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_WETH_FARM;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -36,14 +34,12 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.uniswap.decoder.UniswapPoolDecoder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 public class Web3ServiceTest {
 
-    private UniswapPoolDecoder decoder = new UniswapPoolDecoder();
     @Autowired
     private Web3Service web3Service;
 
@@ -57,7 +53,7 @@ public class Web3ServiceTest {
             System.out.println(log.toString());
         }
         Log lastLog = logs.get(logs.size() - 1);
-        assertEquals(UNI_LP_WETH_FARM, lastLog.getAddress().toLowerCase());
+        assertEquals("0x56feaccb7f750b997b36a68625c7c596f0b41a58", lastLog.getAddress().toLowerCase());
         String data = lastLog.getData();
 
         List<Type> types = FunctionReturnDecoder.decode(data,
@@ -115,7 +111,7 @@ public class Web3ServiceTest {
     }
 
     @Test
-    public void ethCallGET_RESERVESTest() {
+    public void ethCallGET_RESERVESTestUNI_LP_ETH_DAI() {
         List<Type> types = web3Service.callFunction(new Function(
             "getReserves",
             Collections.emptyList(),
@@ -125,7 +121,7 @@ public class Web3ServiceTest {
                 },
                 new TypeReference<Uint32>() {
                 }
-            )), UNI_LP_ETH_DAI, BLOCK_NUMBER_30_AUGUST_2020);
+            )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", BLOCK_NUMBER_30_AUGUST_2020);
         assertNotNull(types);
         assertEquals(3, types.size());
         assertTrue(((Uint112) types.get(0)).getValue()

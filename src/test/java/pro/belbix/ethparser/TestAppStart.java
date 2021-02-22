@@ -13,12 +13,14 @@ public class TestAppStart {
     private AppProperties appProperties;
     @Autowired
     private RewardParser rewardParser;
+    @Autowired
+    private AppStarter appStarter;
 
     @Test
     public void startTest() throws InterruptedException {
         rewardParser.setWaitNewBlock(false);
         if (appProperties.isDevMod()) {
-            Application.main(new String[]{});
+            appStarter.start();
         }
         while (appProperties.isDevMod()) {
             Thread.sleep(1000);

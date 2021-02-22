@@ -36,10 +36,11 @@ public class AppProperties {
     private boolean parsePrices = true;
 
     private String startBlock = "";
-    private boolean parseTransactions = false;
     private boolean parseHarvest = false;
+    private boolean parseDeployerTransactions = true;
 
     private boolean parseLog = true;
+    private boolean parseTransactions = true;
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;

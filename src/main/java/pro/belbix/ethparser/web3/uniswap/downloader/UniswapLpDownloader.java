@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.lpNameToHash;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -13,6 +12,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.UniswapDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
@@ -45,8 +46,11 @@ public class UniswapLpDownloader {
     }
 
     private void load(Integer from, Integer to) {
-        List<LogResult> logResults = web3Service
-            .fetchContractLogs(singletonList(lpNameToHash.get(contractName)), from, to);
+        List<LogResult> logResults = web3Service.fetchContractLogs(
+            singletonList(ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
+            from,
+            to
+        );
         if (logResults == null) {
             logger.error("Log results is null");
             return;

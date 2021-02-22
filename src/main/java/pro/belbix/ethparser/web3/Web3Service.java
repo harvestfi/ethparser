@@ -103,9 +103,16 @@ public class Web3Service {
                         + " " + error.getData());
                     return null;
                 }
+
+                //todo alchemy.io can't return it immediately and return empty response
+                if (ethGetTransactionReceipt.getTransactionReceipt().isEmpty()) {
+                    log.warn("Receipt is empty, retry with sleep");
+                    Thread.sleep(1000);
+                    return null;
+                }
                 return ethGetTransactionReceipt;
             });
-        if(result == null) {
+        if (result == null) {
             return null;
         }
         return result.getTransactionReceipt()
@@ -409,6 +416,26 @@ public class Web3Service {
         subscriptions.add(subscription);
         initChecker();
         log.info("Subscribe to Transaction Flowable");
+    }
+
+    public Disposable getTransactionFlowableRangeSubscription(
+        BlockingQueue<Transaction> transactionQueue,
+        DefaultBlockParameter start,
+        DefaultBlockParameter end) {
+        checkInit();
+        String logStart =
+            start.getValue().startsWith("0x") ? Long.decode(start.getValue()).toString() : start.getValue();
+        String logEnd = end.getValue().startsWith("0x") ? Long.decode(end.getValue()).toString() : end.getValue();
+        log.info("Start flow for block range " + logStart + " - " + logEnd);
+        Flowable<Transaction> flowable =
+            callWithRetry(() -> web3.replayPastTransactionsFlowable(start, end));
+        Disposable subscription =
+            flowable.subscribe(
+                tx -> writeInQueue(transactionQueue, tx),
+                e -> log.error("Transaction flowable error", e));
+        initChecker();
+        log.info("Subscribed to Transaction Flowable Range");
+        return subscription;
     }
 
     private BigInteger findEarliestLastBlock() {
