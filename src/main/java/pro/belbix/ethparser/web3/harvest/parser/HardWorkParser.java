@@ -182,15 +182,15 @@ public class HardWorkParser implements Web3Parser {
                 throw new IllegalStateException("Duplicate RewardAdded for " + dto);
             }
             double reward = tx.getReward().doubleValue() / D18;
-            double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
+                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                 double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                 dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
-
+                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                 double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
                 double farmBuybackEth = reward *  farmPrice / ethPrice;
                 dto.setFarmBuybackEth(farmBuybackEth);

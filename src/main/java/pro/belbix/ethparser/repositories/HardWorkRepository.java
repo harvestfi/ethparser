@@ -91,7 +91,13 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "    0.0 saved_gas_fees, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', saved_gas_fees_sum)), '_', -1) saved_gas_fees_sum, " +
         "    0.0 fee, " +
-        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', weekly_average_tvl)), '_', -1) weekly_average_tvl " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', weekly_average_tvl)), '_', -1) weekly_average_tvl, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', farm_buyback_eth)), '_', -1) farm_buyback_eth, " +
+        "    0.0 fee_eth, " +
+        "    0 gas_used, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', idle_time)), '_', -1) idle_time, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', invested)), '_', -1) invested, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', investment_target)), '_', -1) investment_target " +
         "from hard_work " +
         "group by vault "
         + "order by vault")
