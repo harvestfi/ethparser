@@ -66,10 +66,10 @@ public class EthBlockDownloader {
             Duration.between(timer, Instant.now()).toMillis());
 
         final long blockNum = ethBlockEntity.getNumber();
+        final Instant taskTimer = Instant.now();
         ethBlockDbService.save(ethBlockEntity)
             .thenAccept(persistedBlock -> {
                 try {
-                    Instant taskTimer = Instant.now();
                     if (persistedBlock != null) {
                         log.info("{} Saved block {} {}", count.get(), blockNum,
                             Duration.between(taskTimer, Instant.now()).toMillis());

@@ -184,7 +184,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
             functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
         double allFarm = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, dto.getBlock()).orElse(BigInteger.ZERO),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, dto.getBlock())
+                .orElse(BigInteger.ZERO),
             vaultHash)
             - BURNED_FARM;
         dto.setLastUsdTvl(price * vaultBalance);
@@ -214,6 +215,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private boolean parseVaults(HarvestTx harvestTx, Log ethLog) {
         TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+        if (receipt == null) {
+            throw new IllegalStateException("Receipt is null for " + harvestTx.getHash());
+        }
         if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs1().getValue())) {
             harvestTx.setMethodName("Deposit");
             harvestTx.setOwner(receipt.getFrom());

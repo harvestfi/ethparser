@@ -117,7 +117,7 @@ public class Web3Service {
                 //todo alchemy.io can't return it immediately and return empty response
                 if (ethGetTransactionReceipt.getTransactionReceipt().isEmpty()) {
                     log.warn("Receipt is empty, retry with sleep");
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                     return null;
                 }
                 return ethGetTransactionReceipt;
