@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode
-public class TokenContract {
+class TokenContract {
 
     private final int createdOnBlock;
     private final String name;

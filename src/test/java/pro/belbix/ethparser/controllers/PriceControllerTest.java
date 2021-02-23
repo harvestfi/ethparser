@@ -21,9 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.RestResponse;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.TokenAddresses;
-import pro.belbix.ethparser.web3.contracts.TokenContract;
 
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
@@ -37,8 +36,8 @@ public class PriceControllerTest {
     private final Double tolerancePct = 0.05;
 
     private JSONObject fetchPrices() throws InterruptedException, ExecutionException {
-        String[] tokenAddresses = TokenAddresses.TOKENS.stream()
-            .map(TokenContract::getAddress)
+        String[] tokenAddresses = ContractUtils.getAllTokens().stream()
+            .map(token -> token.getContract().getAddress())
             .toArray(String[]::new);
 
         String uriTpl = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=%s&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true";
@@ -69,13 +68,13 @@ public class PriceControllerTest {
         contractLoader.load();
         JSONObject coingeckoPrices = this.fetchPrices();
 
-        return TokenAddresses.TOKENS.stream()
-                .filter(tokenContract -> tokenContract.getName() != "ZERO")
-                .map(tokenContract -> DynamicTest.dynamicTest("token: " + tokenContract.getName(), () -> {
-                    String tokenAddress = tokenContract.getAddress();
+        return ContractUtils.getAllTokens().stream()
+                .filter(token -> token.getSymbol() != "ZERO")
+                .map(token -> DynamicTest.dynamicTest("token: " + token.getSymbol(), () -> {
+                    String tokenAddress = token.getContract().getAddress();
                     RestResponse response = priceController.token(tokenAddress);
                     if (response.getCode() != "200") {
-                        fail("Failed to calculate price for token: " + tokenContract.getName());
+                        fail("Failed to calculate price for token: " + token.getSymbol());
                     }
 
                     String priceStr = response.getData();
@@ -86,7 +85,7 @@ public class PriceControllerTest {
                         coingeckoPriceStr = coingeckoPrices.getJSONObject(tokenAddress).getString("usd");
                     }
                     catch (Exception e) {
-                        System.out.println("No external price found, Skip token test: " + tokenContract.getName());
+                        System.out.println("No external price found, Skip token test: " + token.getSymbol());
                         return;
                     }
 
@@ -94,7 +93,7 @@ public class PriceControllerTest {
 
                     double priceToleranceDelta = coingeckoPrice * this.tolerancePct;
 
-                    assertEquals("Token price deviation: " + tokenContract.getName(), coingeckoPrice, price, priceToleranceDelta);
+                    assertEquals("Token price deviation: " + token.getSymbol(), coingeckoPrice, price, priceToleranceDelta);
                 }));
     }
 
