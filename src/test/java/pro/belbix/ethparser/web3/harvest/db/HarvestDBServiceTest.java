@@ -2,10 +2,10 @@ package pro.belbix.ethparser.web3.harvest.db;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.junit.Test;
 import pro.belbix.ethparser.dto.HarvestDTO;
 
 public class HarvestDBServiceTest {

@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.erc20.parser;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -24,7 +23,9 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.contracts.Tokens;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -82,7 +83,7 @@ public class TransferParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Error parse token info from " + ethLog, e);
-                    if(appProperties.isStopOnParseError()) {
+                    if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
                 }
@@ -91,7 +92,7 @@ public class TransferParser implements Web3Parser {
     }
 
     public TransferDTO parseLog(Log ethLog) {
-        if (ethLog == null || !FARM_TOKEN.equals(ethLog.getAddress())) {
+        if (ethLog == null || !ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())) {
             return null;
         }
 
@@ -108,7 +109,7 @@ public class TransferParser implements Web3Parser {
         dto.setId(tx.getHash() + "_" + tx.getLogId());
         dto.setBlock(tx.getBlock());
         dto.setBlockDate(blockTime);
-        dto.setName(Tokens.findNameForContract(tx.getTokenAddress()));
+        dto.setName(ContractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
         dto.setOwner(tx.getOwner());
         dto.setRecipient(tx.getRecipient());
         dto.setValue(parseAmount(tx.getValue(), tx.getTokenAddress()));
@@ -153,7 +154,8 @@ public class TransferParser implements Web3Parser {
     }
 
     public void fillBalance(TransferDTO dto) {
-        String tokenAddress = Tokens.findContractForName(dto.getName());
+        String tokenAddress = ContractUtils.getAddressByName(dto.getName(), ContractType.TOKEN)
+            .orElseThrow(() -> new IllegalStateException("Not found adr for " + dto.getName()));
         dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
         dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
     }

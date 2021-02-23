@@ -1,10 +1,9 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -28,6 +27,7 @@ import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
@@ -180,14 +180,14 @@ public class HardWorkParser implements Web3Parser {
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
-                double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                 double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                 dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
 
                 if (!autoStake) {
-                    double farmPrice = priceProvider.getPriceForCoin(FARM_NAME, dto.getBlock());
+                    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                     double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                     dto.setShareChangeUsd(stReward);
                 }
@@ -227,7 +227,7 @@ public class HardWorkParser implements Web3Parser {
                 //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
                 log.debug("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
             }
-            String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+            String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
                 .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
             double vaultReward = parseAmount(tx.getValue(), vaultHash);
             double price = calculateVaultRewardUsdPrice(dto.getVault(), underlyingTokenHash, dto.getBlock());
@@ -254,7 +254,7 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForLP(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
@@ -282,7 +282,7 @@ public class HardWorkParser implements Web3Parser {
 
     @Deprecated
     private void fillUsdValuesForRegular(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {

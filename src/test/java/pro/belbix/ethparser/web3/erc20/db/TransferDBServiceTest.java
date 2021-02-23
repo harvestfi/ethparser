@@ -4,14 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.web3.erc20.TransferType.BAL_TX;
 import static pro.belbix.ethparser.web3.erc20.TransferType.COMMON;
-import static pro.belbix.ethparser.web3.erc20.TransferType.LP_ADD;
-import static pro.belbix.ethparser.web3.erc20.TransferType.LP_BUY;
-import static pro.belbix.ethparser.web3.erc20.TransferType.LP_RECEIVE;
-import static pro.belbix.ethparser.web3.erc20.TransferType.LP_REM;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SELL;
-import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SEND;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_EXIT;
-import static pro.belbix.ethparser.web3.erc20.TransferType.PS_INTERNAL;
 import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
 
 import java.util.ArrayList;

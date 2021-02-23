@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.prices.downloader;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +15,9 @@ import pro.belbix.ethparser.dto.PriceDTO;
 import pro.belbix.ethparser.repositories.PriceRepository;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -43,13 +45,15 @@ public class PriceDownloader {
 
     public void start() {
         if (contractNames.length == 0) {
-            contractNames = LpContracts.keyCoinForLp.keySet().stream()
-                .map(LpContracts.lpHashToName::get)
+            contractNames = PARSABLE_UNI_PAIRS.stream()
+                .map(c -> ContractUtils.getNameByAddress(c)
+                    .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
                 .collect(Collectors.toSet())
                 .toArray(contractNames);
         }
         for (String contractName : contractNames) {
-            String contractHash = LpContracts.lpNameToHash.get(contractName);
+            String contractHash = ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR)
+                .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
             LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
         }
     }

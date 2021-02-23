@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.web3.contracts.Contract.createContracts;
 
 import java.util.List;
 
-public class HarvestPoolAddresses {
+class HarvestPoolAddresses {
 
     private HarvestPoolAddresses() {
     }

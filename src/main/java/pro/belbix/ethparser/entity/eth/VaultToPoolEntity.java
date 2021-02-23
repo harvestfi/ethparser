@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.entity.eth;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,16 +20,16 @@ public class VaultToPoolEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private Long blockStart;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="vault_id", nullable=false)
     @Fetch(FetchMode.JOIN)
     private VaultEntity vault;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="pool_id", nullable=false)
     @Fetch(FetchMode.JOIN)
     private PoolEntity pool;
-    private Long blockStart;
 
 }

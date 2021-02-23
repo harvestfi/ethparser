@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.web3.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -37,6 +36,8 @@ import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -183,7 +184,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
             functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
         double allFarm = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, FARM_TOKEN, dto.getBlock()).orElse(BigInteger.ZERO),
+            functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash)
             - BURNED_FARM;
         dto.setLastUsdTvl(price * vaultBalance);
@@ -239,7 +240,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     public void parseMigration(HarvestDTO dto) {
         int onBlock = dto.getBlock().intValue();
         String newVault = dto.getVault().replace("_V0", "");
-        String newVaultHash = ContractUtils.getAddressByName(newVault)
+        String newVaultHash = ContractUtils.getAddressByName(newVault, ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address by " + newVault));
         String poolAddress = ContractUtils.poolByVaultAddress(newVaultHash)
             .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
@@ -273,7 +274,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         migrationDto
             .setAmount(
                 parseAmount(migrationTx.getIntFromArgs()[1],
-                    ContractUtils.getAddressByName(migrationDto.getVault())
+                    ContractUtils.getAddressByName(migrationDto.getVault(), ContractType.VAULT)
                         .orElseThrow(() -> new IllegalStateException(
                             "Not found address by " + migrationDto.getVault()))
                 )
@@ -294,7 +295,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillSharedPrice(HarvestDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address for " + dto.getVault()));
         BigInteger sharedPriceInt =
             functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultHash, dto.getBlock())
@@ -322,7 +323,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillUsdValues(HarvestDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
@@ -346,7 +347,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     public void fillUsdValuesForLP(HarvestDTO dto) {
         long dtoBlock = dto.getBlock();
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault())
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
             .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
         String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
@@ -364,7 +365,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
         Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, dtoBlock);
         if (lpUnderlyingBalances == null) {
-            log.error("lpUnderlyingBalances is null. mb wrong lp contract for " + dto);
+            log.error("lpUnderlyingBalances is null. maybe wrong lp contract for " + dto);
             return;
         }
 

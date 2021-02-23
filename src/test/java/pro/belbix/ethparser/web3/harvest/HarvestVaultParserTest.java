@@ -61,8 +61,8 @@ public class HarvestVaultParserTest {
             "358,92678598",
             "",
             "",
-            130020L,
-            338498L,
+            130407L,
+            339508L,
             true
         );
         assertNotNull(dto);
@@ -72,7 +72,7 @@ public class HarvestVaultParserTest {
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
             () -> assertEquals("owner balance", "359,94131414", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "130019,75772826", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance usd", "130407,75326223", String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 

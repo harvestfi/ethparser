@@ -1,13 +1,12 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.web3.contracts.Tokens.findNameForContract;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.amountToDouble;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
 import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class UniswapTx implements EthTransactionI {
@@ -66,16 +65,17 @@ public class UniswapTx implements EthTransactionI {
         uniswapDTO.setHash(hash);
         uniswapDTO.setOwner(owner);
         uniswapDTO.setBlock(block);
-        uniswapDTO.setCoin(findNameForContract(coinAddress));
+        uniswapDTO.setCoin(ContractUtils.getNameByAddress(coinAddress).orElseThrow());
         uniswapDTO.setConfirmed(success);
-        uniswapDTO.setLp(LpContracts.findNameForLpHash(lpAddress));
+        uniswapDTO.setLp(ContractUtils.getNameByAddress(lpAddress)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + lpAddress)));
         uniswapDTO.setMethodName(methodName);
 
         if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
             assertBuy(false);
-            uniswapDTO.setAmount(amountToDouble(amountIn, lpAddress, coinIn.getValue()));
+            uniswapDTO.setAmount(parseAmount(amountIn, coinIn.getValue()));
             uniswapDTO.setOtherCoin(addrToStr(coinOut));
-            uniswapDTO.setOtherAmount(amountToDouble(amountOut, lpAddress, coinOut.getValue()));
+            uniswapDTO.setOtherAmount(parseAmount(amountOut, coinOut.getValue()));
             if (type.equals(SWAP)) {
                 uniswapDTO.setType("SELL");
             } else {
@@ -83,9 +83,9 @@ public class UniswapTx implements EthTransactionI {
             }
         } else if (coinAddress.equals(coinOut.getValue().toLowerCase())) {
             assertBuy(true);
-            uniswapDTO.setAmount(amountToDouble(amountOut, lpAddress, coinOut.getValue()));
+            uniswapDTO.setAmount(parseAmount(amountOut, coinOut.getValue()));
             uniswapDTO.setOtherCoin(addrToStr(coinIn));
-            uniswapDTO.setOtherAmount(amountToDouble(amountIn, lpAddress, coinIn.getValue()));
+            uniswapDTO.setOtherAmount(parseAmount(amountIn, coinIn.getValue()));
             if (type.equals(SWAP)) {
                 uniswapDTO.setType("BUY");
             } else {
@@ -112,6 +112,7 @@ public class UniswapTx implements EthTransactionI {
     }
 
     private static String addrToStr(Address adr) {
-        return findNameForContract(adr.getValue());
+        return ContractUtils.getNameByAddress(adr.getValue())
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
     }
 }
