@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -19,20 +21,18 @@ import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthAddressRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthHashRepository;
-import pro.belbix.ethparser.repositories.a_layer.EthLogRepository;
 import pro.belbix.ethparser.service.SequenceService;
 
 @Service
 @Log4j2
 public class EthBlockDbService {
 
-    private static final int MAX_TASKS = 1; // DON'T TURN ON! mt broken
+    private static final int MAX_TASKS = 10; // DON'T TURN ON! mt broken
     private final static long MAX_SEQ = 100000;
 
     private final EthBlockRepository ethBlockRepository;
     private final EthHashRepository ethHashRepository;
     private final EthAddressRepository ethAddressRepository;
-    private final EthLogRepository ethLogRepository;
     private final SequenceService sequenceService;
 
     ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -41,26 +41,33 @@ public class EthBlockDbService {
         1L, TimeUnit.SECONDS,
         new SynchronousQueue<>()
     );
+    private final AtomicInteger activeWorkers = new AtomicInteger(0);
 
     public EthBlockDbService(EthBlockRepository ethBlockRepository,
                              EthHashRepository ethHashRepository,
                              EthAddressRepository ethAddressRepository,
-                             EthLogRepository ethLogRepository,
                              SequenceService sequenceService) {
         this.ethBlockRepository = ethBlockRepository;
         this.ethHashRepository = ethHashRepository;
         this.ethAddressRepository = ethAddressRepository;
-        this.ethLogRepository = ethLogRepository;
         this.sequenceService = sequenceService;
     }
 
     public CompletableFuture<EthBlockEntity> save(EthBlockEntity block) {
         if (ethBlockRepository.existsById(block.getNumber())) {
             log.warn("Duplicate eth block " + block.getNumber());
-            return null;
+            return CompletableFuture.supplyAsync(() -> null);
         }
-        waitFreeExecutors(executor);
-        return CompletableFuture.supplyAsync(() -> startWorker(block), executor);
+
+        waitFreeExecutors();
+        return CompletableFuture.supplyAsync(() -> startWorker(block), executor)
+            .handle((b, e) -> {
+                log.debug("Block task completed, workers: {}", activeWorkers.decrementAndGet());
+                if (e != null) {
+                    throw new RuntimeException(e);
+                }
+                return b;
+            });
     }
 
     @Transactional
@@ -75,19 +82,26 @@ public class EthBlockDbService {
             ethBlockRepository.save(block);
             return block;
         } catch (Exception e) {
-            log.error("Error handle {}", block.getNumber(), e);
+            log.error("Block db service worker error with {}", block.getNumber(), e);
             throw e;
         }
     }
 
-    private void waitFreeExecutors(ThreadPoolExecutor executor) {
-        log.debug("Active block executors {}", executor.getActiveCount());
-        while (executor.getActiveCount() == MAX_TASKS) {
-            log.warn("Block task queue is full, wait a second");
-            try {
-                //noinspection BusyWait
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
+    private void waitFreeExecutors() {
+        while (true) {
+            int w = activeWorkers.get();
+            log.debug("Active block executors {}", w);
+            if (w + 1 > MAX_TASKS) {
+                log.warn("Block task queue is full, wait a second");
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                }
+                continue;
+            }
+            if (activeWorkers.compareAndSet(w, w + 1)) {
+                break;
             }
         }
     }

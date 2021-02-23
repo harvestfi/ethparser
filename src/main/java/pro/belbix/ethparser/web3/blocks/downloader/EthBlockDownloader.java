@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.blocks.downloader;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.log4j.Log4j2;
@@ -27,6 +28,7 @@ public class EthBlockDownloader {
     private Integer to;
 
     AtomicInteger count = new AtomicInteger(0);
+    AtomicBoolean run = new AtomicBoolean(true);
 
     public EthBlockDownloader(Web3Service web3Service,
                               EthBlockDbService ethBlockDbService,
@@ -42,7 +44,7 @@ public class EthBlockDownloader {
             return;
         }
         AtomicLong blockNumber = new AtomicLong(from.longValue());
-        while (true) {
+        while (run.get()) {
             parseAndSave(blockNumber.get());
             if (to != null && to >= blockNumber.get()) {
                 break;
@@ -59,6 +61,9 @@ public class EthBlockDownloader {
             Duration.between(timer, Instant.now()).toMillis());
         timer = Instant.now();
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock);
+        if (ethBlockEntity == null) {
+            return;
+        }
         log.debug("Parsed {} {}", block,
             Duration.between(timer, Instant.now()).toMillis());
 
@@ -67,10 +72,10 @@ public class EthBlockDownloader {
         ethBlockDbService.save(ethBlockEntity)
             .thenAccept(persistedBlock -> {
                 if (persistedBlock != null) {
-                    log.info("{} Saved block {} {}", count.get(), blockNum,
+                    log.info("Handled {}. Saved block {} for {}", count.get(), blockNum,
                         Duration.between(taskTimer, Instant.now()).toMillis());
                 } else {
-                    log.info("{} Block have not saved {} {}", count.get(), blockNum,
+                    log.info("Handled {}. Block have not saved {} for {}", count.get(), blockNum,
                         Duration.between(taskTimer, Instant.now()).toMillis());
                 }
 
@@ -78,8 +83,9 @@ public class EthBlockDownloader {
             })
             .exceptionally(e -> {
                 log.error("Error save {}", blockNum, e);
+                run.set(false);
                 // try to parse it again
-                parseAndSave(blockNum);
+//                parseAndSave(blockNum);
                 return null;
             });
     }

@@ -48,7 +48,6 @@ public class EthBlockParserTest {
             if (persistedEntity != null) {
                 String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
                 assertNotNull(persisted);
-                ethBlockRepository.flush();
                 System.out.println(persisted);
             }
         }
