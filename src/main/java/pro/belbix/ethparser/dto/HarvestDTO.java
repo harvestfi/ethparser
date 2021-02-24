@@ -50,6 +50,7 @@ public class HarvestDTO implements DtoI {
     private HarvestDTO migration;
     private Double profit;
     private Double profitUsd;
+    private Double totalAmount;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "

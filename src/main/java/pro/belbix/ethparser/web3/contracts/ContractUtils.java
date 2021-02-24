@@ -67,18 +67,8 @@ public class ContractUtils {
         throw new IllegalStateException("unknown type" + type);
     }
 
-    public static boolean isLp(String vaultName) {
-        VaultEntity vaultEntity = ContractLoader.getVaultByName(vaultName)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultName));
-        return ContractLoader.getUniPairByAddress(
-            vaultEntity.getUnderlying().getAddress())
-            .isPresent();
-    }
-
-    public static String vaultUnderlyingToken(String vaultAddress) {
-        return ContractLoader.getVaultByAddress(vaultAddress)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultAddress))
-            .getUnderlying().getAddress();
+    public static boolean isLp(String address) {
+        return ContractLoader.getUniPairByAddress(address).isPresent();
     }
 
     public static Optional<PoolEntity> poolByVaultName(String name) {

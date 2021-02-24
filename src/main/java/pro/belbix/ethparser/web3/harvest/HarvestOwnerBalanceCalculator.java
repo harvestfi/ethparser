@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -96,13 +97,14 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        if (ContractUtils.isLp(dto.getVault())) {
-            String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
-            if (lpHash == null) {
+        String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
+        if (ContractUtils.isLp(underlyingToken)) {
+            if (underlyingToken == null) {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
             double amountUsd = priceProvider
-                .getLpTokenUsdPrice(lpHash, balance, block);
+                .getLpTokenUsdPrice(underlyingToken, balance, block);
             dto.setOwnerBalanceUsd(amountUsd);
         } else {
             double price = priceProvider.getPriceForCoin(dto.getVault(), block);

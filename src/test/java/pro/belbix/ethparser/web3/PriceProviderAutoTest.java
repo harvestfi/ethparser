@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.controllers;
+package pro.belbix.ethparser.web3;
 
 import static org.mockito.Mockito.doReturn;
 
@@ -29,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.controllers.PriceController;
 import pro.belbix.ethparser.entity.eth.TokenEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -37,10 +38,10 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
-public class PriceControllerTest {
+public class PriceProviderAutoTest {
 
     private static final Double TOLERANCE_PCT = 0.2;
-    private static final long TARGET_BLOCK_NUMBER = 11790000L;
+    private static final long TARGET_BLOCK_NUMBER = 11922198;
 
     @SpyBean
     private EthBlockService ethBlockService;

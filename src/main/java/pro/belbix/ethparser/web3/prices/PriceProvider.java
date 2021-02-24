@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -127,7 +128,9 @@ public class PriceProvider {
     }
 
     public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
-        return getPairPriceForLpHash(ContractUtils.vaultUnderlyingToken(strategyHash), block);
+        return getPairPriceForLpHash(functionsUtils.callAddressByName(UNDERLYING, strategyHash, block)
+                .orElseThrow(() -> new IllegalStateException("Can't fetch underlying token for " + strategyHash)),
+            block);
     }
 
     public Tuple2<Double, Double> getPairPriceForLpHash(String lpHash, Long block) {
