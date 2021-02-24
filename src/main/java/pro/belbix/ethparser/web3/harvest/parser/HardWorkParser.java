@@ -1,6 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
+import static pro.belbix.ethparser.web3.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -126,6 +130,7 @@ public class HardWorkParser implements Web3Parser {
         dto.setShareChange(parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
         parseRewards(dto, tx.getHash(), tx.getStrategy());
+        parseVaultInvestedFunds(dto);
 
         log.info(dto.print());
         return dto;
@@ -185,9 +190,12 @@ public class HardWorkParser implements Web3Parser {
                 dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
+                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+                double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+                double farmBuybackEth = reward *  farmPrice / ethPrice;
+                dto.setFarmBuybackEth(farmBuybackEth);
 
                 if (!autoStake) {
-                    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
                     double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                     dto.setShareChangeUsd(stReward);
                 }
@@ -203,6 +211,34 @@ public class HardWorkParser implements Web3Parser {
         double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
         double feeUsd = gas * gasPrice * ethPrice;
         dto.setFee(feeUsd);
+        double feeEth = gas * gasPrice;
+        dto.setFeeEth(feeEth);
+        dto.setGasUsed(gas);
+    }
+
+    private void parseVaultInvestedFunds(HardWorkDTO dto) {
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
+        double underlyingBalanceInVault = functionsUtils.callIntByName(
+                                                UNDERLYING_BALANCE_IN_VAULT, 
+                                                vaultHash,
+                                                dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double underlyingBalanceWithInvestment = functionsUtils.callIntByName(
+                                                UNDERLYING_BALANCE_WITH_INVESTMENT, 
+                                                vaultHash,
+                                                dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double vaultFractionToInvestNumerator = functionsUtils.callIntByName(
+                                                VAULT_FRACTION_TO_INVEST_NUMERATOR, 
+                                                vaultHash,
+                                                dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double vaultFractionToInvestDenominator = functionsUtils.callIntByName(
+                                                VAULT_FRACTION_TO_INVEST_DENOMINATOR, 
+                                                vaultHash,
+                                                dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+               
+        double invested = 100.0 * (underlyingBalanceWithInvestment - underlyingBalanceInVault) / underlyingBalanceWithInvestment;
+        dto.setInvested(invested);
+        double target = 100.0 * (vaultFractionToInvestNumerator / vaultFractionToInvestDenominator);
+        dto.setInvestmentTarget(target);
     }
 
     private void parseVaultReward(Log ethLog, HardWorkDTO dto, String underlyingTokenHash, String strategyHash) {

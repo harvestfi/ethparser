@@ -194,5 +194,10 @@ public class HardWorkDbService {
             feesSum = 0.0;
         }
         dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
+
+        Long lastHardWorkBlockDate = hardWorkRepository.fetchPreviousBlockDateByVaultAndDate(dto.getVault(), dto.getBlockDate());
+        if (lastHardWorkBlockDate != null) {
+            dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
+        }
     }
 }
