@@ -33,7 +33,7 @@ import pro.belbix.ethparser.service.HarvestTvlDBService;
 @RequestMapping(value = "/csv")
 public class CSVController {
 
-    private static int RETURN_LIMIT = 10;
+    private static int RETURN_LIMIT = 1000000;
 
     private final HarvestRepository harvestRepository;
     private final RewardsRepository rewardsRepository;
