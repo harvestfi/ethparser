@@ -67,18 +67,8 @@ public class ContractUtils {
         throw new IllegalStateException("unknown type" + type);
     }
 
-    public static boolean isLp(String vaultName) {
-        VaultEntity vaultEntity = ContractLoader.getVaultByName(vaultName)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultName));
-        return ContractLoader.getUniPairByAddress(
-            vaultEntity.getUnderlying().getAddress())
-            .isPresent();
-    }
-
-    public static String vaultUnderlyingToken(String vaultAddress) {
-        return ContractLoader.getVaultByAddress(vaultAddress)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultAddress))
-            .getUnderlying().getAddress();
+    public static boolean isLp(String address) {
+        return ContractLoader.getUniPairByAddress(address).isPresent();
     }
 
     public static Optional<PoolEntity> poolByVaultName(String name) {
@@ -159,13 +149,20 @@ public class ContractUtils {
     }
 
     public static boolean isTokenCreated(String tokenName, long block) {
-        return ContractLoader.tokensCacheByName.get(tokenName)
-            .getContract().getCreated() < block;
+        return Optional.ofNullable(ContractLoader.tokensCacheByName.get(tokenName))
+            .map(TokenEntity::getContract)
+            .map(ContractEntity::getCreated)
+            .filter(c -> c < block)
+            .isPresent();
     }
 
     public static boolean isUniPairCreated(String uniPairName, long block) {
-        return ContractLoader.uniPairsCacheByName.get(uniPairName)
-            .getContract().getCreated() < block;
+        return Optional.ofNullable(ContractLoader.uniPairsCacheByName.get(uniPairName))
+            .map(UniPairEntity::getContract)
+            .map(ContractEntity::getCreated)
+            .filter(c -> c < block)
+            .isPresent();
+
     }
 
     public static Tuple2<String, String> tokenAddressesByUniPairAddress(String address) {
@@ -297,7 +294,7 @@ public class ContractUtils {
     public static Collection<VaultEntity> getAllVaults() {
         return ContractLoader.vaultsCacheByAddress.values();
     }
-    
+
     public static Optional<VaultEntity> getVaultByName(String name) {
         return Optional.ofNullable(ContractLoader.vaultsCacheByName.get(name.toUpperCase()));
     }
@@ -309,7 +306,7 @@ public class ContractUtils {
     public static Collection<PoolEntity> getAllPools() {
         return ContractLoader.poolsCacheByAddress.values();
     }
-    
+
     public static Optional<PoolEntity> getPoolByName(String name) {
         return Optional.ofNullable(ContractLoader.poolsCacheByName.get(name.toUpperCase()));
     }
@@ -321,7 +318,7 @@ public class ContractUtils {
     public static Collection<TokenEntity> getAllTokens() {
         return ContractLoader.tokensCacheByAddress.values();
     }
-    
+
     public static Optional<TokenEntity> getTokenByName(String name) {
         return Optional.ofNullable(ContractLoader.tokensCacheByName.get(name.toUpperCase()));
     }
@@ -333,7 +330,7 @@ public class ContractUtils {
     public static Collection<UniPairEntity> getAllUniPairs() {
         return ContractLoader.uniPairsCacheByAddress.values();
     }
-    
+
     public static Optional<UniPairEntity> getUniPairByName(String name) {
         return Optional.ofNullable(ContractLoader.uniPairsCacheByName.get(name.toUpperCase()));
     }

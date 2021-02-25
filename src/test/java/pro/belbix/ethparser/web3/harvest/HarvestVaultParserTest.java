@@ -49,6 +49,62 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_ONEINCH_ETH_ONEINCH() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xfca949e34ecd9de519542cf02054de707cf361ce",
+            11908406,
+            LOG_ID,
+            "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
+            "Deposit",
+            "ONEINCH_ETH_ONEINCH",
+            "0x8570240c0e350df6663d720689c5f5061372cf66a019dd0fbfa2264df0b6362d_240",
+            "0,07288828",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,07288828", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "0,22119594", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_iPS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            11857842,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "iPS",
+            "0x560acf23f19347c0c6652ee4b35ba36ef067d943e014ef38c7366caaae9180e9_302",
+            "0,10105548",
+            "",
+            "",
+            35L,
+            35L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,10105548", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "35,14611483", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
     public void parseVault_SUSHI_SUSHI_ETH() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x5aDe382F38A09A1F8759D06fFE2067992ab5c78e",

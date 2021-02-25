@@ -91,7 +91,13 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "    0.0 saved_gas_fees, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', saved_gas_fees_sum)), '_', -1) saved_gas_fees_sum, " +
         "    0.0 fee, " +
-        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', weekly_average_tvl)), '_', -1) weekly_average_tvl " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', weekly_average_tvl)), '_', -1) weekly_average_tvl, " +
+        "    0.0 farm_buyback_eth, " +
+        "    0.0 fee_eth, " +
+        "    0 gas_used, " +
+        "    0 idle_time, " +
+        "    0.0 invested, " +
+        "    0.0 investment_target " +
         "from hard_work " +
         "group by vault "
         + "order by vault")
@@ -104,4 +110,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "     group by vault "
         + " ) t")
     Double fetchLastGasSaved();
+
+    @Query(nativeQuery = true, value = "select block_date from hard_work "
+        + "where vault = :vault and block_date < :block_date order by block_date desc limit 0,1")
+    Long fetchPreviousBlockDateByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
 }

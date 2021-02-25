@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -183,15 +184,19 @@ public class HarvestVaultParserV2 implements Web3Parser {
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock()).orElse(BigInteger.ZERO),
             vaultHash);
-        double allFarm = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, dto.getBlock())
-                .orElse(BigInteger.ZERO),
-            vaultHash)
-            - BURNED_FARM;
+
         dto.setLastUsdTvl(price * vaultBalance);
         dto.setLastTvl(vaultBalance);
-        dto.setSharePrice(allFarm);
+        dto.setSharePrice(farmTotalAmount(dto.getBlock())); //todo remove after full reparsing
+        dto.setTotalAmount(dto.getSharePrice());
         dto.setUsdAmount(Math.round(dto.getAmount() * price));
+    }
+
+    private double farmTotalAmount(long block) {
+        return parseAmount(
+            functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, block).orElse(BigInteger.ZERO),
+            ContractConstants.FARM_TOKEN)
+            - BURNED_FARM;
     }
 
     private boolean parsePs(HarvestTx harvestTx) {
@@ -319,16 +324,18 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     private void fillUsdPrice(HarvestDTO dto) {
-        if (ContractUtils.isLp(dto.getVault())) {
-            fillUsdValuesForLP(dto);
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
+        String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
+        if (ContractUtils.isLp(underlyingToken)) {
+            fillUsdValuesForLP(dto, vaultHash, underlyingToken);
         } else {
-            fillUsdValues(dto);
+            fillUsdValues(dto, vaultHash);
         }
     }
 
-    private void fillUsdValues(HarvestDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
+    private void fillUsdValues(HarvestDTO dto, String vaultHash) {
         Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
         if (price == null) {
             throw new IllegalStateException("Unknown coin " + dto.getVault());
@@ -347,20 +354,18 @@ public class HarvestVaultParserV2 implements Web3Parser {
         dto.setLastTvl(vault);
         dto.setLastUsdTvl((double) Math.round(vault * price));
         dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
+        if ("iPS".equals(dto.getVault())) {
+            dto.setTotalAmount(farmTotalAmount(dto.getBlock()));
+        }
     }
 
-    public void fillUsdValuesForLP(HarvestDTO dto) {
+    public void fillUsdValuesForLP(HarvestDTO dto, String vaultHash, String lpHash) {
         long dtoBlock = dto.getBlock();
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
-        String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
         double vaultBalance = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock)
                 .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
             vaultHash);
         double sharedPrice = dto.getSharePrice();
-//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dtoBlock),
-//            vaultHash);
         double vaultUnderlyingUnit = 1.0; // currently always 1
         double lpTotalSupply = parseAmount(
             functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dtoBlock)
