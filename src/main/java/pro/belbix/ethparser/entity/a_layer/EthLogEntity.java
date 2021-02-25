@@ -40,7 +40,7 @@ public class EthLogEntity {
     private String topics;
 
     @ManyToOne
-    @JoinColumn(name = "first_topic", referencedColumnName = "index")
+    @JoinColumn(name = "first_topic", referencedColumnName = "idx")
     private EthHashEntity firstTopic;
 
     @JsonIgnore

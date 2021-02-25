@@ -17,7 +17,7 @@ public class EthAddressEntity implements Serializable {
     private String address;
     @NaturalId
     @Column(unique = true)
-    private Long index;
+    private Long idx;
 
     public EthAddressEntity(String address) {
         this.address = address;

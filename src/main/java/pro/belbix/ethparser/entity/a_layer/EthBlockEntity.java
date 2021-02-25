@@ -2,7 +2,6 @@ package pro.belbix.ethparser.entity.a_layer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -11,9 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Data;
@@ -68,15 +64,15 @@ public class EthBlockEntity implements DtoI {
     private long timestamp;
 
     @ManyToOne
-    @JoinColumn(name = "hash", referencedColumnName = "index", unique = true)
+    @JoinColumn(name = "hash", referencedColumnName = "idx", unique = true)
     private EthHashEntity hash;
 
     @ManyToOne
-    @JoinColumn(name = "parent_hash", referencedColumnName = "index")
+    @JoinColumn(name = "parent_hash", referencedColumnName = "idx")
     private EthHashEntity parentHash;
 
     @ManyToOne
-    @JoinColumn(name = "miner", referencedColumnName = "index")
+    @JoinColumn(name = "miner", referencedColumnName = "idx")
     private EthAddressEntity miner;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "blockNumber",

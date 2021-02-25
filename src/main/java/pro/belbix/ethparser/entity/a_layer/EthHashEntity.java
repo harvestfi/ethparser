@@ -17,7 +17,7 @@ public class EthHashEntity implements Serializable {
     private String hash;
     @NaturalId
     @Column(unique = true)
-    private Long index;
+    private Long idx;
 
     public EthHashEntity(String hash) {
         this.hash = hash;

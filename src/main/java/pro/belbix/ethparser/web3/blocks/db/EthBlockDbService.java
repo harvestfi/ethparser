@@ -129,7 +129,7 @@ public class EthBlockDbService {
                 log.warn("Empty hash");
                 continue;
             }
-            entry.getValue().setIndex(seq.incrementAndGet());
+            entry.getValue().setIdx(seq.incrementAndGet());
             checkSeq(seq, startSeq);
             notPersistent.add(entry.getValue());
         }
@@ -154,7 +154,7 @@ public class EthBlockDbService {
                 log.warn("Empty address");
                 continue;
             }
-            entry.getValue().setIndex(seq.incrementAndGet());
+            entry.getValue().setIdx(seq.incrementAndGet());
             checkSeq(seq, startSeq);
             notPersistent.add(entry.getValue());
         }

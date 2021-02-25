@@ -13,15 +13,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -66,15 +61,15 @@ public class EthTxEntity {
     private String revertReason;
 
     @ManyToOne
-    @JoinColumn(name = "hash", referencedColumnName = "index")
+    @JoinColumn(name = "hash", referencedColumnName = "idx")
     private EthHashEntity hash;
 
     @ManyToOne
-    @JoinColumn(name = "from_address", referencedColumnName = "index")
+    @JoinColumn(name = "from_address", referencedColumnName = "idx")
     private EthAddressEntity fromAddress;
 
     @ManyToOne
-    @JoinColumn(name = "to_address", referencedColumnName = "index")
+    @JoinColumn(name = "to_address", referencedColumnName = "idx")
     private EthAddressEntity toAddress;
 
     @JsonIgnore
