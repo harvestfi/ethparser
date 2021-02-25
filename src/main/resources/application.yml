@@ -1,20 +1,20 @@
 spring:
   jpa:
     #    open-in-view: false
-    database: postgresql
-#    show-sql: true
+    database: mysql
+    #    show-sql: true
     hibernate:
       ddl-auto: update
     properties.hibernate:
-      dialect: org.hibernate.dialect.PostgreSQLDialect
+      dialect: org.hibernate.dialect.MySQL8Dialect
       jdbc.lob.non_contextual_creation: true
 
   datasource:
-    platform: postgresql
-    url: jdbc:postgresql://localhost:5432/postgres
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url:
     username:
     password:
-    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
 
