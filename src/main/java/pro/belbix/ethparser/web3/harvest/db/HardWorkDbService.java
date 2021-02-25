@@ -9,11 +9,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 

@@ -11,14 +11,17 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
@@ -31,12 +34,13 @@ import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.BatchRequest;
+import org.web3j.protocol.core.BatchResponse;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
-import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
@@ -48,8 +52,10 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.SubscriptionsProperties;
+import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
@@ -68,8 +74,10 @@ public class Web3Service {
     private final SubscriptionsProperties subscriptionsProperties;
     private final UniswapDbService uniswapDbService;
     private final HarvestDBService harvestDBService;
+    private final EthBlockRepository ethBlockRepository;
     private final List<BlockingQueue<Transaction>> transactionConsumers = new ArrayList<>();
     private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
+    private final List<BlockingQueue<EthBlock>> blockConsumers = new ArrayList<>();
     private final AtomicReference<Instant> lastTxTime = new AtomicReference<>(Instant.now());
     private Web3j web3;
     private boolean init = false;
@@ -79,11 +87,13 @@ public class Web3Service {
     public Web3Service(AppProperties appProperties,
                        SubscriptionsProperties subscriptionsProperties,
                        UniswapDbService uniswapDbService,
-                       HarvestDBService harvestDBService) {
+                       HarvestDBService harvestDBService,
+                       EthBlockRepository ethBlockRepository) {
         this.appProperties = appProperties;
         this.subscriptionsProperties = subscriptionsProperties;
         this.uniswapDbService = uniswapDbService;
         this.harvestDBService = harvestDBService;
+        this.ethBlockRepository = ethBlockRepository;
     }
 
     public TransactionReceipt fetchTransactionReceipt(String hash) {
@@ -107,7 +117,7 @@ public class Web3Service {
                 //todo alchemy.io can't return it immediately and return empty response
                 if (ethGetTransactionReceipt.getTransactionReceipt().isEmpty()) {
                     log.warn("Receipt is empty, retry with sleep");
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                     return null;
                 }
                 return ethGetTransactionReceipt;
@@ -117,6 +127,20 @@ public class Web3Service {
         }
         return result.getTransactionReceipt()
             .orElseThrow(() -> new IllegalStateException("Receipt is null for " + hash));
+    }
+
+    public Stream<Optional<TransactionReceipt>> fetchTransactionReceiptBatch(Collection<String> hashes) {
+        checkInit();
+        BatchResponse batchResponse = callWithRetry(() -> {
+            BatchRequest batchRequest = web3.newBatch();
+            hashes.forEach(h ->
+                batchRequest.add(web3.ethGetTransactionReceipt(h))
+            );
+            return batchRequest.send();
+        });
+
+        return batchResponse.getResponses().stream()
+            .map(r -> ((EthGetTransactionReceipt) r).getTransactionReceipt());
     }
 
     private void checkInit() {
@@ -166,10 +190,10 @@ public class Web3Service {
         return callWithRetry(() -> web3.ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
     }
 
-    public Block findBlock(String blockHash) {
+    public EthBlock findBlockByHash(String blockHash, boolean returnFullTransactionObjects) {
         checkInit();
         EthBlock result = callWithRetry(() -> {
-            EthBlock ethBlock = web3.ethGetBlockByHash(blockHash, false).send();
+            EthBlock ethBlock = web3.ethGetBlockByHash(blockHash, returnFullTransactionObjects).send();
             if (ethBlock == null) {
                 log.error("Error fetching block with hash " + blockHash);
                 return null;
@@ -180,7 +204,25 @@ public class Web3Service {
             }
             return ethBlock;
         });
-        return result.getBlock();
+        return result;
+    }
+
+    public EthBlock findBlockByNumber(long number, boolean returnFullTransactionObjects) {
+        checkInit();
+        return callWithRetry(() -> {
+            EthBlock ethBlock = web3.ethGetBlockByNumber(
+                DefaultBlockParameter.valueOf(BigInteger.valueOf(number)),
+                returnFullTransactionObjects).send();
+            if (ethBlock == null) {
+                log.error("Error fetching block with number " + number);
+                return null;
+            }
+            if (ethBlock.getError() != null) {
+                log.error("Error fetching block " + ethBlock.getError().getMessage());
+                return null;
+            }
+            return ethBlock;
+        });
     }
 
     public double fetchAverageGasPrice() {
@@ -310,6 +352,10 @@ public class Web3Service {
         logConsumers.add(queue);
     }
 
+    public void subscribeOnBlocks(BlockingQueue<EthBlock> queue) {
+        blockConsumers.add(queue);
+    }
+
     @PreDestroy
     private void close() {
         log.info("Close web3");
@@ -402,12 +448,12 @@ public class Web3Service {
         }
         checkInit();
         Flowable<Transaction> flowable;
-        if (Strings.isBlank(appProperties.getStartBlock())) {
+        if (Strings.isBlank(appProperties.getStartTransactionBlock())) {
             flowable = callWithRetry(() -> web3.transactionFlowable());
         } else {
-            log.info("Start flow from block " + appProperties.getStartBlock());
+            log.info("Start flow from block " + appProperties.getStartTransactionBlock());
             flowable = callWithRetry(() -> web3.replayPastAndFutureTransactionsFlowable(
-                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartBlock()))));
+                DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartTransactionBlock()))));
         }
         Disposable subscription = flowable
             .subscribe(tx -> transactionConsumers.forEach(queue ->
@@ -416,6 +462,41 @@ public class Web3Service {
         subscriptions.add(subscription);
         initChecker();
         log.info("Subscribe to Transaction Flowable");
+    }
+
+    public void subscribeOnBlocks() {
+        if (!appProperties.isParseBlocks()) {
+            return;
+        }
+        checkInit();
+        Flowable<EthBlock> flowable;
+        if (Strings.isBlank(appProperties.getStartBlocksBlock())) {
+            Optional<Long> lastBlock =
+                Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
+                    .map(EthBlockEntity::getNumber);
+            if (lastBlock.isPresent()) {
+                flowable = web3.replayPastAndFutureBlocksFlowable(
+                    DefaultBlockParameter.valueOf(
+                        BigInteger.valueOf(lastBlock.get())),
+                    true
+                );
+            } else {
+                flowable = web3.blockFlowable(true);
+            }
+        } else {
+            flowable = web3.replayPastAndFutureBlocksFlowable(
+                DefaultBlockParameter.valueOf(
+                    new BigInteger(appProperties.getStartBlocksBlock())),
+                true
+            );
+        }
+        Disposable subscription = flowable
+            .subscribe(tx -> blockConsumers.forEach(queue ->
+                    writeInQueue(queue, tx)),
+                e -> log.error("Block flowable error", e));
+        subscriptions.add(subscription);
+        initChecker();
+        log.info("Subscribe to Block Flowable");
     }
 
     public Disposable getTransactionFlowableRangeSubscription(

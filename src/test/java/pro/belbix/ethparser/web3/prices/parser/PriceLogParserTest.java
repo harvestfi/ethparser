@@ -16,7 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 
 @RunWith(SpringRunner.class)

@@ -1,9 +1,9 @@
 package pro.belbix.ethparser.repositories.eth;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pro.belbix.ethparser.entity.eth.PoolEntity;
-import pro.belbix.ethparser.entity.eth.VaultEntity;
-import pro.belbix.ethparser.entity.eth.VaultToPoolEntity;
+import pro.belbix.ethparser.entity.contracts.PoolEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
+import pro.belbix.ethparser.entity.contracts.VaultToPoolEntity;
 
 public interface VaultToPoolRepository extends JpaRepository<VaultToPoolEntity, Integer> {
 

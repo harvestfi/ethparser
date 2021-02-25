@@ -2,7 +2,7 @@ package pro.belbix.ethparser.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import pro.belbix.ethparser.dto.DeployerDTO;
+import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 
 @Data

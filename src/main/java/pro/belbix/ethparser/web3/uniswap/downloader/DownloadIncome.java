@@ -5,8 +5,8 @@ import static pro.belbix.ethparser.web3.uniswap.db.IncomeDBService.DO_HARD_WORK;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.uniswap.db.IncomeDBService;
 
 @Service

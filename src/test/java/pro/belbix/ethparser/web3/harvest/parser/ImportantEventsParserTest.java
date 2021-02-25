@@ -18,7 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.ImportantEventsDTO;
+import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.prices.PriceProvider;

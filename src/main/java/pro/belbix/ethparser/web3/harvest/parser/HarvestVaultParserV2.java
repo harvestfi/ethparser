@@ -26,9 +26,9 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.entity.eth.ContractEntity;
-import pro.belbix.ethparser.entity.eth.PoolEntity;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.PoolEntity;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -220,6 +220,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     private boolean parseVaults(HarvestTx harvestTx, Log ethLog) {
         TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+        if (receipt == null) {
+            throw new IllegalStateException("Receipt is null for " + harvestTx.getHash());
+        }
         if (ZERO_ADDRESS.equals(harvestTx.getAddressFromArgs1().getValue())) {
             harvestTx.setMethodName("Deposit");
             harvestTx.setOwner(receipt.getFrom());

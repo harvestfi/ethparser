@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.PriceDTO;
+import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;

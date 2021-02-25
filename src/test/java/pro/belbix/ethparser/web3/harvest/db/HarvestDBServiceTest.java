@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.junit.Test;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 
 public class HarvestDBServiceTest {
 

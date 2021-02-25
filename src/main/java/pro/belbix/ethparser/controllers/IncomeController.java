@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.entity.IncomeEntity;
-import pro.belbix.ethparser.repositories.IncomeRepository;
+import pro.belbix.ethparser.entity.v0.IncomeEntity;
+import pro.belbix.ethparser.repositories.v0.IncomeRepository;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController

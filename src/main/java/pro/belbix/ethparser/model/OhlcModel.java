@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.model;
 
 import lombok.Data;
-import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 
 @Data
 public class OhlcModel implements UniswapRepository.OhlcProjection {

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository.UserBalance;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository.UserBalance;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
