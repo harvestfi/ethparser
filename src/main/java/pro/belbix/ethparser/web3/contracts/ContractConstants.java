@@ -32,7 +32,8 @@ public class ContractConstants {
         "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(),
         "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase(),
         "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50".toLowerCase(),
-        "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".toLowerCase()
+        "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".toLowerCase(),
+        "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651".toLowerCase()
     );
 
     // todo get real prices
