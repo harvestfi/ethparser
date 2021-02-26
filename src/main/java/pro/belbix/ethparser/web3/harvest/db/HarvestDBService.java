@@ -82,6 +82,7 @@ public class HarvestDBService {
         Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
             ContractUtils.getAllVaultNames().stream()
                 .filter(v -> !ContractUtils.isPsName(v))
+                .filter(v -> !v.equals("iPS"))
                 .collect(Collectors.toList()),
             dto.getBlockDate());
         if (allPoolsOwnerCount == null) {
