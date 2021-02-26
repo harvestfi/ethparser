@@ -71,11 +71,11 @@ public class HarvestOwnerBalanceCalculator {
                 .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
                 .getContract().getAddress();
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
-                .orElseThrow(() -> new IllegalStateException("Error get balance from " + stHash));
+                .orElse(null);
         } else {
             balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
                 dto.getOwner(), vaultHash, block)
-                .orElseThrow(() -> new IllegalStateException("Error get uBalance from " + vaultHash));
+                .orElse(null);
         }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
