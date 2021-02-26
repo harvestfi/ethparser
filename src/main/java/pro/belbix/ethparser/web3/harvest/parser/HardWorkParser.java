@@ -146,6 +146,12 @@ public class HardWorkParser implements Web3Parser {
             parseRewardAddedEvents(ethLog, dto, autoStake);
         }
 
+
+        double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+        double farmBuybackEth = dto.getShareChangeUsd() * farmPrice / ethPrice;
+        dto.setFarmBuybackEth(farmBuybackEth);
+
         // for AutoStaking vault rewards already parsed
         // skip vault reward parsing if we didn't earn anything
         // BROKEN LOGIC if we don't send rewards to strategy (yes, it happened for uni strats)
@@ -188,15 +194,11 @@ public class HardWorkParser implements Web3Parser {
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
                 double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-                double stReward = ((reward * farmPrice) / 0.3) * 0.7;
+                double stReward = (reward * farmPrice * 100) / 70;
                 dto.setShareChangeUsd(stReward);
             } else {
                 dto.setFarmBuyback(reward);
                 double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-                double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
-                double farmBuybackEth = reward * farmPrice / ethPrice;
-                dto.setFarmBuybackEth(farmBuybackEth);
-
                 if (!autoStake) {
                     double stReward = ((reward * farmPrice) / 0.3) * 0.7;
                     dto.setShareChangeUsd(stReward);

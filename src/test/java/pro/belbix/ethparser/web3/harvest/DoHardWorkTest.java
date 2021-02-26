@@ -44,13 +44,25 @@ public class DoHardWorkTest {
     }
 
     @Test
+    public void parseMIS_USDT() {
+        HardWorkDTO dto = assertOnBlock(
+            11933706,
+            "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
+            "SUSHI_MIC_USDT",
+            "0,000000",
+            "17800,133375",
+            "24,508470"
+        );
+    }
+
+    @Test
     public void parseDAI_BSGS() {
         HardWorkDTO dto = assertOnBlock(
             11698881,
             "0x640b6f13a78e17860e4bd0a111a0d1fe7d31cc73554c48963d3e5ae5aa0287ff_214",
             "DAI_BSGS",
             "0,000000",
-            "4404,922180",
+            "2696,891131",
             "7,188446"
         );
         assertNotNull(dto);
@@ -115,7 +127,7 @@ public class DoHardWorkTest {
             "0x054b92d6bc7e846f40a4aea5a99f3ba77941be41107fad9a72e14d68a407148f_79",
             "DAI_BSGS",
             "0,000000",
-            "6000,815640",
+            "3673,968759",
             "8,454189"
         );
     }
