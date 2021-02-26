@@ -551,7 +551,7 @@ public class Web3Service {
 
     private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
         try {
-            while (!queue.offer(o, 1, TimeUnit.MINUTES)) {
+            while (!queue.offer(o, 10, SECONDS)) {
                 log.warn("The queue is full for " + o);
             }
 
