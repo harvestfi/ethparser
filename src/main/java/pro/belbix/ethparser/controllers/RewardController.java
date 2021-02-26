@@ -6,15 +6,17 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.repositories.RewardsRepository;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @Log4j2
 public class RewardController {

@@ -3,18 +3,17 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_OF_YEAR;
-import static pro.belbix.ethparser.web3.contracts.Tokens.WETH_NAME;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -186,7 +185,7 @@ public class HardWorkDbService {
             dto.getBlockDate());
         dto.setPoolUsers(owners);
 
-        double ethPrice = priceProvider.getPriceForCoin(WETH_NAME, dto.getBlock());
+        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
 
         dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
 
@@ -195,5 +194,10 @@ public class HardWorkDbService {
             feesSum = 0.0;
         }
         dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
+
+        Long lastHardWorkBlockDate = hardWorkRepository.fetchPreviousBlockDateByVaultAndDate(dto.getVault(), dto.getBlockDate());
+        if (lastHardWorkBlockDate != null) {
+            dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
+        }
     }
 }

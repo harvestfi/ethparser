@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.web3.contracts.Contract.createContracts;
 
 import java.util.List;
 
-public class HarvestPoolAddresses {
+class HarvestPoolAddresses {
 
     private HarvestPoolAddresses() {
     }
@@ -63,7 +63,10 @@ public class HarvestPoolAddresses {
         new Contract(11681054, "ST_MGOOGL_UST", "0xfE83a00DF3A98dE218c08719FAF7e3741b220D0D"),
         new Contract(11681067, "ST_MTSLA_UST", "0x40C34B0E1bb6984810E17474c6B0Bcc6A6B46614"),
         new Contract(11686133, "ST_CRV_STETH", "0x2E25800957742C52b4d69b65F9C67aBc5ccbffe6"),
-        new Contract(11745429, "ST_CRV_GUSD", "0x538613A19Eb84D86a4CcfcB63548244A52Ab0B68")
+        new Contract(11745429, "ST_CRV_GUSD", "0x538613A19Eb84D86a4CcfcB63548244A52Ab0B68"),
+        new Contract(11830965, "ST_CRV_AAVE", "0x10f1fc85eAA1F064e38EEffDa82fBa414841f438"),
+        new Contract(11777533, "ST_SUSHI_SUSHI_ETH", "0x16fBb193f99827C92A4CC22EFe8eD7390465BFa3"),
+        new Contract(11905294, "ST_ONEINCH_ETH_ONEINCH", "0x16b5089ED717409849b2748AC73adFbfE7ec0301")
     );
 
 }

@@ -3,13 +3,15 @@ package pro.belbix.ethparser.controllers;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.TransferDTO;
-import pro.belbix.ethparser.repositories.TransferRepository;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
+import pro.belbix.ethparser.repositories.v0.TransferRepository;
 
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 public class TransferController {
 

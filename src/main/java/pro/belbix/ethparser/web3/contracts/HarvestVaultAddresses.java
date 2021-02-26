@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class HarvestVaultAddresses {
+class HarvestVaultAddresses {
 
     private HarvestVaultAddresses() {
     }
@@ -74,6 +74,10 @@ public class HarvestVaultAddresses {
         new Contract(11681049, "MGOOGL_UST", "0x07DBe6aA35EF70DaD124f4e2b748fFA6C9E1963a"),
         new Contract(11681065, "MTSLA_UST", "0xC800982d906671637E23E031e907d2e3487291Bc"),
         new Contract(11686113, "CRV_STETH", "0xc27bfE32E0a934a12681C1b35acf0DBA0e7460Ba"),
-        new Contract(11745394, "CRV_GUSD", "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E")
+        new Contract(11745394, "CRV_GUSD", "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E"),
+        new Contract(11830928, "CRV_AAVE", "0xc3EF8C4043D7cf1D15B6bb4cd307C844E0BA9d42"),
+        new Contract(11777480, "SUSHI_SUSHI_ETH", "0x5aDe382F38A09A1F8759D06fFE2067992ab5c78e"),
+        new Contract(11775913, "iPS", "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651"),
+        new Contract(11905238, "ONEINCH_ETH_ONEINCH", "0xFCA949E34ecd9dE519542CF02054DE707Cf361cE")
     );
 }

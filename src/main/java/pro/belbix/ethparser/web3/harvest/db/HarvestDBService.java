@@ -1,8 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.contracts.Tokens.FARM_NAME;
-import static pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter.allowContracts;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -12,16 +11,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.entity.HarvestTvlEntity;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.HarvestTvlRepository;
-import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
+import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -93,32 +91,21 @@ public class HarvestDBService {
     }
 
     public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
-        double tvl = 0.0;
-        Double farmPrice = 0.0;
-        UniswapDTO uniswapDTO = uniswapRepository
-            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(dto.getBlockDate(), "FARM");
-        if (uniswapDTO != null) {
-            farmPrice = uniswapDTO.getLastPrice();
+        if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
+            log.warn("Found the same harvestTvl record for " + dto);
         }
-        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
-        allowContracts.stream()
-            .map(LpContracts.lpHashToName::get)
-            .forEach(contracts::add);
-
-        for (String vaultName : contracts) {
-            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
-            if (lastHarvest == null) {
-                continue;
-            }
-            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
-                lastHarvest = dto; // for avoiding JPA wrong synchronisation
-            }
-            tvl += calculateActualTvl(lastHarvest, farmPrice);
-        }
-
         HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+        harvestTvl.setCalculateHash(dto.getId());
         harvestTvl.setCalculateTime(dto.getBlockDate());
-        harvestTvl.setLastTvl(tvl);
+
+        fillLastFarmPrice(dto, harvestTvl);
+        fillSimpleDataFromDto(dto, harvestTvl);
+        //should be after price filling
+        fillTvl(dto, harvestTvl);
+        return harvestTvl;
+    }
+
+    public void fillSimpleDataFromDto(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
         if (dto.getAllPoolsOwnersCount() != null) {
             harvestTvl.setLastOwnersCount(dto.getAllPoolsOwnersCount());
         } else {
@@ -129,18 +116,40 @@ public class HarvestDBService {
         } else {
             log.warn("Empty AllPoolsOwnersCount " + dto.print());
         }
-        harvestTvl.setCalculateHash(dto.getHash());
-        harvestTvl.setLastPrice(farmPrice);
+    }
 
+    public void fillLastFarmPrice(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
+        UniswapDTO uniswapDTO = uniswapRepository
+            .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(
+                dto.getBlockDate(), "FARM");
         if (uniswapDTO != null) {
             harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
+        } else {
+            harvestTvl.setLastPrice(0.0);
+        }
+    }
+
+    public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
+        double tvl = 0.0;
+
+        List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
+        PARSABLE_UNI_PAIRS.stream()
+            .map(c -> ContractUtils.getNameByAddress(c)
+                .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
+            .forEach(contracts::add);
+
+        for (String vaultName : contracts) {
+            HarvestDTO lastHarvest = harvestRepository.fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+            if (lastHarvest == null) {
+                continue;
+            }
+            if (lastHarvest.getId().equalsIgnoreCase(dto.getId())) {
+                lastHarvest = dto; // for avoiding JPA wrong synchronisation
+            }
+            tvl += calculateActualTvl(lastHarvest, harvestTvl.getLastPrice());
         }
 
-        if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
-            log.info("Found the same (" + tvl + ") last TVL record for " + dto);
-        }
-        dto.setLastAllUsdTvl(tvl);
-        return harvestTvl;
+        harvestTvl.setLastTvl(tvl);
     }
 
     private double calculateActualTvl(HarvestDTO dto, Double farmPrice) {
@@ -159,14 +168,14 @@ public class HarvestDBService {
                 LpStat lpStat = objectMapper.readValue(lpStatStr, LpStat.class);
 
                 double coin1Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin1())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin1())) {
                     coin1Price = farmPrice;
                 } else {
                     coin1Price = lpStat.getPrice1();
                 }
 
                 double coin2Price;
-                if (FARM_NAME.equalsIgnoreCase(lpStat.getCoin2())) {
+                if ("FARM".equalsIgnoreCase(lpStat.getCoin2())) {
                     coin2Price = farmPrice;
                 } else {
                     coin2Price = lpStat.getPrice2();
@@ -248,7 +257,7 @@ public class HarvestDBService {
                 continue;
             }
 
-            double sharePrice = transfer.getSharePrice();
+            Double sharePrice = transfer.getSharePrice();
             if (transfer.getSharePrice() == null
                 || transfer.getSharePrice() == 0.0) {
                 sharePrice = 1.0;
@@ -273,7 +282,7 @@ public class HarvestDBService {
         return profit;
     }
 
-    private double calculateProfitUsd(HarvestDTO dto) {
+    static double calculateProfitUsd(HarvestDTO dto) {
         if (dto.getLastUsdTvl() == null
             || dto.getLastUsdTvl() == 0.0
             || dto.getLastTvl() == null

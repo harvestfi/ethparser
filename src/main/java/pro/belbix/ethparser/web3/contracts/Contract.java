@@ -7,9 +7,9 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode
-public class Contract {
+class Contract {
 
-    private int createdOnBlock;
+    private final int createdOnBlock;
     private final String name;
     private final String address;
 
@@ -17,10 +17,6 @@ public class Contract {
         this.createdOnBlock = createdOnBlock;
         this.name = name;
         this.address = address.toLowerCase();
-    }
-
-    public void setCreatedOnBlock(int createdOnBlock) {
-        this.createdOnBlock = createdOnBlock;
     }
 
     public static List<Contract> createContracts(Contract... contracts) {

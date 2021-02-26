@@ -2,14 +2,17 @@ package pro.belbix.ethparser.web3;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,7 +32,8 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -52,7 +56,7 @@ public class FunctionsUtils {
 
     // todo complex functions should be decomposed and use simple calls ************************
     public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
-        if (LpContracts.oneInch.contains(lpAddress)) {
+        if (ContractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
             return callOneInchReserves(lpAddress, block);
         } else {
             return callUniReserves(lpAddress, block);
@@ -68,10 +72,12 @@ public class FunctionsUtils {
         double coin0Balance = 0;
         double coin1Balance = 0;
         if (!ZERO_ADDRESS.equals(coin0)) {
-            coin0Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin0, block).orElse(ZERO), coin0);
+            coin0Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin0, block)
+                .orElse(ZERO), coin0);
         }
         if (!ZERO_ADDRESS.equals(coin1)) {
-            coin1Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin1, block).orElse(ZERO), coin1);
+            coin1Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin1, block)
+                .orElse(ZERO), coin1);
         }
         return new Tuple2<>(coin0Balance, coin1Balance);
     }
@@ -92,12 +98,14 @@ public class FunctionsUtils {
             return null;
         }
 
-        Tuple2<Double, Double> dividers = LpContracts.findLpTokensDividers(lpAddress);
-        double v1 = ((BigInteger) types.get(0).getValue()).doubleValue();
-        double v2 = ((BigInteger) types.get(1).getValue()).doubleValue();
+        Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getUniPairTokens(lpAddress);
+        BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
+        BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());
         return new Tuple2<>(
-            v1 / dividers.component1(),
-            v2 / dividers.component2()
+            v1.divide(new BigDecimal(10L).pow(tokens.component1().getDecimals().intValue())
+                , 99, RoundingMode.HALF_UP).doubleValue(),
+            v2.divide(new BigDecimal(10L).pow(tokens.component2().getDecimals().intValue())
+                , 99, RoundingMode.HALF_UP).doubleValue()
         );
     }
 

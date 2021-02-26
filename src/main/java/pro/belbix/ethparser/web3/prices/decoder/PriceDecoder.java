@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.prices.decoder;
 
-import static pro.belbix.ethparser.web3.contracts.LpContracts.keyCoinForLp;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,6 +12,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class PriceDecoder extends MethodDecoder {
@@ -25,7 +24,10 @@ public class PriceDecoder extends MethodDecoder {
             return null;
         }
         String methodId = parseMethodId(ethLog)
-            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));;
+            .orElse(null);
+        if (methodId == null) {
+            return null;
+        }
         String methodName = methodNamesByMethodId.get(methodId);
         List<TypeReference<Type>> parameters = findParameters(methodId)
             .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
@@ -50,7 +52,7 @@ public class PriceDecoder extends MethodDecoder {
         if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
             return false;
         }
-        return keyCoinForLp.containsKey(log.getAddress());
+        return ContractUtils.isUniPairAddress(log.getAddress());
     }
 
     private void enrich(List<Type> types, PriceTx tx) {

@@ -18,8 +18,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.entity.HarvestTvlEntity;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
@@ -46,6 +46,174 @@ public class HarvestVaultParserTest {
     @Before
     public void setUp() throws Exception {
         priceProvider.setUpdateBlockDifference(1);
+    }
+
+    @Test
+    public void parseVault_ONEINCH_ETH_ONEINCH() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xfca949e34ecd9de519542cf02054de707cf361ce",
+            11908406,
+            LOG_ID,
+            "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
+            "Deposit",
+            "ONEINCH_ETH_ONEINCH",
+            "0x8570240c0e350df6663d720689c5f5061372cf66a019dd0fbfa2264df0b6362d_240",
+            "0,07288828",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,07288828", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "0,22119594", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_iPS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            11857842,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "iPS",
+            "0x560acf23f19347c0c6652ee4b35ba36ef067d943e014ef38c7366caaae9180e9_302",
+            "0,10105548",
+            "",
+            "",
+            35L,
+            35L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,10105548", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "35,14611483", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_SUSHI_SUSHI_ETH() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x5aDe382F38A09A1F8759D06fFE2067992ab5c78e",
+            11833261,
+            LOG_ID,
+            "0xb9bcd154b5a636bb3b049e7dea7da4cb47d6cc81",
+            "Deposit",
+            "SUSHI_SUSHI_ETH",
+            "0xdc7b3578dcccc8cbefe8b38317ed55bc703499bdce37048348abf240b2560bd4_249",
+            "358,92678598",
+            "",
+            "",
+            130407L,
+            339508L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "359,94131414", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "130407,75326223", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_CRV_AAVE() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xc3EF8C4043D7cf1D15B6bb4cd307C844E0BA9d42",
+            11836887,
+            LOG_ID,
+            "0x7ba605bc00ea26512a639d5e0335eaeb3e81ad94",
+            "Deposit",
+            "CRV_AAVE",
+            "0x3e4399ec429da3e0d2ce6680ff4f20a52735940b36a8f60a81186b741d52dfed_170",
+            "68,32630764",
+            "",
+            "",
+            68L,
+            68L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "68,32630764", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "68,32630764", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_USDC_migration() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+            11094671,
+            LOG_ID,
+            "0xf00dd244228f51547f0563e60bca65a30fbf5f7f",
+            "Deposit",
+            "USDC",
+            "0x64b552fd99d6abb1127c06cc866e328e9670f82f201f14dfc9895158a927386a_42",
+            "99555832,75969400",
+            "97541818",
+            "97541818",
+            97541818L,
+            97541818L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,00000000", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "0,00000000", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
+    }
+
+    @Test
+    public void parseVault_CRVRENWBTC_badger() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
+            11823682,
+            LOG_ID,
+            "0xda25ee226e534d868f0dd8a459536b03fee9079b",
+            "Deposit",
+            "CRVRENWBTC",
+            "0xf78f241567e2472e78b345a4fc962adbf93e3953a4bbd738b1efe93e435d53cc_354",
+            "899,91949809",
+            "",
+            "",
+            42067028L,
+            295068199L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+
+        harvestOwnerBalanceCalculator.fillBalance(dto);
+        assertAll(
+            () -> assertEquals("owner balance", "0,00000000", String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", "0,00000000", String.format("%.8f", dto.getOwnerBalanceUsd()))
+        );
     }
 
     @Test

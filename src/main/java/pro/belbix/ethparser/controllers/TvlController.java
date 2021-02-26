@@ -1,13 +1,19 @@
 package pro.belbix.ethparser.controllers;
 
-import org.springframework.web.bind.annotation.*;
-import pro.belbix.ethparser.entity.HarvestTvlEntity;
-import pro.belbix.ethparser.model.TvlHistory;
-import pro.belbix.ethparser.repositories.HarvestTvlRepository;
-import pro.belbix.ethparser.service.HarvestTvlDBService;
-
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
+import pro.belbix.ethparser.model.TvlHistory;
+import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
+import pro.belbix.ethparser.service.HarvestTvlDBService;
+
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 public class TvlController {
 

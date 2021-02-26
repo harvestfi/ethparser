@@ -1,18 +1,20 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.dto.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.RestResponse;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 
-import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
-
+@ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @Log4j2
 public class HardWorkController {

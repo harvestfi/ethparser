@@ -6,10 +6,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pro.belbix.ethparser.dto.TransferDTO;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.web3.MethodMapper;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 public enum TransferType {
     // all not specified transfers
@@ -117,7 +116,7 @@ public enum TransferType {
             return REWARD;
         }
 
-        if (LpContracts.lpHashToName.containsKey(owner)) {
+        if (ContractUtils.isUniPairAddress(owner)) {
             if (MethodMapper.isLpTrade(methodName)) {
                 return LP_BUY;
             } else if (MethodMapper.isLpLiq(methodName)) {
@@ -127,7 +126,7 @@ public enum TransferType {
             }
         }
 
-        if (LpContracts.lpHashToName.containsKey(recipient)) {
+        if (ContractUtils.isUniPairAddress(recipient)) {
             if (MethodMapper.isLpTrade(methodName)) {
                 return LP_SELL;
             } else if (MethodMapper.isLpLiq(methodName)) {

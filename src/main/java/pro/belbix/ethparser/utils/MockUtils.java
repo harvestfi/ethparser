@@ -8,10 +8,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.ImportantEventsDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 

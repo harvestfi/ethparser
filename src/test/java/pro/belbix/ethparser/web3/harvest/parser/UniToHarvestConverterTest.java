@@ -3,11 +3,8 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static pro.belbix.ethparser.web3.contracts.LpContracts.UNI_LP_USDC_FARM;
-import static pro.belbix.ethparser.web3.contracts.Tokens.USDC_NAME;
 
 import java.util.List;
 import org.junit.Before;
@@ -21,10 +18,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
 @RunWith(SpringRunner.class)
@@ -51,14 +48,14 @@ public class UniToHarvestConverterTest {
     @Ignore
     public void convertUNI_LP_USDC_FARM_ADD() {
         UniswapDTO dto = uniswapParseTest(
-                UNI_LP_USDC_FARM,
+                "0x514906fc121c7878424a5c928cad1852cc545892",
                 10777206,
                 2,
                 "0xd00b70b93a3df0910bbb426df4fdf1374d206339d9b3334075c691e086a45177_107",
                 "0xe6765078ca6e641ec9637cd145ecfad30aa53a4a",
                 "58,70106387",
                 "ADD",
-                USDC_NAME,
+            "USDC",
                 "15800,00000000",
                 "269,16036881"
         );

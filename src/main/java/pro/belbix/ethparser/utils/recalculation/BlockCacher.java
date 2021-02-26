@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.entity.BlockCacheEntity;
-import pro.belbix.ethparser.repositories.BlockCacheRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.v0.BlockCacheEntity;
+import pro.belbix.ethparser.repositories.v0.BlockCacheRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 
 @Service
 @Log4j2
@@ -29,7 +29,7 @@ public class BlockCacher {
         int bulkSize = 100;
         for (HarvestDTO dto : harvestDTOS) {
             count++;
-            long block = dto.getBlock().longValue();
+            long block = dto.getBlock();
             if (!blockCacheRepository.existsById(block)) {
                 BlockCacheEntity blockCacheEntity = new BlockCacheEntity();
                 blockCacheEntity.setBlock(block);

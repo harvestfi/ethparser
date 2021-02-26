@@ -26,5 +26,11 @@ public class FunctionsNames {
     public static final String SYMBOL = "symbol";
     public static final String DECIMALS = "decimals";
     public static final String UNDERLYING_UNIT = "underlyingUnit";
-
+    public static final String FACTORY = "factory";
+    public static final String MOONISWAP_FACTORY_GOVERNANCE  = "mooniswapFactoryGovernance";
+    public static final String UNDERLYING_BALANCE_IN_VAULT = "underlyingBalanceInVault";
+    public static final String UNDERLYING_BALANCE_WITH_INVESTMENT = "underlyingBalanceWithInvestment";
+    public static final String VAULT_FRACTION_TO_INVEST_NUMERATOR = "vaultFractionToInvestNumerator";
+    public static final String VAULT_FRACTION_TO_INVEST_DENOMINATOR = "vaultFractionToInvestDenominator";
+    
 }

@@ -2,8 +2,8 @@ package pro.belbix.ethparser.utils.recalculation;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
 

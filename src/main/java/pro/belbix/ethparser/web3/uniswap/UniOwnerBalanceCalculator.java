@@ -7,11 +7,12 @@ import java.math.BigInteger;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.UniswapDTO;
-import pro.belbix.ethparser.repositories.UniswapRepository;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
-import pro.belbix.ethparser.web3.contracts.LpContracts;
 
 @Service
 @Log4j2
@@ -45,16 +46,21 @@ public class UniOwnerBalanceCalculator {
     private boolean balanceForLp(UniswapDTO dto) {
         String lpHash;
         if (dto.getLp() == null) {
-            lpHash = LpContracts.findLpForCoins(dto.getCoin(), dto.getOtherCoin());
+            lpHash = ContractUtils.findUniPairForTokens(
+                ContractUtils.getAddressByName(dto.getCoin(), ContractType.TOKEN)
+                    .orElseThrow(() -> new IllegalStateException("Not found address for " + dto.getCoin())),
+                ContractUtils.getAddressByName(dto.getOtherCoin(), ContractType.TOKEN)
+                    .orElseThrow(() -> new IllegalStateException("Not found address for " + dto.getOtherCoin()))
+            );
         } else {
-            lpHash = LpContracts.lpNameToHash.get(dto.getLp());
+            lpHash = ContractUtils.getAddressByName(dto.getLp(), ContractType.UNI_PAIR).orElse(null);
         }
         if (lpHash == null) {
             log.error("Not found vault/lp hash for " + dto.getLp());
             return false;
         }
         BigInteger balanceI = functionsUtils.callIntByName(
-                BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue())
+            BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue())
             .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
         if (balanceI == null) {
             log.warn("Can reach lp balance for " + dto.print());
@@ -64,7 +70,7 @@ public class UniOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        double amountUsd = priceProvider.getLpPositionAmountInUsd(lpHash, balance, dto.getBlock().longValue());
+        double amountUsd = priceProvider.getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue());
         dto.setOwnerBalanceUsd(amountUsd);
         return true;
     }
