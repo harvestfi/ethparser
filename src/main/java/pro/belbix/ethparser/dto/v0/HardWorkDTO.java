@@ -23,9 +23,8 @@ public class HardWorkDTO implements DtoI {
     // don't use it, share price doesn't change for AutoStake strats
     // keep for compatibility and statistic
     private double shareChange;
-    // todo should rename in vaultRewardUsd because we not always change share price
-    private double shareChangeUsd;
-    private double shareUsdTotal;
+    private double fullRewardUsd;
+    private double fullRewardUsdTotal;
     private double tvl;
     private double allProfit;
     private long periodOfWork;
@@ -50,12 +49,14 @@ public class HardWorkDTO implements DtoI {
     private long idleTime;
     private double invested;
     private double investmentTarget;
+    private double farmPrice;
+    private double ethPrice;
 
     public String print() {
         return Instant.ofEpochSecond(blockDate) + " "
             + vault + " "
-            + shareChangeUsd + " "
-            + shareUsdTotal + " "
+            + fullRewardUsd + " "
+            + fullRewardUsdTotal + " "
             + id;
 
     }

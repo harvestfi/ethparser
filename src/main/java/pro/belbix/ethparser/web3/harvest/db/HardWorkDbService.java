@@ -55,7 +55,7 @@ public class HardWorkDbService {
         if (all == null) {
             all = 0.0;
         }
-        dto.setShareUsdTotal(all);
+        dto.setFullRewardUsdTotal(all);
 
         calculateVaultProfits(dto);
         calculatePsProfits(dto);
@@ -67,7 +67,7 @@ public class HardWorkDbService {
             .ifPresentOrElse(harvestDTO -> {
                 dto.setTvl(harvestDTO.getLastUsdTvl());
                 if (dto.getTvl() != 0.0) {
-                    dto.setPerc((dto.getShareChangeUsd() / dto.getTvl()) * 100);
+                    dto.setPerc(((dto.getFullRewardUsd() * 0.7) / dto.getTvl()) * 100);
                 } else {
                     dto.setPerc(0.0);
                 }
@@ -99,7 +99,7 @@ public class HardWorkDbService {
                         limitOne))
                     .filter(Caller::isFilledList)
                     .ifPresentOrElse(sumOfProfitL -> {
-                        double sumOfProfit = sumOfProfitL.get(0) + dto.getShareChangeUsd();
+                        double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
                         dto.setWeeklyProfit(sumOfProfit);
                     }, () -> log.warn("Not found profit for period for " + dto.print()));
 
@@ -119,7 +119,7 @@ public class HardWorkDbService {
         silentCall(() -> hardWorkRepository
             .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK, dto.getBlockDate() - 1, limitOne))
             .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
-            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0) + dto.getShareChangeUsd()),
+            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0) + dto.getFullRewardUsd()),
                 () -> log.warn("Not found weekly profits for all vaults for " + dto.print()));
 
     }

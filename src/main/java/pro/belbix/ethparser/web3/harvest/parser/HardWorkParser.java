@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
@@ -22,11 +20,9 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
-import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -141,15 +137,16 @@ public class HardWorkParser implements Web3Parser {
     // not in the root because it can be weekly reward
     private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
         TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
+        double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+        dto.setFarmPrice(farmPrice);
         boolean autoStake = isAutoStake(tr.getLogs());
         for (Log ethLog : tr.getLogs()) {
             parseRewardAddedEvents(ethLog, dto, autoStake);
         }
 
-
-        double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
         double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
-        double farmBuybackEth = dto.getShareChangeUsd() * farmPrice / ethPrice;
+        dto.setEthPrice(ethPrice);
+        double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
         dto.setFarmBuybackEth(farmBuybackEth);
 
         // for AutoStaking vault rewards already parsed
@@ -193,15 +190,18 @@ public class HardWorkParser implements Web3Parser {
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
-                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-                double stReward = (reward * farmPrice * 100) / 70;
-                dto.setShareChangeUsd(stReward);
+                // in this case it is second reward for strategy
+                double fullReward = (reward * dto.getFarmPrice()) / 0.7; // full reward
+                dto.setFullRewardUsd(fullReward);
             } else {
+                // PS pool reward
                 dto.setFarmBuyback(reward);
-                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+
+                // for non AutoStake strategy we will not have accurate data for strategy reward
+                // just calculate aprox value based on PS reward
                 if (!autoStake) {
-                    double stReward = ((reward * farmPrice) / 0.3) * 0.7;
-                    dto.setShareChangeUsd(stReward);
+                    double fullReward = ((reward * dto.getFarmPrice()) / 0.3); // full reward
+                    dto.setFullRewardUsd(fullReward);
                 }
             }
 

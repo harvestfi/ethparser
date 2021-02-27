@@ -19,7 +19,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
                                       @Param("to") long to);
 
     @Query(""
-        + "select sum(t.shareChangeUsd) from HardWorkDTO t "
+        + "select sum(t.fullRewardUsd) from HardWorkDTO t "
         + "where t.vault = :vault "
         + "and t.blockDate <= :blockDate")
     Double getSumForVault(@Param("vault") String vault, @Param("blockDate") long blockDate);
@@ -30,19 +30,19 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
                                        @Param("to") long to,
                                        Pageable pageable);
 
-    @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
+    @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
         + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchProfitForPeriod(@Param("vault") String vault,
                                       @Param("from") long from,
                                       @Param("to") long to,
                                       Pageable pageable);
 
-    @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
+    @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
         + "t.blockDate <= :to")
     List<Double> fetchAllProfitAtDate(@Param("to") long to,
                                       Pageable pageable);
 
-    @Query("select sum(t.shareChangeUsd) from HardWorkDTO t where "
+    @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
         + "t.blockDate > :from and t.blockDate <= :to")
     List<Double> fetchAllProfitForPeriod(@Param("from") long from,
                                          @Param("to") long to,
@@ -72,8 +72,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "    max(block) block, " +
         "    max(block_date) block_date, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', share_change)), '_', -1) share_change, " +
-        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', share_change_usd)), '_', -1) share_change_usd, " +
-        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', share_usd_total)), '_', -1)  share_usd_total, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', full_reward_usd)), '_', -1) full_reward_usd, " +
+        "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', full_reward_usd_total)), '_', -1)  full_reward_usd_total, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', tvl)), '_', -1)  tvl, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_profit)), '_', -1) all_profit, " +
         "    SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_of_work)), '_', -1) period_of_work, " +
@@ -97,7 +97,9 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         "    0 gas_used, " +
         "    0 idle_time, " +
         "    0.0 invested, " +
-        "    0.0 investment_target " +
+        "    0.0 investment_target, " +
+        "    0.0 farm_price, " +
+        "    0.0 eth_price " +
         "from hard_work " +
         "group by vault "
         + "order by vault")

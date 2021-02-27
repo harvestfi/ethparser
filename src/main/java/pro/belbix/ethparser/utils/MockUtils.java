@@ -63,8 +63,8 @@ public class MockUtils {
         hardWorkDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
         hardWorkDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
         hardWorkDTO.setShareChange(seed / 1000.0);
-        hardWorkDTO.setShareChangeUsd(seed / 69.0);
-        hardWorkDTO.setShareUsdTotal(seed);
+        hardWorkDTO.setFullRewardUsd(seed / 69.0);
+        hardWorkDTO.setFullRewardUsdTotal(seed);
         hardWorkDTO.setTvl(seed * 60);
         hardWorkDTO.setPerc((double) seed / 633.0);
         hardWorkDTO.setPsApr((double) seed / 63.0);

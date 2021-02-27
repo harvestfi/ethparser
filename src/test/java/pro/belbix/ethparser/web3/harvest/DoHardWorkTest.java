@@ -50,7 +50,7 @@ public class DoHardWorkTest {
             "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
             "SUSHI_MIC_USDT",
             "0,000000",
-            "17800,133375",
+            "17848,226372",
             "24,508470"
         );
     }
@@ -91,7 +91,7 @@ public class DoHardWorkTest {
             "0xfaff1b27f5f17252bea0a2a1cc452f282fc644ec8ccfa963941f2c83ce6414aa_207",
             "SUSHI_ETH_USDC",
             "0,000073",
-            "2994,840625",
+            "4278,343750",
             "10,740319"
         );
     }
@@ -103,7 +103,7 @@ public class DoHardWorkTest {
             "0xb63ea164db21279e9b4a09975ca5e3313cf897cf7118e733ca81708719c87b91_190",
             "USDC",
             "0,000097",
-            "4639,927130",
+            "6628,467329",
             "16,849470"
         );
     }
@@ -115,7 +115,7 @@ public class DoHardWorkTest {
             "0x25aed6e95e2ebb3bd66ca906bcb59cb762a286a273c1ce67052701697e4b2bc5_114",
             "YCRV",
             "0,000265",
-            "8802,192582",
+            "12574,560831",
             "32,585083"
         );
     }
@@ -139,7 +139,7 @@ public class DoHardWorkTest {
             "0xcaf98b04b4d779899e29d36833fc52955b2c887d62bd4b4c277abd998b4e355f_138",
             "SUSHI_ETH_USDC",
             "0,000271",
-            "11767,732981",
+            "16811,047116",
             "49,378887"
         );
     }
@@ -151,7 +151,7 @@ public class DoHardWorkTest {
             "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
             "UNI_ETH_DAI",
             "0,000000",
-            "1168,706345",
+            "1669,580492",
             "2,804286"
         );
     }
@@ -160,7 +160,7 @@ public class DoHardWorkTest {
                                       String id,
                                       String vault,
                                       String sharePriceChange,
-                                      String sharePriceUsd,
+                                      String fullRewardUsd,
                                       String farmBuyback
     ) {
         List<LogResult> logResults = web3Service
@@ -173,20 +173,19 @@ public class DoHardWorkTest {
             () -> assertEquals("id", id, dto.getId()),
             () -> assertEquals("vault", vault, dto.getVault()),
             () -> assertEquals("sharePriceChage", sharePriceChange, String.format("%f", dto.getShareChange())),
-            () -> assertEquals("sharePriceUsd", sharePriceUsd, String.format("%f", dto.getShareChangeUsd())),
+            () -> assertEquals("full reward Usd", fullRewardUsd, String.format("%f", dto.getFullRewardUsd())),
             () -> assertEquals("farmBuyback", farmBuyback, String.format("%f", dto.getFarmBuyback()))
         );
 
-        double vaultRewardUsd = dto.getShareChangeUsd();
-        if (vaultRewardUsd != 0) {
+        if (dto.getFullRewardUsd() != 0) {
             double psReward = dto.getFarmBuyback();
-            double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-            double psRewardUsd = psReward * farmPrice;
+            double psRewardUsd = psReward * dto.getFarmPrice();
             double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
-            double wholeRewardBasedOnVaultReward = vaultRewardUsd / 0.7;
+            double wholeRewardBasedOnVaultReward = dto.getFullRewardUsd() / 0.7;
             // when price volatile we can by less % value for the strategy income
             double diff =
-                Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward) / wholeRewardBasedOnPsReward;
+                Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward)
+                    / wholeRewardBasedOnPsReward;
             assertEquals("% diff balance check", 0.0, diff, 2.0);
         }
         return dto;
