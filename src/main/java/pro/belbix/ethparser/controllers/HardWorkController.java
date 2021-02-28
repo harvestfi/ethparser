@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.HardWorkDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.HardWorkRepository;
+import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
@@ -20,9 +21,11 @@ import pro.belbix.ethparser.repositories.HardWorkRepository;
 public class HardWorkController {
 
     private final HardWorkRepository hardWorkRepository;
+    private final HardWorkCalculator hardWorkCalculator;
 
-    public HardWorkController(HardWorkRepository hardWorkRepository) {
+    public HardWorkController(HardWorkRepository hardWorkRepository, HardWorkCalculator hardWorkCalculator) {
         this.hardWorkRepository = hardWorkRepository;
+        this.hardWorkCalculator = hardWorkCalculator;
     }
 
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
@@ -61,6 +64,11 @@ public class HardWorkController {
             return RestResponse.error("Server error during getting last saved gas");
         }
 
+    }
+
+    @RequestMapping(value = "total_saved_gas_fee_by_address", method = RequestMethod.GET)
+    public RestResponse totalSavedGasFeeByEthAddress(@RequestParam(value = "address") String address) {
+        return RestResponse.ok((String.format("%.8f", hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address))));
     }
 
 
