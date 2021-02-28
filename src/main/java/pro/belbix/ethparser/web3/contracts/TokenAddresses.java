@@ -53,7 +53,9 @@ class TokenAddresses {
         new TokenContract(10736094, "SUSHI", "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2").addLp(0, "SUSHI_LP_SUSHI_ETH"),
         new TokenContract(9076087, "HBTC", "0x0316eb71485b0ab14103307bf65a021042c6d380").addLp(0, "UNI_LP_HBTC_ETH"),
         new TokenContract(8623122, "SBTC", "0xfE18be6b3Bd88A2D2A7f928d00292E7a9963CfC6"),
-        new TokenContract(9736969, "RENBTC", "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D").addLp(0, "UNI_LP_ETH_RENBTC")
+        new TokenContract(9736969, "RENBTC", "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D").addLp(0, "UNI_LP_ETH_RENBTC"),
+        new TokenContract(11818848, "BASv2", "0x106538cc16f938776c7c180186975bca23875287").addLp(0, "UNI_LP_BASv2_DAI"),
+        new TokenContract(11511393, "ONEINCH", "0x111111111117dC0aa78b770fA6A738034120C302").addLp(0, "UNI_LP_ONEINCH_ETH")
     );
 
 }

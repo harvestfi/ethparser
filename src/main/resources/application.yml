@@ -2,7 +2,7 @@ spring:
   jpa:
     #    open-in-view: false
     database: mysql
-    show-sql: false
+    #    show-sql: true
     hibernate:
       ddl-auto: update
     properties.hibernate:
@@ -11,15 +11,12 @@ spring:
 
   datasource:
     platform: mysql
-    url: jdbc:mysql://localhost:3306/harvest
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url:
     username:
     password:
-    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 4
-      max-lifetime: 500000
-    tomcat:
-      max-active: 4
+      maximum-pool-size: 20
 
 
 server:

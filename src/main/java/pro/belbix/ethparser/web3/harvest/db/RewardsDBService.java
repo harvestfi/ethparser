@@ -8,10 +8,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.RewardsRepository;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 

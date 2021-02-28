@@ -1,6 +1,9 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
+import static pro.belbix.ethparser.web3.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
+import static pro.belbix.ethparser.web3.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -17,11 +20,9 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
-import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -37,6 +38,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HardWorkParser implements Web3Parser {
+
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -83,7 +85,7 @@ public class HardWorkParser implements Web3Parser {
                     }
                 } catch (Exception e) {
                     log.error("Can't save " + ethLog, e);
-                    if(appProperties.isStopOnParseError()) {
+                    if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
                 }
@@ -126,6 +128,7 @@ public class HardWorkParser implements Web3Parser {
         dto.setShareChange(parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
         parseRewards(dto, tx.getHash(), tx.getStrategy());
+        parseVaultInvestedFunds(dto);
 
         log.info(dto.print());
         return dto;
@@ -134,10 +137,17 @@ public class HardWorkParser implements Web3Parser {
     // not in the root because it can be weekly reward
     private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
         TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
+        double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+        dto.setFarmPrice(farmPrice);
         boolean autoStake = isAutoStake(tr.getLogs());
         for (Log ethLog : tr.getLogs()) {
             parseRewardAddedEvents(ethLog, dto, autoStake);
         }
+
+        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+        dto.setEthPrice(ethPrice);
+        double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
+        dto.setFarmBuybackEth(farmBuybackEth);
 
         // for AutoStaking vault rewards already parsed
         // skip vault reward parsing if we didn't earn anything
@@ -180,16 +190,18 @@ public class HardWorkParser implements Web3Parser {
 
             // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
             if (autoStake && dto.getFarmBuyback() != 0) {
-                double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-                double stReward = ((reward * farmPrice) / 0.3) * 0.7;
-                dto.setShareChangeUsd(stReward);
+                // in this case it is second reward for strategy
+                double fullReward = (reward * dto.getFarmPrice()) / 0.7; // full reward
+                dto.setFullRewardUsd(fullReward);
             } else {
+                // PS pool reward
                 dto.setFarmBuyback(reward);
 
+                // for non AutoStake strategy we will not have accurate data for strategy reward
+                // just calculate aprox value based on PS reward
                 if (!autoStake) {
-                    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
-                    double stReward = ((reward * farmPrice) / 0.3) * 0.7;
-                    dto.setShareChangeUsd(stReward);
+                    double fullReward = ((reward * dto.getFarmPrice()) / 0.3); // full reward
+                    dto.setFullRewardUsd(fullReward);
                 }
             }
 
@@ -203,98 +215,35 @@ public class HardWorkParser implements Web3Parser {
         double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
         double feeUsd = gas * gasPrice * ethPrice;
         dto.setFee(feeUsd);
+        double feeEth = gas * gasPrice;
+        dto.setFeeEth(feeEth);
+        dto.setGasUsed(gas);
     }
 
-    private void parseVaultReward(Log ethLog, HardWorkDTO dto, String underlyingTokenHash, String strategyHash) {
-        TokenTx tx;
-        try {
-            tx = erc20Decoder.decode(ethLog);
-        } catch (Exception e) {
-            return;
-        }
-        if (tx == null) {
-            return;
-        }
+    private void parseVaultInvestedFunds(HardWorkDTO dto) {
+        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
+        double underlyingBalanceInVault = functionsUtils.callIntByName(
+            UNDERLYING_BALANCE_IN_VAULT,
+            vaultHash,
+            dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double underlyingBalanceWithInvestment = functionsUtils.callIntByName(
+            UNDERLYING_BALANCE_WITH_INVESTMENT,
+            vaultHash,
+            dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double vaultFractionToInvestNumerator = functionsUtils.callIntByName(
+            VAULT_FRACTION_TO_INVEST_NUMERATOR,
+            vaultHash,
+            dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        double vaultFractionToInvestDenominator = functionsUtils.callIntByName(
+            VAULT_FRACTION_TO_INVEST_DENOMINATOR,
+            vaultHash,
+            dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
 
-        if ("Transfer".equals(tx.getMethodName())) {
-            // suppose that underlying token transferred to the strategy is reward
-            if (!tx.getTokenAddress().equalsIgnoreCase(underlyingTokenHash)
-                || !tx.getRecipient().equalsIgnoreCase(strategyHash)) {
-                return;
-            }
-
-            if (dto.getShareChangeUsd() != 0.0) {
-                //it is not elegant, but sometimes we have a few transfers and suppose that the last is reward
-                log.debug("Duplicate transfer underlying, old value {}", dto.getShareChangeUsd());
-            }
-            String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
-                .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
-            double vaultReward = parseAmount(tx.getValue(), vaultHash);
-            double price = calculateVaultRewardUsdPrice(dto.getVault(), underlyingTokenHash, dto.getBlock());
-            dto.setShareChangeUsd(vaultReward * price);
-        }
-    }
-
-    private double calculateVaultRewardUsdPrice(String vaultName, String underlyingTokenHash, long block) {
-        if (ContractUtils.isLp(vaultName)) {
-            return priceProvider.getLpTokenUsdPrice(underlyingTokenHash, 1, block);
-        } else {
-            return priceProvider.getPriceForCoin(vaultName, block);
-        }
-    }
-
-    @Deprecated
-    private void fillUsdValues(HardWorkDTO dto) {
-        if (ContractUtils.isLp(dto.getVault())) {
-            fillUsdValuesForLP(dto);
-        } else {
-            fillUsdValuesForRegular(dto);
-        }
-    }
-
-    @Deprecated
-    private void fillUsdValuesForLP(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
-        String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
-        double vaultBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock()).orElse(BigInteger.ZERO),
-            vaultHash);
-
-        double lpBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dto.getBlock()).orElse(BigInteger.ZERO),
-            lpHash);
-        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, dto.getBlock());
-
-        double vaultSharedBalance = (vaultBalance * dto.getShareChange());
-        double vaultFraction = vaultSharedBalance / lpBalance;
-
-        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForStrategyHash(vaultHash, dto.getBlock());
-
-        double firstVault = vaultFraction * lpUnderlyingBalances.component1();
-        double secondVault = vaultFraction * lpUnderlyingBalances.component2();
-
-        Long firstVaultUsdAmount = Math.round(firstVault * uniPrices.component1());
-        Long secondVaultUsdAmount = Math.round(secondVault * uniPrices.component2());
-        long usdAmount = firstVaultUsdAmount + secondVaultUsdAmount;
-        dto.setShareChangeUsd(usdAmount);
-    }
-
-    @Deprecated
-    private void fillUsdValuesForRegular(HardWorkDTO dto) {
-        String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
-        Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock());
-        if (price == null) {
-            throw new IllegalStateException("Unknown coin " + vaultHash);
-        }
-        double vaultBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock())
-                .orElse(BigInteger.ZERO),
-            vaultHash);
-        double changed = dto.getShareChange() * vaultBalance;
-        double usdValue = price * changed;
-        dto.setShareChangeUsd(usdValue);
+        double invested =
+            100.0 * (underlyingBalanceWithInvestment - underlyingBalanceInVault) / underlyingBalanceWithInvestment;
+        dto.setInvested(invested);
+        double target = 100.0 * (vaultFractionToInvestNumerator / vaultFractionToInvestDenominator);
+        dto.setInvestmentTarget(target);
     }
 
     @Override

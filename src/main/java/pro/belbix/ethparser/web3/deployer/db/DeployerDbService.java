@@ -2,9 +2,9 @@ package pro.belbix.ethparser.web3.deployer.db;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.DeployerDTO;
+import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.DeployerRepository;
+import pro.belbix.ethparser.repositories.v0.DeployerRepository;
 
 @Service
 @Log4j2

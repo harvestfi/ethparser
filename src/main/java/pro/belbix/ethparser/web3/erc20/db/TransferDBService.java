@@ -24,8 +24,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.comparator.TransferDTOComparator;
-import pro.belbix.ethparser.dto.TransferDTO;
-import pro.belbix.ethparser.repositories.TransferRepository;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
+import pro.belbix.ethparser.repositories.v0.TransferRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 

@@ -30,7 +30,7 @@ import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
 public class WsServiceTest {
