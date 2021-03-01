@@ -1,6 +1,11 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -77,15 +82,11 @@ public class HardWorksCalculatorTest {
         return harvest;
     }
 
-    private HardWorkDTO mockHardWork(String vault, long block, HarvestDTO harvestIn, HarvestDTO harvestOut) {
+    private HardWorkDTO mockHardWork(String vault, long block, long blockDate) {
         HardWorkDTO hardwork = new HardWorkDTO();
         hardwork.setVault(vault);
         hardwork.setBlock(block);
-        hardwork.setBlockDate(harvestOut.getBlockDate());
-
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(vault, harvestIn.getBlockDate(), harvestOut.getBlockDate()))
-            .thenReturn(List.of(hardwork));
-
+        hardwork.setBlockDate(blockDate);
         return hardwork;
     }
 
@@ -95,26 +96,13 @@ public class HardWorksCalculatorTest {
             .thenReturn(List.of(harvest1, harvest2, harvest3, harvest4, harvest5, harvest6));
 
         List<HardWorkDTO> hardworks = List.of(
-            mockHardWork(fakeVault1, fakeBlock1, harvest1, harvest2),
-            mockHardWork(fakeVault2, fakeBlock2, harvest3, harvest4),
-            mockHardWork(fakeVault1, fakeBlock2, harvest5, harvest6)
+            mockHardWork(fakeVault1, fakeBlock1, harvest1.getBlockDate()),
+            mockHardWork(fakeVault1, fakeBlock1, harvest2.getBlockDate()),
+            mockHardWork(fakeVault2, fakeBlock2, harvest6.getBlockDate())
         );
 
-        double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
-        double expected = hardworks.size() * 0.1 * fakeEthPrice;
-        assertEquals(expected, feeInUsd, 1e-4);
-    }
-
-    @Test
-    public void shouldCalcHardWorksFeeWithHarvestsInRandomOrder() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
-            .thenReturn(List.of(harvest2, harvest4, harvest6, harvest1, harvest3, harvest5));
-
-        List<HardWorkDTO> hardworks = List.of(
-            mockHardWork(fakeVault1, fakeBlock1, harvest1, harvest2),
-            mockHardWork(fakeVault2, fakeBlock2, harvest3, harvest4),
-            mockHardWork(fakeVault1, fakeBlock2, harvest5, harvest6)
-        );
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+            .thenReturn(List.copyOf(hardworks));
 
         double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
         double expected = hardworks.size() * 0.1 * fakeEthPrice;
@@ -132,24 +120,21 @@ public class HardWorksCalculatorTest {
     }
 
     @Test
-    public void shouldIgnoreHardWorksFeeWhenNotMatchingPeriods() {
+    public void shouldIgnoreHardWorksFeeNotMatchingPeriods() {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
-            .thenReturn(List.of(harvest1, harvest2));
+            .thenReturn(List.of(harvest1, harvest2, harvest5, harvest6));
+
+        List<HardWorkDTO> hardworks = List.of(
+            mockHardWork(fakeVault1, fakeBlock1, 3L),
+            mockHardWork(fakeVault1, fakeBlock1, harvest2.getBlockDate()),
+            mockHardWork(fakeVault1, fakeBlock1, harvest5.getBlockDate())
+        );
+
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+            .thenReturn(List.copyOf(hardworks));
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
-        Double expected = 0d;
-        assertEquals(expected, feeInUsd);
-    }
-
-    @Test
-    public void shouldIgnoreHardWorksFeeWhenNotMatchingVaults() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
-            .thenReturn(List.of(harvest1, harvest2));
-
-        mockHardWork(fakeVault2, fakeBlock1, harvest3, harvest4);
-
-        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
-        Double expected = 0d;
+        Double expected = 0.4d;
         assertEquals(expected, feeInUsd);
     }
 
@@ -158,7 +143,7 @@ public class HardWorksCalculatorTest {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
             .thenReturn(List.of(harvest2, harvest6));
 
-        mockHardWork(fakeVault1, fakeBlock1, harvest1, harvest2);
+        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(), anyLong(), anyLong());
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
         Double expected = 0d;
@@ -170,9 +155,7 @@ public class HardWorksCalculatorTest {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
             .thenReturn(List.of(harvest1, harvest1));
 
-        HardWorkDTO hardwork = new HardWorkDTO();
-        hardwork.setVault(fakeVault1);
-        hardwork.setBlock(fakeBlock1);
+        HardWorkDTO hardwork = mockHardWork(fakeVault1, fakeBlock1, harvest1.getBlockDate());
 
         when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), fakeEndBlockDate2))
             .thenReturn(List.of(hardwork));

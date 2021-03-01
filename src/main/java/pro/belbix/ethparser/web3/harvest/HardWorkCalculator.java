@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import org.springframework.stereotype.Service;
 
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
@@ -64,16 +65,28 @@ public class HardWorkCalculator {
                 String vault = entry.getKey();
 
                 ArrayList<long[]> blockPeriods = entry.getValue();
+                long startDate = blockPeriods.get(0)[0];
+                long[] lastBlockPeriod = blockPeriods.get(blockPeriods.size() - 1);
+                long endDate = lastBlockPeriod[1];
+                if (endDate == 0) {
+                    endDate = lastBlockDate;
+                }
+
+                List<HardWorkDTO> allHardWorksByVaultAndPeriod = hardworkRepository.findAllByVaultOrderByBlockDate(vault, startDate, endDate);
                 return blockPeriods
                     .stream()
                     .map(blockPeriod -> {
-                        Long blockStartDate = blockPeriod[0];
-                        Long blockEndDate = lastBlockDate;
-                        if (blockPeriod[1] > 0) {
-                            blockEndDate = blockPeriod[1];
-                        }
-
-                        return hardworkRepository.findAllByVaultOrderByBlockDate(vault, blockStartDate, blockEndDate);
+                        return allHardWorksByVaultAndPeriod
+                            .stream()
+                            .filter(hardwork -> {
+                                Long blockStartDate = blockPeriod[0];
+                                Long blockEndDate = lastBlockDate;
+                                if (blockPeriod[1] > 0) {
+                                    blockEndDate = blockPeriod[1];
+                                }
+                                return hardwork.getBlockDate() >= blockStartDate && hardwork.getBlockDate() <= blockEndDate;
+                            })
+                            .collect(Collectors.toList());
                     })
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
