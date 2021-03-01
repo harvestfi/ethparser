@@ -33,11 +33,11 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Double fetchTVL(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault = :vault and block_date <= :block_date order by block_date desc limit 0,1")
+        + "where vault = :vault and block_date <= :block_date order by block_date desc limit 1")
     HarvestDTO fetchLastByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault = :vault and last_usd_tvl != 0 and block_date <= :block_date order by block_date desc limit 0,1")
+        + "where vault = :vault and last_usd_tvl != 0 and block_date <= :block_date order by block_date desc limit 1")
     HarvestDTO fetchLastByVaultAndDateNotZero(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
@@ -47,14 +47,17 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Integer fetchOwnerCount(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
-        + "select count(owner) from ( "
-        + "                  select owner, "
-        + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
-        + "                  from harvest_tx "
-        + "                  where vault in (:vault, :oldVault) and block_date <= :block_date "
-        + "                  group by owner "
-        + "              ) t "
-        + "where balance > 10 ")
+        + "select count(t.owner) "
+        + "from ( "
+        + "         select distinct on (owner) owner, "
+        + "                                    last_value(owner_balance_usd) over w as balance "
+        + "         from harvest_tx "
+        + "         where vault in (:vault, :oldVault) "
+        + "           and block_date <= :block_date "
+        + "             window w as (PARTITION BY vault order by block_date desc) "
+        + "     ) t "
+        + "where t.balance > 10"
+    )
     Integer fetchActualOwnerQuantity(@Param("vault") String vault,
                                      @Param("oldVault") String oldVault,
                                      @Param("block_date") long blockDate);
@@ -71,13 +74,12 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "     ) t2")
     Integer fetchAllUsersQuantity(@Param("block_date") long blockDate);
 
-    //todo if last balance < 10 we don't count it. fix and reparse
     @Query(nativeQuery = true, value = ""
         + "select count(owner) from ( "
         + "    select t.owner, sum(t.b) balance "
         + "    from (select owner, "
-        + "                 SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', "
-        + "                                            owner_balance_usd)), '|', -1) b "
+        + "      cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', "
+        + "                 coalesce(owner_balance_usd, 0))), '|', -1) as DOUBLE PRECISION) b "
         + "          from harvest_tx "
         + "          where vault in :vaults and block_date < :block_date "
         + "          group by vault, owner) t "
@@ -191,7 +193,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                                     and block_date < :blockDate "
         + "                                     and owner_balance = 0 "
         + "                                   order by block_date desc "
-        + "                                   limit 0,1), 0) last_withdraw_block_date "
+        + "                                   limit 1), 0) last_withdraw_block_date "
         + "                  from harvest_tx "
         + "                  where owner = :owner "
         + "                    and vault = :vault "

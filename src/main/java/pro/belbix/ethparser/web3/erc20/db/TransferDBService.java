@@ -260,20 +260,4 @@ public class TransferDBService {
         dto.setBalanceRecipient(balanceRecipient);
     }
 
-    private Optional<TransferDTO> fetchLastTransfer(String owner, String recipient, String type, long blockDate) {
-        return silentCall(() ->
-            transferRepository
-                .fetchLastTransfer(owner, recipient, Collections.singletonList(type), blockDate, limitOne))
-            .filter(Caller::isFilledList)
-            .map(l -> l.get(0));
-    }
-
-    private Stream<TransferDTO> fetchTransfers(String owner, String recipient, List<String> types, long blockDate) {
-        return silentCall(() ->
-            transferRepository.fetchLastTransfer(owner, recipient, types, blockDate, limitAll))
-            .filter(Caller::isFilledList)
-            .stream()
-            .flatMap(Collection::stream);
-    }
-
 }

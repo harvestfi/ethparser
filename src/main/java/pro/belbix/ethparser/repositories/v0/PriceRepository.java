@@ -16,21 +16,22 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
     List<PriceDTO> fetchLastPrice(@Param("source") String source, @Param("block") long block, Pageable pageable);
 
     @Query(nativeQuery = true, value = "" +
-        "select SUBSTRING_INDEX(MAX(CONCAT(block_date, '|', id)), '|', -1)      id, " +
-        "       max(block)                                                                   block, " +
-        "       max(block_date)                                                      block_date, " +
-        "       source                                                                source, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', token)), '_', -1)          token, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', token_amount)), '_', -1)     token_amount, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', other_token)), '_', -1)     other_token, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', other_token_amount)), '_', -1)     other_token_amount, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', price)), '_', -1)     price, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', buy)), '_', -1)     buy, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_token0pooled)), '_', -1)     lp_token0pooled, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_token1pooled)), '_', -1)     lp_token1pooled, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_total_supply)), '_', -1)     lp_total_supply " +
-        "from prices " +
-        "group by source")
+        "select distinct on (source) "
+        + "    last_value(id) over w                 as id, "
+        + "    last_value(block) over w              as block, "
+        + "    last_value(block_date) over w         as block_date, "
+        + "    source, "
+        + "    last_value(token) over w              as token, "
+        + "    last_value(token_amount) over w       as token_amount, "
+        + "    last_value(other_token) over w        as other_token, "
+        + "    last_value(other_token_amount) over w as other_token_amount, "
+        + "    last_value(price) over w              as price, "
+        + "    last_value(buy) over w                as buy, "
+        + "    last_value(lp_token0pooled) over w    as lp_token0pooled, "
+        + "    last_value(lp_token1pooled) over w    as lp_token1pooled, "
+        + "    last_value(lp_total_supply) over w    as lp_total_supply "
+        + "from prices "
+        + "    window w as (PARTITION BY source order by block_date desc)")
     List<PriceDTO> fetchLastPrices();
 
 }
