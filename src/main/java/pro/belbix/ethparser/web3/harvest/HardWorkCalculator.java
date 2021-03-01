@@ -60,14 +60,9 @@ public class HardWorkCalculator {
                 String vault = entry.getKey();
 
                 ArrayList<long[]> blockPeriods = entry.getValue();
-                long startDate = blockPeriods.get(0)[0];
-                long[] lastBlockPeriod = blockPeriods.get(blockPeriods.size() - 1);
-                long endDate = lastBlockPeriod[1];
-                if (endDate == 0) {
-                    endDate = lastBlockDate;
-                }
+                long[] period = calculatePeriod(blockPeriods, lastBlockDate);
 
-                List<HardWorkDTO> allHardWorksByVaultAndPeriod = hardworkRepository.findAllByVaultOrderByBlockDate(vault, startDate, endDate);
+                List<HardWorkDTO> allHardWorksByVaultAndPeriod = hardworkRepository.findAllByVaultOrderByBlockDate(vault, period[0], period[1]);
                 return blockPeriods
                     .stream()
                     .map(blockPeriod -> {
@@ -95,6 +90,21 @@ public class HardWorkCalculator {
                 return ethPrice * ETH_ESTIMATE;
             })
             .reduce(0D, Double::sum);
+    }
+
+    private long[] calculatePeriod(ArrayList<long[]> blockPeriods, long lastBlockDate) {
+        long[] period = new long[2];
+        long startDate = blockPeriods.get(0)[0];
+        long[] lastBlockPeriod = blockPeriods.get(blockPeriods.size() - 1);
+        long endDate = lastBlockPeriod[1];
+        if (endDate == 0) {
+            endDate = lastBlockDate;
+        }
+
+        period[0] = startDate;
+        period[1] = endDate;
+
+        return period;
     }
 
     private long[] createBlockPeriod(HarvestDTO harvest) {
