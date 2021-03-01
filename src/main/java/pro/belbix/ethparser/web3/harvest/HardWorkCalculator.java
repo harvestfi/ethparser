@@ -35,21 +35,24 @@ public class HardWorkCalculator {
         
         HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
         List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);
-
-        for (HarvestDTO harvest : harvests) {
-            String vault = harvest.getVault();
-            double balance = harvest.getOwnerBalance();
-
-            if (!blockRangeByVault.containsKey(vault)) {
-                if (balance == 0) {
-                    continue;
+        
+        harvests
+            .stream()
+            .filter(harvest -> !harvest.getVault().startsWith("PS"))
+            .forEach(harvest -> {
+                String vault = harvest.getVault();
+                double balance = harvest.getOwnerBalance();
+    
+                if (!blockRangeByVault.containsKey(vault)) {
+                    if (balance == 0) {
+                        return;
+                    }
+                    ArrayList<long[]> blockPeriods = new ArrayList<>();
+                    blockRangeByVault.put(vault, blockPeriods);
                 }
-                ArrayList<long[]> blockPeriods = new ArrayList<>();
-                blockRangeByVault.put(vault, blockPeriods);
-            }
-
-            updateBlockPeriods(blockRangeByVault.get(vault), harvest);
-        }
+    
+                updateBlockPeriods(blockRangeByVault.get(vault), harvest);
+            });
 
         return blockRangeByVault
             .entrySet()
