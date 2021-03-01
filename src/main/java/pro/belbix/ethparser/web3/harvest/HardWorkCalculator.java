@@ -11,7 +11,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,14 +35,10 @@ public class HardWorkCalculator {
         long lastBlock = ethBlockService.getLastBlock();
         long lastBlockDate = ethBlockService.getTimestampSecForBlock(null, lastBlock);
         
-        List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);
-        List<HarvestDTO> sortedHarvests = harvests
-            .stream()
-            .sorted(Comparator.comparingLong(HarvestDTO::getBlockDate))
-            .collect(Collectors.toList());
-        
         HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
-        for (HarvestDTO harvest : sortedHarvests) {
+        List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);
+
+        for (HarvestDTO harvest : harvests) {
             String vault = harvest.getVault();
             double balance = harvest.getOwnerBalance();
 
