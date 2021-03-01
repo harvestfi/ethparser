@@ -68,7 +68,13 @@ public class HardWorkController {
 
     @RequestMapping(value = "total_saved_gas_fee_by_address", method = RequestMethod.GET)
     public RestResponse totalSavedGasFeeByEthAddress(@RequestParam(value = "address") String address) {
-        return RestResponse.ok((String.format("%.8f", hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address))));
+        try {
+            return RestResponse.ok((String.format("%.8f", hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address))));
+        } catch (Exception e) {
+            String msg = "Error get total saved gas fee for address: " + address;
+            log.error(msg, e);
+            return RestResponse.error(msg);
+        }
     }
 
 
