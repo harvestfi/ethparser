@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.harvest;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,7 +23,6 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -35,8 +33,6 @@ public class HardWorksCalculatorTest {
     private HarvestRepository harvestRepository;
     @MockBean
     private HardWorkRepository hardworkRepository;
-    @MockBean
-    private PriceProvider priceProvider;
     @MockBean
     private EthBlockService ethBlockService;
 
@@ -67,10 +63,6 @@ public class HardWorksCalculatorTest {
     public void setup() {
         when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
         when(ethBlockService.getTimestampSecForBlock(null, fakeBlock2)).thenReturn(fakeEndBlockDate2);
-        when(priceProvider.getPriceForCoin("ETH", fakeBlock1))
-            .thenReturn(fakeEthPrice);
-        when(priceProvider.getPriceForCoin("ETH", fakeBlock2))
-            .thenReturn(fakeEthPrice);
     }
 
     private HarvestDTO mockHarvest(String ethAddr, String vault, double balance, long blockDate) {
@@ -87,6 +79,7 @@ public class HardWorksCalculatorTest {
         hardwork.setVault(vault);
         hardwork.setBlock(block);
         hardwork.setBlockDate(blockDate);
+        hardwork.setEthPrice(fakeEthPrice);
         return hardwork;
     }
 

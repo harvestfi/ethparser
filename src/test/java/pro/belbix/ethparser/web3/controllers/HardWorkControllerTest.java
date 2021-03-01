@@ -31,8 +31,6 @@ public class HardWorkControllerTest {
 
     @Autowired
     private HardWorkController hardWorksController;
-    @Autowired
-    private ContractLoader contractLoader;
 
     final long fakeBlock = 11925259L;
     final String fakeEthAddr = "0xc3882fb25d3cc2e0933841e7f89544caf2d2ca73";
@@ -40,7 +38,6 @@ public class HardWorkControllerTest {
     @Before
     public void setUp() {
         doReturn(fakeBlock).when(ethBlockService).getLastBlock();
-        contractLoader.load();
     }
 
     @Test

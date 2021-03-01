@@ -19,13 +19,11 @@ import java.util.stream.Collectors;
 public class HardWorkCalculator {
 
     private final double ETH_ESTIMATE = 0.1;
-    private final PriceProvider priceProvider;
     private final HarvestRepository harvestRepository;
     private final HardWorkRepository hardworkRepository;
     private final EthBlockService ethBlockService;
 
     public HardWorkCalculator(PriceProvider priceProvider, HarvestRepository harvestRepository, HardWorkRepository hardWorkRepository, EthBlockService ethBlockService) {
-        this.priceProvider = priceProvider;
         this.harvestRepository = harvestRepository;
         this.hardworkRepository = hardWorkRepository;
         this.ethBlockService = ethBlockService;
@@ -80,15 +78,9 @@ public class HardWorkCalculator {
                     })
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-
             })
             .flatMap(Collection::stream)
-            .map(hardwork -> {
-                long block = hardwork.getBlock();
-                double ethPrice = priceProvider.getPriceForCoin("ETH", block);
-
-                return ethPrice * ETH_ESTIMATE;
-            })
+            .map(hardwork -> hardwork.getEthPrice() * ETH_ESTIMATE)
             .reduce(0D, Double::sum);
     }
 
