@@ -16,7 +16,6 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.HardWorkController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
 @RunWith(SpringRunner.class)

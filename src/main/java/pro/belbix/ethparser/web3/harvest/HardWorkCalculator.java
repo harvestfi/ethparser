@@ -7,7 +7,6 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +22,7 @@ public class HardWorkCalculator {
     private final HardWorkRepository hardworkRepository;
     private final EthBlockService ethBlockService;
 
-    public HardWorkCalculator(PriceProvider priceProvider, HarvestRepository harvestRepository, HardWorkRepository hardWorkRepository, EthBlockService ethBlockService) {
+    public HardWorkCalculator(HarvestRepository harvestRepository, HardWorkRepository hardWorkRepository, EthBlockService ethBlockService) {
         this.harvestRepository = harvestRepository;
         this.hardworkRepository = hardWorkRepository;
         this.ethBlockService = ethBlockService;
@@ -35,21 +34,24 @@ public class HardWorkCalculator {
         
         HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
         List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);
-
-        for (HarvestDTO harvest : harvests) {
-            String vault = harvest.getVault();
-            double balance = harvest.getOwnerBalance();
-
-            if (!blockRangeByVault.containsKey(vault)) {
-                if (balance == 0) {
-                    continue;
+        
+        harvests
+            .stream()
+            .filter(harvest -> !harvest.getVault().startsWith("PS"))
+            .forEach(harvest -> {
+                String vault = harvest.getVault();
+                double balance = harvest.getOwnerBalance();
+    
+                if (!blockRangeByVault.containsKey(vault)) {
+                    if (balance == 0) {
+                        return;
+                    }
+                    ArrayList<long[]> blockPeriods = new ArrayList<>();
+                    blockRangeByVault.put(vault, blockPeriods);
                 }
-                ArrayList<long[]> blockPeriods = new ArrayList<>();
-                blockRangeByVault.put(vault, blockPeriods);
-            }
-
-            updateBlockPeriods(blockRangeByVault.get(vault), harvest);
-        }
+    
+                updateBlockPeriods(blockRangeByVault.get(vault), harvest);
+            });
 
         return blockRangeByVault
             .entrySet()
