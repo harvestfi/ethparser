@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController

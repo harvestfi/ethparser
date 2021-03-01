@@ -14,10 +14,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 

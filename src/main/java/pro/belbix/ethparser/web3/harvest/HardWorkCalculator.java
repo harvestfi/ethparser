@@ -1,9 +1,10 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
-import pro.belbix.ethparser.repositories.HarvestRepository;
+
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -40,7 +41,7 @@ public class HardWorkCalculator {
             .sorted(Comparator.comparingLong(HarvestDTO::getBlockDate))
             .collect(Collectors.toList());
         
-        HashMap<String, ArrayList<ArrayList<Long>>> blockRangeByVault = new HashMap<>();
+        HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
         for (HarvestDTO harvest : sortedHarvests) {
             String vault = harvest.getVault();
             double balance = harvest.getOwnerBalance();
@@ -49,7 +50,7 @@ public class HardWorkCalculator {
                 if (balance == 0) {
                     continue;
                 }
-                ArrayList<ArrayList<Long>> blockPeriods = new ArrayList<>();
+                ArrayList<long[]> blockPeriods = new ArrayList<>();
                 blockRangeByVault.put(vault, blockPeriods);
             }
 
@@ -62,14 +63,14 @@ public class HardWorkCalculator {
             .map(entry -> {
                 String vault = entry.getKey();
 
-                ArrayList<ArrayList<Long>> blockPeriods = entry.getValue();
+                ArrayList<long[]> blockPeriods = entry.getValue();
                 return blockPeriods
                     .stream()
                     .map(blockPeriod -> {
-                        Long blockStartDate = blockPeriod.get(0);
+                        Long blockStartDate = blockPeriod[0];
                         Long blockEndDate = lastBlockDate;
-                        if (blockPeriod.size() > 1) {
-                            blockEndDate = blockPeriod.get(1);
+                        if (blockPeriod[1] > 0) {
+                            blockEndDate = blockPeriod[1];
                         }
 
                         return hardworkRepository.findAllByVaultOrderByBlockDate(vault, blockStartDate, blockEndDate);
@@ -88,30 +89,30 @@ public class HardWorkCalculator {
             .reduce(0D, Double::sum);
     }
 
-    private ArrayList<Long> createBlockPeriod(HarvestDTO harvest) {
+    private long[] createBlockPeriod(HarvestDTO harvest) {
         long startBlockDate = harvest.getBlockDate();
-        ArrayList<Long> blockPeriod = new ArrayList<>();
-        blockPeriod.add(startBlockDate);
+        long[] blockPeriod = new long[2];
+        blockPeriod[0] = startBlockDate;
         return blockPeriod;
     }
 
-    private void updateBlockPeriods(ArrayList<ArrayList<Long>> blockPeriods, HarvestDTO harvest) {
+    private void updateBlockPeriods(ArrayList<long[]> blockPeriods, HarvestDTO harvest) {
         if (blockPeriods.size() == 0) {
-            ArrayList<Long> blockPeriod = createBlockPeriod(harvest);
+            long[] blockPeriod = createBlockPeriod(harvest);
             blockPeriods.add(blockPeriod);
             return;
         }
 
-        ArrayList<Long> lastBlockPeriod = blockPeriods.get(blockPeriods.size() - 1);
+        long[] lastBlockPeriod = blockPeriods.get(blockPeriods.size() - 1);
         double balance = harvest.getOwnerBalance();
 
-        if (lastBlockPeriod.size() == 1 && balance == 0) {
+        if (lastBlockPeriod[1] == 0 && balance == 0) {
             long endBlockDate = harvest.getBlockDate();
-            lastBlockPeriod.add(endBlockDate);
+            lastBlockPeriod[1] = endBlockDate;
         }
 
-        if (lastBlockPeriod.size() == 2 && balance > 0) {
-            ArrayList<Long> blockPeriod = createBlockPeriod(harvest);
+        if (lastBlockPeriod[1] > 0 && balance > 0) {
+            long[] blockPeriod = createBlockPeriod(harvest);
             blockPeriods.add(blockPeriod);
         }
     }
