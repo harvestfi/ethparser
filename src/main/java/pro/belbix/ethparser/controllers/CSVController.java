@@ -4,27 +4,24 @@ import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.io.IOException;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import javax.servlet.http.HttpServletResponse;
-import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.RewardDTO;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.model.TvlHistory;
-import pro.belbix.ethparser.repositories.HarvestRepository;
-import pro.belbix.ethparser.repositories.HardWorkRepository;
-import pro.belbix.ethparser.repositories.RewardsRepository;
 import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.RestResponse;
+import pro.belbix.ethparser.model.TvlHistory;
+import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
 
 
