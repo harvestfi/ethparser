@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -47,7 +47,7 @@ public class HarvestVaultDownloader {
     public void start() {
         for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
             if (contractName != null && !contractName.isEmpty()
-                && !contractName.equals(ContractUtils.getNameByAddress(vaultAddress).orElse(""))) {
+                && !contractName.equalsIgnoreCase(ContractUtils.getNameByAddress(vaultAddress).orElse(""))) {
                 continue;
             }
 

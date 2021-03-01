@@ -8,10 +8,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import pro.belbix.ethparser.dto.HardWorkDTO;
-import pro.belbix.ethparser.dto.HarvestDTO;
-import pro.belbix.ethparser.dto.ImportantEventsDTO;
-import pro.belbix.ethparser.dto.UniswapDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
+import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
@@ -63,8 +63,8 @@ public class MockUtils {
         hardWorkDTO.setVault(vaults.get(new Random().nextInt(vaults.size() - 1)));
         hardWorkDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
         hardWorkDTO.setShareChange(seed / 1000.0);
-        hardWorkDTO.setShareChangeUsd(seed / 69.0);
-        hardWorkDTO.setShareUsdTotal(seed);
+        hardWorkDTO.setFullRewardUsd(seed / 69.0);
+        hardWorkDTO.setFullRewardUsdTotal(seed);
         hardWorkDTO.setTvl(seed * 60);
         hardWorkDTO.setPerc((double) seed / 633.0);
         hardWorkDTO.setPsApr((double) seed / 63.0);

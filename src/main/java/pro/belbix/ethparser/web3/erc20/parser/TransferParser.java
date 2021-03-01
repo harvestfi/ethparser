@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.TransferDTO;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;

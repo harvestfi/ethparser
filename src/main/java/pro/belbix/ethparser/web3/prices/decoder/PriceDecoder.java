@@ -24,7 +24,10 @@ public class PriceDecoder extends MethodDecoder {
             return null;
         }
         String methodId = parseMethodId(ethLog)
-            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));;
+            .orElse(null);
+        if (methodId == null) {
+            return null;
+        }
         String methodName = methodNamesByMethodId.get(methodId);
         List<TypeReference<Type>> parameters = findParameters(methodId)
             .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));

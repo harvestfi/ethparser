@@ -68,6 +68,7 @@ public class ContractConstants {
             case "WETH":
                 return "ETH";
             case "PS":
+            case "iPS":
                 return "FARM";
             case "RENBTC":
             case "CRVRENWBTC":

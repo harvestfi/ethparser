@@ -25,6 +25,8 @@ public class AppProperties {
     private boolean overrideDuplicates = false;
     private boolean stubPrice = false;
 
+    // log parsing
+    private boolean parseLog = true;
     private String startLogBlock = "";
     private boolean parseUniswapLog = true;
     private boolean parseHarvestLog = true;
@@ -35,12 +37,15 @@ public class AppProperties {
     private boolean parseTransfers = true;
     private boolean parsePrices = true;
 
-    private String startBlock = "";
+    // transaction parsing
+    private boolean parseTransactions = true;
+    private String startTransactionBlock = "";
     private boolean parseHarvest = false;
     private boolean parseDeployerTransactions = true;
 
-    private boolean parseLog = true;
-    private boolean parseTransactions = true;
+    // block parsing
+    private boolean parseBlocks = false;
+    private String startBlocksBlock = "";
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;

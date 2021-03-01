@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.entity.eth.VaultEntity;
-import pro.belbix.ethparser.entity.eth.PoolEntity;
-import pro.belbix.ethparser.entity.eth.TokenEntity;
-import pro.belbix.ethparser.entity.eth.UniPairEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
+import pro.belbix.ethparser.entity.contracts.PoolEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 
 
 @RestController

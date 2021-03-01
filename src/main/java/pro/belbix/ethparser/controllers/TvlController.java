@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pro.belbix.ethparser.entity.HarvestTvlEntity;
+import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.TvlHistory;
-import pro.belbix.ethparser.repositories.HarvestTvlRepository;
+import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")

@@ -32,7 +32,7 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.entity.eth.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings("rawtypes")

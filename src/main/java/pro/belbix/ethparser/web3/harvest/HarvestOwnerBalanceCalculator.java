@@ -1,12 +1,13 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.dto.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -70,11 +71,11 @@ public class HarvestOwnerBalanceCalculator {
                 .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
                 .getContract().getAddress();
             balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
-                .orElseThrow(() -> new IllegalStateException("Error get balance from " + stHash));
+                .orElse(null);
         } else {
             balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
                 dto.getOwner(), vaultHash, block)
-                .orElseThrow(() -> new IllegalStateException("Error get uBalance from " + vaultHash));
+                .orElse(null);
         }
         if (balanceI == null) {
             log.warn("Can reach vault balance for " + dto.print());
@@ -96,13 +97,14 @@ public class HarvestOwnerBalanceCalculator {
         dto.setOwnerBalance(balance);
 
         //fill USD value
-        if (ContractUtils.isLp(dto.getVault())) {
-            String lpHash = ContractUtils.vaultUnderlyingToken(vaultHash);
-            if (lpHash == null) {
+        String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
+        if (ContractUtils.isLp(underlyingToken)) {
+            if (underlyingToken == null) {
                 throw new IllegalStateException("Not found lp hash for " + vaultHash);
             }
             double amountUsd = priceProvider
-                .getLpTokenUsdPrice(lpHash, balance, block);
+                .getLpTokenUsdPrice(underlyingToken, balance, block);
             dto.setOwnerBalanceUsd(amountUsd);
         } else {
             double price = priceProvider.getPriceForCoin(dto.getVault(), block);

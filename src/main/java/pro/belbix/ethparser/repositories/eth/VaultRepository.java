@@ -3,8 +3,8 @@ package pro.belbix.ethparser.repositories.eth;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pro.belbix.ethparser.entity.eth.ContractEntity;
-import pro.belbix.ethparser.entity.eth.VaultEntity;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
 

@@ -8,12 +8,12 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.entity.eth.ContractEntity;
-import pro.belbix.ethparser.entity.eth.PoolEntity;
-import pro.belbix.ethparser.entity.eth.TokenEntity;
-import pro.belbix.ethparser.entity.eth.TokenToUniPairEntity;
-import pro.belbix.ethparser.entity.eth.UniPairEntity;
-import pro.belbix.ethparser.entity.eth.VaultEntity;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.PoolEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public class ContractUtils {
 
@@ -67,18 +67,8 @@ public class ContractUtils {
         throw new IllegalStateException("unknown type" + type);
     }
 
-    public static boolean isLp(String vaultName) {
-        VaultEntity vaultEntity = ContractLoader.getVaultByName(vaultName)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultName));
-        return ContractLoader.getUniPairByAddress(
-            vaultEntity.getUnderlying().getAddress())
-            .isPresent();
-    }
-
-    public static String vaultUnderlyingToken(String vaultAddress) {
-        return ContractLoader.getVaultByAddress(vaultAddress)
-            .orElseThrow(() -> new IllegalStateException("Not found vault for name " + vaultAddress))
-            .getUnderlying().getAddress();
+    public static boolean isLp(String address) {
+        return ContractLoader.getUniPairByAddress(address).isPresent();
     }
 
     public static Optional<PoolEntity> poolByVaultName(String name) {

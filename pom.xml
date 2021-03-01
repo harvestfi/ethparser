@@ -20,6 +20,7 @@
     <maven.compiler.target>11</maven.compiler.target>
     <web3j>4.6.3</web3j>
     <argLine>-Duser.language=de -Duser.region=DE</argLine>
+    <start-class>pro.belbix.ethparser.Application</start-class>
   </properties>
 
   <repositories>
@@ -166,7 +167,16 @@
       <artifactId>commons-math3</artifactId>
       <version>3.6.1</version>
     </dependency>
-
+    <dependency>
+      <groupId>net.sf.supercsv</groupId>
+      <artifactId>super-csv</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20201115</version>
+    </dependency>
   </dependencies>
 
   <build>

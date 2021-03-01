@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils.recalculation;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
@@ -36,6 +37,7 @@ public class UtilsStarter {
     private final PriceDownloader priceDownloader;
     private final HarvestProfitRecalculate harvestProfitRecalculate;
     private final DeployerTransactionsDownloader deployerTransactionsDownloader;
+    private final EthBlockDownloader ethBlockDownloader;
 
     public UtilsStarter(AppProperties appProperties,
                         UniswapLpDownloader uniswapLpDownloader,
@@ -55,7 +57,8 @@ public class UtilsStarter {
                         NewStrategyDownloader newStrategyDownloader,
                         HarvestProfitRecalculate harvestProfitRecalculate,
                         PriceDownloader priceDownloader,
-                        DeployerTransactionsDownloader deployerTransactionsDownloader) {
+                        DeployerTransactionsDownloader deployerTransactionsDownloader,
+                        EthBlockDownloader ethBlockDownloader) {
         this.appProperties = appProperties;
         this.uniswapLpDownloader = uniswapLpDownloader;
         this.harvestVaultDownloader = harvestVaultDownloader;
@@ -76,6 +79,7 @@ public class UtilsStarter {
         this.harvestProfitRecalculate = harvestProfitRecalculate;
         this.priceDownloader = priceDownloader;
         this.deployerTransactionsDownloader = deployerTransactionsDownloader;
+        this.ethBlockDownloader = ethBlockDownloader;
     }
 
     public void startUtils() {
@@ -118,6 +122,8 @@ public class UtilsStarter {
             harvestProfitRecalculate.start();
         } else if ("deployer-download".equals(appProperties.getStartUtil())) {
             deployerTransactionsDownloader.start();
+        } else if ("block-download".equals(appProperties.getStartUtil())) {
+            ethBlockDownloader.start();
         }
         log.info("Utils completed");
         System.exit(0);
