@@ -192,20 +192,20 @@ public class PriceLogParser implements Web3Parser {
 
     private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
         if (keyCoinFirst) {
-            if (isZero(tx, 0)) { // first coin "in" is zero, that means coin is "out"
+            if (isZero(tx, 3)) {
                 return true;
-            } else if (isZero(tx, 2)) { // first coin "out" is zero, that means coin is "in"
+            } else if (isZero(tx, 2)) {
                 return false;
             } else {
-                throw new IllegalStateException("Swap doesn't contains 0 zero value " + tx);
+                throw new IllegalStateException("Swap doesn't contains zero value " + tx);
             }
         } else {
-            if (isZero(tx, 1)) { // second coin "in" is zero, that means coin is "out"
+            if (isZero(tx, 2)) {
                 return true;
-            } else if (isZero(tx, 3)) { // second coin "out" is zero, that means coin is "in"
+            } else if (isZero(tx, 3)) {
                 return false;
             } else {
-                throw new IllegalStateException("Swap doesn't contains 1 zero value " + tx);
+                throw new IllegalStateException("Swap doesn't contains zero value " + tx);
             }
         }
     }
