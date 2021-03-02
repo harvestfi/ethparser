@@ -50,7 +50,7 @@ public class DoHardWorkTest {
             "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
             "SUSHI_MIC_USDT",
             "0,000000",
-            "17848,22635",
+            "17848,226375",
             "24,508470"
         );
     }
