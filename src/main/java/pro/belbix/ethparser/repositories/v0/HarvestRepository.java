@@ -18,18 +18,17 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<HarvestDTO> fetchAllWithoutCounts();
 
     @Query(nativeQuery = true, value = ""
-        + "select (coalesce(deposit.d, 0) - coalesce(withdraw.w, 0)) result from (  "
-        + "                  (select SUM(amount) d  "
-        + "                  from harvest_tx t  "
-        + "                  where t.method_name = 'Deposit'  "
-        + "                      and t.vault = :vault  "
-        + "                      and t.block_date <= :block_date) deposit,  "
-        + "                  (select SUM(amount) w  "
-        + "                  from harvest_tx t  "
-        + "                  where t.method_name = 'Withdraw'  "
-        + "                      and t.vault = :vault  "
-        + "                      and t.block_date <= :block_date) withdraw  "
-        + "              )")
+        + "select (coalesce( (select SUM(amount) d "
+        + "                   from harvest_tx t "
+        + "                   where t.method_name = 'Deposit' "
+        + "                     and t.vault = :vault "
+        + "                     and t.block_date <= :block_date), 0) - "
+        + "        coalesce((select SUM(amount) w "
+        + "                  from harvest_tx t "
+        + "                  where t.method_name = 'Withdraw' "
+        + "                    and t.vault = :vault "
+        + "                    and t.block_date <= :block_date), 0)) result "
+        + "from (select where true) t")
     Double fetchTVL(@Param("vault") String vault, @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
@@ -143,38 +142,37 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
                                                     @Param("endTime") long endTime);
 
     @Query(nativeQuery = true, value = "" +
-        "select max(id)                                                              id, " +
-        "       null                                                                 hash, " +
-        "       null                                                                 block, " +
-        "       true                                                                 confirmed, " +
-        "       max(block_date)                                                      block_date, " +
-        "       null                                                                 method_name, " +
-        "       null                                                                 owner, " +
-        "       null                                                                 amount, " +
-        "       null                                                                 amount_in, " +
-        "       vault                                                                vault, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_gas)), '_', -1)     last_gas, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_tvl)), '_', -1)     last_tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_usd_tvl)), '_', -1) last_usd_tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_count)), '_', -1)  owner_count, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', share_price)), '_', -1)  share_price, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', usd_amount)), '_', -1)   usd_amount, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', prices)), '_', -1)       prices, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', lp_stat)), '_', -1)      lp_stat, " +
-        "       null      owner_balance, " +
-        "       null      owner_balance_usd, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_owners_count)), '_', -1) all_owners_count, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_all_usd_tvl)), '_', -1)      last_all_usd_tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', underlying_price)), '_', -1)      underlying_price, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', profit)), '_', -1)      profit, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', profit_usd)), '_', -1)      profit_usd, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', total_amount)), '_', -1)      total_amount, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', all_pools_owners_count)), '_', -1)      all_pools_owners_count, "
-        +
-        "       false      migrated " +
-        " " +
-        "from harvest_tx " +
-        "group by vault")
+        "select distinct on (vault) "
+        + "    last_value(id) over w                     as id, "
+        + "    last_value(hash) over w                   as hash, "
+        + "    last_value(block) over w                  as block, "
+        + "    last_value(confirmed) over w              as confirmed, "
+        + "    last_value(block_date) over w             as block_date, "
+        + "    last_value(method_name) over w            as method_name, "
+        + "    last_value(owner) over w                  as owner, "
+        + "    last_value(amount) over w                 as amount, "
+        + "    last_value(amount_in) over w              as amount_in, "
+        + "    vault, "
+        + "    last_value(last_gas) over w               as last_gas, "
+        + "    last_value(last_tvl) over w               as last_tvl, "
+        + "    last_value(last_usd_tvl) over w           as last_usd_tvl, "
+        + "    last_value(owner_count) over w            as owner_count, "
+        + "    last_value(share_price) over w            as share_price, "
+        + "    last_value(usd_amount) over w             as usd_amount, "
+        + "    last_value(prices) over w                 as prices, "
+        + "    last_value(lp_stat) over w                as lp_stat, "
+        + "    last_value(owner_balance) over w          as owner_balance, "
+        + "    last_value(owner_balance_usd) over w      as owner_balance_usd, "
+        + "    last_value(all_owners_count) over w       as all_owners_count, "
+        + "    last_value(last_all_usd_tvl) over w       as last_all_usd_tvl, "
+        + "    last_value(underlying_price) over w       as underlying_price, "
+        + "    last_value(profit) over w                 as profit, "
+        + "    last_value(profit_usd) over w             as profit_usd, "
+        + "    last_value(total_amount) over w           as total_amount, "
+        + "    last_value(all_pools_owners_count) over w as all_pools_owners_count, "
+        + "    last_value(migrated) over w               as migrated "
+        + "from harvest_tx "
+        + "    window w as (PARTITION BY vault order by block_date desc)")
     List<HarvestDTO> fetchLastTvl();
 
     @Query("select t from HarvestDTO t where "
@@ -209,7 +207,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     @Query(nativeQuery = true, value = ""
         + "select t.owner, sum(t.b) balance from "
         + "(select owner, "
-        + "        SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', owner_balance_usd)), '|', -1) b "
+        + "        cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', coalesce(owner_balance_usd, 0))), '|', -1) as DOUBLE PRECISION) as b "
         + " from harvest_tx "
         + " group by vault, owner) t "
         + "where t.b > 50000 " //for optimization
