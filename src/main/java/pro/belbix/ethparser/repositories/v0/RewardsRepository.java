@@ -23,19 +23,20 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
                                                       @Param("endDate") long endDate);
 
     @Query(nativeQuery = true, value = "" +
-        "select max(id)                                                              id, " +
-        "       max(block)                                                                   block, " +
-        "       max(block_date)                                                      block_date, " +
-        "       vault                                                                vault, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', reward)), '_', -1)     reward, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', apy)), '_', -1)     apy, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', tvl)), '_', -1)     tvl, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', farm_balance)), '_', -1)     farm_balance, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', weekly_apy)), '_', -1)     weekly_apy, " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', period_finish)), '_', -1)     period_finish " +
-        " " +
-        "from rewards " +
-        "group by vault")
+        "select distinct on (vault) "
+        + "       last_value(id) over w            as id, "
+        + "       last_value(block) over w         as block, "
+        + "       last_value(block_date) over w    as block_date, "
+        + "       vault, "
+        + "       last_value(reward) over w        as reward, "
+        + "       last_value(apy) over w           as apy, "
+        + "       last_value(tvl) over w           as tvl, "
+        + "       last_value(farm_balance) over w  as farm_balance, "
+        + "       last_value(weekly_apy) over w    as weekly_apy, "
+        + "       last_value(period_finish) over w as period_finish "
+        + " "
+        + "from rewards "
+        + "    window w as (PARTITION BY vault order by block_date desc)")
     List<RewardDTO> fetchLastRewards();
 
     @Query("select t from RewardDTO t where t.vault = :vault and t.blockDate between :startTime and :endTime order by t.blockDate")

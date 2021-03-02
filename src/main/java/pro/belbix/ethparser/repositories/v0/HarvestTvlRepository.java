@@ -8,8 +8,6 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 
 public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, String> {
 
-    HarvestTvlEntity findFirstByCalculateTimeAndLastTvl(long time, double lastTvl);
-
     List<HarvestTvlEntity> findAllByOrderByCalculateTime();
 
     @Query(nativeQuery = true, value = "" +
@@ -28,7 +26,7 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "             t.last_owners_count last_owners_count,  " +
         "             t.last_all_owners_count last_all_owners_count,  " +
         "             t.last_price last_price,  " +
-        "             date_format(from_unixtime(t.calculate_time), '%Y-%m-%d %H' ) grp  " +
+        "             to_char(date(to_timestamp(t.calculate_time)), 'YYYY-MM-DD HH') grp  " +
         "         from harvest_tvl t  " +
         "         where t.calculate_time between :startTime and :endTime" +
         "     ) agg  " +
