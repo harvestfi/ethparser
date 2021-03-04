@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.erc20.parser;
 
-import static pro.belbix.ethparser.web3.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -18,7 +18,7 @@ import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;

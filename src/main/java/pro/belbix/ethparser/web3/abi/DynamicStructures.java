@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.abi;
 
 import java.math.BigInteger;
 import org.web3j.abi.TypeReference;

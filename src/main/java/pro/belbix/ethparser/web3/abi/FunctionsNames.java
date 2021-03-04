@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3;
+package pro.belbix.ethparser.web3.abi;
 
 public class FunctionsNames {
 

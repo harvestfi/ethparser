@@ -18,7 +18,7 @@
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
-    <web3j>4.6.3</web3j>
+    <web3j>4.8.4</web3j>
     <argLine>-Duser.language=de -Duser.region=DE</argLine>
     <start-class>pro.belbix.ethparser.Application</start-class>
   </properties>
@@ -177,6 +177,12 @@
       <artifactId>json</artifactId>
       <version>20201115</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.yannbriancon</groupId>
+      <artifactId>spring-hibernate-query-utils</artifactId>
+      <version>2.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -233,6 +239,22 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.web3j</groupId>
+        <artifactId>web3j-maven-plugin</artifactId>
+        <version>4.6.5</version>
+        <configuration>
+          <packageName>pro.belbix.ethparser.web3.abi.contracts.generated</packageName>
+          <sourceDestination>src/main/java/generated</sourceDestination>
+          <soliditySourceFiles>
+            <directory>src/main/resources/contracts</directory>
+            <includes>
+              <include>**/*.abi</include>
+            </includes>
+          </soliditySourceFiles>
+        </configuration>
       </plugin>
 
     </plugins>

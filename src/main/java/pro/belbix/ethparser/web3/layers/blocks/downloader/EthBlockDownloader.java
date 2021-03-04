@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.blocks.downloader;
+package pro.belbix.ethparser.web3.layers.blocks.downloader;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.blocks.db.EthBlockDbService;
-import pro.belbix.ethparser.web3.blocks.parser.EthBlockParser;
+import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
+import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 
 @Service
 @Log4j2
@@ -45,7 +45,7 @@ public class EthBlockDownloader {
         }
         AtomicLong blockNumber = new AtomicLong(from.longValue());
         while (run.get()) {
-            parseAndSave(blockNumber.get());
+            parseBlockAndSave(blockNumber.get());
             if (to != null && to >= blockNumber.get()) {
                 break;
             }
@@ -53,7 +53,7 @@ public class EthBlockDownloader {
         }
     }
 
-    private void parseAndSave(long block) {
+    private void parseBlockAndSave(long block) {
         Instant timer = Instant.now();
 
         EthBlock ethBlock = web3Service.findBlockByNumber(block, true);

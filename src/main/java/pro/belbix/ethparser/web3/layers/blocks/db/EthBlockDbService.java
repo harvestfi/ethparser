@@ -1,10 +1,9 @@
-package pro.belbix.ethparser.web3.blocks.db;
+package pro.belbix.ethparser.web3.layers.blocks.db;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;

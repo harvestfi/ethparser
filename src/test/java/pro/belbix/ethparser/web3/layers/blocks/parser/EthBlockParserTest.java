@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.blocks.parser;
+package pro.belbix.ethparser.web3.layers.blocks.parser;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -16,7 +16,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.blocks.db.EthBlockDbService;
+import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -41,7 +41,7 @@ public class EthBlockParserTest {
         assertNotNull(ethBlockEntity);
         String entityStr = new ObjectMapper().writeValueAsString(ethBlockEntity);
         assertNotNull(entityStr);
-//        System.out.println(new ObjectMapper().writeValueAsString(ethBlockEntity));
+//        System.out.println(entityStr);
         CompletableFuture<EthBlockEntity> result = ethBlockDbService.save(ethBlockEntity);
         if(result != null) {
             EthBlockEntity persistedEntity = result.join();
@@ -54,6 +54,6 @@ public class EthBlockParserTest {
         System.out.println("load entity");
         EthBlockEntity saved = ethBlockRepository.findById(ethBlockEntity.getNumber()).orElseThrow();
         System.out.println("delete entity");
-//        ethBlockRepository.delete(saved);
+        ethBlockRepository.delete(saved);
     }
 }

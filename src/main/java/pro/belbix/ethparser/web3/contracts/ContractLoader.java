@@ -1,16 +1,16 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.FunctionsNames.CONTROLLER;
-import static pro.belbix.ethparser.web3.FunctionsNames.FACTORY;
-import static pro.belbix.ethparser.web3.FunctionsNames.GOVERNANCE;
-import static pro.belbix.ethparser.web3.FunctionsNames.LP_TOKEN;
-import static pro.belbix.ethparser.web3.FunctionsNames.MOONISWAP_FACTORY_GOVERNANCE;
-import static pro.belbix.ethparser.web3.FunctionsNames.OWNER;
-import static pro.belbix.ethparser.web3.FunctionsNames.REWARD_TOKEN;
-import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY;
-import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN0;
-import static pro.belbix.ethparser.web3.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.CONTROLLER;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.FACTORY;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GOVERNANCE;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MOONISWAP_FACTORY_GOVERNANCE;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.OWNER;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.KEY_BLOCKS_FOR_LOADING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
@@ -48,8 +48,8 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.FunctionsNames;
-import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.abi.FunctionsNames;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
 @Service
 @Log4j2

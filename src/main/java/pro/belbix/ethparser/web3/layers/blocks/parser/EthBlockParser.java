@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.blocks.parser;
+package pro.belbix.ethparser.web3.layers.blocks.parser;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -30,41 +30,37 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.blocks.db.EthBlockDbService;
+import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
 @Service
 @Log4j2
-public class EthBlockParser implements Web3Parser {
+public class EthBlockParser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<EthBlock> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(100);
     private final Web3Service web3Service;
     private final AppProperties appProperties;
-    private final ParserInfo parserInfo;
     private final EthBlockDbService ethBlockDbService;
     private Instant lastTx = Instant.now();
     private long count = 0;
 
     public EthBlockParser(Web3Service web3Service,
-                          AppProperties appProperties, ParserInfo parserInfo,
+                          AppProperties appProperties,
                           EthBlockDbService ethBlockDbService) {
         this.web3Service = web3Service;
         this.appProperties = appProperties;
-        this.parserInfo = parserInfo;
         this.ethBlockDbService = ethBlockDbService;
     }
 
-    @Override
     public void startParse() {
         log.info("Start parse Blocks");
-        parserInfo.addParser(this);
-        web3Service.subscribeOnBlocks(logs);
+        web3Service.subscribeOnBlocks(input);
         new Thread(() -> {
             while (run.get()) {
                 EthBlock ethBlock = null;
                 try {
-                    ethBlock = logs.poll(1, TimeUnit.SECONDS);
+                    ethBlock = input.poll(1, TimeUnit.SECONDS);
                     count++;
                     if (count % 100 == 0) {
                         log.info(this.getClass().getSimpleName() + " handled " + count);
@@ -80,6 +76,12 @@ public class EthBlockParser implements Web3Parser {
                                     } catch (InterruptedException ignored) {
                                     }
                                 }
+                            }).exceptionally(e -> {
+                                log.error("Error save {}", entity, e);
+                                if (appProperties.isStopOnParseError()) {
+                                    System.exit(-1);
+                                }
+                                return null;
                             });
                     }
                 } catch (Exception e) {
@@ -214,12 +216,10 @@ public class EthBlockParser implements Web3Parser {
         return ethLogEntity;
     }
 
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
+    public BlockingQueue<EthBlockEntity> getOutput() {
         return output;
     }
 
-    @Override
     public Instant getLastTx() {
         return lastTx;
     }

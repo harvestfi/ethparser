@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.blocks.db;
+package pro.belbix.ethparser.web3.layers.blocks.db;
 
 import java.util.Map;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
