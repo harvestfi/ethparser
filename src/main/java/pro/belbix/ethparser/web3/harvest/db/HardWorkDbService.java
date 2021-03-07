@@ -136,7 +136,7 @@ public class HardWorkDbService {
             if (allProfitL != null && !allProfitL.isEmpty() && allProfitL.get(0) != null) {
                 double allProfit = allProfitL.get(0);
                 dto.setAllProfit(allProfit);
-                double allPsProfit = (allProfit / 0.7) * 0.3;
+                double allPsProfit = allProfit * 0.3;
 
                 double psProfitPerc = (allPsProfit / dto.getPsTvlUsd()) * 100;
 

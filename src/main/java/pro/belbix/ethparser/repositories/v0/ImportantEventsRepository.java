@@ -6,7 +6,4 @@ import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 
 public interface ImportantEventsRepository extends JpaRepository<ImportantEventsDTO, String> {
 
-    List<ImportantEventsDTO> findAllByOrderByBlockDate();
-
-    ImportantEventsDTO findFirstByOrderByBlockDateDesc();
 }

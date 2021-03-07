@@ -11,13 +11,14 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
 
     @Query(nativeQuery = true, value = ""
         + "select count(owner) from ( "
-        + "                  select owner, "
-        + "                         SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) balance "
-        + "                  from uni_tx "
-        + "                   where block_date <= :block_date "
-        + "                  group by owner "
-        + "              ) t "
-        + "where balance > 10 ")
+        + "     select distinct on (owner) "
+        + "                                owner, "
+        + "            last_value(owner_balance_usd) over w as balance "
+        + "     from uni_tx "
+        + "     where block_date <= :block_date "
+        + "         window w as (PARTITION BY owner order by block_date desc) "
+        + " ) t "
+        + "where balance > 10")
     Integer fetchOwnerCount(@Param("block_date") long blockDate);
 
     UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
@@ -61,12 +62,12 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     List<UniswapDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
 
     @Query(nativeQuery = true, value = "" +
-        "select FLOOR(MIN(block_date)/:period)*:period timestamp,  " +
-        "       SUBSTRING_INDEX(MIN(CONCAT(block_date, '_', last_price)), '_', -1) open,  " +
-        "       max(last_price) high,  " +
-        "       min(last_price) low,  " +
-        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_price)), '_', -1) close,  " +
-        "       sum(amount) volume  " +
+        "select FLOOR(MIN(block_date)/:period)*:period as timestamp,  " +
+        "       SUBSTRING_INDEX(MIN(CONCAT(block_date, '_', last_price)), '_', -1) as open,  " +
+        "       max(last_price) as high,  " +
+        "       min(last_price) as low,  " +
+        "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_price)), '_', -1) as close,  " +
+        "       sum(amount) as volume  " +
         "from uni_tx  " +
         "where coin = :coin and block_date between :startTime and :endTime " +
         "GROUP BY FLOOR(block_date/:period)  " +
