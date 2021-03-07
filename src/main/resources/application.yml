@@ -16,8 +16,7 @@ spring:
     username:
     password:
     hikari:
-      maximum-pool-size: 50
-
+      maximum-pool-size: 5
 
 server:
   port: 8080

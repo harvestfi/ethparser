@@ -53,7 +53,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "         from harvest_tx "
         + "         where vault in (:vault, :oldVault) "
         + "           and block_date <= :block_date "
-        + "             window w as (PARTITION BY vault order by block_date desc) "
+        + "             window w as (PARTITION BY owner order by block_date desc) "
         + "     ) t "
         + "where t.balance > 10"
     )
