@@ -1555,6 +1555,45 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultUNI_WBTC_KLON() {
+        harvestVaultParseTest(
+            "0xB4E3fC276532f27Bd0F738928Ce083A3b064ba61",
+            11958867,
+            LOG_ID,
+            "0x750a31fa07184caf87b6cce251d2f0d7928badde",
+            "Withdraw",
+            "UNI_WBTC_KLON",
+            "0x468b3c671758cab8b0e33c1063ab68671d7ca532304fe26556a35b38f0195267_122",
+            "0,00016459",
+            "0,000164586064304197",
+            "0",
+            165193L,
+            164070L,
+            true
+        );
+    }
+
+
+    @Test
+    public void parseVaultUNI_WBTC_KBTC() {
+        harvestVaultParseTest(
+            "0x5cd9db40639013a08d797a839c9becd6ec5dcd4d",
+            11965381,
+            LOG_ID,
+            "0xf75fcd9849d3365d436d0cd889ed500150c9482a",
+            "Deposit",
+            "UNI_WBTC_KBTC",
+            "0xe65697bd0a03cf45be5b9955bdd6f19d9590841d3f8edbaefb5ca1f9a49c3302_234",
+            "0,00000857",
+            "0,000008573748564383",
+            "0",
+            99233L,
+            1208534L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
