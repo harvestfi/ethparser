@@ -13,36 +13,36 @@ import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 @Log4j2
 public class BlockCacher {
 
-    private final HarvestRepository harvestRepository;
-    private final BlockCacheRepository blockCacheRepository;
+  private final HarvestRepository harvestRepository;
+  private final BlockCacheRepository blockCacheRepository;
 
-    public BlockCacher(HarvestRepository harvestRepository,
-                       BlockCacheRepository blockCacheRepository) {
-        this.harvestRepository = harvestRepository;
-        this.blockCacheRepository = blockCacheRepository;
+  public BlockCacher(HarvestRepository harvestRepository,
+      BlockCacheRepository blockCacheRepository) {
+    this.harvestRepository = harvestRepository;
+    this.blockCacheRepository = blockCacheRepository;
+  }
+
+  public void cacheBlocks() {
+    List<HarvestDTO> harvestDTOS = harvestRepository.findAll();
+    List<BlockCacheEntity> blockCacheEntities = new ArrayList<>();
+    int count = 0;
+    int bulkSize = 100;
+    for (HarvestDTO dto : harvestDTOS) {
+      count++;
+      long block = dto.getBlock();
+      if (!blockCacheRepository.existsById(block)) {
+        BlockCacheEntity blockCacheEntity = new BlockCacheEntity();
+        blockCacheEntity.setBlock(block);
+        blockCacheEntity.setBlockDate(dto.getBlockDate());
+        blockCacheEntities.add(blockCacheEntity);
+      }
+      if (blockCacheEntities.size() % bulkSize == 0) {
+        log.info("Save block caches " + (count * bulkSize));
+        blockCacheRepository.saveAll(blockCacheEntities);
+        blockCacheEntities.clear();
+      }
     }
 
-    public void cacheBlocks() {
-        List<HarvestDTO> harvestDTOS = harvestRepository.findAll();
-        List<BlockCacheEntity> blockCacheEntities = new ArrayList<>();
-        int count = 0;
-        int bulkSize = 100;
-        for (HarvestDTO dto : harvestDTOS) {
-            count++;
-            long block = dto.getBlock();
-            if (!blockCacheRepository.existsById(block)) {
-                BlockCacheEntity blockCacheEntity = new BlockCacheEntity();
-                blockCacheEntity.setBlock(block);
-                blockCacheEntity.setBlockDate(dto.getBlockDate());
-                blockCacheEntities.add(blockCacheEntity);
-            }
-            if (blockCacheEntities.size() % bulkSize == 0) {
-                log.info("Save block caches " + (count * bulkSize));
-                blockCacheRepository.saveAll(blockCacheEntities);
-                blockCacheEntities.clear();
-            }
-        }
-
-    }
+  }
 
 }

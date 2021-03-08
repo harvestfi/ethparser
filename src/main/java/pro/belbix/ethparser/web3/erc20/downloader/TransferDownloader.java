@@ -21,55 +21,55 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class TransferDownloader {
 
-    private final Web3Service web3Service;
-    private final PriceProvider priceProvider;
-    private final TransferDBService transferDBService;
-    private final TransferParser transferParser;
+  private final Web3Service web3Service;
+  private final PriceProvider priceProvider;
+  private final TransferDBService transferDBService;
+  private final TransferParser transferParser;
 
-    @Value("${transfer-download.contract:}")
-    private String contractName;
-    @Value("${transfer-download.from:}")
-    private Integer from;
-    @Value("${transfer-download.to:}")
-    private Integer to;
+  @Value("${transfer-download.contract:}")
+  private String contractName;
+  @Value("${transfer-download.from:}")
+  private Integer from;
+  @Value("${transfer-download.to:}")
+  private Integer to;
 
-    public TransferDownloader(Web3Service web3Service,
-                              PriceProvider priceProvider,
-                              TransferDBService transferDBService,
-                              TransferParser transferParser) {
-        this.web3Service = web3Service;
-        this.priceProvider = priceProvider;
-        this.transferDBService = transferDBService;
-        this.transferParser = transferParser;
+  public TransferDownloader(Web3Service web3Service,
+      PriceProvider priceProvider,
+      TransferDBService transferDBService,
+      TransferParser transferParser) {
+    this.web3Service = web3Service;
+    this.priceProvider = priceProvider;
+    this.transferDBService = transferDBService;
+    this.transferParser = transferParser;
+  }
+
+  public void start() {
+    if (contractName == null || contractName.isEmpty()) {
+      throw new IllegalStateException("Empty contract");
     }
+    handleLoop(from, to, (from, end) -> parse(from, end,
+        ContractUtils.getAddressByName(contractName, ContractType.TOKEN)
+            .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
+    ));
+  }
 
-    public void start() {
-        if (contractName == null || contractName.isEmpty()) {
-            throw new IllegalStateException("Empty contract");
-        }
-        handleLoop(from, to, (from, end) -> parse(from, end,
-            ContractUtils.getAddressByName(contractName, ContractType.TOKEN)
-                .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
-        ));
+  private void parse(Integer start, Integer end, String contract) {
+    List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), start, end);
+    if (logResults.isEmpty()) {
+      log.info("Empty log {} {}", start, end);
+      return;
     }
-
-    private void parse(Integer start, Integer end, String contract) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), start, end);
-        if (logResults.isEmpty()) {
-            log.info("Empty log {} {}", start, end);
-            return;
+    for (LogResult logResult : logResults) {
+      try {
+        TransferDTO dto = transferParser.parseLog((Log) logResult.get());
+        if (dto != null) {
+          transferDBService.saveDto(dto);
         }
-        for (LogResult logResult : logResults) {
-            try {
-                TransferDTO dto = transferParser.parseLog((Log) logResult.get());
-                if (dto != null) {
-                    transferDBService.saveDto(dto);
-                }
-            } catch (Exception e) {
-                log.error("error with " + logResult.get(), e);
-                break;
-            }
-        }
+      } catch (Exception e) {
+        log.error("error with " + logResult.get(), e);
+        break;
+      }
     }
+  }
 
 }

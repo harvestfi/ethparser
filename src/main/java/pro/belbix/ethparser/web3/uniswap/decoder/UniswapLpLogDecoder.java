@@ -21,184 +21,188 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class UniswapLpLogDecoder extends MethodDecoder {
 
-    private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Mint", "Burn", "Swap"));
+  private static final Set<String> allowedMethods = new HashSet<>(
+      Arrays.asList("Mint", "Burn", "Swap"));
 
-    public void decode(UniswapTx tx, Log log) {
-        if (!isValidLog(log)) {
-            return;
-        }
-        String topic0 = log.getTopics().get(0);
-        String methodId = methodIdByFullHex.get(topic0);
+  public void decode(UniswapTx tx, Log log) {
+    if (!isValidLog(log)) {
+      return;
+    }
+    String topic0 = log.getTopics().get(0);
+    String methodId = methodIdByFullHex.get(topic0);
 
-        if (methodId == null) {
-            throw new IllegalStateException("Unknown topic " + topic0);
-        }
-        String methodName = methodNamesByMethodId.get(methodId);
+    if (methodId == null) {
+      throw new IllegalStateException("Unknown topic " + topic0);
+    }
+    String methodName = methodNamesByMethodId.get(methodId);
 
-        if (!allowedMethods.contains(methodName)) {
-            return;
-        }
-
-        List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
-        if (parameters == null) {
-            throw new IllegalStateException("Not found parameters for topic " + topic0 + " with " + methodId);
-        }
-
-        List<Type> types = extractLogIndexedValues(log, parameters);
-        tx.setHash(log.getTransactionHash());
-        tx.setLogId(log.getLogIndex().longValue());
-        tx.setBlock(log.getBlockNumber());
-        tx.setSuccess(true);
-        tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(log.getAddress())
-            .orElseThrow(() -> new IllegalStateException("Not found key token for " + log.getAddress())));
-        tx.setLpAddress(log.getAddress());
-        tx.setMethodName(methodName);
-        enrich(types, methodName, tx, log);
+    if (!allowedMethods.contains(methodName)) {
+      return;
     }
 
-    private boolean isValidLog(Log log) {
-        if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
-            return false;
-        }
-        return PARSABLE_UNI_PAIRS.contains(log.getAddress());
+    List<TypeReference<Type>> parameters = parametersByMethodId.get(methodId);
+    if (parameters == null) {
+      throw new IllegalStateException(
+          "Not found parameters for topic " + topic0 + " with " + methodId);
     }
 
-    private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {
-        switch (methodName) {
-            case "Swap":
-                tx.setType(UniswapTx.SWAP);
-                BigInteger amount0In = (BigInteger) types.get(2).getValue();
-                BigInteger amount1In = (BigInteger) types.get(3).getValue();
-                BigInteger amount0Out = (BigInteger) types.get(4).getValue();
-                BigInteger amount1Out = (BigInteger) types.get(5).getValue();
+    List<Type> types = extractLogIndexedValues(log, parameters);
+    tx.setHash(log.getTransactionHash());
+    tx.setLogId(log.getLogIndex().longValue());
+    tx.setBlock(log.getBlockNumber());
+    tx.setSuccess(true);
+    tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(log.getAddress())
+        .orElseThrow(
+            () -> new IllegalStateException("Not found key token for " + log.getAddress())));
+    tx.setLpAddress(log.getAddress());
+    tx.setMethodName(methodName);
+    enrich(types, methodName, tx, log);
+  }
 
-                if (!amount0In.equals(BigInteger.ZERO)) {
-                    tx.setAmountIn(amount0In);
-                } else if (!amount1In.equals(BigInteger.ZERO)) {
-                    tx.setAmountIn(amount1In);
-                } else {
-                    throw new IllegalStateException("Zero amountIn for " + tx.getHash());
-                }
-                if (!amount0Out.equals(BigInteger.ZERO)) {
-                    tx.setAmountOut(amount0Out);
-                } else if (!amount1Out.equals(BigInteger.ZERO)) {
-                    tx.setAmountOut(amount1Out);
-                } else {
-                    throw new IllegalStateException("Zero amountOut for " + tx.getHash());
-                }
-
-                if (
-                    (amount1In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
-                        || (amount0In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
-                ) {
-                    tx.setBuy(false);
-                    tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
-                    tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                } else if (
-                    (amount0In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
-                        || (amount1In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
-                ) {
-                    tx.setBuy(true);
-                    tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                    tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
-                } else {
-                    throw new IllegalStateException("Wrong amount in " + log);
-                }
-
-                return;
-            case "Mint":
-                tx.setType(UniswapTx.ADD_LIQ);
-                tx.setBuy(true);
-                tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
-                if (firstTokenIsKey(log.getAddress())) {
-                    tx.setAmountOut((BigInteger) types.get(1).getValue());
-                    tx.setAmountIn((BigInteger) types.get(2).getValue());
-                } else {
-                    tx.setAmountIn((BigInteger) types.get(1).getValue());
-                    tx.setAmountOut((BigInteger) types.get(2).getValue());
-                }
-
-                return;
-            case "Burn":
-                tx.setType(UniswapTx.REMOVE_LIQ);
-                tx.setBuy(false);
-                tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
-                tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
-                if (firstTokenIsKey(log.getAddress())) {
-                    tx.setAmountIn((BigInteger) types.get(2).getValue());
-                    tx.setAmountOut((BigInteger) types.get(3).getValue());
-                } else {
-                    tx.setAmountOut((BigInteger) types.get(2).getValue());
-                    tx.setAmountIn((BigInteger) types.get(3).getValue());
-                }
-
-                return;
-        }
-        throw new IllegalStateException("Unknown method " + methodName);
+  private boolean isValidLog(Log log) {
+    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+      return false;
     }
+    return PARSABLE_UNI_PAIRS.contains(log.getAddress());
+  }
 
-    public static boolean firstTokenIsKey(String lpAddress) {
-        Tuple2<String, String> tokens = ContractUtils.tokenAddressesByUniPairAddress(lpAddress);
-        String keyCoin = ContractUtils.findKeyTokenForUniPair(lpAddress)
-            .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
-        if (tokens.component1().equalsIgnoreCase(keyCoin)) {
-            return true;
-        } else if (tokens.component2().equalsIgnoreCase(keyCoin)) {
-            return false;
+  private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {
+    switch (methodName) {
+      case "Swap":
+        tx.setType(UniswapTx.SWAP);
+        BigInteger amount0In = (BigInteger) types.get(2).getValue();
+        BigInteger amount1In = (BigInteger) types.get(3).getValue();
+        BigInteger amount0Out = (BigInteger) types.get(4).getValue();
+        BigInteger amount1Out = (BigInteger) types.get(5).getValue();
+
+        if (!amount0In.equals(BigInteger.ZERO)) {
+          tx.setAmountIn(amount0In);
+        } else if (!amount1In.equals(BigInteger.ZERO)) {
+          tx.setAmountIn(amount1In);
         } else {
-            throw new IllegalStateException("Not found key name in lp " + lpAddress);
+          throw new IllegalStateException("Zero amountIn for " + tx.getHash());
         }
-    }
-
-    private static String mapLpAddressToOtherCoin(String address) {
-        return mapLpAddress(address, false);
-    }
-
-    private static String mapLpAddressToCoin(String address) {
-        return mapLpAddress(address, true);
-    }
-
-    private static String mapLpAddress(String address, boolean isKeyCoin) {
-        String keyCoinAdr = ContractUtils.findKeyTokenForUniPair(address)
-            .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
-        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(address);
-
-        int i;
-        if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {
-            i = 1;
-        } else if (tokensAdr.component2().equalsIgnoreCase(keyCoinAdr)) {
-            i = 2;
+        if (!amount0Out.equals(BigInteger.ZERO)) {
+          tx.setAmountOut(amount0Out);
+        } else if (!amount1Out.equals(BigInteger.ZERO)) {
+          tx.setAmountOut(amount1Out);
         } else {
-            throw new IllegalStateException("Key coin not found in " + tokensAdr);
+          throw new IllegalStateException("Zero amountOut for " + tx.getHash());
         }
-        if (isKeyCoin) {
-            return getStringFromPair(tokensAdr, i, false);
-        } else {
-            return getStringFromPair(tokensAdr, i, true);
-        }
-    }
 
-    private static String getStringFromPair(Tuple2<String, String> pair, int i, boolean inverse) {
-        if (i == 1) {
-            if (inverse) {
-                return pair.component2();
-            } else {
-                return pair.component1();
-            }
-        } else if (i == 2) {
-            if (inverse) {
-                return pair.component1();
-            } else {
-                return pair.component2();
-            }
+        if (
+            (amount1In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
+                || (amount0In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
+        ) {
+          tx.setBuy(false);
+          tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
+          tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+        } else if (
+            (amount0In.equals(BigInteger.ZERO) && firstTokenIsKey(log.getAddress()))
+                || (amount1In.equals(BigInteger.ZERO) && !firstTokenIsKey(log.getAddress()))
+        ) {
+          tx.setBuy(true);
+          tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+          tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
         } else {
-            throw new IllegalStateException("Wrong index for pair " + i);
+          throw new IllegalStateException("Wrong amount in " + log);
         }
-    }
 
-    @Override
-    public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
-        throw new UnsupportedOperationException();
+        return;
+      case "Mint":
+        tx.setType(UniswapTx.ADD_LIQ);
+        tx.setBuy(true);
+        tx.setCoinIn(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+        tx.setCoinOut(new Address(mapLpAddressToCoin(log.getAddress())));
+        if (firstTokenIsKey(log.getAddress())) {
+          tx.setAmountOut((BigInteger) types.get(1).getValue());
+          tx.setAmountIn((BigInteger) types.get(2).getValue());
+        } else {
+          tx.setAmountIn((BigInteger) types.get(1).getValue());
+          tx.setAmountOut((BigInteger) types.get(2).getValue());
+        }
+
+        return;
+      case "Burn":
+        tx.setType(UniswapTx.REMOVE_LIQ);
+        tx.setBuy(false);
+        tx.setCoinIn(new Address(mapLpAddressToCoin(log.getAddress())));
+        tx.setCoinOut(new Address(mapLpAddressToOtherCoin(log.getAddress())));
+        if (firstTokenIsKey(log.getAddress())) {
+          tx.setAmountIn((BigInteger) types.get(2).getValue());
+          tx.setAmountOut((BigInteger) types.get(3).getValue());
+        } else {
+          tx.setAmountOut((BigInteger) types.get(2).getValue());
+          tx.setAmountIn((BigInteger) types.get(3).getValue());
+        }
+
+        return;
     }
+    throw new IllegalStateException("Unknown method " + methodName);
+  }
+
+  public static boolean firstTokenIsKey(String lpAddress) {
+    Tuple2<String, String> tokens = ContractUtils.tokenAddressesByUniPairAddress(lpAddress);
+    String keyCoin = ContractUtils.findKeyTokenForUniPair(lpAddress)
+        .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
+    if (tokens.component1().equalsIgnoreCase(keyCoin)) {
+      return true;
+    } else if (tokens.component2().equalsIgnoreCase(keyCoin)) {
+      return false;
+    } else {
+      throw new IllegalStateException("Not found key name in lp " + lpAddress);
+    }
+  }
+
+  private static String mapLpAddressToOtherCoin(String address) {
+    return mapLpAddress(address, false);
+  }
+
+  private static String mapLpAddressToCoin(String address) {
+    return mapLpAddress(address, true);
+  }
+
+  private static String mapLpAddress(String address, boolean isKeyCoin) {
+    String keyCoinAdr = ContractUtils.findKeyTokenForUniPair(address)
+        .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
+    Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(address);
+
+    int i;
+    if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {
+      i = 1;
+    } else if (tokensAdr.component2().equalsIgnoreCase(keyCoinAdr)) {
+      i = 2;
+    } else {
+      throw new IllegalStateException("Key coin not found in " + tokensAdr);
+    }
+    if (isKeyCoin) {
+      return getStringFromPair(tokensAdr, i, false);
+    } else {
+      return getStringFromPair(tokensAdr, i, true);
+    }
+  }
+
+  private static String getStringFromPair(Tuple2<String, String> pair, int i, boolean inverse) {
+    if (i == 1) {
+      if (inverse) {
+        return pair.component2();
+      } else {
+        return pair.component1();
+      }
+    } else if (i == 2) {
+      if (inverse) {
+        return pair.component1();
+      } else {
+        return pair.component2();
+      }
+    } else {
+      throw new IllegalStateException("Wrong index for pair " + i);
+    }
+  }
+
+  @Override
+  public EthTransactionI mapTypesToModel(List<Type> types, String methodID,
+      Transaction transaction) {
+    throw new UnsupportedOperationException();
+  }
 }
