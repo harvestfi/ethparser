@@ -14,16 +14,16 @@ import pro.belbix.ethparser.dto.DtoI;
 @Data
 public class RewardDTO implements DtoI {
 
-    @Id
-    private String id;
-    private String vault;
-    private long block;
-    private long blockDate;
-    private double reward;
-    private long periodFinish;
-    private double apy;
-    private double weeklyApy;
-    private double tvl;
-    private double farmBalance;
+  @Id
+  private String id;
+  private String vault;
+  private long block;
+  private long blockDate;
+  private double reward;
+  private long periodFinish;
+  private double apy;
+  private double weeklyApy;
+  private double tvl;
+  private double farmBalance;
 
 }

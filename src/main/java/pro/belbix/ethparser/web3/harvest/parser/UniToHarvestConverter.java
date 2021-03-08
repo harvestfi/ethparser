@@ -31,164 +31,167 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class UniToHarvestConverter implements Web3Parser {
 
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private final PriceProvider priceProvider;
-    private final FunctionsUtils functionsUtils;
-    private final HarvestDBService harvestDBService;
-    private final ParserInfo parserInfo;
-    private final AppProperties appProperties;
-    private Instant lastTx = Instant.now();
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+  private final PriceProvider priceProvider;
+  private final FunctionsUtils functionsUtils;
+  private final HarvestDBService harvestDBService;
+  private final ParserInfo parserInfo;
+  private final AppProperties appProperties;
+  private Instant lastTx = Instant.now();
 
-    public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
-                                 HarvestDBService harvestDBService, ParserInfo parserInfo,
-                                 AppProperties appProperties) {
-        this.priceProvider = priceProvider;
-        this.functionsUtils = functionsUtils;
-        this.harvestDBService = harvestDBService;
-        this.parserInfo = parserInfo;
-        this.appProperties = appProperties;
-    }
+  public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
+      HarvestDBService harvestDBService, ParserInfo parserInfo,
+      AppProperties appProperties) {
+    this.priceProvider = priceProvider;
+    this.functionsUtils = functionsUtils;
+    this.harvestDBService = harvestDBService;
+    this.parserInfo = parserInfo;
+    this.appProperties = appProperties;
+  }
 
-    @Override
-    public void startParse() {
-        log.info("Start UniToHarvestConverter");
-        parserInfo.addParser(this);
-        new Thread(() -> {
-            while (run.get()) {
-                UniswapDTO uniswapDTO = null;
-                try {
-                    uniswapDTO = uniswapDTOS.poll(1, TimeUnit.SECONDS);
-                    HarvestDTO dto = convert(uniswapDTO);
-                    if (dto != null) {
-                        lastTx = Instant.now();
-                        boolean success = harvestDBService.saveHarvestDTO(dto);
-                        if (success) {
-                            output.put(dto);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Can't save harvest dto for" + uniswapDTO, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
+  @Override
+  public void startParse() {
+    log.info("Start UniToHarvestConverter");
+    parserInfo.addParser(this);
+    new Thread(() -> {
+      while (run.get()) {
+        UniswapDTO uniswapDTO = null;
+        try {
+          uniswapDTO = uniswapDTOS.poll(1, TimeUnit.SECONDS);
+          HarvestDTO dto = convert(uniswapDTO);
+          if (dto != null) {
+            lastTx = Instant.now();
+            boolean success = harvestDBService.saveHarvestDTO(dto);
+            if (success) {
+              output.put(dto);
             }
-        }).start();
-    }
-
-    public HarvestDTO convert(UniswapDTO uniswapDTO) {
-        if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
-            return null;
+          }
+        } catch (Exception e) {
+          log.error("Can't save harvest dto for" + uniswapDTO, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
         }
-        String lpHash = ContractUtils.findUniPairForTokens(
-            ContractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
-                .orElseThrow(() -> new IllegalStateException("Not found address for " + uniswapDTO.getCoin())),
-            ContractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
-                .orElseThrow(() -> new IllegalStateException("Not found address for " + uniswapDTO.getOtherCoin()))
-        );
-        if (!PARSABLE_UNI_PAIRS.contains(lpHash)) {
-            return null;
-        }
-        HarvestDTO harvestDTO = new HarvestDTO();
-        fillCommonFields(uniswapDTO, harvestDTO, lpHash);
+      }
+    }).start();
+  }
 
-        fillUsdValuesForLP(uniswapDTO, harvestDTO, lpHash);
+  public HarvestDTO convert(UniswapDTO uniswapDTO) {
+    if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
+      return null;
+    }
+    String lpHash = ContractUtils.findUniPairForTokens(
+        ContractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
+            .orElseThrow(
+                () -> new IllegalStateException("Not found address for " + uniswapDTO.getCoin())),
+        ContractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
+            .orElseThrow(() -> new IllegalStateException(
+                "Not found address for " + uniswapDTO.getOtherCoin()))
+    );
+    if (!PARSABLE_UNI_PAIRS.contains(lpHash)) {
+      return null;
+    }
+    HarvestDTO harvestDTO = new HarvestDTO();
+    fillCommonFields(uniswapDTO, harvestDTO, lpHash);
 
-        log.info(harvestDTO.print());
-        return harvestDTO;
+    fillUsdValuesForLP(uniswapDTO, harvestDTO, lpHash);
+
+    log.info(harvestDTO.print());
+    return harvestDTO;
+  }
+
+  private void fillCommonFields(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
+    harvestDTO.setId(uniswapDTO.getId());
+    harvestDTO.setHash(uniswapDTO.getHash());
+    harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
+    harvestDTO.setConfirmed(1);
+    harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
+    harvestDTO.setOwner(uniswapDTO.getOwner());
+    harvestDTO.setVault(ContractUtils.getNameByAddress(lpHash)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
+    harvestDTO.setLastGas(uniswapDTO.getLastGas());
+    harvestDTO.setSharePrice(1.0);
+    harvestDTO.setOwnerBalance(uniswapDTO.getOwnerBalance());
+    harvestDTO.setOwnerBalanceUsd(uniswapDTO.getOwnerBalanceUsd());
+
+    if (ADD_LIQ.equals(uniswapDTO.getType())) {
+      harvestDTO.setMethodName("Deposit");
+    } else {
+      harvestDTO.setMethodName("Withdraw");
+    }
+  }
+
+  public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
+    long block = harvestDTO.getBlock();
+    ContractEntity poolContract = ContractUtils.poolByVaultAddress(lpHash)
+        .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
+        .getContract();
+    if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
+      log.warn("Pool not created yet {} ", poolContract.getName());
+      harvestDTO.setLastTvl(0.0);
+      harvestDTO.setLpStat("");
+      harvestDTO.setLastUsdTvl(0.0);
+      harvestDTO.setUsdAmount(0L);
+      harvestDTO.setAmount(0.0);
+      return;
+    }
+    String poolAddress = poolContract.getAddress();
+
+    double lpBalance = parseAmount(
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block)
+            .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
+        lpHash);
+    double stBalance = parseAmount(
+        functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block)
+            .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
+        lpHash);
+    harvestDTO.setLastTvl(stBalance);
+    double stFraction = stBalance / lpBalance;
+    if (Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
+      stFraction = 0;
     }
 
-    private void fillCommonFields(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
-        harvestDTO.setId(uniswapDTO.getId());
-        harvestDTO.setHash(uniswapDTO.getHash());
-        harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
-        harvestDTO.setConfirmed(1);
-        harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
-        harvestDTO.setOwner(uniswapDTO.getOwner());
-        harvestDTO.setVault(ContractUtils.getNameByAddress(lpHash)
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
-        harvestDTO.setLastGas(uniswapDTO.getLastGas());
-        harvestDTO.setSharePrice(1.0);
-        harvestDTO.setOwnerBalance(uniswapDTO.getOwnerBalance());
-        harvestDTO.setOwnerBalanceUsd(uniswapDTO.getOwnerBalanceUsd());
+    Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, block);
+    double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
+    double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 
-        if (ADD_LIQ.equals(uniswapDTO.getType())) {
-            harvestDTO.setMethodName("Deposit");
-        } else {
-            harvestDTO.setMethodName("Withdraw");
-        }
+    Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
+    harvestDTO.setLpStat(LpStat.createJson(
+        lpHash,
+        firstCoinBalance,
+        secondCoinBalance,
+        uniPrices.component1(),
+        uniPrices.component2()
+    ));
+    double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
+    double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
+    double vaultUsdAmount = firstCoinUsdAmount + secondCoinUsdAmount;
+    harvestDTO.setLastUsdTvl(vaultUsdAmount);
+
+    double usdAmount =
+        uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
+    harvestDTO.setUsdAmount(Math.round(usdAmount));
+
+    double fraction = usdAmount / (vaultUsdAmount / stFraction);
+    if (Double.isNaN(fraction) || Double.isInfinite(fraction)) {
+      fraction = 0;
     }
+    harvestDTO.setAmount(lpBalance * fraction); //not accurate
+  }
 
-    public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
-        long block = harvestDTO.getBlock();
-        ContractEntity poolContract = ContractUtils.poolByVaultAddress(lpHash)
-            .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
-            .getContract();
-        if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
-            log.warn("Pool not created yet {} ", poolContract.getName());
-            harvestDTO.setLastTvl(0.0);
-            harvestDTO.setLpStat("");
-            harvestDTO.setLastUsdTvl(0.0);
-            harvestDTO.setUsdAmount(0L);
-            harvestDTO.setAmount(0.0);
-            return;
-        }
-        String poolAddress = poolContract.getAddress();
+  public void addDtoToQueue(UniswapDTO dto) {
+    uniswapDTOS.add(dto);
+  }
 
-        double lpBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block)
-                .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
-            lpHash);
-        double stBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block)
-                .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
-            lpHash);
-        harvestDTO.setLastTvl(stBalance);
-        double stFraction = stBalance / lpBalance;
-        if (Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
-            stFraction = 0;
-        }
+  @Override
+  public BlockingQueue<DtoI> getOutput() {
+    return output;
+  }
 
-        Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, block);
-        double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
-        double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
-
-        Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
-        harvestDTO.setLpStat(LpStat.createJson(
-            lpHash,
-            firstCoinBalance,
-            secondCoinBalance,
-            uniPrices.component1(),
-            uniPrices.component2()
-        ));
-        double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
-        double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
-        double vaultUsdAmount = firstCoinUsdAmount + secondCoinUsdAmount;
-        harvestDTO.setLastUsdTvl(vaultUsdAmount);
-
-        double usdAmount = uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
-        harvestDTO.setUsdAmount(Math.round(usdAmount));
-
-        double fraction = usdAmount / (vaultUsdAmount / stFraction);
-        if (Double.isNaN(fraction) || Double.isInfinite(fraction)) {
-            fraction = 0;
-        }
-        harvestDTO.setAmount(lpBalance * fraction); //not accurate
-    }
-
-    public void addDtoToQueue(UniswapDTO dto) {
-        uniswapDTOS.add(dto);
-    }
-
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
-    }
-
-    @Override
-    public Instant getLastTx() {
-        return lastTx;
-    }
+  @Override
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }

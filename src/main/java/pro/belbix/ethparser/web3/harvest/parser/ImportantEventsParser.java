@@ -34,142 +34,143 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 @Log4j2
 public class ImportantEventsParser implements Web3Parser {
 
-    public static final String TOKEN_MINTED = "TokenMinted";
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
-    private final Web3Service web3Service;
-    private final ImportantEventsDbService importantEventsDbService;
-    private final ParserInfo parserInfo;
-    private final EthBlockService ethBlockService;
-    private final FunctionsUtils functionsUtils;
-    private final AppProperties appProperties;
-    private Instant lastTx = Instant.now();
+  public static final String TOKEN_MINTED = "TokenMinted";
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+  private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
+  private final Web3Service web3Service;
+  private final ImportantEventsDbService importantEventsDbService;
+  private final ParserInfo parserInfo;
+  private final EthBlockService ethBlockService;
+  private final FunctionsUtils functionsUtils;
+  private final AppProperties appProperties;
+  private Instant lastTx = Instant.now();
 
-    public ImportantEventsParser(
-        Web3Service web3Service,
-        ImportantEventsDbService importantEventsDbService,
-        ParserInfo parserInfo,
-        EthBlockService ethBlockService,
-        FunctionsUtils functionsUtils, AppProperties appProperties) {
-        this.web3Service = web3Service;
-        this.importantEventsDbService = importantEventsDbService;
-        this.parserInfo = parserInfo;
-        this.ethBlockService = ethBlockService;
-        this.functionsUtils = functionsUtils;
-        this.appProperties = appProperties;
-    }
+  public ImportantEventsParser(
+      Web3Service web3Service,
+      ImportantEventsDbService importantEventsDbService,
+      ParserInfo parserInfo,
+      EthBlockService ethBlockService,
+      FunctionsUtils functionsUtils, AppProperties appProperties) {
+    this.web3Service = web3Service;
+    this.importantEventsDbService = importantEventsDbService;
+    this.parserInfo = parserInfo;
+    this.ethBlockService = ethBlockService;
+    this.functionsUtils = functionsUtils;
+    this.appProperties = appProperties;
+  }
 
-    @Override
-    public void startParse() {
-        log.info("Start parse Important Events logs");
-        web3Service.subscribeOnLogs(logs);
-        parserInfo.addParser(this);
-        new Thread(() -> {
-            while (run.get()) {
-                Log ethLog = null;
-                try {
-                    ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    ImportantEventsDTO dto = parseLog(ethLog);
-                    if (dto != null) {
-                        lastTx = Instant.now();
-                        boolean saved = importantEventsDbService.save(dto);
-                        if (saved) {
-                            output.put(dto);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Can't save " + ethLog, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    public ImportantEventsDTO parseLog(Log ethLog) {
-        if (ethLog == null ||
-            (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-                && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
-        ) {
-            return null;
-        }
-
-        ImportantEventsTx tx = importantEventsLogDecoder.decode(ethLog);
-        if (tx == null) {
-            return null;
-        }
-
-        ImportantEventsDTO dto = new ImportantEventsDTO();
-        dto.setId(tx.getHash() + "_" + tx.getLogId());
-        dto.setBlock(tx.getBlock());
-        dto.setOldStrategy(tx.getOldStrategy());
-        dto.setNewStrategy(tx.getNewStrategy());
-        dto.setHash(tx.getHash());
-
-        //enrich date
-        dto.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
-
-        parseEvent(dto, tx.getMethodName());
-        parseVault(dto, tx.getVault());
-        parseMintAmount(dto, tx.getMintAmount());
-        updateInfo(dto, tx);
-        log.info(dto.print());
-        return dto;
-    }
-
-    private void parseEvent(ImportantEventsDTO dto, String methodName) {
-        // ERC20 token Mint function emits Transfer event
-        if ("Transfer".equals(methodName)) {
-            dto.setEvent(TOKEN_MINTED);
-        } else {
-            dto.setEvent(methodName);
-        }
-    }
-
-    private void parseVault(ImportantEventsDTO dto, String vault) {
-        dto.setVault(
-            ContractUtils.getNameByAddress(vault)
-                .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
-        );
-    }
-
-    private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
-        if (!mintAmount.equals(BigInteger.ZERO)) {
-            dto.setMintAmount(mintAmount.doubleValue() / D18);
-        }
-    }
-
-    private void updateInfo(ImportantEventsDTO dto, ImportantEventsTx tx) {
-        ImportantEventsInfo info = new ImportantEventsInfo();
-        info.setVaultAddress(tx.getVault());
-
-        if ("StrategyAnnounced".equals(dto.getEvent())) {
-            info.setStrategyTimeLock(
-                functionsUtils.callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock())
-                    .orElse(BigInteger.ZERO).longValue());
-            dto.setOldStrategy(
-                functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock()).orElse(""));
-        }
-        ObjectMapper mapper = new ObjectMapper();
+  @Override
+  public void startParse() {
+    log.info("Start parse Important Events logs");
+    web3Service.subscribeOnLogs(logs);
+    parserInfo.addParser(this);
+    new Thread(() -> {
+      while (run.get()) {
+        Log ethLog = null;
         try {
-            dto.setInfo(mapper.writeValueAsString(info));
-        } catch (JsonProcessingException e) {
-            log.error("Error converting to json " + info, e);
+          ethLog = logs.poll(1, TimeUnit.SECONDS);
+          ImportantEventsDTO dto = parseLog(ethLog);
+          if (dto != null) {
+            lastTx = Instant.now();
+            boolean saved = importantEventsDbService.save(dto);
+            if (saved) {
+              output.put(dto);
+            }
+          }
+        } catch (Exception e) {
+          log.error("Can't save " + ethLog, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
         }
+      }
+    }).start();
+  }
 
+  public ImportantEventsDTO parseLog(Log ethLog) {
+    if (ethLog == null ||
+        (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
+            && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
+    ) {
+      return null;
     }
 
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
+    ImportantEventsTx tx = importantEventsLogDecoder.decode(ethLog);
+    if (tx == null) {
+      return null;
     }
 
-    @Override
-    public Instant getLastTx() {
-        return lastTx;
+    ImportantEventsDTO dto = new ImportantEventsDTO();
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setBlock(tx.getBlock());
+    dto.setOldStrategy(tx.getOldStrategy());
+    dto.setNewStrategy(tx.getNewStrategy());
+    dto.setHash(tx.getHash());
+
+    //enrich date
+    dto.setBlockDate(
+        ethBlockService
+            .getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
+
+    parseEvent(dto, tx.getMethodName());
+    parseVault(dto, tx.getVault());
+    parseMintAmount(dto, tx.getMintAmount());
+    updateInfo(dto, tx);
+    log.info(dto.print());
+    return dto;
+  }
+
+  private void parseEvent(ImportantEventsDTO dto, String methodName) {
+    // ERC20 token Mint function emits Transfer event
+    if ("Transfer".equals(methodName)) {
+      dto.setEvent(TOKEN_MINTED);
+    } else {
+      dto.setEvent(methodName);
     }
+  }
+
+  private void parseVault(ImportantEventsDTO dto, String vault) {
+    dto.setVault(
+        ContractUtils.getNameByAddress(vault)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
+    );
+  }
+
+  private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {
+    if (!mintAmount.equals(BigInteger.ZERO)) {
+      dto.setMintAmount(mintAmount.doubleValue() / D18);
+    }
+  }
+
+  private void updateInfo(ImportantEventsDTO dto, ImportantEventsTx tx) {
+    ImportantEventsInfo info = new ImportantEventsInfo();
+    info.setVaultAddress(tx.getVault());
+
+    if ("StrategyAnnounced".equals(dto.getEvent())) {
+      info.setStrategyTimeLock(
+          functionsUtils.callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock())
+              .orElse(BigInteger.ZERO).longValue());
+      dto.setOldStrategy(
+          functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock()).orElse(""));
+    }
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      dto.setInfo(mapper.writeValueAsString(info));
+    } catch (JsonProcessingException e) {
+      log.error("Error converting to json " + info, e);
+    }
+
+  }
+
+  @Override
+  public BlockingQueue<DtoI> getOutput() {
+    return output;
+  }
+
+  @Override
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }

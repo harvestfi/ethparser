@@ -10,21 +10,21 @@ import pro.belbix.ethparser.repositories.v0.PriceRepository;
 @Log4j2
 public class PriceDBService {
 
-    private final PriceRepository priceRepository;
-    private final AppProperties appProperties;
+  private final PriceRepository priceRepository;
+  private final AppProperties appProperties;
 
-    public PriceDBService(PriceRepository priceRepository, AppProperties appProperties) {
-        this.priceRepository = priceRepository;
-        this.appProperties = appProperties;
-    }
+  public PriceDBService(PriceRepository priceRepository, AppProperties appProperties) {
+    this.priceRepository = priceRepository;
+    this.appProperties = appProperties;
+  }
 
-    public boolean savePriceDto(PriceDTO dto) {
-        if (!appProperties.isOverrideDuplicates() && priceRepository.existsById(dto.getId())) {
-            log.warn("Duplicate Price entry " + dto.getId());
-            return false;
-        }
-        priceRepository.save(dto);
-        return true;
+  public boolean savePriceDto(PriceDTO dto) {
+    if (!appProperties.isOverrideDuplicates() && priceRepository.existsById(dto.getId())) {
+      log.warn("Duplicate Price entry " + dto.getId());
+      return false;
     }
+    priceRepository.save(dto);
+    return true;
+  }
 
 }

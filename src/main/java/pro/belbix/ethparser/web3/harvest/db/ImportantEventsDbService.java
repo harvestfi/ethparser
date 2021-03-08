@@ -10,23 +10,24 @@ import pro.belbix.ethparser.repositories.v0.ImportantEventsRepository;
 @Log4j2
 public class ImportantEventsDbService {
 
-    private final ImportantEventsRepository importantEventsRepository;
-    private final AppProperties appProperties;
+  private final ImportantEventsRepository importantEventsRepository;
+  private final AppProperties appProperties;
 
-    public ImportantEventsDbService(ImportantEventsRepository importantEventsRepository,
-                                    AppProperties appProperties) {
-        this.importantEventsRepository = importantEventsRepository;
-        this.appProperties = appProperties;
+  public ImportantEventsDbService(ImportantEventsRepository importantEventsRepository,
+      AppProperties appProperties) {
+    this.importantEventsRepository = importantEventsRepository;
+    this.appProperties = appProperties;
+  }
+
+  public boolean save(ImportantEventsDTO dto) {
+    if (!appProperties.isOverrideDuplicates() && importantEventsRepository
+        .existsById(dto.getId())) {
+      log.info("Duplicate ImportantEvents entry " + dto.getId());
+      return false;
     }
+    importantEventsRepository.save(dto);
+    importantEventsRepository.flush();
 
-    public boolean save(ImportantEventsDTO dto) {
-        if (!appProperties.isOverrideDuplicates() && importantEventsRepository.existsById(dto.getId())) {
-            log.info("Duplicate ImportantEvents entry " + dto.getId());
-            return false;
-        }
-        importantEventsRepository.save(dto);
-        importantEventsRepository.flush();
-
-        return true;
-    }
+    return true;
+  }
 }

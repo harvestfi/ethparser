@@ -15,68 +15,68 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Log4j2
 public class OwnerCountRecalculate {
 
-    private final HarvestRepository harvestRepository;
-    private final HarvestDBService harvestDBService;
-    private final UniswapDbService uniswapDbService;
-    private final UniswapRepository uniswapRepository;
+  private final HarvestRepository harvestRepository;
+  private final HarvestDBService harvestDBService;
+  private final UniswapDbService uniswapDbService;
+  private final UniswapRepository uniswapRepository;
 
-    @Value("${owners-count-recalculate.from:}")
-    private Integer from;
-    @Value("${owners-count-recalculate.empty:}")
-    private Boolean empty;
-    @Value("${owners-count-recalculate.hv:true}")
-    private boolean hv;
-    @Value("${owners-count-recalculate.uni:true}")
-    private boolean uni;
+  @Value("${owners-count-recalculate.from:}")
+  private Integer from;
+  @Value("${owners-count-recalculate.empty:}")
+  private Boolean empty;
+  @Value("${owners-count-recalculate.hv:true}")
+  private boolean hv;
+  @Value("${owners-count-recalculate.uni:true}")
+  private boolean uni;
 
-    public OwnerCountRecalculate(HarvestRepository harvestRepository,
-                                 HarvestDBService harvestDBService,
-                                 UniswapDbService uniswapDbService,
-                                 UniswapRepository uniswapRepository) {
-        this.harvestRepository = harvestRepository;
-        this.harvestDBService = harvestDBService;
-        this.uniswapDbService = uniswapDbService;
-        this.uniswapRepository = uniswapRepository;
+  public OwnerCountRecalculate(HarvestRepository harvestRepository,
+      HarvestDBService harvestDBService,
+      UniswapDbService uniswapDbService,
+      UniswapRepository uniswapRepository) {
+    this.harvestRepository = harvestRepository;
+    this.harvestDBService = harvestDBService;
+    this.uniswapDbService = uniswapDbService;
+    this.uniswapRepository = uniswapRepository;
+  }
+
+  public void start() {
+    int count = 0;
+    if (hv) {
+      List<HarvestDTO> harvestDTOList;
+      if (empty != null) {
+        harvestDTOList = harvestRepository.fetchAllWithoutCounts();
+      } else if (from == null) {
+        harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+      } else {
+        harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+      }
+      for (HarvestDTO harvestDTO : harvestDTOList) {
+        harvestDBService.fillOwnersCount(harvestDTO);
+        harvestRepository.save(harvestDTO);
+        count++;
+        if (count % 100 == 0) {
+          log.info("Harvest Recalculated " + count + ", last " + harvestDTO.print());
+        }
+      }
     }
 
-    public void start() {
-        int count = 0;
-        if (hv) {
-            List<HarvestDTO> harvestDTOList;
-            if (empty != null) {
-                harvestDTOList = harvestRepository.fetchAllWithoutCounts();
-            } else if (from == null) {
-                harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
-            } else {
-                harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
-            }
-            for (HarvestDTO harvestDTO : harvestDTOList) {
-                harvestDBService.fillOwnersCount(harvestDTO);
-                harvestRepository.save(harvestDTO);
-                count++;
-                if (count % 100 == 0) {
-                    log.info("Harvest Recalculated " + count + ", last " + harvestDTO.print());
-                }
-            }
-        }
+    if (uni) {
+      List<UniswapDTO> uniswapDTOS;
+      if (from == null) {
+        uniswapDTOS = uniswapRepository.findAllByOrderByBlockDate();
+      } else {
+        uniswapDTOS = uniswapRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+      }
 
-        if (uni) {
-            List<UniswapDTO> uniswapDTOS;
-            if (from == null) {
-                uniswapDTOS = uniswapRepository.findAllByOrderByBlockDate();
-            } else {
-                uniswapDTOS = uniswapRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
-            }
-
-            count = 0;
-            for (UniswapDTO uniswapDTO : uniswapDTOS) {
-                uniswapDbService.fillOwnersCount(uniswapDTO);
-                uniswapRepository.save(uniswapDTO);
-                count++;
-                if (count % 100 == 0) {
-                    log.info("Uniswap Recalculated " + count + ", last " + uniswapDTO.print());
-                }
-            }
+      count = 0;
+      for (UniswapDTO uniswapDTO : uniswapDTOS) {
+        uniswapDbService.fillOwnersCount(uniswapDTO);
+        uniswapRepository.save(uniswapDTO);
+        count++;
+        if (count % 100 == 0) {
+          log.info("Uniswap Recalculated " + count + ", last " + uniswapDTO.print());
         }
+      }
     }
+  }
 }
