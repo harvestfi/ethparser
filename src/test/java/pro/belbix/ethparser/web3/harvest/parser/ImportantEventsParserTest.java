@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +22,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
@@ -28,21 +30,25 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @ActiveProfiles("test")
 public class ImportantEventsParserTest {
 
-    @Autowired
-    private ImportantEventsParser importantEventsParser;
-    @Autowired
-    private Web3Service web3Service;
-    @Autowired
-    private PriceProvider priceProvider;
+  @Autowired
+  private ImportantEventsParser importantEventsParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private PriceProvider priceProvider;
 
-    @Before
-    public void setUp() {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Test
-    public void shouldParseStrategyChange() {
-        parserTest(
+  @Before
+  public void setUp() {
+    contractLoader.load();
+    priceProvider.setUpdateBlockDifference(1);
+  }
+
+  @Test
+  public void shouldParseStrategyChange() {
+    parserTest(
             "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
             11521350,
             0,
@@ -87,6 +93,7 @@ public class ImportantEventsParserTest {
         String blockDate,
         String mintAmount
     ) {
+      mintAmount = numberFormat(mintAmount);
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         ImportantEventsDTO dto = null;

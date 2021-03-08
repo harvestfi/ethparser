@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @RunWith(SpringRunner.class)
@@ -40,18 +42,26 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @ActiveProfiles("test")
 public class Web3ServiceTest {
 
-    @Autowired
-    private Web3Service web3Service;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Test
-    public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
-        TransactionReceipt transactionReceipt = web3Service
-            .fetchTransactionReceipt("0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
-        assertNotNull(transactionReceipt);
-        List<Log> logs = transactionReceipt.getLogs();
-        for (Log log : logs) {
-            System.out.println(log.toString());
-        }
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  @Test
+  public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
+    TransactionReceipt transactionReceipt = web3Service
+        .fetchTransactionReceipt(
+            "0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
+    assertNotNull(transactionReceipt);
+    List<Log> logs = transactionReceipt.getLogs();
+    for (Log log : logs) {
+      System.out.println(log.toString());
+    }
         Log lastLog = logs.get(logs.size() - 1);
         assertEquals("0x56feaccb7f750b997b36a68625c7c596f0b41a58", lastLog.getAddress().toLowerCase());
         String data = lastLog.getData();

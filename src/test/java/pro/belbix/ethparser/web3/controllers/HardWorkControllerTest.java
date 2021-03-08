@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.controllers;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +32,7 @@ public class HardWorkControllerTest {
     private HardWorkController hardWorksController;
 
     final long fakeBlock = 11925259L;
+    final long fakeBlockDate = 1614241875L;
     final String fakeEthAddr = "0xc3882fb25d3cc2e0933841e7f89544caf2d2ca73";
 
     @Before
@@ -41,15 +42,19 @@ public class HardWorkControllerTest {
 
     @Test
     public void shouldTotalCalculateHardWorksFeeByPeriodsAndVault() {
+        doReturn(fakeBlockDate)
+            .when(ethBlockService)
+            .getTimestampSecForBlock(null, fakeBlock);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(fakeEthAddr);
         String data = response.getData();
-        assertEquals("592,92464145", data);
+        assertEquals("0.00000000", data);
     }
 
     @Test
     public void shouldHandleException() {
-        when(hardWorkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr))
-            .thenThrow(NullPointerException.class);
+        doThrow(NullPointerException.class)
+            .when(hardWorkCalculator)
+            .calculateTotalHardWorksFeeByOwner(fakeEthAddr);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(fakeEthAddr);
         String code = response.getCode();
         String message = response.getStatus();

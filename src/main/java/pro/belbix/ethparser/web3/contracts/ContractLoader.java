@@ -121,9 +121,6 @@ public class ContractLoader {
         uniPairType = findOrCreateContractType(ContractType.UNI_PAIR);
         infrastructureType = findOrCreateContractType(ContractType.INFRASTRUCTURE);
         tokenType = findOrCreateContractType(ContractType.TOKEN);
-        if (appProperties.isDevMod()) {
-            load();
-        }
     }
 
     public synchronized void load() {

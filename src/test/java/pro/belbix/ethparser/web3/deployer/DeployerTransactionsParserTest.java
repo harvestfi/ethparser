@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
@@ -22,8 +24,18 @@ import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 public class DeployerTransactionsParserTest {
-  @Autowired private Web3Service web3Service;
-  @Autowired private DeployerTransactionsParser parser;
+
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private DeployerTransactionsParser parser;
+  @Autowired
+  private ContractLoader contractLoader;
+
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
 
   @Test
   public void testParseDeployerTransaction_SetFeeTx() {

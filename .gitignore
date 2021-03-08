@@ -48,4 +48,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-src/test/resources/
+scripts/application.yml
+scripts/run_*/ethparser.jar
+scripts/run_*/lib
+scripts/run_*/logs
