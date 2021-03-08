@@ -21,6 +21,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
@@ -29,23 +30,26 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 @ActiveProfiles("test")
 public class UniToHarvestConverterTest {
 
-    @Autowired
-    private UniswapLpLogParser uniswapLpLogParser;
-    @Autowired
-    private Web3Service web3Service;
-    @Autowired
-    private PriceProvider priceProvider;
-    @Autowired
-    private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private UniswapLpLogParser uniswapLpLogParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private PriceProvider priceProvider;
+  @Autowired
+  private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Before
-    public void setUp() throws Exception {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+    priceProvider.setUpdateBlockDifference(1);
+  }
 
-    
-    @Test
-    @Ignore
+
+  @Test
+  @Ignore
     public void convertUNI_LP_USDC_FARM_ADD() {
         UniswapDTO dto = uniswapParseTest(
                 "0x514906fc121c7878424a5c928cad1852cc545892",

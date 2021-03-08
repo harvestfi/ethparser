@@ -21,4 +21,4 @@ jobs:
         with:
           java-version: 1.11
       - name: Build with Maven
-        run: mvn -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}" -B package --file pom.xml
+        run: mvn -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}" -Dspring.datasource.url=${{secrets.TEST_DB_URL}} -Dspring.datasource.username=${{secrets.TEST_DB_USER}} -Dspring.datasource.password=${{secrets.TEST_DB_PASSWORD}} -B package --file pom.xml

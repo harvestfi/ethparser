@@ -19,7 +19,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <web3j>4.6.3</web3j>
-    <argLine>-Duser.language=de -Duser.region=DE</argLine>
+    <argLine>-Duser.language=en -Duser.region=US</argLine>
     <start-class>pro.belbix.ethparser.Application</start-class>
   </properties>
 

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
 import org.junit.Before;
@@ -19,6 +20,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RunWith(SpringRunner.class)
@@ -33,8 +35,12 @@ public class RewardParserTest {
     @Autowired
     private PriceProvider priceProvider;
 
+    @Autowired
+    private ContractLoader contractLoader;
+
     @Before
     public void setUp() {
+        contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
         rewardParser.setWaitNewBlock(false);
     }
@@ -47,7 +53,7 @@ public class RewardParserTest {
             0,
             "0x94897c3575bdf2c715e8b8bb563b492b7342a4dd235f88eed9f804bf9d053728_19",
             "WETH",
-            "108,54184635",
+            "108.54400000",
             1612897280
         );
     }
@@ -110,10 +116,12 @@ public class RewardParserTest {
         int logId,
         String id,
         String vault,
-        String reward,
+        String _reward,
         int period
     ) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
+        String reward = numberFormat(_reward);
+        List<LogResult> logResults = web3Service
+            .fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         try {
             RewardDTO dto = rewardParser.parseLog((Log) logResults.get(logId).get());

@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.erc20.db;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.web3.erc20.TransferType.BAL_TX;
 import static pro.belbix.ethparser.web3.erc20.TransferType.COMMON;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SELL;
@@ -87,8 +88,8 @@ public class TransferDBServiceTest {
 
         assertDto(transfers.get(0), "", "", true);
         assertDto(transfers.get(1), "", "", true);
-        assertDto(transfers.get(2), "", "", true);
-        assertDto(transfers.get(3), "33,3", "5000,0", false);
+      assertDto(transfers.get(2), "", "", true);
+      assertDto(transfers.get(3), numberFormat("33,3"), numberFormat("5000,0"), false);
     }
 
     @Test
@@ -98,33 +99,35 @@ public class TransferDBServiceTest {
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsExit(transfers.size(), 75, 25));
 
-        profit = TransferDBService.calculatePsProfit(transfers);
-        assertEquals("profit", "0,000000", String.format("%.6f", profit));
+      profit = TransferDBService.calculatePsProfit(transfers);
+      assertEquals("profit", numberFormat("0,000000"), String.format("%.6f", profit));
 
         transfers.add(createPsExit(transfers.size(), 26, 0));
-        profit = TransferDBService.calculatePsProfit(transfers);
-        assertEquals("profit", "1,000000", String.format("%.6f", profit));
+      profit = TransferDBService.calculatePsProfit(transfers);
+      assertEquals("profit", numberFormat("1,000000"), String.format("%.6f", profit));
 
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsExit(transfers.size(), 20, 80));
-        profit = TransferDBService.calculatePsProfit(transfers);
-        assertEquals("profit", "0,000000", String.format("%.6f", profit));
+      profit = TransferDBService.calculatePsProfit(transfers);
+      assertEquals("profit", numberFormat("0,000000"), String.format("%.6f", profit));
 
         transfers.add(createPsExit(transfers.size(), 100, 0));
-        profit = TransferDBService.calculatePsProfit(transfers);
-        assertEquals("profit", "20,000000", String.format("%.6f", profit));
+      profit = TransferDBService.calculatePsProfit(transfers);
+      assertEquals("profit", numberFormat("20,000000"), String.format("%.6f", profit));
 
         transfers.add(createPsStake(transfers.size(), 100, 100));
         transfers.add(createPsStake(transfers.size(), 100, 200));
         transfers.add(createPsExit(transfers.size(), 210, 0));
-        profit = TransferDBService.calculatePsProfit(transfers);
-        assertEquals("profit", "10,000000", String.format("%.6f", profit));
+      profit = TransferDBService.calculatePsProfit(transfers);
+      assertEquals("profit", numberFormat("10,000000"), String.format("%.6f", profit));
     }
 
-    private void assertDto(TransferDTO dto, String profit, String profitUsd, boolean nullProfit) {
+    private void assertDto(TransferDTO dto, String _profit, String _profitUsd, boolean nullProfit) {
         if (nullProfit && dto.getProfit() == null) {
             return;
         }
+        String profit = numberFormat(_profit);
+        String profitUsd = numberFormat(_profitUsd);
         assertAll(
             () -> assertEquals(dto.getId() + " profit", profit, String.format("%.1f", dto.getProfit())),
             () -> assertEquals(dto.getId() + " profitUsd", profitUsd, String.format("%.1f", dto.getProfitUsd()))

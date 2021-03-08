@@ -1,11 +1,10 @@
 package pro.belbix.ethparser.web3.contracts;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,25 +45,29 @@ public class ContractLoaderTest {
     private UniPairRepository uniPairRepository;
     @Autowired
     private TokenRepository tokenRepository;
-    @Autowired
-    private VaultToPoolRepository vaultToPoolRepository;
-    @Autowired
-    private TokenToUniPairRepository tokenToUniPairRepository;
-    @Autowired
-    private Web3Service web3Service;
+  @Autowired
+  private VaultToPoolRepository vaultToPoolRepository;
+  @Autowired
+  private TokenToUniPairRepository tokenToUniPairRepository;
+  @Autowired
+  private Web3Service web3Service;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  @Test
 //    @Ignore
-    public void fullRunShouldBeOk() throws JsonProcessingException {
+  public void fullRunShouldBeOk() throws JsonProcessingException {
 //        appProperties.setUpdateContracts(true);
-//        contractLoader.load();
-        System.out.println("**************** VAULTS ************************");
-        for (VaultEntity vaultEntity : vaultRepository.findAll()) {
-            assertNotNull(vaultEntity);
-            System.out.println(objectMapper.writeValueAsString(vaultEntity));
-        }
+    System.out.println("**************** VAULTS ************************");
+    for (VaultEntity vaultEntity : vaultRepository.findAll()) {
+      assertNotNull(vaultEntity);
+      System.out.println(objectMapper.writeValueAsString(vaultEntity));
+    }
         System.out.println("**************** POOLS ************************");
         for (PoolEntity poolEntity : poolRepository.findAll()) {
             assertNotNull(poolEntity);

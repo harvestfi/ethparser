@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 
 import java.util.Collections;
@@ -20,6 +21,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -37,9 +39,12 @@ public class DoHardWorkTest {
     private PriceProvider priceProvider;
     @Autowired
     private HardWorkDbService hardWorkDbService;
+    @Autowired
+    private ContractLoader contractLoader;
 
     @Before
     public void setUp() throws Exception {
+        contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
     }
 
@@ -50,7 +55,7 @@ public class DoHardWorkTest {
             "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
             "SUSHI_MIC_USDT",
             "0,000000",
-            "17848,226375",
+            "17800.133375",
             "24,508470"
         );
     }
@@ -157,12 +162,15 @@ public class DoHardWorkTest {
     }
 
     private HardWorkDTO assertOnBlock(int onBlock,
-                                      String id,
-                                      String vault,
-                                      String sharePriceChange,
-                                      String fullRewardUsd,
-                                      String farmBuyback
+        String id,
+        String vault,
+        String _sharePriceChange,
+        String _fullRewardUsd,
+        String _farmBuyback
     ) {
+        String sharePriceChange = numberFormat(_sharePriceChange);
+        String fullRewardUsd = numberFormat(_fullRewardUsd);
+        String farmBuyback = numberFormat(_farmBuyback);
         List<LogResult> logResults = web3Service
             .fetchContractLogs(Collections.singletonList(CONTROLLER), onBlock, onBlock);
         assertNotNull(logResults);
@@ -172,7 +180,8 @@ public class DoHardWorkTest {
         assertAll(
             () -> assertEquals("id", id, dto.getId()),
             () -> assertEquals("vault", vault, dto.getVault()),
-            () -> assertEquals("sharePriceChage", sharePriceChange, String.format("%f", dto.getShareChange())),
+            () -> assertEquals("sharePriceChage", sharePriceChange,
+                String.format("%f", dto.getShareChange())),
             () -> assertEquals("full reward Usd", fullRewardUsd, String.format("%f", dto.getFullRewardUsd())),
             () -> assertEquals("farmBuyback", farmBuyback, String.format("%f", dto.getFarmBuyback()))
         );
