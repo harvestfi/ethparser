@@ -23,7 +23,7 @@ public class HardWorkLogDecoder extends MethodDecoder {
     List<TypeReference<Type>> parameters = findParameters(methodId)
         .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
 
-    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     HardWorkTx tx = new HardWorkTx();
     tx.setLogId(ethLog.getLogIndex().toString());
     tx.setHash(ethLog.getTransactionHash());

@@ -351,4 +351,23 @@ public class ContractUtils {
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList());
   }
+
+  public static Optional<ContractEntity> getContractByAddress(String address) {
+    Optional<ContractEntity> contract = ContractLoader.getVaultByAddress(address)
+        .map(VaultEntity::getContract);
+
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getPoolByAddress(address)
+          .map(PoolEntity::getContract);
+    }
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getUniPairByAddress(address)
+          .map(UniPairEntity::getContract);
+    }
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getTokenByAddress(address)
+          .map(TokenEntity::getContract);
+    }
+    return contract;
+  }
 }

@@ -9,14 +9,15 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 
 @Entity
 @Table(name = "b_contract_events")
@@ -29,11 +30,21 @@ public class ContractEventEntity {
     private long id;
 
     @ManyToOne
+    @JoinColumn(name = "contract", referencedColumnName = "address")
+    private ContractEntity contract;
+
+    @ManyToOne
     private EthTxEntity tx;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractEvent",
         fetch = FetchType.EAGER, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ContractStateEntity> states;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractEvent",
+        fetch = FetchType.EAGER, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<ContractLogEntity> logs;
+
 
 }

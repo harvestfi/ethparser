@@ -71,26 +71,27 @@ public abstract class MethodDecoder {
     return Numeric.toHexString(hash);
   }
 
-    // todo move to ContractUtils
-    public static double parseAmount(BigInteger amount, String address) {
-        if (amount == null) {
-            return 0.0;
-        }
-        return new BigDecimal(amount)
-            .divide(ContractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
-            .doubleValue();
+  // todo move to ContractUtils
+  public static double parseAmount(BigInteger amount, String address) {
+    if (amount == null) {
+      return 0.0;
     }
+    return new BigDecimal(amount)
+        .divide(ContractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
+        .doubleValue();
+  }
 
-  public static List<Type> extractLogIndexedValues(Log log, List<TypeReference<Type>> parameters) {
+  public static List<Type> extractLogIndexedValues(
+      List<String> topics,
+      String data,
+      List<TypeReference<Type>> parameters) {
     List<Type> indexedValues = new ArrayList<>();
-    if (log == null || parameters == null || log.getData() == null) {
+    if (parameters == null || data == null) {
       return indexedValues;
     }
-    final List<String> topics = log.getTopics();
     List<Type> nonIndexedValues;
     try {
-      nonIndexedValues = FunctionReturnDecoder
-          .decode(log.getData(), getNonIndexedParameters(parameters));
+      nonIndexedValues = FunctionReturnDecoder.decode(data, getNonIndexedParameters(parameters));
     } catch (NullPointerException e) {
       // it is an odd bug with loader sometimes happens when the app is not warmed up
       e.printStackTrace();
@@ -114,6 +115,19 @@ public abstract class MethodDecoder {
   public static List<TypeReference<Type>> getIndexedParameters(
       List<TypeReference<Type>> parameters) {
     return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
+  }
+
+  public static String typesToString(List<Type> types) {
+    if (types == null || types.size() == 0) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Type type : types) {
+      sb.append(type.getTypeAsString());
+      sb.append(",");
+    }
+    sb.setLength(sb.length() - 1);
+    return sb.toString();
   }
 
   protected Optional<String> parseMethodId(Log ethLog) {
@@ -144,30 +158,30 @@ public abstract class MethodDecoder {
   public abstract EthTransactionI mapTypesToModel(List<Type> types, String methodID,
       Transaction transaction);
 
-  public String createMethodId(String name, List<TypeReference<Type>> parameters) {
+  public static String createMethodId(String name, List<TypeReference<Type>> parameters) {
     return methodSignatureToShortHex(createMethodSignature(name, parameters));
   }
 
-  public String createMethodFullHex(String name, List<TypeReference<Type>> parameters) {
+  public static String createMethodFullHex(String name, List<TypeReference<Type>> parameters) {
     return methodSignatureToFullHex(createMethodSignature(name, parameters));
   }
 
-  public String methodSignatureToShortHex(String methodSignature) {
+  public static String methodSignatureToShortHex(String methodSignature) {
     return methodSignatureToFullHex(methodSignature).substring(0, 10);
   }
 
-  String createMethodSignature(String name, List<TypeReference<Type>> parameters) {
+  static String createMethodSignature(String name, List<TypeReference<Type>> parameters) {
     StringBuilder result = new StringBuilder();
     result.append(name);
     result.append("(");
     String params =
-        parameters.stream().map(this::getTypeName).collect(Collectors.joining(","));
+        parameters.stream().map(MethodDecoder::getTypeName).collect(Collectors.joining(","));
     result.append(params);
     result.append(")");
     return result.toString();
   }
 
-  <T extends Type> String getTypeName(TypeReference<T> typeReference) {
+  static <T extends Type> String getTypeName(TypeReference<T> typeReference) {
     try {
       java.lang.reflect.Type reflectedType = typeReference.getType();
 
@@ -184,7 +198,7 @@ public abstract class MethodDecoder {
     }
   }
 
-  <T extends Type, U extends Type> String getParameterizedTypeName(
+  static <T extends Type, U extends Type> String getParameterizedTypeName(
       TypeReference<T> typeReference, Class<?> type) {
 
     try {
@@ -207,7 +221,7 @@ public abstract class MethodDecoder {
     }
   }
 
-  String getSimpleTypeName(Class<?> type) {
+  static String getSimpleTypeName(Class<?> type) {
     String simpleName = type.getSimpleName().toLowerCase();
 
     if (type.equals(Uint.class)
@@ -225,7 +239,7 @@ public abstract class MethodDecoder {
   }
 
   @SuppressWarnings("unchecked")
-  <T extends Type> Class<T> getParameterizedTypeFromArray(TypeReference typeReference)
+  static <T extends Type> Class<T> getParameterizedTypeFromArray(TypeReference typeReference)
       throws ClassNotFoundException {
 
     java.lang.reflect.Type type = typeReference.getType();
