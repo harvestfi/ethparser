@@ -1685,7 +1685,7 @@ public class HarvestVaultParserTest {
             "Withdraw",
             "CRV_LINK",
             "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285_281",
-            "200,891980201",
+            "200,89198021",
             "",
             "",
             0L,
