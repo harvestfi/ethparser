@@ -1588,6 +1588,82 @@ public class HarvestVaultParserTest {
             "0,00000857",
             "0,000008573748564383",
             "0",
+            98645L,
+            1201378L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMNFLX_UST() {
+        harvestVaultParseTest(
+            "0x99c2564c9d4767c13e13f38ab073d4758af396ae",
+            12000069,
+            LOG_ID,
+            "0xd98f36c2d99b6b8e610f70baa13df073928536c8",
+            "Deposit",
+            "MNFLX_UST",
+            "0xe657363d9437bb5403eb3a59122e10ba2cf488fe3a59c875ff7fe14c10d7004c_342",
+            "1108,86509634",
+            "1108,86509634",
+            "0",
+            50537L,
+            452090L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMTWTR_UST() {
+        harvestVaultParseTest(
+            "0xb37c79f954E3e1A4ACCC14A5CCa3E46F226038b7",
+            11999645,
+            LOG_ID,
+            "0xf6f75e3206b4bf2d3d6d12dbf633218894750c39",
+            "Deposit",
+            "MTWTR_UST",
+            "0xe4a88a35ae1c93c8550ca8f89448ba4941e3b3e8eb5500c61a35220bebc5bf0e_76",
+            "1587,47546529",
+            "1587,47546529",
+            "0",
+            25965L,
+            204142L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultSUSHI_ETH_UST() {
+        harvestVaultParseTest(
+            "0x4D4D85c6a1ffE6Bb7a1BEf51c9E2282893feE521",
+            11982549,
+            LOG_ID,
+            "0x814055779f8d2f591277b76c724b7adc74fb82d9",
+            "Deposit",
+            "SUSHI_ETH_UST",
+            "0x56bc16ee94269347678254f82de0a492b0ab960fda021e76bb291924b9e6db81_52",
+            "4,95147346",
+            "4,95147346",
+            "0",
+            403L,
+            556L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultCRV_LINK() {
+        harvestVaultParseTest(
+            "0x24C562E24A4B5D905f16F2391E07213efCFd216E",
+            12000189,
+            LOG_ID,
+            "0xa9c1c504652ab74e5fd22d6f36df53a2be4a4e0b",
+            "Deposit",
+            "CRV_LINK",
+            "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285",
+            "200,891980206183214932",
+            "",
+            "",
             99233L,
             1208534L,
             true
