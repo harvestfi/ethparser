@@ -1682,14 +1682,14 @@ public class HarvestVaultParserTest {
             12000189,
             LOG_ID,
             "0xa9c1c504652ab74e5fd22d6f36df53a2be4a4e0b",
-            "Deposit",
+            "Withdraw",
             "CRV_LINK",
-            "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285",
-            "200,891980206183214932",
+            "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285_281",
+            "200,891980201",
             "",
             "",
-            99233L,
-            1208534L,
+            0L,
+            0L,
             true
         );
     }
