@@ -15,27 +15,27 @@ import pro.belbix.ethparser.dto.DtoI;
 @Data
 public class PriceDTO implements DtoI {
 
-    @Id
-    private String id;
-    private Long block;
-    private Long blockDate;
-    private String token;
-    private Double tokenAmount;
-    private String otherToken;
-    private Double otherTokenAmount;
-    private Double price;
-    private Integer buy;
-    private String source;
-    private Double lpTotalSupply;
-    private Double lpToken0Pooled;
-    private Double lpToken1Pooled;
+  @Id
+  private String id;
+  private Long block;
+  private Long blockDate;
+  private String token;
+  private Double tokenAmount;
+  private String otherToken;
+  private Double otherTokenAmount;
+  private Double price;
+  private Integer buy;
+  private String source;
+  private Double lpTotalSupply;
+  private Double lpToken0Pooled;
+  private Double lpToken1Pooled;
 
-    public String print() {
-        return Instant.ofEpochSecond(blockDate) + " "
-            + source + " "
-            + String.format("%.1f", price) + " "
-            + buy + " "
-            + id;
-    }
+  public String print() {
+    return Instant.ofEpochSecond(blockDate) + " "
+        + source + " "
+        + String.format("%.1f", price) + " "
+        + buy + " "
+        + id;
+  }
 
 }

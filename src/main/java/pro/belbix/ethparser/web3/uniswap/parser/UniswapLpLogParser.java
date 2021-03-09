@@ -28,121 +28,123 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 @Log4j2
 public class UniswapLpLogParser implements Web3Parser {
 
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
-    private final Web3Service web3Service;
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private final UniswapDbService uniswapDbService;
-    private final EthBlockService ethBlockService;
-    private final PriceProvider priceProvider;
-    private final UniToHarvestConverter uniToHarvestConverter;
-    private final ParserInfo parserInfo;
-    private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
-    private final AppProperties appProperties;
-    private Instant lastTx = Instant.now();
-    private long count = 0;
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
+  private final Web3Service web3Service;
+  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+  private final UniswapDbService uniswapDbService;
+  private final EthBlockService ethBlockService;
+  private final PriceProvider priceProvider;
+  private final UniToHarvestConverter uniToHarvestConverter;
+  private final ParserInfo parserInfo;
+  private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
+  private final AppProperties appProperties;
+  private Instant lastTx = Instant.now();
+  private long count = 0;
 
-    public UniswapLpLogParser(Web3Service web3Service,
-                              UniswapDbService uniswapDbService,
-                              EthBlockService ethBlockService,
-                              PriceProvider priceProvider,
-                              UniToHarvestConverter uniToHarvestConverter,
-                              ParserInfo parserInfo,
-                              UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
-                              AppProperties appProperties) {
-        this.web3Service = web3Service;
-        this.uniswapDbService = uniswapDbService;
-        this.ethBlockService = ethBlockService;
-        this.priceProvider = priceProvider;
-        this.uniToHarvestConverter = uniToHarvestConverter;
-        this.parserInfo = parserInfo;
-        this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
-        this.appProperties = appProperties;
-    }
+  public UniswapLpLogParser(Web3Service web3Service,
+      UniswapDbService uniswapDbService,
+      EthBlockService ethBlockService,
+      PriceProvider priceProvider,
+      UniToHarvestConverter uniToHarvestConverter,
+      ParserInfo parserInfo,
+      UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
+      AppProperties appProperties) {
+    this.web3Service = web3Service;
+    this.uniswapDbService = uniswapDbService;
+    this.ethBlockService = ethBlockService;
+    this.priceProvider = priceProvider;
+    this.uniToHarvestConverter = uniToHarvestConverter;
+    this.parserInfo = parserInfo;
+    this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
+    this.appProperties = appProperties;
+  }
 
-    @Override
-    public void startParse() {
-        log.info("Start parse Uniswap logs");
-        parserInfo.addParser(this);
-        web3Service.subscribeOnLogs(logs);
-        new Thread(() -> {
-            while (run.get()) {
-                Log ethLog = null;
-                try {
-                    ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    count++;
-                    if (count % 100 == 0) {
-                        log.info(this.getClass().getSimpleName() + " handled " + count);
-                    }
-                    UniswapDTO dto = parseUniswapLog(ethLog);
-                    if (dto != null) {
-                        lastTx = Instant.now();
-                        enrichDto(dto);
-                        uniOwnerBalanceCalculator.fillBalance(dto);
-                        uniToHarvestConverter.addDtoToQueue(dto);
-                        boolean success = uniswapDbService.saveUniswapDto(dto);
-                        if (success) {
-                            output.put(dto);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Error uniswap parser loop " + ethLog, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
+  @Override
+  public void startParse() {
+    log.info("Start parse Uniswap logs");
+    parserInfo.addParser(this);
+    web3Service.subscribeOnLogs(logs);
+    new Thread(() -> {
+      while (run.get()) {
+        Log ethLog = null;
+        try {
+          ethLog = logs.poll(1, TimeUnit.SECONDS);
+          count++;
+          if (count % 100 == 0) {
+            log.info(this.getClass().getSimpleName() + " handled " + count);
+          }
+          UniswapDTO dto = parseUniswapLog(ethLog);
+          if (dto != null) {
+            lastTx = Instant.now();
+            enrichDto(dto);
+            uniOwnerBalanceCalculator.fillBalance(dto);
+            uniToHarvestConverter.addDtoToQueue(dto);
+            boolean success = uniswapDbService.saveUniswapDto(dto);
+            if (success) {
+              output.put(dto);
             }
-        }).start();
-    }
-
-    public UniswapDTO parseUniswapLog(Log ethLog) {
-        UniswapTx tx = new UniswapTx();
-        uniswapLpLogDecoder.decode(tx, ethLog);
-        if (tx.getHash() == null) {
-            return null;
+          }
+        } catch (Exception e) {
+          log.error("Error uniswap parser loop " + ethLog, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
         }
+      }
+    }).start();
+  }
 
-        UniswapDTO dto = tx.toDto();
-
-        //enrich owner
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
-        dto.setOwner(receipt.getFrom());
-
-        //enrich date
-        dto.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
-
-        if (dto.getLastPrice() == null) {
-            Double otherCoinPrice = priceProvider.getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue());
-            if (otherCoinPrice != null) {
-                dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
-            } else {
-                throw new IllegalStateException("Price not found " + dto.print());
-            }
-        }
-
-        log.info(dto.print());
-
-        return dto;
+  public UniswapDTO parseUniswapLog(Log ethLog) {
+    UniswapTx tx = new UniswapTx();
+    uniswapLpLogDecoder.decode(tx, ethLog);
+    if (tx.getHash() == null) {
+      return null;
     }
 
-    private void enrichDto(UniswapDTO dto) {
-        dto.setLastGas(web3Service.fetchAverageGasPrice());
+    UniswapDTO dto = tx.toDto();
+
+    //enrich owner
+    TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+    dto.setOwner(receipt.getFrom());
+
+    //enrich date
+    dto.setBlockDate(
+        ethBlockService
+            .getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
+
+    if (dto.getLastPrice() == null) {
+      Double otherCoinPrice = priceProvider
+          .getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue());
+      if (otherCoinPrice != null) {
+        dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
+      } else {
+        throw new IllegalStateException("Price not found " + dto.print());
+      }
     }
 
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
-    }
+    log.info(dto.print());
 
-    @PreDestroy
-    public void stop() {
-        run.set(false);
-    }
+    return dto;
+  }
 
-    @Override
-    public Instant getLastTx() {
-        return lastTx;
-    }
+  private void enrichDto(UniswapDTO dto) {
+    dto.setLastGas(web3Service.fetchAverageGasPrice());
+  }
+
+  @Override
+  public BlockingQueue<DtoI> getOutput() {
+    return output;
+  }
+
+  @PreDestroy
+  public void stop() {
+    run.set(false);
+  }
+
+  @Override
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }

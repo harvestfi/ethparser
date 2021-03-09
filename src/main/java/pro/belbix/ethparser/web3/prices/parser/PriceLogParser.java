@@ -33,223 +33,229 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 @Log4j2
 public class PriceLogParser implements Web3Parser {
 
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final PriceDecoder priceDecoder = new PriceDecoder();
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private final Web3Service web3Service;
-    private final EthBlockService ethBlockService;
-    private final ParserInfo parserInfo;
-    private final PriceDBService priceDBService;
-    private final AppProperties appProperties;
-    private final FunctionsUtils functionsUtils;
-    private Instant lastTx = Instant.now();
-    private long count = 0;
-    private final Map<String, PriceDTO> lastPrices = new HashMap<>();
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final PriceDecoder priceDecoder = new PriceDecoder();
+  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+  private final Web3Service web3Service;
+  private final EthBlockService ethBlockService;
+  private final ParserInfo parserInfo;
+  private final PriceDBService priceDBService;
+  private final AppProperties appProperties;
+  private final FunctionsUtils functionsUtils;
+  private Instant lastTx = Instant.now();
+  private long count = 0;
+  private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
-    public PriceLogParser(Web3Service web3Service,
-                          EthBlockService ethBlockService,
-                          ParserInfo parserInfo,
-                          PriceDBService priceDBService,
-                          AppProperties appProperties,
-                          FunctionsUtils functionsUtils) {
-        this.web3Service = web3Service;
-        this.ethBlockService = ethBlockService;
-        this.parserInfo = parserInfo;
-        this.priceDBService = priceDBService;
-        this.appProperties = appProperties;
-        this.functionsUtils = functionsUtils;
-    }
+  public PriceLogParser(Web3Service web3Service,
+      EthBlockService ethBlockService,
+      ParserInfo parserInfo,
+      PriceDBService priceDBService,
+      AppProperties appProperties,
+      FunctionsUtils functionsUtils) {
+    this.web3Service = web3Service;
+    this.ethBlockService = ethBlockService;
+    this.parserInfo = parserInfo;
+    this.priceDBService = priceDBService;
+    this.appProperties = appProperties;
+    this.functionsUtils = functionsUtils;
+  }
 
-    @Override
-    public void startParse() {
-        log.info("Start parse Price logs");
-        parserInfo.addParser(this);
-        web3Service.subscribeOnLogs(logs);
-        new Thread(() -> {
-            while (run.get()) {
-                Log ethLog = null;
-                try {
-                    ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    count++;
-                    if (count % 100 == 0) {
-                        log.info(this.getClass().getSimpleName() + " handled " + count);
-                    }
-                    PriceDTO dto = parse(ethLog);
-                    if (dto != null) {
-                        lastTx = Instant.now();
-                        boolean success = priceDBService.savePriceDto(dto);
-                        if (success) {
-                            output.put(dto);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Error price parser loop " + ethLog, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
+  @Override
+  public void startParse() {
+    log.info("Start parse Price logs");
+    parserInfo.addParser(this);
+    web3Service.subscribeOnLogs(logs);
+    new Thread(() -> {
+      while (run.get()) {
+        Log ethLog = null;
+        try {
+          ethLog = logs.poll(1, TimeUnit.SECONDS);
+          count++;
+          if (count % 100 == 0) {
+            log.info(this.getClass().getSimpleName() + " handled " + count);
+          }
+          PriceDTO dto = parse(ethLog);
+          if (dto != null) {
+            lastTx = Instant.now();
+            boolean success = priceDBService.savePriceDto(dto);
+            if (success) {
+              output.put(dto);
             }
-        }).start();
+          }
+        } catch (Exception e) {
+          log.error("Error price parser loop " + ethLog, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
+        }
+      }
+    }).start();
+  }
+
+  // keep this parsing lightweight as more as possible
+  public PriceDTO parse(Log ethLog) {
+    PriceTx tx = priceDecoder.decode(ethLog);
+
+    if (tx == null) {
+      return null;
+    }
+    String sourceName = ContractUtils.getNameByAddress(tx.getSource())
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
+    PriceDTO dto = new PriceDTO();
+
+    boolean keyCoinFirst = checkAndFillCoins(tx, dto);
+    boolean buy = isBuy(tx, keyCoinFirst);
+    dto.setSource(sourceName);
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setBlock(tx.getBlock().longValue());
+    dto.setBuy(buy ? 1 : 0);
+
+    if (!isValidSource(dto)) {
+      return null;
     }
 
-    // keep this parsing lightweight as more as possible
-    public PriceDTO parse(Log ethLog) {
-        PriceTx tx = priceDecoder.decode(ethLog);
+    fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
 
-        if (tx == null) {
-            return null;
-        }
-        String sourceName = ContractUtils.getNameByAddress(tx.getSource())
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
-        PriceDTO dto = new PriceDTO();
-
-        boolean keyCoinFirst = checkAndFillCoins(tx, dto);
-        boolean buy = isBuy(tx, keyCoinFirst);
-        dto.setSource(sourceName);
-        dto.setId(tx.getHash() + "_" + tx.getLogId());
-        dto.setBlock(tx.getBlock().longValue());
-        dto.setBuy(buy ? 1 : 0);
-
-        if (!isValidSource(dto)) {
-            return null;
-        }
-
-        fillAmountsAndPrice(dto, tx, keyCoinFirst, buy);
-
-        if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
-            return null;
-        }
-
-        // for lpToken price we should know staked amounts
-        fillLpStats(dto);
-
-        dto.setBlockDate(ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
-        log.info(dto.print());
-        return dto;
+    if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
+      return null;
     }
 
-    private void fillLpStats(PriceDTO dto) {
-        String lpAddress = ContractUtils.getAddressByName(dto.getSource(), ContractType.UNI_PAIR)
-            .orElseThrow(() -> new IllegalStateException("Lp address not found for " + dto.getSource()));
-        Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, dto.getBlock());
-        double lpBalance = parseAmount(
-            functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
-                .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
-            lpAddress);
-        dto.setLpTotalSupply(lpBalance);
-        dto.setLpToken0Pooled(lpPooled.component1());
-        dto.setLpToken1Pooled(lpPooled.component2());
-    }
+    // for lpToken price we should know staked amounts
+    fillLpStats(dto);
 
-    private boolean skipSimilar(PriceDTO dto) {
-        PriceDTO lastPrice = lastPrices.get(dto.getToken());
-        if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
-            return true;
-        }
-        lastPrices.put(dto.getToken(), dto);
+    dto.setBlockDate(
+        ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
+    log.info(dto.print());
+    return dto;
+  }
+
+  private void fillLpStats(PriceDTO dto) {
+    String lpAddress = ContractUtils.getAddressByName(dto.getSource(), ContractType.UNI_PAIR)
+        .orElseThrow(
+            () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
+    Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, dto.getBlock());
+    double lpBalance = parseAmount(
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
+        lpAddress);
+    dto.setLpTotalSupply(lpBalance);
+    dto.setLpToken0Pooled(lpPooled.component1());
+    dto.setLpToken1Pooled(lpPooled.component2());
+  }
+
+  private boolean skipSimilar(PriceDTO dto) {
+    PriceDTO lastPrice = lastPrices.get(dto.getToken());
+    if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
+      return true;
+    }
+    lastPrices.put(dto.getToken(), dto);
+    return false;
+  }
+
+  private boolean isValidSource(PriceDTO dto) {
+    String currentLpName = ContractUtils
+        .findUniPairNameForTokenName(dto.getToken(), dto.getBlock());
+    boolean result = currentLpName.equals(dto.getSource());
+    if (result) {
+      return true;
+    }
+    log.warn("{} price from not actual LP {}, should be {}",
+        dto.getToken(), dto.getSource(), currentLpName);
+    return false;
+  }
+
+  private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto) {
+    String lp = tx.getSource().toLowerCase();
+
+    String keyCoinHash = ContractUtils.findKeyTokenForUniPair(lp)
+        .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
+    String keyCoinName = ContractUtils.getNameByAddress(keyCoinHash)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
+    Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lp);
+    Tuple2<String, String> tokensNames = new Tuple2<>(
+        ContractUtils.getNameByAddress(tokensAdr.component1())
+            .orElseThrow(() -> new IllegalStateException(
+                "Not found token name for " + tokensAdr.component1())),
+        ContractUtils.getNameByAddress(tokensAdr.component2())
+            .orElseThrow(() -> new IllegalStateException(
+                "Not found token name for " + tokensAdr.component2()))
+    );
+
+    if (tokensNames.component1().equals(keyCoinName)) {
+      dto.setToken(tokensNames.component1());
+      dto.setOtherToken(tokensNames.component2());
+      return true;
+    } else if (tokensNames.component2().equals(keyCoinName)) {
+      dto.setToken(tokensNames.component2());
+      dto.setOtherToken(tokensNames.component1());
+      return false;
+    } else {
+      throw new IllegalStateException("Swap doesn't contains key coin " + keyCoinName + " " + tx);
+    }
+  }
+
+  private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
+    if (keyCoinFirst) {
+      if (isZero(tx, 3)) {
+        return true;
+      } else if (isZero(tx, 2)) {
         return false;
-    }
-
-    private boolean isValidSource(PriceDTO dto) {
-        String currentLpName = ContractUtils.findUniPairNameForTokenName(dto.getToken(), dto.getBlock());
-        boolean result = currentLpName.equals(dto.getSource());
-        if (result) {
-            return true;
-        }
-        log.warn("{} price from not actual LP {}, should be {}",
-            dto.getToken(), dto.getSource(), currentLpName);
+      } else {
+        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+      }
+    } else {
+      if (isZero(tx, 2)) {
+        return true;
+      } else if (isZero(tx, 3)) {
         return false;
+      } else {
+        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+      }
+    }
+  }
+
+  private static void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
+      boolean buy) {
+    if (keyCoinFirst) {
+      if (buy) {
+        dto.setTokenAmount(parseAmountFromTx(tx, 2, dto.getToken()));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 1, dto.getOtherToken()));
+      } else {
+        dto.setTokenAmount(parseAmountFromTx(tx, 0, dto.getToken()));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 3, dto.getOtherToken()));
+      }
+    } else {
+      if (buy) {
+        dto.setTokenAmount(parseAmountFromTx(tx, 3, dto.getToken()));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 0, dto.getOtherToken()));
+      } else {
+        dto.setTokenAmount(parseAmountFromTx(tx, 1, dto.getToken()));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherToken()));
+      }
     }
 
-    private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto) {
-        String lp = tx.getSource().toLowerCase();
+    dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
+  }
 
-        String keyCoinHash = ContractUtils.findKeyTokenForUniPair(lp)
-            .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-        String keyCoinName = ContractUtils.getNameByAddress(keyCoinHash)
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
-        Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lp);
-        Tuple2<String, String> tokensNames = new Tuple2<>(
-            ContractUtils.getNameByAddress(tokensAdr.component1())
-                .orElseThrow(() -> new IllegalStateException("Not found token name for " + tokensAdr.component1())),
-            ContractUtils.getNameByAddress(tokensAdr.component2())
-                .orElseThrow(() -> new IllegalStateException("Not found token name for " + tokensAdr.component2()))
-        );
+  private static double parseAmountFromTx(PriceTx tx, int i, String name) {
+    return parseAmount(tx.getIntegers()[i],
+        ContractUtils.getAddressByName(name, ContractType.TOKEN)
+            .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
+    );
+  }
 
-        if (tokensNames.component1().equals(keyCoinName)) {
-            dto.setToken(tokensNames.component1());
-            dto.setOtherToken(tokensNames.component2());
-            return true;
-        } else if (tokensNames.component2().equals(keyCoinName)) {
-            dto.setToken(tokensNames.component2());
-            dto.setOtherToken(tokensNames.component1());
-            return false;
-        } else {
-            throw new IllegalStateException("Swap doesn't contains key coin " + keyCoinName + " " + tx);
-        }
-    }
+  private static boolean isZero(PriceTx tx, int i) {
+    return BigInteger.ZERO.equals(tx.getIntegers()[i]);
+  }
 
-    private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
-        if (keyCoinFirst) {
-            if (isZero(tx, 3)) {
-                return true;
-            } else if (isZero(tx, 2)) {
-                return false;
-            } else {
-                throw new IllegalStateException("Swap doesn't contains zero value " + tx);
-            }
-        } else {
-            if (isZero(tx, 2)) {
-                return true;
-            } else if (isZero(tx, 3)) {
-                return false;
-            } else {
-                throw new IllegalStateException("Swap doesn't contains zero value " + tx);
-            }
-        }
-    }
+  @Override
+  public BlockingQueue<DtoI> getOutput() {
+    return output;
+  }
 
-    private static void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst, boolean buy) {
-        if (keyCoinFirst) {
-            if (buy) {
-                dto.setTokenAmount(parseAmountFromTx(tx, 2, dto.getToken()));
-                dto.setOtherTokenAmount(parseAmountFromTx(tx, 1, dto.getOtherToken()));
-            } else {
-                dto.setTokenAmount(parseAmountFromTx(tx, 0, dto.getToken()));
-                dto.setOtherTokenAmount(parseAmountFromTx(tx, 3, dto.getOtherToken()));
-            }
-        } else {
-            if (buy) {
-                dto.setTokenAmount(parseAmountFromTx(tx, 3, dto.getToken()));
-                dto.setOtherTokenAmount(parseAmountFromTx(tx, 0, dto.getOtherToken()));
-            } else {
-                dto.setTokenAmount(parseAmountFromTx(tx, 1, dto.getToken()));
-                dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherToken()));
-            }
-        }
-
-        dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
-    }
-
-    private static double parseAmountFromTx(PriceTx tx, int i, String name) {
-        return parseAmount(tx.getIntegers()[i],
-            ContractUtils.getAddressByName(name, ContractType.TOKEN)
-                .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
-        );
-    }
-
-    private static boolean isZero(PriceTx tx, int i) {
-        return BigInteger.ZERO.equals(tx.getIntegers()[i]);
-    }
-
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
-    }
-
-    @Override
-    public Instant getLastTx() {
-        return lastTx;
-    }
+  @Override
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }

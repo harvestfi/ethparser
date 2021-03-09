@@ -94,127 +94,127 @@ public class EthBlockParser {
         }).start();
     }
 
-    public EthBlockEntity parse(EthBlock ethBlock) {
-        if (ethBlock == null) {
-            return null;
-        }
-        Block block = ethBlock.getBlock();
-        EthBlockEntity ethBlockEntity = blockToEntity(block);
-
-        Set<EthTxEntity> ethTxEntities = new HashSet<>();
-        Map<String, EthTxEntity> txMap = new HashMap<>();
-        //noinspection unchecked
-        for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
-            Transaction transaction = transactionResult.get();
-            EthTxEntity ethTxEntity = transactionToEntity(transaction, ethBlockEntity);
-            ethTxEntities.add(ethTxEntity);
-            txMap.put(ethTxEntity.getHash().getHash(), ethTxEntity);
-        }
-        ethBlockEntity.setTransactions(ethTxEntities);
-
-        transactionReceipts(txMap, 0);
-
-        return ethBlockEntity;
+  public EthBlockEntity parse(EthBlock ethBlock) {
+    if (ethBlock == null) {
+      return null;
     }
+    Block block = ethBlock.getBlock();
+    EthBlockEntity ethBlockEntity = blockToEntity(block);
 
-    private EthTxEntity transactionToEntity(Transaction transaction, EthBlockEntity ethBlockEntity) {
-        EthTxEntity ethTxEntity = new EthTxEntity();
-
-        ethTxEntity.setHash(new EthHashEntity(transaction.getHash()));
-        ethTxEntity.setNonce(transaction.getNonce().toString());
-        ethTxEntity.setTransactionIndex(transaction.getTransactionIndex().longValue());
-        ethTxEntity.setBlockNumber(ethBlockEntity);
-        ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom()));
-        ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo()));
-        ethTxEntity.setValue(transaction.getValue().toString());
-        ethTxEntity.setGasPrice(transaction.getGasPrice().longValue());
-        ethTxEntity.setGas(transaction.getGas().longValue());
-        ethTxEntity.setInput(transaction.getInput());
-        ethTxEntity.setCreates(transaction.getCreates());
-        ethTxEntity.setPublicKey(transaction.getPublicKey());
-        ethTxEntity.setRaw(transaction.getRaw());
-
-        return ethTxEntity;
+    Set<EthTxEntity> ethTxEntities = new HashSet<>();
+    Map<String, EthTxEntity> txMap = new HashMap<>();
+    //noinspection unchecked
+    for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
+      Transaction transaction = transactionResult.get();
+      EthTxEntity ethTxEntity = transactionToEntity(transaction, ethBlockEntity);
+      ethTxEntities.add(ethTxEntity);
+      txMap.put(ethTxEntity.getHash().getHash(), ethTxEntity);
     }
+    ethBlockEntity.setTransactions(ethTxEntities);
 
-    private EthBlockEntity blockToEntity(Block block) {
-        EthBlockEntity ethBlockEntity = new EthBlockEntity();
-        ethBlockEntity.setNumber(block.getNumber().longValue());
-        ethBlockEntity.setHash(new EthHashEntity(block.getHash()));
-        ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash()));
-        ethBlockEntity.setNonce(block.getNonce().toString());
-        ethBlockEntity.setAuthor(block.getAuthor());
-        ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner()));
-        ethBlockEntity.setDifficulty(block.getDifficulty().toString());
-        ethBlockEntity.setTotalDifficulty(block.getTotalDifficulty().toString());
-        ethBlockEntity.setExtraData(block.getExtraData());
-        ethBlockEntity.setSize(block.getSize().longValue());
-        ethBlockEntity.setGasLimit(block.getGasLimit().longValue());
-        ethBlockEntity.setGasUsed(block.getGasUsed().longValue());
-        ethBlockEntity.setTimestamp(block.getTimestamp().longValue());
-        return ethBlockEntity;
+    transactionReceipts(txMap, 0);
+
+    return ethBlockEntity;
+  }
+
+  private EthTxEntity transactionToEntity(Transaction transaction, EthBlockEntity ethBlockEntity) {
+    EthTxEntity ethTxEntity = new EthTxEntity();
+
+    ethTxEntity.setHash(new EthHashEntity(transaction.getHash()));
+    ethTxEntity.setNonce(transaction.getNonce().toString());
+    ethTxEntity.setTransactionIndex(transaction.getTransactionIndex().longValue());
+    ethTxEntity.setBlockNumber(ethBlockEntity);
+    ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom()));
+    ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo()));
+    ethTxEntity.setValue(transaction.getValue().toString());
+    ethTxEntity.setGasPrice(transaction.getGasPrice().longValue());
+    ethTxEntity.setGas(transaction.getGas().longValue());
+    ethTxEntity.setInput(transaction.getInput());
+    ethTxEntity.setCreates(transaction.getCreates());
+    ethTxEntity.setPublicKey(transaction.getPublicKey());
+    ethTxEntity.setRaw(transaction.getRaw());
+
+    return ethTxEntity;
+  }
+
+  private EthBlockEntity blockToEntity(Block block) {
+    EthBlockEntity ethBlockEntity = new EthBlockEntity();
+    ethBlockEntity.setNumber(block.getNumber().longValue());
+    ethBlockEntity.setHash(new EthHashEntity(block.getHash()));
+    ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash()));
+    ethBlockEntity.setNonce(block.getNonce().toString());
+    ethBlockEntity.setAuthor(block.getAuthor());
+    ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner()));
+    ethBlockEntity.setDifficulty(block.getDifficulty().toString());
+    ethBlockEntity.setTotalDifficulty(block.getTotalDifficulty().toString());
+    ethBlockEntity.setExtraData(block.getExtraData());
+    ethBlockEntity.setSize(block.getSize().longValue());
+    ethBlockEntity.setGasLimit(block.getGasLimit().longValue());
+    ethBlockEntity.setGasUsed(block.getGasUsed().longValue());
+    ethBlockEntity.setTimestamp(block.getTimestamp().longValue());
+    return ethBlockEntity;
+  }
+
+  private void transactionReceipts(Map<String, EthTxEntity> txMap, int retryCount) {
+    if (retryCount > 10) {
+      return;
     }
-
-    private void transactionReceipts(Map<String, EthTxEntity> txMap, int retryCount) {
-        if (retryCount > 10) {
+    Stream<Optional<TransactionReceipt>> receipts =
+        web3Service.fetchTransactionReceiptBatch(txMap.keySet());
+    receipts
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .forEach(receipt -> {
+          EthTxEntity ethTxEntity = txMap.get(receipt.getTransactionHash());
+          if (ethTxEntity == null) {
+            log.error("Can't map receipt to tx! ");
             return;
-        }
-        Stream<Optional<TransactionReceipt>> receipts =
-            web3Service.fetchTransactionReceiptBatch(txMap.keySet());
-        receipts
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .forEach(receipt -> {
-                EthTxEntity ethTxEntity = txMap.get(receipt.getTransactionHash());
-                if (ethTxEntity == null) {
-                    log.error("Can't map receipt to tx! ");
-                    return;
-                }
+          }
 
-                fillTxFromReceipt(ethTxEntity, receipt);
-                txMap.remove(receipt.getTransactionHash());
-            });
-        if (!txMap.isEmpty()) {
-            log.error("Got {} empty receipts, retry with timeout", txMap.size());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-            transactionReceipts(txMap, retryCount + 1);
-        }
+          fillTxFromReceipt(ethTxEntity, receipt);
+          txMap.remove(receipt.getTransactionHash());
+        });
+    if (!txMap.isEmpty()) {
+      log.error("Got {} empty receipts, retry with timeout", txMap.size());
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException ignored) {
+      }
+      transactionReceipts(txMap, retryCount + 1);
+    }
+  }
+
+  private void fillTxFromReceipt(EthTxEntity tx, TransactionReceipt receipt) {
+    tx.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
+    tx.setGasUsed(receipt.getCumulativeGasUsed().longValue());
+    tx.setContractAddress(receipt.getContractAddress());
+    tx.setRoot(receipt.getRoot());
+    tx.setStatus(receipt.getStatus());
+    tx.setRevertReason(receipt.getRevertReason());
+
+    tx.setLogs(receipt.getLogs().stream()
+        .map(l -> ethLogToEntity(l, tx))
+        .collect(Collectors.toSet())
+    );
+  }
+
+  private EthLogEntity ethLogToEntity(Log ethLog, EthTxEntity tx) {
+    EthLogEntity ethLogEntity = new EthLogEntity();
+
+    ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
+    ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
+    ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
+    ethLogEntity.setData(ethLog.getData());
+    ethLogEntity.setType(ethLog.getType());
+    ethLogEntity.setTx(tx);
+
+    if (ethLog.getTopics() != null && !ethLog.getTopics().isEmpty()) {
+      ethLogEntity.setFirstTopic(new EthHashEntity(ethLog.getTopics().remove(0)));
+      ethLogEntity.setTopics(String.join(",", ethLog.getTopics()));
     }
 
-    private void fillTxFromReceipt(EthTxEntity tx, TransactionReceipt receipt) {
-        tx.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
-        tx.setGasUsed(receipt.getCumulativeGasUsed().longValue());
-        tx.setContractAddress(receipt.getContractAddress());
-        tx.setRoot(receipt.getRoot());
-        tx.setStatus(receipt.getStatus());
-        tx.setRevertReason(receipt.getRevertReason());
-
-        tx.setLogs(receipt.getLogs().stream()
-            .map(l -> ethLogToEntity(l, tx))
-            .collect(Collectors.toSet())
-        );
-    }
-
-    private EthLogEntity ethLogToEntity(Log ethLog, EthTxEntity tx) {
-        EthLogEntity ethLogEntity = new EthLogEntity();
-
-        ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
-        ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
-        ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
-        ethLogEntity.setData(ethLog.getData());
-        ethLogEntity.setType(ethLog.getType());
-        ethLogEntity.setTx(tx);
-
-        if (ethLog.getTopics() != null && !ethLog.getTopics().isEmpty()) {
-            ethLogEntity.setFirstTopic(new EthHashEntity(ethLog.getTopics().remove(0)));
-            ethLogEntity.setTopics(String.join(",", ethLog.getTopics()));
-        }
-
-        return ethLogEntity;
-    }
+    return ethLogEntity;
+  }
 
     public BlockingQueue<EthBlockEntity> getOutput() {
         return output;
