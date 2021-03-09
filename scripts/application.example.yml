@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    database: postgresql
+#    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties.hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      jdbc.lob.non_contextual_creation: true
+  datasource:
+    platform: postgresql
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: pwd
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+
+server:
+  port: 4142

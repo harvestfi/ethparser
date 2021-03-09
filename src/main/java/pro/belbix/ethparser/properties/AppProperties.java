@@ -19,7 +19,6 @@ public class AppProperties {
     private boolean onlyParse = false;
     private boolean testWs = false;
     private int testWsRate = 1000;
-    private boolean devMod = false;
     private String startUtil = "";
 
     private boolean overrideDuplicates = false;

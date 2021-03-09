@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,31 +22,34 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 public class HardWorksCalculatorTest {
 
-    @MockBean
-    private HarvestRepository harvestRepository;
-    @MockBean
-    private HardWorkRepository hardworkRepository;
-    @MockBean
-    private EthBlockService ethBlockService;
+  @MockBean
+  private HarvestRepository harvestRepository;
+  @MockBean
+  private HardWorkRepository hardworkRepository;
+  @MockBean
+  private EthBlockService ethBlockService;
 
-    @Autowired
-    private HardWorkCalculator hardworkCalculator;
+  @Autowired
+  private HardWorkCalculator hardworkCalculator;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    final String fakeEthAddr = "0x8f566f82c13ffb1bc72169ddb7beb1b19a5726ff";
+  final String fakeEthAddr = "0x8f566f82c13ffb1bc72169ddb7beb1b19a5726ff";
 
-    final String fakeVault1 = "v1";
-    final String fakeVault2 = "v2";
-    final long fakeBlock1 = 1L;
-    final long fakeBlock2 = 5L;
+  final String fakeVault1 = "v1";
+  final String fakeVault2 = "v2";
+  final long fakeBlock1 = 1L;
+  final long fakeBlock2 = 5L;
 
-    final long fakeStartBlockDate1 = 1L;
-    final long fakeEndBlockDate1 = 2L;
+  final long fakeStartBlockDate1 = 1L;
+  final long fakeEndBlockDate1 = 2L;
     final long fakeStartBlockDate2 = 5L;
     final long fakeEndBlockDate2 = 6L;
     final double fakeEthPrice = 2;
@@ -61,7 +63,8 @@ public class HardWorksCalculatorTest {
 
     @Before
     public void setup() {
-        when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
+      contractLoader.load();
+      when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
         when(ethBlockService.getTimestampSecForBlock(null, fakeBlock2)).thenReturn(fakeEndBlockDate2);
     }
 

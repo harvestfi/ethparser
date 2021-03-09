@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.Collections;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +19,26 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 public class PriceLogParserTest {
 
-    @Autowired
-    private PriceLogParser priceLogParser;
-    @Autowired
-    private Web3Service web3Service;
+  @Autowired
+  private PriceLogParser priceLogParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private ContractLoader contractLoader;
 
-//    @Test
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  //    @Test
 //    public void priceParseUNI_LP_USDC_IDX() {
 //        assertOnBlock(
 //            "0xc372089019614e5791b08b5036f298d002a8cbef",

@@ -11,8 +11,8 @@ import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.dto.DtoI;
+import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.model.DeployerTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -24,6 +24,7 @@ import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
 @Service
 @Log4j2
 public class DeployerTransactionsParser implements Web3Parser {
+
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Service web3Service;
   private final DeployerDecoder deployerDecoder;
@@ -53,27 +54,27 @@ public class DeployerTransactionsParser implements Web3Parser {
     parserInfo.addParser(this);
     web3Service.subscribeOnTransactions(transactions);
     new Thread(
-            () -> {
-              while (run.get()) {
-                Transaction transaction = null;
-                try {
-                  transaction = transactions.poll(1, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
+        () -> {
+          while (run.get()) {
+            Transaction transaction = null;
+            try {
+              transaction = transactions.poll(1, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            }
+            DeployerDTO dto = parseDeployerTransaction(transaction);
+            if (dto != null) {
+              lastTx = Instant.now();
+              try {
+                boolean success = deployerDbService.save(dto);
+                if (success) {
+                  output.put(dto);
                 }
-                DeployerDTO dto = parseDeployerTransaction(transaction);
-                if (dto != null) {
-                  lastTx = Instant.now();
-                  try {
-                    boolean success = deployerDbService.save(dto);
-                    if (success) {
-                      output.put(dto);
-                    }
-                  } catch (Exception e) {
-                    log.error("Can't save " + dto.toString(), e);
-                  }
-                }
+              } catch (Exception e) {
+                log.error("Can't save " + dto.toString(), e);
               }
-            })
+            }
+          }
+        })
         .start();
   }
 

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +21,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
 @RunWith(SpringRunner.class)
@@ -27,19 +29,26 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 @ActiveProfiles("test")
 public class UniswapLPLogParseTest {
 
-    @Autowired
-    private Web3Service web3Service;
-    private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private ContractLoader contractLoader;
+  private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
 
-    @Test
-    @Ignore
-    public void parseUNI_LP_USDC_FARM() {
-        parseLp("0x514906fc121c7878424a5c928cad1852cc545892", 11165610, null);
-    }
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
 
-    @Test
-    @Ignore
-    public void parseEthFarmLp() {
+  @Test
+  @Ignore
+  public void parseUNI_LP_USDC_FARM() {
+    parseLp("0x514906fc121c7878424a5c928cad1852cc545892", 11165610, null);
+  }
+
+  @Test
+  @Ignore
+  public void parseEthFarmLp() {
         parseLp("0x56feaccb7f750b997b36a68625c7c596f0b41a58", 11165610, null);
     }
 

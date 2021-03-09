@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
@@ -30,20 +32,28 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @ActiveProfiles("test")
 public class HarvestVaultDecoderTest {
 
-    @Autowired
-    private Web3Service web3Service;
-    private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
-    private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Test
-    @Ignore
-    public void parseVault_WBTC() {
-        Map<String, Integer> topics = new HashMap<>();
-        List<LogResult> logResults = web3Service.fetchContractLogs(
-            singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null);
-        assertFalse(logResults.isEmpty());
-        for (LogResult logResult : logResults) {
-            Log log = (Log) logResult.get();
+  @Autowired
+  private Web3Service web3Service;
+  private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
+  private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+
+  @Before
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  @Test
+  @Ignore
+  public void parseVault_WBTC() {
+    Map<String, Integer> topics = new HashMap<>();
+    List<LogResult> logResults = web3Service.fetchContractLogs(
+        singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null);
+    assertFalse(logResults.isEmpty());
+    for (LogResult logResult : logResults) {
+      Log log = (Log) logResult.get();
             assertFalse(log.getTopics().isEmpty());
             String topic0 = log.getTopics().get(0);
             if (topics.containsKey(topic0)) {

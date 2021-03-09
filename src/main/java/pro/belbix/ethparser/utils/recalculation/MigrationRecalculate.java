@@ -12,31 +12,31 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 @Log4j2
 public class MigrationRecalculate {
 
-    private final HarvestRepository harvestRepository;
-    private final HarvestVaultParserV2 harvestVaultParserV2;
-    private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
-    private final HarvestDBService harvestDBService;
+  private final HarvestRepository harvestRepository;
+  private final HarvestVaultParserV2 harvestVaultParserV2;
+  private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
+  private final HarvestDBService harvestDBService;
 
-    public MigrationRecalculate(HarvestRepository harvestRepository,
-                                HarvestVaultParserV2 harvestVaultParserV2,
-                                HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
-                                HarvestDBService harvestDBService) {
-        this.harvestRepository = harvestRepository;
-        this.harvestVaultParserV2 = harvestVaultParserV2;
-        this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
-        this.harvestDBService = harvestDBService;
+  public MigrationRecalculate(HarvestRepository harvestRepository,
+      HarvestVaultParserV2 harvestVaultParserV2,
+      HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
+      HarvestDBService harvestDBService) {
+    this.harvestRepository = harvestRepository;
+    this.harvestVaultParserV2 = harvestVaultParserV2;
+    this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
+    this.harvestDBService = harvestDBService;
+  }
+
+  public void start() {
+    for (HarvestDTO dto : harvestRepository.fetchAllMigration()) {
+
+      harvestVaultParserV2.parseMigration(dto);
+      HarvestDTO migration = dto.getMigration();
+      assert migration != null;
+      harvestVaultParserV2.enrichDto(migration);
+      harvestOwnerBalanceCalculator.fillBalance(migration);
+      boolean success = harvestDBService.saveHarvestDTO(migration);
+      log.info("Parse migration " + success + " " + migration.print());
     }
-
-    public void start() {
-        for (HarvestDTO dto : harvestRepository.fetchAllMigration()) {
-
-            harvestVaultParserV2.parseMigration(dto);
-            HarvestDTO migration = dto.getMigration();
-            assert migration != null;
-            harvestVaultParserV2.enrichDto(migration);
-            harvestOwnerBalanceCalculator.fillBalance(migration);
-            boolean success = harvestDBService.saveHarvestDTO(migration);
-            log.info("Parse migration " + success + " " + migration.print());
-        }
-    }
+  }
 }
