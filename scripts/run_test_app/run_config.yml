@@ -1,0 +1,3 @@
+ethparser:
+  testWs: true
+  testWsRate: 10000

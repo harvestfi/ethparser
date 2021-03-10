@@ -48,19 +48,18 @@ public class CSVController {
 
     @RequestMapping(
         value = "/transactions/history/harvest/{name}",
-        method = RequestMethod.GET,
-        produces = "text/csv;charset=utf-8")
+        method = RequestMethod.GET
+    )
     public void harvestHistoryDataForVault(
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end
     ) {
-        List<HarvestDTO> transactions = harvestRepository
-            .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE));
-
         try {
+            List<HarvestDTO> transactions = harvestRepository
+                .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                    parseLong(end, Long.MAX_VALUE));
             writeCSV(response, transactions, HarvestDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Harvest", e);
@@ -69,19 +68,18 @@ public class CSVController {
 
     @RequestMapping(
         value = "/transactions/history/reward/{name}",
-        method = RequestMethod.GET,
-        produces = "text/csv;charset=utf-8"
+        method = RequestMethod.GET
     )
     public void rewardHistoryDataForVault(
-        HttpServletResponse response, @PathVariable("name") String name,
+        HttpServletResponse response,
+        @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end
     ) {
-        List<RewardDTO> transactions = rewardsRepository
-            .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE));
-
         try {
+            List<RewardDTO> transactions = rewardsRepository
+                .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                    parseLong(end, Long.MAX_VALUE));
             writeCSV(response, transactions, RewardDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);
@@ -90,17 +88,18 @@ public class CSVController {
 
     @RequestMapping(
         value = "/transactions/history/hardwork/{name}",
-        method = RequestMethod.GET,
-        produces = "text/csv;charset=utf-8")
+        method = RequestMethod.GET
+    )
     public void hardworkHistoryDataForVault(
-        HttpServletResponse response, @PathVariable("name") String name,
+        HttpServletResponse response,
+        @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end
     ) {
-        List<HardWorkDTO> transactions = hardWorkRepository
-            .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE));
         try {
+            List<HardWorkDTO> transactions = hardWorkRepository
+                .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                    parseLong(end, Long.MAX_VALUE));
             writeCSV(response, transactions, HardWorkDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);
@@ -109,18 +108,17 @@ public class CSVController {
 
     @RequestMapping(
         value = "/transactions/history/tvl/{name}",
-        method = RequestMethod.GET,
-        produces = "text/csv;charset=utf-8"
+        method = RequestMethod.GET
     )
     public void tvlHistoryDataForVault(
-        HttpServletResponse response, @PathVariable("name") String name,
+        HttpServletResponse response,
+        @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end
     ) {
-        List<TvlHistory> transactions = harvestTvlDBService
-            .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
-
         try {
+            List<TvlHistory> transactions = harvestTvlDBService
+                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
             writeCSV(response, transactions, TvlHistory.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);
@@ -132,6 +130,10 @@ public class CSVController {
         List<T> transactions,
         Class<T> clazz
     ) throws IOException {
+        response.setContentType("text/csv");
+        String csvFileName = clazz.getSimpleName() + "_" + System.currentTimeMillis() + ".csv";
+        String headerValue = String.format("attachment; filename=\"%s\"", csvFileName);
+        response.setHeader("Content-Disposition", headerValue);
 
         ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(),
             CsvPreference.STANDARD_PREFERENCE);
@@ -144,13 +146,8 @@ public class CSVController {
         for (Object harvest : transactions.subList(returnLimit, listSize)) {
             csvWriter.write(harvest, headers);
         }
-
+        response.getWriter().flush();
         csvWriter.close();
-
-        response.setContentType("text/csv");
-        String csvFileName = clazz.getSimpleName() + "_" + System.currentTimeMillis() + ".csv";
-        String headerValue = String.format("attachment; filename=\"%s\"", csvFileName);
-        response.setHeader("Content-Disposition", headerValue);
     }
 
     static String[] collectFields(Class<?> clazz) {
