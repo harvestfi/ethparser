@@ -318,6 +318,12 @@ public abstract class MethodDecoder {
                         TypeReference.makeTypeReference("address", true, false),
                         TypeReference.makeTypeReference("uint256")
                     ));
+                parameters.put("RewardPaid#V2",
+                    Arrays.asList(
+                        TypeReference.makeTypeReference("address", true, false),
+                        TypeReference.makeTypeReference("address"),
+                        TypeReference.makeTypeReference("uint256")
+                    ));
                 parameters.put("RewardAdded",
                     Collections.singletonList(
                         TypeReference.makeTypeReference("uint256")

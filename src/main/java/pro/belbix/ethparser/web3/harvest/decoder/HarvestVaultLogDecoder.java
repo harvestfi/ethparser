@@ -110,6 +110,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
             case "exit":
             case "SmartContractRecorded":
             case "RewardDenied":
+            case "RewardPaid#V2":
                 return;
         }
         throw new IllegalStateException("Unknown method " + methodName);
