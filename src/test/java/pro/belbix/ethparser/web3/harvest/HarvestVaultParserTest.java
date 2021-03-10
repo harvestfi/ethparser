@@ -2,20 +2,18 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -1748,7 +1746,7 @@ public class HarvestVaultParserTest {
         Long usdTvl,
         boolean confirmed) {
         String amount = numberFormat(_amount);
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("MethodName", methodName, dto.getMethodName()),
             () -> assertEquals("Vault", vault, dto.getVault()),

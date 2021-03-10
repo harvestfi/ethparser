@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,11 +11,9 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;

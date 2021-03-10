@@ -2,20 +2,18 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -105,7 +103,7 @@ public class ImportantEventsParserTest {
     }
 
     private void assertDto(ImportantEventsDTO dto, String newStrategy, String oldStrategy, String blockDate, String mintAmount) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(
             () -> assertEquals("newStrategy", newStrategy.toLowerCase(), String.valueOf(dto.getNewStrategy())),
             () -> assertEquals("oldStrategy", oldStrategy.toLowerCase(), String.valueOf(dto.getOldStrategy())),

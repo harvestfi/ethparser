@@ -2,9 +2,9 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
@@ -115,7 +115,7 @@ public class UniToHarvestConverterTest {
                            String otherCoin,
                            String otherAmount,
                            String lastPrice) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
                 () -> assertEquals("Id", id, dto.getId()),
                 () -> assertEquals("Amount", amount, String.format("%.8f", dto.getAmount())),
