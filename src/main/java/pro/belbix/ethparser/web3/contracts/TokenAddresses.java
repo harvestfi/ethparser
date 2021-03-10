@@ -91,7 +91,12 @@ class TokenAddresses {
       new TokenContract(11733661, "WBTC_KBTC", "0xE6C3502997f97F9BDe34CB165fBce191065E068f")
           .addLp(0, "UNI_LP_WBTC_KBTC"),
       new TokenContract(11733686, "WBTC_KLON", "0xB97D5cF2864FB0D08b34a484FF48d5492B2324A0")
-          .addLp(0, "UNI_LP_WBTC_KLON")
+          .addLp(0, "UNI_LP_WBTC_KLON"),
+      new TokenContract(11345280, "MNFLX", "0xc8d674114bac90148d11d3c1d33c61835a0f9dcd")
+          .addLp(0, "UNI_LP_MNFLX_UST"),
+      new TokenContract(11345288, "MTWTR", "0xedb0414627e6f1e3f082de65cd4f9c693d78cca9")
+          .addLp(0, "UNI_LP_MTWTR_UST"),
+      new TokenContract(11875162, "CRV_LINK", "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a")
   );
 
 }
