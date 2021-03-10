@@ -15,36 +15,36 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
 
-    public HarvestTx decode(Log ethLog) {
-        if (!isValidLog(ethLog)) {
-            return null;
-        }
-        String methodId = parseMethodId(ethLog)
-            .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
-        String methodName = methodNamesByMethodId.get(methodId);
-        List<TypeReference<Type>> parameters = findParameters(methodId)
-            .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
-
-        List<Type> types = extractLogIndexedValues(ethLog, parameters);
-        HarvestTx tx = new HarvestTx();
-        tx.setVault(new Address(ethLog.getAddress()));
-        tx.setLogId(ethLog.getLogIndex().longValue());
-        tx.setHash(ethLog.getTransactionHash());
-        tx.setBlock(ethLog.getBlockNumber());
-        tx.setBlockHash(ethLog.getBlockHash());
-        tx.setMethodName(methodName);
-        tx.setSuccess(true); //from logs always success
-        enrich(types, methodName, tx);
-        return tx;
+  public HarvestTx decode(Log ethLog) {
+    if (!isValidLog(ethLog)) {
+      return null;
     }
+    String methodId = parseMethodId(ethLog)
+        .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
+    String methodName = methodNamesByMethodId.get(methodId);
+    List<TypeReference<Type>> parameters = findParameters(methodId)
+        .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
 
-    private boolean isValidLog(Log log) {
-        if (log == null || log.getTopics().isEmpty()) {
-            return false;
-        }
-        return ContractUtils.isVaultAddress(log.getAddress())
-            || ContractUtils.isPoolAddress(log.getAddress());
+    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    HarvestTx tx = new HarvestTx();
+    tx.setVault(new Address(ethLog.getAddress()));
+    tx.setLogId(ethLog.getLogIndex().longValue());
+    tx.setHash(ethLog.getTransactionHash());
+    tx.setBlock(ethLog.getBlockNumber());
+    tx.setBlockHash(ethLog.getBlockHash());
+    tx.setMethodName(methodName);
+    tx.setSuccess(true); //from logs always success
+    enrich(types, methodName, tx);
+    return tx;
+  }
+
+  private boolean isValidLog(Log log) {
+    if (log == null || log.getTopics().isEmpty()) {
+      return false;
     }
+    return ContractUtils.isVaultAddress(log.getAddress())
+        || ContractUtils.isPoolAddress(log.getAddress());
+  }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {
         if (types == null) {
@@ -116,8 +116,9 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
         throw new IllegalStateException("Unknown method " + methodName);
     }
 
-    @Override
-    public EthTransactionI mapTypesToModel(List<Type> types, String methodID, Transaction transaction) {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public EthTransactionI mapTypesToModel(List<Type> types, String methodID,
+      Transaction transaction) {
+    throw new UnsupportedOperationException();
+  }
 }

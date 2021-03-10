@@ -20,48 +20,48 @@ import pro.belbix.ethparser.dto.DtoI;
 @Data
 public class HarvestDTO implements DtoI {
 
-    @Id
-    private String id;
-    private String hash;
-    private Long block;
-    private int confirmed;
-    private Long blockDate;
-    private String methodName;
-    private String owner;
-    private Double amount;
-    private Double amountIn;
-    private String vault;
-    private Double lastGas;
-    private Double lastTvl;
-    private Double lastUsdTvl;
-    private Integer ownerCount;
-    private Double sharePrice;
-    private Long usdAmount;
-    @Column(columnDefinition = "TEXT")
-    private String prices;
-    private String lpStat;
-    private Double lastAllUsdTvl;
-    private Double ownerBalance;
-    private Double ownerBalanceUsd;
-    private Integer allOwnersCount;
-    private Integer allPoolsOwnersCount;
-    private boolean migrated = false;
-    private Double underlyingPrice;
-    @Transient
-    private HarvestDTO migration;
-    private Double profit;
-    private Double profitUsd;
-    private Double totalAmount;
+  @Id
+  private String id;
+  private String hash;
+  private Long block;
+  private int confirmed;
+  private Long blockDate;
+  private String methodName;
+  private String owner;
+  private Double amount;
+  private Double amountIn;
+  private String vault;
+  private Double lastGas;
+  private Double lastTvl;
+  private Double lastUsdTvl;
+  private Integer ownerCount;
+  private Double sharePrice;
+  private Long usdAmount;
+  @Column(columnDefinition = "TEXT")
+  private String prices;
+  private String lpStat;
+  private Double lastAllUsdTvl;
+  private Double ownerBalance;
+  private Double ownerBalanceUsd;
+  private Integer allOwnersCount;
+  private Integer allPoolsOwnersCount;
+  private boolean migrated = false;
+  private Double underlyingPrice;
+  @Transient
+  private HarvestDTO migration;
+  private Double profit;
+  private Double profitUsd;
+  private Double totalAmount;
 
-    public String print() {
-        return Instant.ofEpochSecond(blockDate) + " "
-            + methodName + " "
-            + "usd: " + usdAmount + " "
-            + "f: " + amount + " "
-            + vault
-            + " " + hash
-            + " " + String.format("$%.0f", lastUsdTvl)
-            + " profit: " + profit
-            + " " + String.format("$%.4f", profitUsd);
-    }
+  public String print() {
+    return Instant.ofEpochSecond(blockDate) + " "
+        + methodName + " "
+        + "usd: " + usdAmount + " "
+        + "f: " + amount + " "
+        + vault
+        + " " + hash
+        + " " + String.format("$%.0f", lastUsdTvl)
+        + " profit: " + profit
+        + " " + String.format("$%.4f", profitUsd);
+  }
 }

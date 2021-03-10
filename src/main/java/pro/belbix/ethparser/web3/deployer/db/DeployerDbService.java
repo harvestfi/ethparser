@@ -8,25 +8,22 @@ import pro.belbix.ethparser.repositories.v0.DeployerRepository;
 
 @Service
 @Log4j2
-public class DeployerDbService
-{
-    private final DeployerRepository deployerRepository;
-    private final AppProperties appProperties;
+public class DeployerDbService {
 
-    public DeployerDbService(DeployerRepository deployerRepository, AppProperties appProperties)
-    {
-        this.deployerRepository = deployerRepository;
-        this.appProperties = appProperties;
-    }
+  private final DeployerRepository deployerRepository;
+  private final AppProperties appProperties;
 
-    public boolean save(DeployerDTO dto)
-    {
-        if (!appProperties.isOverrideDuplicates() && deployerRepository.existsById(dto.getId()))
-        {
-            log.info("Duplicate Deployer entry " + dto.getId());
-            return false;
-        }
-        deployerRepository.saveAndFlush(dto);
-        return true;
+  public DeployerDbService(DeployerRepository deployerRepository, AppProperties appProperties) {
+    this.deployerRepository = deployerRepository;
+    this.appProperties = appProperties;
+  }
+
+  public boolean save(DeployerDTO dto) {
+    if (!appProperties.isOverrideDuplicates() && deployerRepository.existsById(dto.getId())) {
+      log.info("Duplicate Deployer entry " + dto.getId());
+      return false;
     }
+    deployerRepository.saveAndFlush(dto);
+    return true;
+  }
 }

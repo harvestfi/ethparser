@@ -36,130 +36,132 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Log4j2
 public class RewardParser implements Web3Parser {
 
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
-    private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-    private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
-    private final FunctionsUtils functionsUtils;
-    private final Web3Service web3Service;
-    private final EthBlockService ethBlockService;
-    private final RewardsDBService rewardsDBService;
-    private final AppProperties appProperties;
-    private final ParserInfo parserInfo;
-    private Instant lastTx = Instant.now();
-    private boolean waitNewBlock = true;
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
+  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+  private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+  private final FunctionsUtils functionsUtils;
+  private final Web3Service web3Service;
+  private final EthBlockService ethBlockService;
+  private final RewardsDBService rewardsDBService;
+  private final AppProperties appProperties;
+  private final ParserInfo parserInfo;
+  private Instant lastTx = Instant.now();
+  private boolean waitNewBlock = true;
 
-    public RewardParser(FunctionsUtils functionsUtils,
-                        Web3Service web3Service,
-                        EthBlockService ethBlockService,
-                        RewardsDBService rewardsDBService, AppProperties appProperties,
-                        ParserInfo parserInfo) {
-        this.functionsUtils = functionsUtils;
-        this.web3Service = web3Service;
-        this.ethBlockService = ethBlockService;
-        this.rewardsDBService = rewardsDBService;
-        this.appProperties = appProperties;
-        this.parserInfo = parserInfo;
-    }
+  public RewardParser(FunctionsUtils functionsUtils,
+      Web3Service web3Service,
+      EthBlockService ethBlockService,
+      RewardsDBService rewardsDBService, AppProperties appProperties,
+      ParserInfo parserInfo) {
+    this.functionsUtils = functionsUtils;
+    this.web3Service = web3Service;
+    this.ethBlockService = ethBlockService;
+    this.rewardsDBService = rewardsDBService;
+    this.appProperties = appProperties;
+    this.parserInfo = parserInfo;
+  }
 
-    @Override
-    public void startParse() {
-        log.info("Start parse Rewards logs");
-        parserInfo.addParser(this);
-        web3Service.subscribeOnLogs(logs);
-        new Thread(() -> {
-            while (run.get()) {
-                Log ethLog = null;
-                try {
-                    ethLog = logs.poll(1, TimeUnit.SECONDS);
-                    RewardDTO dto = parseLog(ethLog);
-                    if (dto != null) {
-                        lastTx = Instant.now();
-                        boolean saved = rewardsDBService.saveRewardDTO(dto);
-                        if (saved) {
-                            output.put(dto);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Error parse reward from " + ethLog, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
+  @Override
+  public void startParse() {
+    log.info("Start parse Rewards logs");
+    parserInfo.addParser(this);
+    web3Service.subscribeOnLogs(logs);
+    new Thread(() -> {
+      while (run.get()) {
+        Log ethLog = null;
+        try {
+          ethLog = logs.poll(1, TimeUnit.SECONDS);
+          RewardDTO dto = parseLog(ethLog);
+          if (dto != null) {
+            lastTx = Instant.now();
+            boolean saved = rewardsDBService.saveRewardDTO(dto);
+            if (saved) {
+              output.put(dto);
             }
-        }).start();
+          }
+        } catch (Exception e) {
+          log.error("Error parse reward from " + ethLog, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
+        }
+      }
+    }).start();
+  }
+
+  public RewardDTO parseLog(Log ethLog) throws InterruptedException {
+    if (ethLog == null || !ContractUtils.isPoolAddress(ethLog.getAddress())) {
+      return null;
     }
 
-    public RewardDTO parseLog(Log ethLog) throws InterruptedException {
-        if (ethLog == null || !ContractUtils.isPoolAddress(ethLog.getAddress())) {
-            return null;
-        }
+    HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
+    if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
+      return null;
+    }
+    if (!notWaitNewBlock.contains(appProperties.getStartUtil())
+        && waitNewBlock
+        && tx.getBlock().longValue() > ethBlockService.getLastBlock()
+    ) {
+      log.info("Wait new block for correct parsing rewards");
+      Thread.sleep(60 * 1000 * 5); //wait until new block created
+    }
+    //todo if it is the last block it will be not safe, create another logic
+    long nextBlock = tx.getBlock().longValue() + 1;
+    String poolAddress = tx.getVault().getValue();
+    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
+        .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
+        .longValue();
+    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
+        .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
+    if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
+      log.error("Wrong values for " + ethLog);
+      return null;
+    }
+    long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), nextBlock);
 
-        HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
-        if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
-            return null;
-        }
-        if (!notWaitNewBlock.contains(appProperties.getStartUtil())
-            && waitNewBlock
-            && tx.getBlock().longValue() > ethBlockService.getLastBlock()
-        ) {
-            log.info("Wait new block for correct parsing rewards");
-            Thread.sleep(60 * 1000 * 5); //wait until new block created
-        }
-        //todo if it is the last block it will be not safe, create another logic
-        long nextBlock = tx.getBlock().longValue() + 1;
-        String poolAddress = tx.getVault().getValue();
-        long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
-            .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
-            .longValue();
-        BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
-            .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
-        if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
-            log.error("Wrong values for " + ethLog);
-            return null;
-        }
-        long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), nextBlock);
-
-        double farmRewardsForPeriod = 0.0;
-        if (periodFinish > blockTime) {
-            farmRewardsForPeriod = new BigDecimal(rewardRate)
-                .divide(new BigDecimal(D18), 999, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf((double) (periodFinish - blockTime)))
-                .doubleValue();
-        }
-
-        double farmBalance = parseAmount(
-            functionsUtils.callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock)
-                .orElseThrow(() -> new IllegalStateException("Error get balance from " + ContractConstants.FARM_TOKEN)),
-            ContractConstants.FARM_TOKEN);
-
-        RewardDTO dto = new RewardDTO();
-        dto.setId(tx.getHash() + "_" + tx.getLogId());
-        dto.setBlock(tx.getBlock().longValue());
-        dto.setBlockDate(blockTime);
-        dto.setVault(ContractUtils.getNameByAddress(poolAddress)
-            .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
-            .replaceFirst("ST__", "")
-            .replaceFirst("ST_", ""));
-        dto.setReward(farmRewardsForPeriod);
-        dto.setPeriodFinish(periodFinish);
-        dto.setFarmBalance(farmBalance);
-        log.info("Parsed " + dto);
-        return dto;
+    double farmRewardsForPeriod = 0.0;
+    if (periodFinish > blockTime) {
+      farmRewardsForPeriod = new BigDecimal(rewardRate)
+          .divide(new BigDecimal(D18), 999, RoundingMode.HALF_UP)
+          .multiply(BigDecimal.valueOf((double) (periodFinish - blockTime)))
+          .doubleValue();
     }
 
-    public void setWaitNewBlock(boolean waitNewBlock) {
-        this.waitNewBlock = waitNewBlock;
-    }
+    double farmBalance = parseAmount(
+        functionsUtils
+            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock)
+            .orElseThrow(() -> new IllegalStateException(
+                "Error get balance from " + ContractConstants.FARM_TOKEN)),
+        ContractConstants.FARM_TOKEN);
 
-    @Override
-    public BlockingQueue<DtoI> getOutput() {
-        return output;
-    }
+    RewardDTO dto = new RewardDTO();
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setBlock(tx.getBlock().longValue());
+    dto.setBlockDate(blockTime);
+    dto.setVault(ContractUtils.getNameByAddress(poolAddress)
+        .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
+        .replaceFirst("ST__", "")
+        .replaceFirst("ST_", ""));
+    dto.setReward(farmRewardsForPeriod);
+    dto.setPeriodFinish(periodFinish);
+    dto.setFarmBalance(farmBalance);
+    log.info("Parsed " + dto);
+    return dto;
+  }
 
-    @Override
-    public Instant getLastTx() {
-        return lastTx;
-    }
+  public void setWaitNewBlock(boolean waitNewBlock) {
+    this.waitNewBlock = waitNewBlock;
+  }
+
+  @Override
+  public BlockingQueue<DtoI> getOutput() {
+    return output;
+  }
+
+  @Override
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }
