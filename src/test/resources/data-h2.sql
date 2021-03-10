@@ -1,3 +1,12 @@
+ALTER SEQUENCE a_eth_log_id_seq RESTART WITH 999999;
+ALTER SEQUENCE a_eth_tx_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_contracts_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_pools_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_token_to_uni_pair_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_tokens_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_uni_pairs_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_vault_to_pool_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_vaults_id_seq RESTART WITH 999999;
 
 create or replace function substring_index(str text, delim text, count integer DEFAULT 1, OUT substring_index text) returns text
               immutable

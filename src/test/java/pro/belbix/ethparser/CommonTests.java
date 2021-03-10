@@ -3,7 +3,7 @@ package pro.belbix.ethparser;
 import static org.junit.Assert.assertEquals;
 import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public class CommonTests {

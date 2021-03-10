@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import pro.belbix.ethparser.AppConfig;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
@@ -18,7 +20,7 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.TvlHistory;
 
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 @AutoConfigureMockMvc
 public class CSVControllerTest {
   @Autowired

@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -27,9 +27,8 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestVaultParserTest {
 
     private static final int LOG_ID = 0;
@@ -47,7 +46,7 @@ public class HarvestVaultParserTest {
     @Autowired
     private ContractLoader contractLoader;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
@@ -1612,8 +1611,8 @@ public class HarvestVaultParserTest {
             "0,00000857",
             "0,000008573748564383",
             "0",
-            98645L,
-            1201378L,
+            99233L,
+            1208534L,
             true
         );
     }
@@ -1670,7 +1669,7 @@ public class HarvestVaultParserTest {
             "4,95147346",
             "0",
             403L,
-            556L,
+            555L,
             true
         );
     }

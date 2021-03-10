@@ -3,19 +3,18 @@ package pro.belbix.ethparser.repositories.v0;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestRepositoryTest {
 
     private final Pageable limitOne = PageRequest.of(0, 1);

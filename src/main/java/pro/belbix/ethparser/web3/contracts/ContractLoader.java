@@ -128,6 +128,7 @@ public class ContractLoader {
       log.info("Contracts already loaded");
       return;
     }
+    loaded = true; // on the first line for avoiding hundreds attempts to load broken config
     log.info("Start load contracts on block {}", currentBlock);
     loadVaults();
     loadPools();
@@ -139,7 +140,6 @@ public class ContractLoader {
     log.info("Contracts loading ended");
     // should subscribe only after contract loading
     subscriptionsProperties.init();
-    loaded = true;
   }
 
   public void loadKeyBlocks() {

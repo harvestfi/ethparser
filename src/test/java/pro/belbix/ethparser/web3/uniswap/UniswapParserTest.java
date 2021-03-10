@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -27,9 +27,8 @@ import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class UniswapParserTest {
 
   private static final int LOG_ID = 0;
@@ -45,7 +44,7 @@ public class UniswapParserTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
     priceProvider.setUpdateBlockDifference(1);

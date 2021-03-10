@@ -4,13 +4,13 @@ import static org.junit.Assert.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
@@ -28,9 +28,8 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 import pro.belbix.ethparser.web3.Web3Service;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class ContractLoaderTest {
 
     @Autowired
@@ -54,13 +53,13 @@ public class ContractLoaderTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
 
   @Test
-//    @Ignore
+//    @Disabled
   public void fullRunShouldBeOk() throws JsonProcessingException {
 //        appProperties.setUpdateContracts(true);
     System.out.println("**************** VAULTS ************************");
@@ -96,7 +95,7 @@ public class ContractLoaderTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void loadKeyBlocks() {
         appProperties.setUpdateContracts(true);
         contractLoader.loadKeyBlocks();

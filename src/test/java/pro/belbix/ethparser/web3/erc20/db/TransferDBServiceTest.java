@@ -11,7 +11,7 @@ import static pro.belbix.ethparser.web3.erc20.TransferType.PS_STAKE;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 
 public class TransferDBServiceTest {

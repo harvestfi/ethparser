@@ -6,11 +6,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
@@ -18,9 +18,8 @@ import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.blocks.db.EthBlockDbService;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class EthBlockParserTest {
 
     @Autowired

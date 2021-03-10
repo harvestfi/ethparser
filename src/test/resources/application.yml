@@ -24,3 +24,4 @@ spring:
       maximum-pool-size: 1
     data: classpath:data-h2.sql, classpath:data-h2-contracts.sql
     initialization-mode: always
+    generate-unique-name: true

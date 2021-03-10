@@ -8,12 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -24,9 +24,8 @@ import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class TransferParserTest {
 
   @Autowired
@@ -39,7 +38,7 @@ public class TransferParserTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() {
     contractLoader.load();
     priceProvider.setUpdateBlockDifference(1);

@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.erc20.decoder;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ERC20DecoderTest {
     private ERC20Decoder decoder = new ERC20Decoder();

@@ -2,19 +2,18 @@ package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class FunctionsUtilsTest {
 
   @Autowired
@@ -22,7 +21,7 @@ public class FunctionsUtilsTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
