@@ -97,7 +97,7 @@ public class RewardParser implements Web3Parser {
     }
 
     HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
-    if (tx == null || !"RewardAdded".equals(tx.getMethodName())) {
+    if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
     }
     if (!notWaitNewBlock.contains(appProperties.getStartUtil())

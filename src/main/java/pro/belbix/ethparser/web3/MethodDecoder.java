@@ -282,121 +282,126 @@ public abstract class MethodDecoder {
                 TypeReference.makeTypeReference("address"),
                 TypeReference.makeTypeReference("address")
 
-                    ));
-                parameters.put("Withdraw",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Deposit",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Invest",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("StrategyAnnounced",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("StrategyChanged",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("address")
-                    ));
-                parameters.put("Staked",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Withdrawn",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("RewardPaid",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("RewardPaid#V2",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("RewardAdded",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Migrated",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("OwnershipTransferred",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false)
-                    ));
-                parameters.put("Staked#V2",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Withdraw#V2",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("ProfitLogInReward",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("SharePriceChangeLog",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256"),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Deposit#V2",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("Rewarded",
-                    Arrays.asList(
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("address", true, false),
-                        TypeReference.makeTypeReference("uint256")
-                    ));
-                parameters.put("underlyingBalanceInVault", Collections.emptyList());
-                parameters.put("underlyingBalanceWithInvestment", Collections.emptyList());
-                parameters.put("governance", Collections.emptyList());
-                parameters.put("controller", Collections.emptyList());
-                parameters.put("underlying", Collections.emptyList());
-                parameters.put("strategy", Collections.emptyList());
-                parameters.put("withdrawAll", Collections.emptyList());
-                parameters.put("getPricePerFullShare", Collections.emptyList());
-                parameters.put("doHardWork", Collections.emptyList());
-                parameters.put("rebalance", Collections.emptyList());
-                parameters.put("setStrategy",
-                    Collections.singletonList(
-                        TypeReference.makeTypeReference("address")
+            ));
+        parameters.put("Withdraw",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Deposit",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Invest",
+            Collections.singletonList(
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("StrategyAnnounced",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("StrategyChanged",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("address")
+            ));
+        parameters.put("Staked",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Withdrawn",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("RewardPaid",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("RewardPaid#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("RewardAdded",
+            Collections.singletonList(
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("RewardAdded#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Migrated",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("OwnershipTransferred",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address", true, false)
+            ));
+        parameters.put("Staked#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Withdraw#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("ProfitLogInReward",
+            Arrays.asList(
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("SharePriceChangeLog",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Deposit#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("Rewarded",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("underlyingBalanceInVault", Collections.emptyList());
+        parameters.put("underlyingBalanceWithInvestment", Collections.emptyList());
+        parameters.put("governance", Collections.emptyList());
+        parameters.put("controller", Collections.emptyList());
+        parameters.put("underlying", Collections.emptyList());
+        parameters.put("strategy", Collections.emptyList());
+        parameters.put("withdrawAll", Collections.emptyList());
+        parameters.put("getPricePerFullShare", Collections.emptyList());
+        parameters.put("doHardWork", Collections.emptyList());
+        parameters.put("rebalance", Collections.emptyList());
+        parameters.put("setStrategy",
+            Collections.singletonList(
+                TypeReference.makeTypeReference("address")
             ));
         parameters.put("Withdraw",
             Arrays.asList(
