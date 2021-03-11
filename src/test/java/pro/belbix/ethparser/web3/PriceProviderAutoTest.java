@@ -25,8 +25,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.PriceController;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
@@ -35,14 +34,11 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class PriceProviderAutoTest {
 
   private static final Double TOLERANCE_PCT = 0.5;
   private static final long TARGET_BLOCK_DATE = 1614201489;
-
-  @SpyBean
-  private EthBlockService ethBlockService;
 
   @Autowired
   private PriceController priceController;
@@ -62,8 +58,7 @@ public class PriceProviderAutoTest {
 
   @TestFactory
   public Stream<DynamicTest> tokenPrices()
-      throws InterruptedException, ExecutionException, JSONException {
-//        doReturn(TARGET_BLOCK_NUMBER).when(ethBlockService).getLastBlock();
+      throws Exception {
     String dateStr = this.getDateByBlockNumber();
         HashMap<String, Double> addressPriceMap = this.fetchPrices(dateStr);
 

@@ -2,20 +2,18 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -27,9 +25,8 @@ import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class UniswapParserTest {
 
   private static final int LOG_ID = 0;
@@ -45,7 +42,7 @@ public class UniswapParserTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
     priceProvider.setUpdateBlockDifference(1);
@@ -304,7 +301,7 @@ public class UniswapParserTest {
                            String otherCoin,
                            String otherAmount,
                            String lastPrice) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("Id", id, dto.getId()),
             () -> assertEquals("Amount", amount, String.format("%.8f", dto.getAmount())),

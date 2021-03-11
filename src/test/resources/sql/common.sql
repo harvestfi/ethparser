@@ -1,3 +1,12 @@
+ALTER SEQUENCE a_eth_log_id_seq RESTART WITH 999999;
+ALTER SEQUENCE a_eth_tx_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_contracts_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_pools_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_token_to_uni_pair_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_tokens_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_uni_pairs_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_vault_to_pool_id_seq RESTART WITH 999999;
+ALTER SEQUENCE eth_vaults_id_seq RESTART WITH 999999;
 
 create or replace function substring_index(str text, delim text, count integer DEFAULT 1, OUT substring_index text) returns text
               immutable
@@ -27,13 +36,8 @@ INSERT INTO public.deployer_tx (id, block, block_date, confirmed, from_address, 
 
 INSERT INTO public.events_tx (id, block, block_date, event, hash, info, mint_amount, new_strategy, old_strategy, vault) VALUES ('0x03075b3216fabd8846491c45e60d981fac920bc17f4a22a63bdf2b470b4cee3a_54', 11808045, 1612684105, 'StrategyChanged', '0x03075b3216fabd8846491c45e60d981fac920bc17f4a22a63bdf2b470b4cee3a', '{"vaultAddress":"0x859222dd0b249d0ea960f5102dab79b294d6874a","strategyTimeLock":null}', null, '0xce2fa27ad136c6035f60e8cf2ad605d805745972', '0x15ada3630227a33751e986f3e77b0a073f77d17d', 'ONEINCH_ETH_WBTC');
 
-INSERT INTO public.hard_work (id, all_profit, apr, block, block_date, calls_quantity, eth_price, farm_buyback, farm_buyback_eth, farm_buyback_sum, farm_price, fee, fee_eth, full_reward_usd, full_reward_usd_total, gas_used, idle_time, invested, investment_target, perc, period_of_work, pool_users, ps_apr, ps_period_of_work, ps_tvl_usd, saved_gas_fees, saved_gas_fees_sum, share_change, tvl, vault, weekly_all_profit, weekly_average_tvl, weekly_profit) VALUES ('0x005b08927f1eb926627f3c8657097a7e7e2e396b0c6c34cdbf97b8c71dc81519_271', 8460929.369376468, 4.5641989965, 11525515, 1608935736, 16, 619.454584242, 0.3175105965, 0.1720732995, 20841.6363382041, 100.7131056833, 38.8396475683, 0.06269975, 106.5915942138, 2218.3249821036, 1253995, 51374, 98.8530533139, 95, 0.010650836553387565, 0, 16, 152.9968876412289, 2131271, 24565297.023992993, 991.1273347871, 16664.8604752124, 0.0001065614, 700547, 'CRV_HUSD', 944273.579197405, 720802.7619047619, 1379.8085182564998);
-INSERT INTO public.hard_work (id, all_profit, apr, block, block_date, calls_quantity, eth_price, farm_buyback, farm_buyback_eth, farm_buyback_sum, farm_price, fee, fee_eth, full_reward_usd, full_reward_usd_total, gas_used, idle_time, invested, investment_target, perc, period_of_work, pool_users, ps_apr, ps_period_of_work, ps_tvl_usd, saved_gas_fees, saved_gas_fees_sum, share_change, tvl, vault, weekly_all_profit, weekly_average_tvl, weekly_profit) VALUES ('0x094497bda8267323a0ca85aec1054cd5fcf150a7430ce2617cec9deed7b4d2df_135', 8316379.004871397, 7.2192214448, 11512832, 1608766232, 91, 589.1218708339, 17.2066761129, 9.8464694776, 20402.488242605592, 101.1369740735, 487.5642561243, 0.827611875, 5800.7705197345, 666565.6961934454, 2206965, 19787, 99.8496285373, 95, 0.008631851996356885, 0, 434, 152.59735243864213, 2131271, 24208831.123837505, 25567.8891941907, 1894554.304983131, 0.000104, 47041346, 'USDC', 1149265.3355017968, 50945709.5559322, 244702.1605154856);
-
-
 INSERT INTO public.harvest_tvl (calculate_hash, calculate_time, last_all_owners_count, last_owners_count, last_price, last_tvl) VALUES ('0x00018f953339fbb7c708698f4a69c030ff4464114beeda7bfc83c0c548747add_338', 1603472475, 10094, 1853, 202.5659866011, 1090496226.6724818);
 
-INSERT INTO public.harvest_tx (id, all_owners_count, all_pools_owners_count, amount, amount_in, block, block_date, confirmed, hash, last_all_usd_tvl, last_gas, last_tvl, last_usd_tvl, lp_stat, method_name, migrated, owner, owner_balance, owner_balance_usd, owner_count, prices, profit, profit_usd, share_price, total_amount, underlying_price, usd_amount, vault) VALUES ('0x023269168a27cebe1b191d3410859cc89ddcd311befb61ff547560c52f36def5_230', 14976, 1078, 1930559.358881, null, 11599044, 1609909859, 1, '0x023269168a27cebe1b191d3410859cc89ddcd311befb61ff547560c52f36def5', 404721180.1705768, 64.000001459, 16016937.99809832, 16016938, null, 'Deposit', false, '0xab5531dbbbc3188882cf589b2c89776a4e587ee9', 1644281.332313, 1644281.332313, 277, '{"btc":35460.0535165254,"eth":1122.329184785108,"dpi":161.20508359401418,"grain":0.0502301282531576}', null, null, 0.851712, null, null, 1644280, 'USDC');
 
 INSERT INTO public.income (id, amount, amount_sum, amount_sum_usd, amount_usd, perc, ps_tvl, ps_tvl_usd, timestamp, week_perc) VALUES ('0x006243bad9ae1f6a6264da0c1dcf3249d3001b567faa9fdec1d2e63ad724c0aa_280', 5.4943178091, 5433.8931391715, 656315.3479700004, 885.349948, 0.0052103424, 105450.2264377116, 16408582.965265011, 1602771011, 0.7976684758);
 

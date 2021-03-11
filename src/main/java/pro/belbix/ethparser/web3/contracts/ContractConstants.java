@@ -86,6 +86,8 @@ public class ContractConstants {
         return "WBTC";
       case "CRV_EURS":
         return "EURS";
+      case "CRV_LINK":
+        return "LINK";
     }
     return name;
   }

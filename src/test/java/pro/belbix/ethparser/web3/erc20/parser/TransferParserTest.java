@@ -2,19 +2,17 @@ package pro.belbix.ethparser.web3.erc20.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -24,9 +22,8 @@ import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class TransferParserTest {
 
   @Autowired
@@ -39,7 +36,7 @@ public class TransferParserTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() {
     contractLoader.load();
     priceProvider.setUpdateBlockDifference(1);
@@ -393,15 +390,15 @@ public class TransferParserTest {
 
     private void assertDto(TransferDTO dto, String name, String owner,
                            String recipient, String value, String type, String methodName) {
-        assertNotNull("Dto is null", dto);
-        assertAll(
-            () -> assertEquals("name", name, dto.getName()),
-            () -> assertEquals("owner", owner, dto.getOwner()),
-            () -> assertEquals("recipient", recipient, dto.getRecipient()),
-            () -> assertEquals("value", value, String.format("%.8f", dto.getValue())),
-            () -> assertEquals("type", type, dto.getType()),
-            () -> assertEquals("methodName", methodName, dto.getMethodName())
-        );
+      assertNotNull(dto, "Dto is null");
+      assertAll(
+          () -> assertEquals("name", name, dto.getName()),
+          () -> assertEquals("owner", owner, dto.getOwner()),
+          () -> assertEquals("recipient", recipient, dto.getRecipient()),
+          () -> assertEquals("value", value, String.format("%.8f", dto.getValue())),
+          () -> assertEquals("type", type, dto.getType()),
+          () -> assertEquals("methodName", methodName, dto.getMethodName())
+      );
     }
 
 }

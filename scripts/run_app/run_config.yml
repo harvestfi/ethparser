@@ -2,7 +2,5 @@ ethparser:
   #  onlyParse: true
   #  startLogBlock: 10765094
   #  startLogBlock: 11799980
-  testWs: true
-  testWsRate: 10000
   #  overrideDuplicates: true
   stopOnParseError: true

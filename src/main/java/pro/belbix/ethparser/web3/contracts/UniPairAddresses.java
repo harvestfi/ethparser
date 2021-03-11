@@ -100,7 +100,12 @@ class UniPairAddresses {
       new LpContract(11733661, "UNI_LP_WBTC_KBTC", "KBTC",
           "0x1f3d61248ec81542889535595903078109707941"),
       new LpContract(11733686, "UNI_LP_WBTC_KLON", "KLON",
-          "0x734e48a1ffea1cdf4f5172210c322f3990d6d760")
-
+          "0x734e48a1ffea1cdf4f5172210c322f3990d6d760"),
+      new LpContract(11508188, "SUSHI_LP_ETH_UST", "UST", 
+          "0x8B00eE8606CC70c2dce68dea0CEfe632CCA0fB7b"),
+      new LpContract(11380589, "UNI_LP_MNFLX_UST", "MNFLX",
+          "0xC99A74145682C4b4A6e9fa55d559eb49A6884F75"),
+      new LpContract(11380726, "UNI_LP_MTWTR_UST", "MTWTR",
+          "0x34856be886A2dBa5F7c38c4df7FD86869aB08040")
   );
 }

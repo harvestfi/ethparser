@@ -7,14 +7,12 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -24,9 +22,8 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class UniswapLPLogParseTest {
 
   @Autowired
@@ -35,35 +32,35 @@ public class UniswapLPLogParseTest {
   private ContractLoader contractLoader;
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void parseUNI_LP_USDC_FARM() {
     parseLp("0x514906fc121c7878424a5c928cad1852cc545892", 11165610, null);
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void parseEthFarmLp() {
-        parseLp("0x56feaccb7f750b997b36a68625c7c596f0b41a58", 11165610, null);
-    }
+    parseLp("0x56feaccb7f750b997b36a68625c7c596f0b41a58", 11165610, null);
+  }
 
-    @Test
-    @Ignore
-    public void parseBtcBadgerLp() {
-        parseLp("0xcd7989894bc033581532d2cd88da5db0a4b12859", 11381099, 11382099);
-    }
+  @Test
+  @Disabled
+  public void parseBtcBadgerLp() {
+    parseLp("0xcd7989894bc033581532d2cd88da5db0a4b12859", 11381099, 11382099);
+  }
 
-    private void parseLp(String contract, Integer start, Integer end) {
-        Map<String, Integer> topics = new HashMap<>();
-        List<LogResult> logResults = web3Service
-            .fetchContractLogs(singletonList(contract), start, end);
-        assertFalse(logResults.isEmpty());
-        for (LogResult logResult : logResults) {
+  private void parseLp(String contract, Integer start, Integer end) {
+    Map<String, Integer> topics = new HashMap<>();
+    List<LogResult> logResults = web3Service
+        .fetchContractLogs(singletonList(contract), start, end);
+    assertFalse(logResults.isEmpty());
+    for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();
             assertFalse(log.getTopics().isEmpty());
             String topic0 = log.getTopics().get(0);

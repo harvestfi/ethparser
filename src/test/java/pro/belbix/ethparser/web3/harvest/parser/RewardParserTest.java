@@ -2,19 +2,17 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -23,9 +21,8 @@ import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class RewardParserTest {
 
     @Autowired
@@ -38,11 +35,24 @@ public class RewardParserTest {
     @Autowired
     private ContractLoader contractLoader;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
         rewardParser.setWaitNewBlock(false);
+    }
+
+    @Test
+    public void shouldParseReward_ST_UNI_WBTC_KLON() {
+        parserTest(
+            "0x719d70457658358f2e785b38307cfe24071b7417",
+            12014122,
+            0,
+            "0xf310afbf5090cb8dc7834760029f7dd692069514adde0c1ff3bd71161f6337d3_167",
+            "UNI_WBTC_KLON",
+            "110.79433214",
+            1616027885
+        );
     }
 
     @Test
@@ -126,7 +136,7 @@ public class RewardParserTest {
         try {
             RewardDTO dto = rewardParser.parseLog((Log) logResults.get(logId).get());
 
-            assertNotNull("Dto is null", dto);
+            assertNotNull(dto, "Dto is null");
             assertAll(
                 () -> assertEquals("id", id, dto.getId()),
                 () -> assertEquals("vault", vault, dto.getVault()),

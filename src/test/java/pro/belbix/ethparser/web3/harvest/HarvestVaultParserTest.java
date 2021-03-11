@@ -2,20 +2,18 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -27,9 +25,8 @@ import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestVaultParserTest {
 
     private static final int LOG_ID = 0;
@@ -47,7 +44,7 @@ public class HarvestVaultParserTest {
     @Autowired
     private ContractLoader contractLoader;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
@@ -1618,6 +1615,82 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultMNFLX_UST() {
+        harvestVaultParseTest(
+            "0x99c2564c9d4767c13e13f38ab073d4758af396ae",
+            12000069,
+            LOG_ID,
+            "0xd98f36c2d99b6b8e610f70baa13df073928536c8",
+            "Deposit",
+            "MNFLX_UST",
+            "0xe657363d9437bb5403eb3a59122e10ba2cf488fe3a59c875ff7fe14c10d7004c_342",
+            "1108,86509634",
+            "1108,86509634",
+            "0",
+            50537L,
+            452090L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMTWTR_UST() {
+        harvestVaultParseTest(
+            "0xb37c79f954E3e1A4ACCC14A5CCa3E46F226038b7",
+            11999645,
+            LOG_ID,
+            "0xf6f75e3206b4bf2d3d6d12dbf633218894750c39",
+            "Deposit",
+            "MTWTR_UST",
+            "0xe4a88a35ae1c93c8550ca8f89448ba4941e3b3e8eb5500c61a35220bebc5bf0e_76",
+            "1587,47546529",
+            "1587,47546529",
+            "0",
+            25965L,
+            204142L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultSUSHI_ETH_UST() {
+        harvestVaultParseTest(
+            "0x4D4D85c6a1ffE6Bb7a1BEf51c9E2282893feE521",
+            11982549,
+            LOG_ID,
+            "0x814055779f8d2f591277b76c724b7adc74fb82d9",
+            "Deposit",
+            "SUSHI_ETH_UST",
+            "0x56bc16ee94269347678254f82de0a492b0ab960fda021e76bb291924b9e6db81_52",
+            "4,95147346",
+            "4,95147346",
+            "0",
+            403L,
+            555L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultCRV_LINK() {
+        harvestVaultParseTest(
+            "0x24C562E24A4B5D905f16F2391E07213efCFd216E",
+            12000189,
+            LOG_ID,
+            "0xa9c1c504652ab74e5fd22d6f36df53a2be4a4e0b",
+            "Withdraw",
+            "CRV_LINK",
+            "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285_281",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
@@ -1673,7 +1746,7 @@ public class HarvestVaultParserTest {
         Long usdTvl,
         boolean confirmed) {
         String amount = numberFormat(_amount);
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("MethodName", methodName, dto.getMethodName()),
             () -> assertEquals("Vault", vault, dto.getVault()),

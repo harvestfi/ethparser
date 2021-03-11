@@ -2,20 +2,18 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -27,9 +25,8 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestVaultDecoderTest {
 
   @Autowired
@@ -40,13 +37,13 @@ public class HarvestVaultDecoderTest {
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void parseVault_WBTC() {
     Map<String, Integer> topics = new HashMap<>();
     List<LogResult> logResults = web3Service.fetchContractLogs(

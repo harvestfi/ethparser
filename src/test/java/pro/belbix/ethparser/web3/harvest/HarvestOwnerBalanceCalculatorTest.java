@@ -2,19 +2,17 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
@@ -24,9 +22,8 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestOwnerBalanceCalculatorTest {
 
   @Autowired
@@ -40,7 +37,7 @@ public class HarvestOwnerBalanceCalculatorTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  @Before
+   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
@@ -79,7 +76,7 @@ public class HarvestOwnerBalanceCalculatorTest {
           .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
       assertTrue("Log smaller then necessary", logId < logResults.size());
       HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
-      assertNotNull("Dto is null", dto);
+      assertNotNull(dto, "Dto is null");
       boolean result = harvestOwnerBalanceCalculator.fillBalance(dto);
       assertTrue(result);
       assertAll(

@@ -1,26 +1,23 @@
 package pro.belbix.ethparser.web3.controllers;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.HardWorkController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HardWorkControllerTest {
 
     @SpyBean
@@ -33,9 +30,9 @@ public class HardWorkControllerTest {
 
     final long fakeBlock = 11925259L;
     final long fakeBlockDate = 1614241875L;
-    final String fakeEthAddr = "0xc3882fb25d3cc2e0933841e7f89544caf2d2ca73";
+    final String owner = "0x858128d2f83dbb226b6cf29bffe5e7e129c3a128";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         doReturn(fakeBlock).when(ethBlockService).getLastBlock();
     }
@@ -45,21 +42,21 @@ public class HardWorkControllerTest {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
             .getTimestampSecForBlock(null, fakeBlock);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(fakeEthAddr);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String data = response.getData();
-        assertEquals("0.00000000", data);
+        Assertions.assertEquals("161.97026179", data);
     }
 
     @Test
     public void shouldHandleException() {
         doThrow(NullPointerException.class)
             .when(hardWorkCalculator)
-            .calculateTotalHardWorksFeeByOwner(fakeEthAddr);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(fakeEthAddr);
+            .calculateTotalHardWorksFeeByOwner(owner);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String code = response.getCode();
         String message = response.getStatus();
-        assertEquals("500", code);
-        String expectedMsg = "Error get total saved gas fee for address: " + fakeEthAddr;
-        assertEquals(expectedMsg, message);
+        Assertions.assertEquals("500", code);
+        String expectedMsg = "Error get total saved gas fee for address: " + owner;
+        Assertions.assertEquals(expectedMsg, message);
     }
 }

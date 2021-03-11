@@ -65,20 +65,18 @@ public class HardWorkCalculator {
               .findAllByVaultOrderByBlockDate(vault, period[0], period[1]);
           return blockPeriods
               .stream()
-              .map(blockPeriod -> {
-                return allHardWorksByVaultAndPeriod
-                    .stream()
-                    .filter(hardwork -> {
-                      Long blockStartDate = blockPeriod[0];
-                      Long blockEndDate = lastBlockDate;
-                      if (blockPeriod[1] > 0) {
-                        blockEndDate = blockPeriod[1];
-                      }
-                      return hardwork.getBlockDate() >= blockStartDate
-                          && hardwork.getBlockDate() <= blockEndDate;
-                    })
-                    .collect(Collectors.toList());
-              })
+              .map(blockPeriod -> allHardWorksByVaultAndPeriod
+                  .stream()
+                  .filter(hardwork -> {
+                    long blockStartDate = blockPeriod[0];
+                    long blockEndDate = lastBlockDate;
+                    if (blockPeriod[1] > 0) {
+                      blockEndDate = blockPeriod[1];
+                    }
+                    return hardwork.getBlockDate() >= blockStartDate
+                        && hardwork.getBlockDate() <= blockEndDate;
+                  })
+                  .collect(Collectors.toList()))
               .flatMap(Collection::stream)
               .collect(Collectors.toList());
         })
