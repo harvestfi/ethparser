@@ -22,6 +22,6 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 1
-    data: classpath:data-h2.sql, classpath:data-h2-contracts.sql
+    data: classpath:sql/common.sql, classpath:sql/contracts.sql, classpath:sql/hardwork.sql, classpath:sql/harvest.sql
     initialization-mode: always
     generate-unique-name: true

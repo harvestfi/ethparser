@@ -43,6 +43,19 @@ public class RewardParserTest {
     }
 
     @Test
+    public void shouldParseReward_ST_UNI_WBTC_KLON() {
+        parserTest(
+            "0x719d70457658358f2e785b38307cfe24071b7417",
+            12014122,
+            0,
+            "",
+            "",
+            "",
+            1612897280
+        );
+    }
+
+    @Test
     public void shouldParseRewardST_WETH() {
         parserTest(
             "0x3DA9D911301f8144bdF5c3c67886e5373DCdff8e",
