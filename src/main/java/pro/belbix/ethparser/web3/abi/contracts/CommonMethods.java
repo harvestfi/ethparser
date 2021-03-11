@@ -11,6 +11,7 @@ import pro.belbix.ethparser.web3.abi.DynamicStructures;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 
 // todo refactoring
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class CommonMethods {
 
     public static Map<String, List<TypeReference<Type>>> getMethods() throws ClassNotFoundException {
@@ -81,8 +82,19 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("address", true, false),
                 TypeReference.makeTypeReference("uint256")
             ));
+        parameters.put("RewardPaid#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("uint256")
+            ));
         parameters.put("RewardAdded",
             Collections.singletonList(
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("RewardAdded#V2",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address"),
                 TypeReference.makeTypeReference("uint256")
             ));
         parameters.put("Migrated",
@@ -150,7 +162,6 @@ public class CommonMethods {
         parameters.put("setStrategy",
             Collections.singletonList(
                 TypeReference.makeTypeReference("address")
-
             ));
         parameters.put("setVaultFractionToInvest",
             Arrays.asList(
@@ -711,7 +722,8 @@ public class CommonMethods {
             Collections.singletonList(
                 TypeReference.makeTypeReference("uint256")
             ));
-        parameters.put(DeployerActivityEnum.RENOUNCE_MINTER.getMethodName(), Collections.emptyList());
+        parameters.put(DeployerActivityEnum.RENOUNCE_MINTER.getMethodName(),
+            Collections.emptyList());
         parameters.put(DeployerActivityEnum.ADD_HARD_WORKER.getMethodName(),
             Collections.singletonList(
                 TypeReference.makeTypeReference("address")
@@ -722,7 +734,6 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("address"),
                 TypeReference.makeTypeReference("address[]")
             ));
-
         return parameters;
     }
 
