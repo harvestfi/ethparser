@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils.recalculation;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.abi.gen.ContractGenerator;
 import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
@@ -38,6 +39,7 @@ public class UtilsStarter {
   private final HarvestProfitRecalculate harvestProfitRecalculate;
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
+  private final ContractGenerator contractGenerator;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -58,7 +60,8 @@ public class UtilsStarter {
       HarvestProfitRecalculate harvestProfitRecalculate,
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
-      EthBlockDownloader ethBlockDownloader) {
+      EthBlockDownloader ethBlockDownloader,
+      ContractGenerator contractGenerator) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.harvestVaultDownloader = harvestVaultDownloader;
@@ -80,6 +83,7 @@ public class UtilsStarter {
     this.priceDownloader = priceDownloader;
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
+    this.contractGenerator = contractGenerator;
   }
 
   public void startUtils() {
@@ -124,6 +128,8 @@ public class UtilsStarter {
       deployerTransactionsDownloader.start();
     } else if ("block-download".equals(appProperties.getStartUtil())) {
       ethBlockDownloader.start();
+    } else if ("contract-generator".equals(appProperties.getStartUtil())) {
+      contractGenerator.start();
     }
     log.info("Utils completed");
     System.exit(0);

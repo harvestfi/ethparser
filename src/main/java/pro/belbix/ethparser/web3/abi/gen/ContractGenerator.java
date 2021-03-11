@@ -1,79 +1,128 @@
 package pro.belbix.ethparser.web3.abi.gen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import javax.lang.model.element.Modifier;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.tx.Contract;
 import org.web3j.utils.Strings;
+import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.service.EtherscanService;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
+@Service
 @Log4j2
 public class ContractGenerator {
 
-    public static void main(String[] args) {
-        findAllContractPaths().forEach(ContractGenerator::generateFromAbi);
+    private final EtherscanService etherscanService = new EtherscanService();
+    private final Map<String, String> contractToWrapper = new HashMap<>();
+
+    private final AppProperties appProperties;
+    private final ContractLoader contractLoader;
+
+    @Value("${contract-generator.contract:}")
+    private String contract;
+    @Value("${contract-generator.category:}")
+    private String category;
+    @Value("${contract-generator.destinationRootPackage:pro.belbix.ethparser.web3.abi.contracts}")
+    private String destinationRootPackage;
+    @Value("${contract-generator.destinationDir:./../../src/main/java}")
+    private String destinationDir;
+    @Value("${contract-generator.destinationDir:./../../src/main/resources}")
+    private String resourcesDir;
+
+    private Instant lastCall = Instant.now();
+
+    public ContractGenerator(AppProperties appProperties,
+        ContractLoader contractLoader) {
+        this.appProperties = appProperties;
+        this.contractLoader = contractLoader;
     }
 
-    private static void generateFromAbi(File abiFile) {
-        try {
-            String path = abiFile.getPath();
-            String folder = path.substring(path.indexOf("contracts"))
-                .replace(abiFile.getName(), "");
-            folder = folder.substring(0, folder.length() - 1);
-            generate(
-                abiFile,
-                new File("./src/main/java"),
-                "Wrapped" + Objects.requireNonNull(abiFile.getName())
-                    .replace(".abi", ""),
-                "pro.belbix.ethparser.web3.abi"
-                    + "." + folder.replace("\\", ".")
-            );
-        } catch (Exception e) {
-            log.error("Error generate", e);
+    public void start() {
+        log.info("Start Contract Generator {} {} {} {}",
+            contract, category, destinationRootPackage, destinationDir);
+        contractLoader.load();
+        if (contract != null && !contract.isBlank()) {
+            generateFromAddress(contract, category);
         }
+
+        ContractUtils.getAllVaultAddresses()
+            .forEach(address -> generateFromAddress(address, "harvest"));
+
+        ContractUtils.getAllPoolAddresses()
+            .forEach(address -> generateFromAddress(address, "harvest"));
+
+        ContractUtils.getAllUniPairs().stream()
+            .map(u -> u.getContract().getAddress())
+            .forEach(address -> generateFromAddress(address, "uniswap"));
+
+        ContractUtils.getAllTokens().stream()
+            .map(u -> u.getContract().getAddress())
+            .forEach(address -> generateFromAddress(address, "erc20"));
+        generateMappingClass();
     }
 
-    private static List<File> findAllContractPaths() {
+    void generateFromAddress(String address, String subPackage) {
         try {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
-                MethodHandles.lookup().getClass().getClassLoader());
-            Resource[] resources = resolver.getResources("classpath:contracts/**/*.abi");
-            List<File> files = new ArrayList<>();
-            for (Resource resource : resources) {
-                log.info(resource.getFile().getPath());
-                files.add(resource.getFile());
+
+            // avoid etherscan throttling
+            long diff = Duration.between(lastCall, Instant.now()).toMillis();
+            if (diff < 200) {
+                Thread.sleep(200 - diff);
             }
-            return files;
+            EtherscanService.ResponseSourceCode sourceCode =
+                etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
+            if (sourceCode == null || sourceCode.getResult() == null || sourceCode.getResult()
+                .isEmpty()) {
+                log.error("Empty response for {}", address);
+                return;
+            }
+            EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
+
+            String className = generate(
+                toContractDefinition(result.getAbi()),
+                new File(destinationDir),
+                result.getContractName(),
+                destinationRootPackage + "." + subPackage
+            );
+            contractToWrapper.put(address, className);
+            lastCall = Instant.now();
         } catch (Exception e) {
-            log.error("Error load paths", e);
+            log.error("Error while generate contract for address {}", address, e);
         }
-        return List.of();
     }
 
-    private static void generate(
-        File abiFile,
+    private String generate(
+        List<AbiDefinition> functionDefinitions,
         File destinationDir,
         String contractName,
         String basePackageName
-    ) throws IOException, ClassNotFoundException {
-        String binary = Contract.BIN_NOT_PROVIDED;
-        List<AbiDefinition> functionDefinitions = loadContractDefinition(abiFile);
+    ) {
+        String className = Strings.capitaliseFirstLetter(contractName);
+        log.info("Generating " + basePackageName + "." + className + " ... ");
 
-        if (!functionDefinitions.isEmpty()) {
-
-            String className = Strings.capitaliseFirstLetter(contractName);
-            System.out.print("Generating " + basePackageName + "." + className + " ... ");
-
+        try {
             new SolidityFunctionWrapper(
                 true,
                 false,
@@ -82,21 +131,94 @@ public class ContractGenerator {
                 .generateJavaFiles(
                     Contract.class,
                     contractName,
-                    binary,
+                    Contract.BIN_NOT_PROVIDED,
                     functionDefinitions,
                     destinationDir.toString(),
                     basePackageName,
                     null);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return basePackageName + "." + className;
+    }
 
-            System.out.println("File written to " + destinationDir.toString() + "\n");
-        } else {
-            System.out.println("Ignoring empty ABI file: " + abiFile.getName() + ".abi" + "\n");
+    private List<AbiDefinition> toContractDefinition(String abi) {
+        ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
+        AbiDefinition[] abiDefinition;
+        try {
+            abiDefinition = objectMapper.readValue(abi, AbiDefinition[].class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return Arrays.asList(abiDefinition);
+    }
+
+    private void generateMappingClass() {
+        try {
+            List<Object> values = new ArrayList<>();
+            values.add(ContractGenerator.class);
+            StringBuilder sbFormat = new StringBuilder();
+            contractToWrapper.forEach((contract, name) -> {
+                values.add(contract);
+                values.add(ClassName.bestGuess(name));
+                sbFormat.append("$S, $T.class").append(",\n");
+            });
+            sbFormat.setLength(sbFormat.length() - 2);
+            sbFormat.append("\n");
+
+            TypeSpec.Builder classBuilder = TypeSpec.classBuilder("WrapperMapper")
+                .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("<p>Auto generated code.\n"
+                    + "<p><strong>Do not modify!</strong>\n")
+                .addField(FieldSpec.builder(ParameterizedTypeName.get(
+                    ClassName.get(Map.class),
+                    ClassName.get(String.class),
+                    ParameterizedTypeName.get(
+                        ClassName.get(Class.class),
+                        WildcardTypeName.subtypeOf(Object.class)
+                    )
+                ), "contractToWrapper")
+                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC)
+                    .initializer("$T.createMap(\n"
+                        + sbFormat.toString()
+                        + ")", values.toArray(new Object[0]))
+                    .build());
+
+            JavaFile javaFile = JavaFile.builder(destinationRootPackage, classBuilder.build())
+                .indent("    ")
+                .skipJavaLangImports(true)
+                .build();
+
+            javaFile.writeTo(new File(destinationDir));
+        } catch (Exception e) {
+            log.error("Error generate map class", e);
         }
     }
 
-    private static List<AbiDefinition> loadContractDefinition(File absFile) throws IOException {
-        ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
-        AbiDefinition[] abiDefinition = objectMapper.readValue(absFile, AbiDefinition[].class);
-        return Arrays.asList(abiDefinition);
+    public static Map<String, Class<?>> createMap(Object... values) {
+        if (values.length == 0 || values.length % 2 != 0) {
+            throw new IllegalStateException("Wrong strings: " + Arrays.toString(values));
+        }
+        Map<String, Class<?>> result = new HashMap<>();
+        for (int i = 0; i < values.length / 2; i++) {
+            result.put((String) values[i], (Class<?>) values[i + 1]);
+        }
+        return result;
+    }
+
+    public void setContract(String contract) {
+        this.contract = contract;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setDestinationRootPackage(String destinationRootPackage) {
+        this.destinationRootPackage = destinationRootPackage;
+    }
+
+    public void setDestinationDir(String destinationDir) {
+        this.destinationDir = destinationDir;
     }
 }

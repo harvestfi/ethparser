@@ -22,9 +22,12 @@ import static pro.belbix.ethparser.web3.contracts.HarvestPoolAddresses.POOLS;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -86,6 +89,7 @@ public class ContractLoader {
   static final Map<String, TokenEntity> tokensCacheByName = new HashMap<>();
   static final Map<Integer, VaultToPoolEntity> vaultToPoolsCache = new HashMap<>();
   static final Map<Integer, TokenToUniPairEntity> tokenToUniPairCache = new HashMap<>();
+  static final Set<String> contracts = new HashSet<>();
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,
@@ -137,6 +141,7 @@ public class ContractLoader {
     linkVaultToPools();
     fillKeyTokenForLps();
     linkUniPairsToTokens();
+    initAllContract();
     log.info("Contracts loading ended");
     // should subscribe only after contract loading
     subscriptionsProperties.init();
@@ -609,6 +614,19 @@ public class ContractLoader {
           log.info("Created new contract type {}", type);
           return contractTypeEntity;
         });
+  }
+
+  private void initAllContract() {
+    contracts.addAll(vaultsCacheByAddress.keySet());
+    contracts.addAll(poolsCacheByAddress.keySet());
+    contracts.addAll(uniPairsCacheByAddress.values().stream()
+        .map(u -> u.getContract().getAddress())
+        .collect(Collectors.toSet())
+    );
+    contracts.addAll(tokensCacheByAddress.values().stream()
+        .map(u -> u.getContract().getAddress())
+        .collect(Collectors.toSet())
+    );
   }
 
   static Optional<PoolEntity> getPoolByAddress(String address) {

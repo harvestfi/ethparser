@@ -1445,13 +1445,13 @@ public class SolidityFunctionWrapper extends Generator {
       boolean useUpperCase)
       throws ClassNotFoundException {
 
-    if (functionDefinition.hasOutputs()) {
-      reporter.report(
-          String.format(
-              "Definition of the function %s returns a value but is not defined as a view function. "
-                  + "Please ensure it contains the view modifier if you want to read the return value",
-              functionDefinition.getName()));
-    }
+//    if (functionDefinition.hasOutputs()) {
+//      reporter.report(
+//          String.format(
+//              "Definition of the function %s returns a value but is not defined as a view function. "
+//                  + "Please ensure it contains the view modifier if you want to read the return value",
+//              functionDefinition.getName()));
+//    }
 
     if (functionDefinition.isPayable()) {
       methodBuilder.addParameter(BigInteger.class, WEI_VALUE);
@@ -1953,11 +1953,11 @@ public class SolidityFunctionWrapper extends Generator {
   }
 
   private static String funcNameToConst(String funcName, boolean useUpperCase) {
-    if (useUpperCase) {
+//    if (useUpperCase) {
       return FUNC_NAME_PREFIX + funcName.toUpperCase();
-    } else {
-      return FUNC_NAME_PREFIX + funcName;
-    }
+//    } else {
+//      return FUNC_NAME_PREFIX + funcName;
+//    }
   }
 
   private static class NamedTypeName {

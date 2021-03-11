@@ -41,17 +41,14 @@ public class ContractDetector {
     private final Web3Service web3Service;
     private final AppProperties appProperties;
     private final SubscriptionRouter subscriptionRouter;
-    private final ContractFilter contractFilter;
     private final ContractEventsDbService contractEventsDbService;
 
     public ContractDetector(Web3Service web3Service, AppProperties appProperties,
         SubscriptionRouter subscriptionRouter,
-        ContractFilter contractFilter,
         ContractEventsDbService contractEventsDbService) {
         this.web3Service = web3Service;
         this.appProperties = appProperties;
         this.subscriptionRouter = subscriptionRouter;
-        this.contractFilter = contractFilter;
         this.contractEventsDbService = contractEventsDbService;
     }
 
@@ -146,18 +143,21 @@ public class ContractDetector {
     }
 
     private void collectStates(ContractEventEntity eventEntity) {
+        String contractAddress = eventEntity.getContract().getAddress();
+
+
 
     }
 
     private Map<String, List<EthTxEntity>> collectEligibleContracts(EthBlockEntity block) {
         Map<String, List<EthTxEntity>> addresses = new HashMap<>();
         for (EthTxEntity tx : block.getTransactions()) {
-            if (contractFilter.isEligible(tx.getToAddress().getAddress())) {
+            if (ContractUtils.getAllContractAddresses().contains(tx.getToAddress().getAddress())) {
                 addresses
                     .computeIfAbsent(tx.getToAddress().getAddress(), k -> new ArrayList<>())
                     .add(tx);
             }
-            if (contractFilter.isEligible(tx.getFromAddress().getAddress())) {
+            if (ContractUtils.getAllContractAddresses().contains(tx.getFromAddress().getAddress())) {
                 addresses
                     .computeIfAbsent(tx.getFromAddress().getAddress(), k -> new ArrayList<>())
                     .add(tx);

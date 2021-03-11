@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -350,6 +351,10 @@ public class ContractUtils {
         .map(UniPairEntity::getContract)
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList());
+  }
+
+  public static Set<String> getAllContractAddresses() {
+    return ContractLoader.contracts;
   }
 
   public static Optional<ContractEntity> getContractByAddress(String address) {
