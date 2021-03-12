@@ -29,7 +29,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.web3.abi.contracts.CommonMethods;
+import pro.belbix.ethparser.web3.abi.CommonMethods;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})

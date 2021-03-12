@@ -1,42 +1,39 @@
 package pro.belbix.ethparser.web3.abi;
 
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.MethodDescriptor;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.abi.contracts.harvest.WrappedVault;
+import pro.belbix.ethparser.web3.abi.generated.WrapperMapper;
 
 @Log4j2
 public class WrapperReader {
 
     private static Map<String, Event> eventsMap;
 
-    public static void collectMethods() {
+    public static void collectMethods(Class<?> clazz) {
         try {
-            BeanInfo beanInfo = Introspector.getBeanInfo(WrappedVault.class);
+            BeanInfo beanInfo = Introspector.getBeanInfo(clazz);
             for (MethodDescriptor methodDescriptor : beanInfo.getMethodDescriptors()) {
                 // only static, view and pure
-                if(!methodDescriptor.getName().startsWith("call_")) {
+                if (!methodDescriptor.getName().startsWith("call_")) {
                     continue;
                 }
                 // only remote calls
-                if(!RemoteFunctionCall.class.equals(methodDescriptor.getMethod().getReturnType())) {
+                if (!RemoteFunctionCall.class
+                    .equals(methodDescriptor.getMethod().getReturnType())) {
                     continue;
                 }
                 // only getters
-                if(methodDescriptor.getMethod().getParameterCount() != 0) {
+                if (methodDescriptor.getMethod().getParameterCount() != 0) {
                     continue;
                 }
                 log.info("method {}", methodDescriptor.getName());
@@ -72,9 +69,10 @@ public class WrapperReader {
 
     private static void initEventsMap() {
         eventsMap = new HashMap<>();
-        for(Class<?> clazz : List.of(WrappedVault.class)) { // TODO use map
-            for(Event event : collectEvents(clazz)) {
-                String methodHex = MethodDecoder.createMethodFullHex(event.getName(), event.getParameters());
+        for (Class<?> clazz : WrapperMapper.contractToWrapper.values()) {
+            for (Event event : collectEvents(clazz)) {
+                String methodHex = MethodDecoder
+                    .createMethodFullHex(event.getName(), event.getParameters());
                 eventsMap.put(methodHex, event);
             }
         }
