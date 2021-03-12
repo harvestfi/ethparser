@@ -3,8 +3,25 @@ name: Jacoco Code Coverage
 on: [push, pull_request]
 
 jobs:
-  build:
+  code_coverage:
     runs-on: ubuntu-latest
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:12
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: harvest
+          POSTGRES_USER: harvest 
+          POSTGRES_DB: harvest
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v2
@@ -15,7 +32,7 @@ jobs:
         java-version: 1.11
 
     - name: Build with Maven
-      run: mvn -B test
+      run: mvn -B test -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}" -Dspring.datasource.url=jdbc:postgresql://postgres:5432/harvest -Dspring.datasource.username=postgres -Dspring.datasource.password=postgres
 
     - name: Generate JaCoCo Badge
       id: jacoco
