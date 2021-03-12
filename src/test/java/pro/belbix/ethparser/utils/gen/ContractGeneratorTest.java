@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.web3j.crypto.Credentials;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.generated.erc20.FiatTokenProxy_1270266386;

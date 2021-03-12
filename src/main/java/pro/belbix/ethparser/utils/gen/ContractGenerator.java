@@ -43,7 +43,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Log4j2
 public class ContractGenerator {
 
-    final static Credentials STUB_CREDENTIALS =
+    public final static Credentials STUB_CREDENTIALS =
         Credentials.create("8da4ef21b864d2cc526dbdb2a120bd2874c36c9d0a1fb7f8c63d7f7a8b41de8f");
     private final EtherscanService etherscanService = new EtherscanService();
     private final Map<String, String> contractToWrapper = new HashMap<>();

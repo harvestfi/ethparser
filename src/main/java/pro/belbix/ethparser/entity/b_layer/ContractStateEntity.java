@@ -26,13 +26,12 @@ public class ContractStateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    private String name;
+    @Column(columnDefinition = "text") // json type will be a big headache
+    private String value;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private ContractEventEntity contractEvent;
-
-    @Column(columnDefinition = "text") // json type will be a big headache
-    private String state;
-
 }

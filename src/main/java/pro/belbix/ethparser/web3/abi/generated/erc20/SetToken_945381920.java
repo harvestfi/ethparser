@@ -1035,21 +1035,6 @@ public class SetToken_945381920 extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<List> call_getPositions() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETPOSITIONS, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Position>>() {}));
-        return new RemoteFunctionCall<List>(function,
-                new Callable<List>() {
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public List call() throws Exception {
-                        List<Type> result = (List<Type>) executeCallSingleValueReturn(function, List.class);
-                        return convertToNative(result);
-                    }
-                });
-    }
-
     public RemoteFunctionCall<BigInteger> call_getTotalComponentRealUnits(String _component) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALCOMPONENTREALUNITS, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _component)), 

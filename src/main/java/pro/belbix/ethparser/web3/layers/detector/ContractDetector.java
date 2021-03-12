@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.layers.detector;
 
+import java.beans.MethodDescriptor;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,11 +23,13 @@ import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
+import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.WrapperReader;
+import pro.belbix.ethparser.web3.abi.generated.WrapperMapper;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.layers.SubscriptionRouter;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -77,7 +81,7 @@ public class ContractDetector {
         }).start();
     }
 
-    private List<ContractEventEntity> handleBlock(EthBlockEntity block) {
+    public List<ContractEventEntity> handleBlock(EthBlockEntity block) {
         if (block == null) {
             return List.of();
         }
@@ -144,9 +148,29 @@ public class ContractDetector {
 
     private void collectStates(ContractEventEntity eventEntity) {
         String contractAddress = eventEntity.getContract().getAddress();
+        Class<?> clazz = WrapperMapper.contractToWrapper.get(contractAddress);
+        if (clazz == null) {
+            log.error("Wrapper class for {} not found", contractAddress);
+            return;
+        }
 
+        List<MethodDescriptor> methods = WrapperReader.collectMethods(clazz);
+        Object wrapper =
+            WrapperReader.createWrapperInstance(clazz, contractAddress, web3Service.getWeb3());
 
-
+        Set<ContractStateEntity> states = new HashSet<>();
+        for (MethodDescriptor method : methods) {
+            try {
+                Object value = method.getMethod().invoke(wrapper);
+                ContractStateEntity state = new ContractStateEntity();
+                state.setContractEvent(eventEntity);
+                state.setName(method.getName());
+                state.setValue(value.toString());
+            } catch (Exception e) {
+                log.error("Error call method {}", method.getName(), e);
+            }
+        }
+        eventEntity.setStates(states);
     }
 
     private Map<String, List<EthTxEntity>> collectEligibleContracts(EthBlockEntity block) {
