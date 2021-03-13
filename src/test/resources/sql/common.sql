@@ -31,6 +31,7 @@ create or replace function substring_index(str text, delim text, count integer D
 
 INSERT INTO public.block_cache (block, block_date) VALUES (10770491, 1598900533);
 INSERT INTO public.block_cache (block, block_date) VALUES (11997407, 1615200972);
+INSERT INTO public.block_cache (block, block_date) VALUES (12032570, 1615669977);
 
 INSERT INTO public.deployer_tx (id, block, block_date, confirmed, from_address, gas_limit, gas_price, gas_used, idx, method_name, to_address, type, value) VALUES ('0x0d02c4a0bcf2581e4a693bbc1212ddb63589fbe69f4fc0f605f5b93d689002ab', 11920891, 1614184032, 1, '0xf00dd244228f51547f0563e60bca65a30fbf5f7f', 6000000.00, 500.00, 1906591.00, 88, 'CONTRACT_CREATION', null, 'CONTRACT_CREATION', 0.00);
 

@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: owners-count-recalculate
+  startUtil: harvest-download
 
 uniswap-download:
   contract:
@@ -13,7 +13,7 @@ hardwork-download:
   from: 11919330
 #  to: 11445244
 harvest-download:
-  contract: iPS
+  contract: ETH_DAI_HODL
 #  from: 11655725
 #  to: 11655725
 tvl-recalculate:
@@ -33,8 +33,6 @@ transfer-recalculate:
   methods: false
   prices: false
   profit: true
-new-strategy-download:
-  contracts: iPS
 hardwork-recalculate:
 #  from: 1611100000
 rewards-recalculate:

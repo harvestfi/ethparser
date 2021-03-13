@@ -12,6 +12,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -28,7 +29,7 @@ public class HarvestVaultDownloader {
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
 
   @Value("${harvest-download.contract:}")
-  private String contractName;
+  private String vaultName;
   @Value("${harvest-download.from:}")
   private Integer from;
   @Value("${harvest-download.to:}")
@@ -45,15 +46,9 @@ public class HarvestVaultDownloader {
   }
 
   public void start() {
-    for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
-      if (contractName != null && !contractName.isEmpty()
-          && !contractName
-          .equalsIgnoreCase(ContractUtils.getNameByAddress(vaultAddress).orElse(""))) {
-        continue;
-      }
-
-      LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultAddress, start, end));
-    }
+    String vaultAddress = ContractUtils.getAddressByName(vaultName, ContractType.VAULT)
+        .orElseThrow(() -> new IllegalStateException("Not found address for " + vaultName));
+    LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultAddress, start, end));
   }
 
   private void parse(String vaultHash, Integer start, Integer end) {
@@ -76,8 +71,8 @@ public class HarvestVaultDownloader {
     }
   }
 
-  public void setContractName(String contractName) {
-    this.contractName = contractName;
+  public void setVaultName(String vaultName) {
+    this.vaultName = vaultName;
   }
 
   public void setFrom(Integer from) {

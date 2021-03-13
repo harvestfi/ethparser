@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.blocks.downloader.EthBlockDownloader;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
@@ -38,6 +39,7 @@ public class UtilsStarter {
   private final HarvestProfitRecalculate harvestProfitRecalculate;
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
+  private final ContractLoader contractLoader;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -58,7 +60,8 @@ public class UtilsStarter {
       HarvestProfitRecalculate harvestProfitRecalculate,
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
-      EthBlockDownloader ethBlockDownloader) {
+      EthBlockDownloader ethBlockDownloader,
+      ContractLoader contractLoader) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.harvestVaultDownloader = harvestVaultDownloader;
@@ -80,10 +83,12 @@ public class UtilsStarter {
     this.priceDownloader = priceDownloader;
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
+    this.contractLoader = contractLoader;
   }
 
   public void startUtils() {
-    log.info("Start utils");
+    log.info("Start utils {}", appProperties.getStartUtil());
+    contractLoader.load();
     if ("cache-blocks".equals(appProperties.getStartUtil())) {
       blockCacher.cacheBlocks();
     } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
