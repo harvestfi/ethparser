@@ -4,8 +4,12 @@
 
 This is Java application, based on web3j library, created for the fastest scan of ethereum network.
 
-At now, the main functionality support only scans Uniswap protocol.
+Grabbed information should be delivered in other external systems via different protocols.
 
-It never have been flexible, architecture developed for low latency scan only of few tokens.
+You can start the app using .sh files in scripts directory.
 
-Grabbed information should be delivered in other external systems via different protocols. 
+Rename application.example.yml to application.yml and fill up settings.
+
+For run JUnit tests use JVM args, don't add you credentials to application.yml! 
+
+The app use PostgreSQL 11+ version.

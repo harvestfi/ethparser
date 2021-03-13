@@ -1,0 +1,47 @@
+ethparser:
+  startUtil: owners-count-recalculate
+
+uniswap-download:
+  contract:
+#  from: null
+#  to: null
+reward-download:
+  #  contract: ST_TUSD
+  from: 11861229
+#  to: 11733132
+hardwork-download:
+  from: 11919330
+#  to: 11445244
+harvest-download:
+  contract: iPS
+#  from: 11655725
+#  to: 11655725
+tvl-recalculate:
+  recalculate: true
+#  from: 1612486412
+owners-count-recalculate:
+  #  empty: true
+  uni: false
+  from: 1614163311
+transfer-download:
+  contract: FARM
+  from: 11596742
+  to: 11700000
+transfer-recalculate:
+  onlyType: true
+  balances: false
+  methods: false
+  prices: false
+  profit: true
+new-strategy-download:
+  contracts: iPS
+hardwork-recalculate:
+#  from: 1611100000
+rewards-recalculate:
+  from: 1611081226
+price-download:
+  contracts: UNI_LP_USDC_ETH
+  from: 11733900
+  to: 11739000
+block-download:
+  from: 10765094

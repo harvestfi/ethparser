@@ -16,48 +16,48 @@ import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
 @Log4j2
 public class NewStrategyDownloader {
 
-    private final HarvestVaultDownloader harvestVaultDownloader;
-    private final RewardDownloader rewardDownloader;
-    private final HardWorkDownloader hardWorkDownloader;
-    private final HarvestRepository harvestRepository;
+  private final HarvestVaultDownloader harvestVaultDownloader;
+  private final RewardDownloader rewardDownloader;
+  private final HardWorkDownloader hardWorkDownloader;
+  private final HarvestRepository harvestRepository;
 
-    @Value("${new-strategy-download.contracts:}")
-    private String[] contractNames;
+  @Value("${new-strategy-download.contracts:}")
+  private String[] contractNames;
 
-    public NewStrategyDownloader(
-        HarvestVaultDownloader harvestVaultDownloader,
-        RewardDownloader rewardDownloader,
-        HardWorkDownloader hardWorkDownloader, HarvestRepository harvestRepository) {
-        this.harvestVaultDownloader = harvestVaultDownloader;
-        this.rewardDownloader = rewardDownloader;
-        this.hardWorkDownloader = hardWorkDownloader;
-        this.harvestRepository = harvestRepository;
+  public NewStrategyDownloader(
+      HarvestVaultDownloader harvestVaultDownloader,
+      RewardDownloader rewardDownloader,
+      HardWorkDownloader hardWorkDownloader, HarvestRepository harvestRepository) {
+    this.harvestVaultDownloader = harvestVaultDownloader;
+    this.rewardDownloader = rewardDownloader;
+    this.hardWorkDownloader = hardWorkDownloader;
+    this.harvestRepository = harvestRepository;
+  }
+
+  public void start() {
+    int minBlock = Integer.MAX_VALUE;
+    for (String poolName : contractNames) {
+      log.info("Start download " + poolName);
+      harvestVaultDownloader.setContractName(poolName);
+      harvestVaultDownloader.start();
+
+      HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(poolName);
+      if (harvest == null) {
+        log.error("Download zero records for " + poolName);
+        continue;
+      }
+      if (harvest.getBlock().intValue() < minBlock) {
+        minBlock = harvest.getBlock().intValue();
+      }
+      String stContract = ContractUtils.poolByVaultName(poolName)
+          .map(PoolEntity::getContract)
+          .map(ContractEntity::getAddress)
+          .orElseThrow(() -> new IllegalStateException("Not found pool by vault name " + poolName));
+      rewardDownloader.setContractName(stContract);
+      rewardDownloader.start();
     }
 
-    public void start() {
-        int minBlock = Integer.MAX_VALUE;
-        for (String poolName : contractNames) {
-            log.info("Start download " + poolName);
-            harvestVaultDownloader.setContractName(poolName);
-            harvestVaultDownloader.start();
-
-            HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(poolName);
-            if (harvest == null) {
-                log.error("Download zero records for " + poolName);
-                continue;
-            }
-            if (harvest.getBlock().intValue() < minBlock) {
-                minBlock = harvest.getBlock().intValue();
-            }
-            String stContract = ContractUtils.poolByVaultName(poolName)
-                .map(PoolEntity::getContract)
-                .map(ContractEntity::getAddress)
-                .orElseThrow(() -> new IllegalStateException("Not found pool by vault name " + poolName));
-            rewardDownloader.setContractName(stContract);
-            rewardDownloader.start();
-        }
-
-        hardWorkDownloader.setFrom(minBlock);
-        hardWorkDownloader.start();
-    }
+    hardWorkDownloader.setFrom(minBlock);
+    hardWorkDownloader.start();
+  }
 }

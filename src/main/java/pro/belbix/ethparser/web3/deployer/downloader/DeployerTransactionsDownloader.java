@@ -19,6 +19,7 @@ import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 @Service
 @Log4j2
 public class DeployerTransactionsDownloader {
+
   private final Web3Service web3Service;
   private final DeployerDbService deployerDbService;
   private final DeployerTransactionsParser parser;

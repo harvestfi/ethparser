@@ -1,0 +1,6 @@
+ethparser:
+  #  onlyParse: true
+  #  startLogBlock: 10765094
+  #  startLogBlock: 11799980
+  #  overrideDuplicates: true
+  stopOnParseError: true

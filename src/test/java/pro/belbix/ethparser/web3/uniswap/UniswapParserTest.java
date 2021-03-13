@@ -2,53 +2,55 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class UniswapParserTest {
 
-    private static final int LOG_ID = 0;
+  private static final int LOG_ID = 0;
 
-    @Autowired
-    private UniswapLpLogParser uniswapLpLogParser;
-    @Autowired
-    private Web3Service web3Service;
-    @Autowired
-    private PriceProvider priceProvider;
-    @Autowired
-    private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private UniswapLpLogParser uniswapLpLogParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private PriceProvider priceProvider;
+  @Autowired
+  private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Before
-    public void setUp() throws Exception {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+   @BeforeEach
+  public void setUp() throws Exception {
+    contractLoader.load();
+    priceProvider.setUpdateBlockDifference(1);
+  }
 
-    @Test
-    public void parseUNI_LP_WETH_FARM_REM() {
-        UniswapDTO dto = uniswapParseTest("0x56feaccb7f750b997b36a68625c7c596f0b41a58",
+  @Test
+  public void parseUNI_LP_WETH_FARM_REM() {
+    UniswapDTO dto = uniswapParseTest("0x56feaccb7f750b997b36a68625c7c596f0b41a58",
             11401919,
             5,
             "0xf4abcbe7bce7525468e09e52ca432e07b3d80805cf7365c3bacda00d8d0d9516_151",
@@ -95,14 +97,19 @@ public class UniswapParserTest {
         HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
         assertNotNull(harvestDTO);
         assertAll(
-            () -> assertEquals("Amount", "0,00000000", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Amount", numberFormat("0,00000000"),
+                String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
             () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
-            () -> assertEquals("UsdAmount", "1892", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
-            () -> assertEquals("LastUsdTvl", "0", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":0.0,\"amount2\":0.0,\"price1\":231.7431039407448,\"price2\":1.0}",
+            () -> assertEquals("UsdAmount", "1892",
+                String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "0",
+                String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat",
+                "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":0.0,\"amount2\":0.0,\"price1\":231.7431039407448,\"price2\":1.0}",
                 harvestDTO.getLpStat()),
-            () -> assertEquals("LastTvl", "0,00000000", String.format("%.8f",  harvestDTO.getLastTvl()))
+            () -> assertEquals("LastTvl", numberFormat("0,00000000"),
+                String.format("%.8f", harvestDTO.getLastTvl()))
         );
     }
 
@@ -168,14 +175,19 @@ public class UniswapParserTest {
         HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
         assertNotNull(harvestDTO);
         assertAll(
-            () -> assertEquals("Amount", "0,00005882", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Amount", numberFormat("0,00005882"),
+                String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
             () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
-            () -> assertEquals("UsdAmount", "1883", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
-            () -> assertEquals("LastUsdTvl", "9657721", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.50424133,\"amount2\":4828860.303375671,\"price1\":233.93936056786777,\"price2\":1.0}",
+            () -> assertEquals("UsdAmount", "1883",
+                String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "9657721",
+                String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat",
+                "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.50424133,\"amount2\":4828860.303375671,\"price1\":233.93936056786777,\"price2\":1.0}",
                 harvestDTO.getLpStat()),
-            () -> assertEquals("LastTvl", "0,30169333", String.format("%.8f",  harvestDTO.getLastTvl()))
+            () -> assertEquals("LastTvl", numberFormat("0,30169333"),
+                String.format("%.8f", harvestDTO.getLastTvl()))
         );
     }
 
@@ -195,14 +207,19 @@ public class UniswapParserTest {
         HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
         assertNotNull(harvestDTO);
         assertAll(
-            () -> assertEquals("Amount", "92,94539587", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Amount", numberFormat("92,94539587"),
+                String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
             () -> assertEquals("Vault", "UNI_LP_WETH_FARM", harvestDTO.getVault()),
-            () -> assertEquals("UsdAmount", "50220", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
-            () -> assertEquals("LastUsdTvl", "282796", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":561.7716539993273}",
+            () -> assertEquals("UsdAmount", "50220",
+                String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "282796",
+                String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat",
+                "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":561.7716539993273}",
                 harvestDTO.getLpStat()),
-            () -> assertEquals("LastTvl", "523,39010775", String.format("%.8f",  harvestDTO.getLastTvl()))
+            () -> assertEquals("LastTvl", numberFormat("523,39010775"),
+                String.format("%.8f", harvestDTO.getLastTvl()))
         );
     }
 
@@ -222,14 +239,19 @@ public class UniswapParserTest {
         HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
         assertNotNull(harvestDTO);
         assertAll(
-            () -> assertEquals("Amount", "4170,06518775", String.format("%.8f", harvestDTO.getAmount())),
+            () -> assertEquals("Amount", numberFormat("4170,06518775"),
+                String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
             () -> assertEquals("Vault", "UNI_LP_GRAIN_FARM", harvestDTO.getVault()),
-            () -> assertEquals("UsdAmount", "27356", String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
-            () -> assertEquals("LastUsdTvl", "219248", String.format("%.0f", harvestDTO.getLastUsdTvl())),
-            () -> assertEquals("LpStat", "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.547072685,\"amount2\":1122.2395189074418,\"price1\":0.10707514707395074,\"price2\":97.68336231347396}",
+            () -> assertEquals("UsdAmount", "27356",
+                String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
+            () -> assertEquals("LastUsdTvl", "219248",
+                String.format("%.0f", harvestDTO.getLastUsdTvl())),
+            () -> assertEquals("LpStat",
+                "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.547072685,\"amount2\":1122.2395189074418,\"price1\":0.10707514707395074,\"price2\":97.68336231347396}",
                 harvestDTO.getLpStat()),
-            () -> assertEquals("LastTvl", "33420,96359919", String.format("%.8f",  harvestDTO.getLastTvl()))
+            () -> assertEquals("LastTvl", numberFormat("33420,96359919"),
+                String.format("%.8f", harvestDTO.getLastTvl()))
         );
     }
 
@@ -252,16 +274,20 @@ public class UniswapParserTest {
         String otherAmount,
         String lastPrice
     ) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
-        assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-        UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
-        assertDto(dto,
-            id,
-            owner,
-            amount,
-            type,
-            otherCoin,
-            otherAmount,
+      amount = numberFormat(amount);
+      otherAmount = numberFormat(otherAmount);
+      lastPrice = numberFormat(lastPrice);
+      List<LogResult> logResults = web3Service
+          .fetchContractLogs(singletonList(contract), onBlock, onBlock);
+      assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
+      UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+      assertDto(dto,
+          id,
+          owner,
+          amount,
+          type,
+          otherCoin,
+          otherAmount,
             lastPrice
         );
         return dto;
@@ -275,7 +301,7 @@ public class UniswapParserTest {
                            String otherCoin,
                            String otherAmount,
                            String lastPrice) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("Id", id, dto.getId()),
             () -> assertEquals("Amount", amount, String.format("%.8f", dto.getAmount())),

@@ -43,4 +43,8 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     List<RewardDTO> getAllByVaultOrderByBlockDate(@Param("vault") String vault,
                                                   @Param("startTime") long startTime,
                                                   @Param("endTime") long endTime);
+
+    @Query("select t from RewardDTO t where t.blockDate between :startTime and :endTime order by t.blockDate")
+    List<RewardDTO> getAllOrderByBlockDate(
+        @Param("startTime") long startTime, @Param("endTime") long endTime);
 }

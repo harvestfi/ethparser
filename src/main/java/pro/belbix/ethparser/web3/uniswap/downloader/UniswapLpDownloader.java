@@ -21,51 +21,52 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 @Service
 public class UniswapLpDownloader {
 
-    private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
-    private final Web3Service web3Service;
-    private final UniswapDbService saveHarvestDTO;
-    private final UniswapLpLogParser uniswapLpLogParser;
+  private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
+  private final Web3Service web3Service;
+  private final UniswapDbService saveHarvestDTO;
+  private final UniswapLpLogParser uniswapLpLogParser;
 
-    @Value("${uniswap-download.contract:}")
-    private String contractName;
-    @Value("${uniswap-download.from:}")
-    private Integer from;
-    @Value("${uniswap-download.to:}")
-    private Integer to;
+  @Value("${uniswap-download.contract:}")
+  private String contractName;
+  @Value("${uniswap-download.from:}")
+  private Integer from;
+  @Value("${uniswap-download.to:}")
+  private Integer to;
 
-    public UniswapLpDownloader(Web3Service web3Service,
-                               UniswapDbService saveHarvestDTO,
-                               UniswapLpLogParser uniswapLpLogParser) {
-        this.web3Service = web3Service;
-        this.saveHarvestDTO = saveHarvestDTO;
-        this.uniswapLpLogParser = uniswapLpLogParser;
+  public UniswapLpDownloader(Web3Service web3Service,
+      UniswapDbService saveHarvestDTO,
+      UniswapLpLogParser uniswapLpLogParser) {
+    this.web3Service = web3Service;
+    this.saveHarvestDTO = saveHarvestDTO;
+    this.uniswapLpLogParser = uniswapLpLogParser;
+  }
+
+  public void start() {
+    LoopUtils.handleLoop(from, to, this::load);
+  }
+
+  private void load(Integer from, Integer to) {
+    List<LogResult> logResults = web3Service.fetchContractLogs(
+        singletonList(
+            ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
+        from,
+        to
+    );
+    if (logResults == null) {
+      logger.error("Log results is null");
+      return;
     }
-
-    public void start() {
-        LoopUtils.handleLoop(from, to, this::load);
-    }
-
-    private void load(Integer from, Integer to) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(
-            singletonList(ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
-            from,
-            to
-        );
-        if (logResults == null) {
-            logger.error("Log results is null");
-            return;
+    for (LogResult logResult : logResults) {
+      UniswapDTO dto = null;
+      try {
+        dto = uniswapLpLogParser.parseUniswapLog((Log) logResult.get());
+        if (dto != null) {
+          saveHarvestDTO.saveUniswapDto(dto);
         }
-        for (LogResult logResult : logResults) {
-            UniswapDTO dto = null;
-            try {
-                dto = uniswapLpLogParser.parseUniswapLog((Log) logResult.get());
-                if (dto != null) {
-                    saveHarvestDTO.saveUniswapDto(dto);
-                }
-            } catch (Exception e) {
-                logger.info("Downloader error  " + dto, e);
-            }
-        }
+      } catch (Exception e) {
+        logger.info("Downloader error  " + dto, e);
+      }
     }
+  }
 
 }

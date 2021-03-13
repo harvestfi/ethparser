@@ -6,9 +6,9 @@ import pro.belbix.ethparser.dto.DtoI;
 
 public interface Web3Parser {
 
-    void startParse();
+  void startParse();
 
-    BlockingQueue<DtoI> getOutput();
+  BlockingQueue<DtoI> getOutput();
 
-    Instant getLastTx();
+  Instant getLastTx();
 }

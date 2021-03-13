@@ -1,0 +1,27 @@
+spring:
+  jpa:
+    #    open-in-view: true
+    database: postgresql
+    #    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    properties.hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      jdbc.lob.non_contextual_creation: true
+  datasource:
+    platform: postgresql
+    # DON'T change the file - setup JVM args
+    #-Dethparser.web3Url=https://eth-mainnet.alchemyapi.io/v2/KEY
+    #-Dspring.datasource.url=jdbc:postgresql://url:5432/test
+    #-Dspring.datasource.username=test
+    #-Dspring.datasource.password=test
+    url:
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 1
+    data: classpath:sql/common.sql, classpath:sql/contracts.sql, classpath:sql/hardwork.sql, classpath:sql/harvest.sql
+    initialization-mode: always
+    generate-unique-name: true

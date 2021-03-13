@@ -1,21 +1,20 @@
 package pro.belbix.ethparser.repositories.v0;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestRepositoryTest {
 
     private final Pageable limitOne = PageRequest.of(0, 1);
@@ -103,7 +102,10 @@ public class HarvestRepositoryTest {
 
     @Test
     public void fetchPeriodOfWork() {
-        assertNotNull(harvestRepository.fetchPeriodOfWork("USDC", Long.MAX_VALUE, limitOne));
+        List<Long> period = harvestRepository.fetchPeriodOfWork("USDC", Long.MAX_VALUE, limitOne);
+        assertNotNull(period, "query result is not null");
+        assertEquals(period.size(), 1, "result contains elements");
+        assertTrue(period.get(0) > 0, "period not equal zero");
     }
 
     @Test

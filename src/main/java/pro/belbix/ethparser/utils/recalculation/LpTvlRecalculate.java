@@ -14,46 +14,46 @@ import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 @Log4j2
 public class LpTvlRecalculate {
 
-    private final UniswapRepository uniswapRepository;
-    private final UniToHarvestConverter uniToHarvestConverter;
-    private final HarvestDBService harvestDBService;
+  private final UniswapRepository uniswapRepository;
+  private final UniToHarvestConverter uniToHarvestConverter;
+  private final HarvestDBService harvestDBService;
 
-    @Value("${lp-tvl-recalculate.from:}")
-    private Integer from;
+  @Value("${lp-tvl-recalculate.from:}")
+  private Integer from;
 
-    public LpTvlRecalculate(UniswapRepository uniswapRepository,
-                            UniToHarvestConverter uniToHarvestConverter,
-                            HarvestDBService harvestDBService) {
-        this.uniswapRepository = uniswapRepository;
-        this.uniToHarvestConverter = uniToHarvestConverter;
-        this.harvestDBService = harvestDBService;
+  public LpTvlRecalculate(UniswapRepository uniswapRepository,
+      UniToHarvestConverter uniToHarvestConverter,
+      HarvestDBService harvestDBService) {
+    this.uniswapRepository = uniswapRepository;
+    this.uniToHarvestConverter = uniToHarvestConverter;
+    this.harvestDBService = harvestDBService;
+  }
+
+  public void start() {
+
+    List<UniswapDTO> dtos;
+    if (from == null) {
+      dtos = uniswapRepository.findAllByOrderByBlockDate();
+    } else {
+      dtos = uniswapRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
     }
 
-    public void start() {
+    for (UniswapDTO dto : dtos) {
+      try {
+        HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
 
-        List<UniswapDTO> dtos;
-        if (from == null) {
-            dtos = uniswapRepository.findAllByOrderByBlockDate();
-        } else {
-            dtos = uniswapRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+        if (harvestDto != null) {
+
+          boolean success = harvestDBService.saveHarvestDTO(harvestDto);
+
+          if (!success) {
+            log.warn("Save failed for " + harvestDto.print());
+          }
         }
-
-        for (UniswapDTO dto : dtos) {
-            try {
-                HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
-
-                if (harvestDto != null) {
-
-                    boolean success = harvestDBService.saveHarvestDTO(harvestDto);
-
-                    if (!success) {
-                        log.warn("Save failed for " + harvestDto.print());
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Error " + dto.print(), e);
-            }
-        }
+      } catch (Exception e) {
+        log.error("Error " + dto.print(), e);
+      }
     }
+  }
 
 }

@@ -18,7 +18,9 @@ import pro.belbix.ethparser.dto.DtoI;
 @Cacheable(false)
 @Data
 public class DeployerDTO implements DtoI {
-  @Id private String id;
+
+  @Id
+  private String id;
   private long idx;
   private long block;
   private long blockDate;

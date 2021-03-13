@@ -17,6 +17,7 @@ import pro.belbix.ethparser.web3.contracts.ContractConstants;
 @Component
 @Log4j2
 public class DeployerDecoder extends MethodDecoder {
+
   private final Web3Service web3Service;
 
   public DeployerDecoder(Web3Service web3Service) {

@@ -24,63 +24,64 @@ import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 @SuppressWarnings("rawtypes")
 public class PriceDownloader {
 
-    private final Web3Service web3Service;
-    private final PriceRepository priceRepository;
-    private final PriceLogParser priceLogParser;
+  private final Web3Service web3Service;
+  private final PriceRepository priceRepository;
+  private final PriceLogParser priceLogParser;
 
-    @Value("${price-download.contracts:}")
-    private String[] contractNames;
-    @Value("${price-download.from:}")
-    private Integer from;
-    @Value("${price-download.to:}")
-    private Integer to;
+  @Value("${price-download.contracts:}")
+  private String[] contractNames;
+  @Value("${price-download.from:}")
+  private Integer from;
+  @Value("${price-download.to:}")
+  private Integer to;
 
-    public PriceDownloader(Web3Service web3Service,
-                           PriceRepository priceRepository,
-                           PriceLogParser priceLogParser) {
-        this.web3Service = web3Service;
-        this.priceRepository = priceRepository;
-        this.priceLogParser = priceLogParser;
+  public PriceDownloader(Web3Service web3Service,
+      PriceRepository priceRepository,
+      PriceLogParser priceLogParser) {
+    this.web3Service = web3Service;
+    this.priceRepository = priceRepository;
+    this.priceLogParser = priceLogParser;
+  }
+
+  public void start() {
+    if (contractNames.length == 0) {
+      contractNames = PARSABLE_UNI_PAIRS.stream()
+          .map(c -> ContractUtils.getNameByAddress(c)
+              .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
+          .collect(Collectors.toSet())
+          .toArray(contractNames);
     }
-
-    public void start() {
-        if (contractNames.length == 0) {
-            contractNames = PARSABLE_UNI_PAIRS.stream()
-                .map(c -> ContractUtils.getNameByAddress(c)
-                    .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-                .collect(Collectors.toSet())
-                .toArray(contractNames);
-        }
-        for (String contractName : contractNames) {
-            String contractHash = ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR)
-                .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
-            LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
-        }
+    for (String contractName : contractNames) {
+      String contractHash = ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR)
+          .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
+      LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
     }
+  }
 
-    private void parse(Integer start, Integer end, String contractName) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contractName), start, end);
-        if (logResults.isEmpty()) {
-            log.info("Empty log {} {}", start, end);
-            return;
-        }
-        List<PriceDTO> result = new ArrayList<>();
-        for (LogResult logResult : logResults) {
-            try {
-                PriceDTO dto = priceLogParser.parse((Log) logResult.get());
-                if (dto != null) {
-                    result.add(dto);
-                }
-                if (result.size() > 100) {
-                    priceRepository.saveAll(result);
-                    result.clear();
-                    log.info("Saved a bunch, last " + dto);
-                }
-            } catch (Exception e) {
-                log.error("error with " + logResult.get(), e);
-                break;
-            }
-        }
-        priceRepository.saveAll(result);
+  private void parse(Integer start, Integer end, String contractName) {
+    List<LogResult> logResults = web3Service
+        .fetchContractLogs(singletonList(contractName), start, end);
+    if (logResults.isEmpty()) {
+      log.info("Empty log {} {}", start, end);
+      return;
     }
+    List<PriceDTO> result = new ArrayList<>();
+    for (LogResult logResult : logResults) {
+      try {
+        PriceDTO dto = priceLogParser.parse((Log) logResult.get());
+        if (dto != null) {
+          result.add(dto);
+        }
+        if (result.size() > 100) {
+          priceRepository.saveAll(result);
+          result.clear();
+          log.info("Saved a bunch, last " + dto);
+        }
+      } catch (Exception e) {
+        log.error("error with " + logResult.get(), e);
+        break;
+      }
+    }
+    priceRepository.saveAll(result);
+  }
 }

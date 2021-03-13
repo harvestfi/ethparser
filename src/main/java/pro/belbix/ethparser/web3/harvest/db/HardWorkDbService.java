@@ -21,183 +21,190 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class HardWorkDbService {
 
-    private final static long PS_DEPLOYED = 1601389313;
-    private final static long PS_OLD_DEPLOYED = 1599258042;
-    private final static double HARD_WORK_COST = 0.1;
-    private final Pageable limitOne = PageRequest.of(0, 1);
-    private final HardWorkRepository hardWorkRepository;
-    private final HarvestRepository harvestRepository;
-    private final AppProperties appProperties;
-    private final PriceProvider priceProvider;
+  private final static long PS_DEPLOYED = 1601389313;
+  private final static long PS_OLD_DEPLOYED = 1599258042;
+  private final static double HARD_WORK_COST = 0.1;
+  private final Pageable limitOne = PageRequest.of(0, 1);
+  private final HardWorkRepository hardWorkRepository;
+  private final HarvestRepository harvestRepository;
+  private final AppProperties appProperties;
+  private final PriceProvider priceProvider;
 
-    public HardWorkDbService(HardWorkRepository hardWorkRepository,
-                             HarvestRepository harvestRepository,
-                             AppProperties appProperties, PriceProvider priceProvider) {
-        this.hardWorkRepository = hardWorkRepository;
-        this.harvestRepository = harvestRepository;
-        this.appProperties = appProperties;
-        this.priceProvider = priceProvider;
+  public HardWorkDbService(HardWorkRepository hardWorkRepository,
+      HarvestRepository harvestRepository,
+      AppProperties appProperties, PriceProvider priceProvider) {
+    this.hardWorkRepository = hardWorkRepository;
+    this.harvestRepository = harvestRepository;
+    this.appProperties = appProperties;
+    this.priceProvider = priceProvider;
+  }
+
+  public boolean save(HardWorkDTO dto) {
+    if (!appProperties.isOverrideDuplicates() && hardWorkRepository.existsById(dto.getId())) {
+      log.info("Duplicate HardWork entry " + dto.getId());
+      return false;
     }
+    enrich(dto);
+    fillExtraInfo(dto);
+    hardWorkRepository.saveAndFlush(dto);
+    return true;
+  }
 
-    public boolean save(HardWorkDTO dto) {
-        if (!appProperties.isOverrideDuplicates() && hardWorkRepository.existsById(dto.getId())) {
-            log.info("Duplicate HardWork entry " + dto.getId());
-            return false;
-        }
-        enrich(dto);
-        fillExtraInfo(dto);
-        hardWorkRepository.saveAndFlush(dto);
-        return true;
+  public void enrich(HardWorkDTO dto) {
+    Double all = hardWorkRepository.getSumForVault(dto.getVault(), dto.getBlockDate());
+    if (all == null) {
+      all = 0.0;
     }
+    dto.setFullRewardUsdTotal(all);
 
-    public void enrich(HardWorkDTO dto) {
-        Double all = hardWorkRepository.getSumForVault(dto.getVault(), dto.getBlockDate());
-        if (all == null) {
-            all = 0.0;
-        }
-        dto.setFullRewardUsdTotal(all);
+    calculateVaultProfits(dto);
+    calculatePsProfits(dto);
+    calculateFarmBuybackSum(dto);
+  }
 
-        calculateVaultProfits(dto);
-        calculatePsProfits(dto);
-        calculateFarmBuybackSum(dto);
-    }
+  private void calculateVaultProfits(HardWorkDTO dto) {
+    silentCall(
+        () -> harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate()))
+        .ifPresentOrElse(harvestDTO -> {
+          dto.setTvl(harvestDTO.getLastUsdTvl());
+          if (dto.getTvl() != 0.0) {
+            dto.setPerc(((dto.getFullRewardUsd() * 0.7) / dto.getTvl()) * 100);
+          } else {
+            dto.setPerc(0.0);
+          }
 
-    private void calculateVaultProfits(HardWorkDTO dto) {
-        silentCall(() -> harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate()))
-            .ifPresentOrElse(harvestDTO -> {
-                dto.setTvl(harvestDTO.getLastUsdTvl());
-                if (dto.getTvl() != 0.0) {
-                    dto.setPerc(((dto.getFullRewardUsd() * 0.7) / dto.getTvl()) * 100);
-                } else {
-                    dto.setPerc(0.0);
-                }
-
-                silentCall(() -> hardWorkRepository
-                    .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate() - 1, limitOne))
-                    .filter(Caller::isFilledList)
-                    .ifPresentOrElse(sumOfPercL -> {
-                        final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
-
-                        silentCall(() -> harvestRepository
-                            .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne))
-                            .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
-                            .ifPresentOrElse(periodL -> {
-                                double period = (double) periodL.get(0);
-                                dto.setPeriodOfWork(periodL.get(0));
-                                if (period != 0.0) {
-                                    double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
-                                    dto.setApr(apr);
-                                }
-                            }, () -> log.warn("Not found period for " + dto.print()));
-                    }, () -> log.warn("Not found profit for period for " + dto.print()));
-
-                silentCall(() -> hardWorkRepository
-                    .fetchProfitForPeriod(
-                        dto.getVault(),
-                        dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                        dto.getBlockDate() - 1,
-                        limitOne))
-                    .filter(Caller::isFilledList)
-                    .ifPresentOrElse(sumOfProfitL -> {
-                        double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
-                        dto.setWeeklyProfit(sumOfProfit);
-                    }, () -> log.warn("Not found profit for period for " + dto.print()));
+          silentCall(() -> hardWorkRepository
+              .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate() - 1, limitOne))
+              .filter(Caller::isFilledList)
+              .ifPresentOrElse(sumOfPercL -> {
+                final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
 
                 silentCall(() -> harvestRepository
-                    .fetchAverageTvl(
-                        dto.getVault(),
-                        dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                        dto.getBlockDate(),
-                        limitOne))
-                    .filter(Caller::isFilledList)
-                    .ifPresentOrElse(avgTvlD -> {
-                        dto.setWeeklyAverageTvl(avgTvlD.get(0));
-                    }, () -> log.warn("Not found average tvl for period for " + dto.print()));
+                    .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), limitOne))
+                    .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
+                    .ifPresentOrElse(periodL -> {
+                      double period = (double) periodL.get(0);
+                      dto.setPeriodOfWork(periodL.get(0));
+                      if (period != 0.0) {
+                        double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
+                        dto.setApr(apr);
+                      }
+                    }, () -> log.warn("Not found period for " + dto.print()));
+              }, () -> log.warn("Not found profit for period for " + dto.print()));
 
-            }, () -> log.warn("Not found harvest for " + dto.print()));
+          silentCall(() -> hardWorkRepository
+              .fetchProfitForPeriod(
+                  dto.getVault(),
+                  dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+                  dto.getBlockDate() - 1,
+                  limitOne))
+              .filter(Caller::isFilledList)
+              .ifPresentOrElse(sumOfProfitL -> {
+                double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
+                dto.setWeeklyProfit(sumOfProfit);
+              }, () -> log.warn("Not found profit for period for " + dto.print()));
 
-        silentCall(() -> hardWorkRepository
-            .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK, dto.getBlockDate() - 1, limitOne))
-            .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
-            .ifPresentOrElse(sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0) + dto.getFullRewardUsd()),
-                () -> log.warn("Not found weekly profits for all vaults for " + dto.print()));
+          silentCall(() -> harvestRepository
+              .fetchAverageTvl(
+                  dto.getVault(),
+                  dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+                  dto.getBlockDate(),
+                  limitOne))
+              .filter(Caller::isFilledList)
+              .ifPresentOrElse(avgTvlD -> {
+                dto.setWeeklyAverageTvl(avgTvlD.get(0));
+              }, () -> log.warn("Not found average tvl for period for " + dto.print()));
 
+        }, () -> log.warn("Not found harvest for " + dto.print()));
+
+    silentCall(() -> hardWorkRepository
+        .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+            dto.getBlockDate() - 1, limitOne))
+        .filter(sumOfProfitL -> !sumOfProfitL.isEmpty() && sumOfProfitL.get(0) != null)
+        .ifPresentOrElse(
+            sumOfProfitL -> dto.setWeeklyAllProfit(sumOfProfitL.get(0) + dto.getFullRewardUsd()),
+            () -> log.warn("Not found weekly profits for all vaults for " + dto.print()));
+
+  }
+
+  private void calculatePsProfits(HardWorkDTO dto) {
+    HarvestDTO harvestDTO = harvestRepository
+        .fetchLastByVaultAndDateNotZero("PS", dto.getBlockDate());
+    if (harvestDTO == null) {
+      harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS_V0", dto.getBlockDate());
     }
+    if (harvestDTO != null) {
+      dto.setPsTvlUsd(harvestDTO.getLastUsdTvl());
 
-    private void calculatePsProfits(HardWorkDTO dto) {
-        HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS", dto.getBlockDate());
-        if (harvestDTO == null) {
-            harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero("PS_V0", dto.getBlockDate());
-        }
-        if (harvestDTO != null) {
-            dto.setPsTvlUsd(harvestDTO.getLastUsdTvl());
+      List<Double> allProfitL = hardWorkRepository
+          .fetchAllProfitAtDate(dto.getBlockDate(), limitOne);
+      if (allProfitL != null && !allProfitL.isEmpty() && allProfitL.get(0) != null) {
+        double allProfit = allProfitL.get(0);
+        dto.setAllProfit(allProfit);
+        double allPsProfit = allProfit * 0.3;
 
-            List<Double> allProfitL = hardWorkRepository.fetchAllProfitAtDate(dto.getBlockDate(), limitOne);
-            if (allProfitL != null && !allProfitL.isEmpty() && allProfitL.get(0) != null) {
-                double allProfit = allProfitL.get(0);
-                dto.setAllProfit(allProfit);
-                double allPsProfit = allProfit * 0.3;
+        double psProfitPerc = (allPsProfit / dto.getPsTvlUsd()) * 100;
 
-                double psProfitPerc = (allPsProfit / dto.getPsTvlUsd()) * 100;
-
-                double period = 0.0;
-                if (dto.getBlockDate() < PS_DEPLOYED) {
-                    List<Long> periodOldPsL = harvestRepository
-                        .fetchPeriodOfWork("PS_V0", dto.getBlockDate(), limitOne);
-                    if (periodOldPsL != null && !periodOldPsL.isEmpty() && periodOldPsL.get(0) != null) {
-                        period = (double) periodOldPsL.get(0);
-                    }
-                } else {
-                    List<Long> periodNewPsL = harvestRepository.fetchPeriodOfWork("PS", dto.getBlockDate(), limitOne);
-                    if (periodNewPsL != null && !periodNewPsL.isEmpty() && periodNewPsL.get(0) != null) {
-                        period = (double) periodNewPsL.get(0);
-                    }
-                    period += PS_DEPLOYED - PS_OLD_DEPLOYED;
-                }
-
-                dto.setPsPeriodOfWork((long) period);
-
-                if (period != 0.0) {
-                    double apr = (SECONDS_OF_YEAR / period) * psProfitPerc;
-                    dto.setPsApr(apr);
-                }
-
-            }
-
+        double period = 0.0;
+        if (dto.getBlockDate() < PS_DEPLOYED) {
+          List<Long> periodOldPsL = harvestRepository
+              .fetchPeriodOfWork("PS_V0", dto.getBlockDate(), limitOne);
+          if (periodOldPsL != null && !periodOldPsL.isEmpty() && periodOldPsL.get(0) != null) {
+            period = (double) periodOldPsL.get(0);
+          }
         } else {
-            log.warn("Not found PS for " + dto.print());
+          List<Long> periodNewPsL = harvestRepository
+              .fetchPeriodOfWork("PS", dto.getBlockDate(), limitOne);
+          if (periodNewPsL != null && !periodNewPsL.isEmpty() && periodNewPsL.get(0) != null) {
+            period = (double) periodNewPsL.get(0);
+          }
+          period += PS_DEPLOYED - PS_OLD_DEPLOYED;
         }
-    }
 
-    public void calculateFarmBuybackSum(HardWorkDTO dto) {
-        silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate() - 1, limitOne))
-            .filter(Caller::isFilledList)
-            .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
-                () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));
-    }
+        dto.setPsPeriodOfWork((long) period);
 
-    public void fillExtraInfo(HardWorkDTO dto) {
-        int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate() - 1);
-        dto.setCallsQuantity(count + 1);
-        int owners = harvestRepository.fetchActualOwnerQuantity(
-            dto.getVault(),
-            dto.getVault() + "_V0",
-            dto.getBlockDate());
-        dto.setPoolUsers(owners);
-
-        double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
-
-        dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
-
-        Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
-        if (feesSum == null) {
-            feesSum = 0.0;
+        if (period != 0.0) {
+          double apr = (SECONDS_OF_YEAR / period) * psProfitPerc;
+          dto.setPsApr(apr);
         }
-        dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
 
-        Long lastHardWorkBlockDate = hardWorkRepository.fetchPreviousBlockDateByVaultAndDate(dto.getVault(), dto.getBlockDate());
-        if (lastHardWorkBlockDate != null) {
-            dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
-        }
+      }
+
+    } else {
+      log.warn("Not found PS for " + dto.print());
     }
+  }
+
+  public void calculateFarmBuybackSum(HardWorkDTO dto) {
+    silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate() - 1, limitOne))
+        .filter(Caller::isFilledList)
+        .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
+            () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));
+  }
+
+  public void fillExtraInfo(HardWorkDTO dto) {
+    int count = hardWorkRepository.countAtBlockDate(dto.getVault(), dto.getBlockDate() - 1);
+    dto.setCallsQuantity(count + 1);
+    int owners = harvestRepository.fetchActualOwnerQuantity(
+        dto.getVault(),
+        dto.getVault() + "_V0",
+        dto.getBlockDate());
+    dto.setPoolUsers(owners);
+
+    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+
+    dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
+
+    Double feesSum = hardWorkRepository.sumSavedGasFees(dto.getVault(), dto.getBlockDate());
+    if (feesSum == null) {
+      feesSum = 0.0;
+    }
+    dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
+
+    Long lastHardWorkBlockDate = hardWorkRepository
+        .fetchPreviousBlockDateByVaultAndDate(dto.getVault(), dto.getBlockDate());
+    if (lastHardWorkBlockDate != null) {
+      dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
+    }
+  }
 }

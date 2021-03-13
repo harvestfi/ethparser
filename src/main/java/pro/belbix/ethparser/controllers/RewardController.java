@@ -46,10 +46,23 @@ public class RewardController {
 
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
     public List<RewardDTO> historyReward(@PathVariable("name") String name,
-                                         @RequestParam(value = "start", required = false) String start,
-                                         @RequestParam(value = "end", required = false) String end) {
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end) {
         return rewardsRepository
-            .getAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+            .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                parseLong(end, Long.MAX_VALUE));
+    }
+
+    @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
+    public List<RewardDTO> historyReward(
+        @RequestParam(value = "start") String start,
+        @RequestParam(value = "end", required = false) String end
+    ) {
+        if (end == null) {
+            end = Long.MAX_VALUE + "";
+        }
+        return rewardsRepository
+            .getAllOrderByBlockDate(parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
     }
 
 }
