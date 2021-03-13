@@ -50,7 +50,7 @@ jobs:
           java-version: 1.11
 
       - name: Build with Maven
-        run: mvn -B test -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}" -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest -Dspring.datasource.username=harvest -Dspring.datasource.password=harvest -B package -ff -T 1 --file pom.xml
+        run: mvn -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}" -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest -Dspring.datasource.username=harvest -Dspring.datasource.password=harvest -B package -ff -T 1 --file pom.xml
 
       - name: Generate JaCoCo Badge
         id: jacoco
