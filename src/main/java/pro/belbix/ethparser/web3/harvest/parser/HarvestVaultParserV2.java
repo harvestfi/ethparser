@@ -304,7 +304,11 @@ public class HarvestVaultParserV2 implements Web3Parser {
     String v = harvestTx.getAddressFromArgs2().getValue();
     return ContractUtils.isPoolAddress(v)
         //it is transfer to stacking
-        && !v.equalsIgnoreCase(currentPool); // and it is not current contract
+        && !v.equalsIgnoreCase(currentPool) // and it is not current contract
+        && !v.equalsIgnoreCase( // and it is not iPS
+            ContractUtils.getAddressByName("iPS", ContractType.VAULT)
+                .orElseThrow())
+        ;
   }
 
   private void fillSharedPrice(HarvestDTO dto) {
