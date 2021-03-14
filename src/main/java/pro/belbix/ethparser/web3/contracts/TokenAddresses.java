@@ -88,9 +88,9 @@ class TokenAddresses {
           .addLp(0, "UNI_LP_BASv2_DAI"),
       new TokenContract(11511393, "ONEINCH", "0x111111111117dC0aa78b770fA6A738034120C302")
           .addLp(0, "UNI_LP_ONEINCH_ETH"),
-      new TokenContract(11733661, "WBTC_KBTC", "0xE6C3502997f97F9BDe34CB165fBce191065E068f")
+      new TokenContract(11733661, "KBTC", "0xE6C3502997f97F9BDe34CB165fBce191065E068f")
           .addLp(0, "UNI_LP_WBTC_KBTC"),
-      new TokenContract(11733686, "WBTC_KLON", "0xB97D5cF2864FB0D08b34a484FF48d5492B2324A0")
+      new TokenContract(11733686, "KLON", "0xB97D5cF2864FB0D08b34a484FF48d5492B2324A0")
           .addLp(0, "UNI_LP_WBTC_KLON"),
       new TokenContract(11345280, "MNFLX", "0xc8d674114bac90148d11d3c1d33c61835a0f9dcd")
           .addLp(0, "UNI_LP_MNFLX_UST"),

@@ -1,5 +1,7 @@
 # EthParser
 
+![Code Coverage](.github/badges/jacoco.svg)
+
 This is Java application, based on web3j library, created for the fastest scan of ethereum network.
 
 Grabbed information should be delivered in other external systems via different protocols.

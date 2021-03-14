@@ -21,8 +21,8 @@ public class NewStrategyDownloader {
   private final HardWorkDownloader hardWorkDownloader;
   private final HarvestRepository harvestRepository;
 
-  @Value("${new-strategy-download.contracts:}")
-  private String[] contractNames;
+  @Value("${new-strategy-download.vaults:}")
+  private String[] vaults;
 
   public NewStrategyDownloader(
       HarvestVaultDownloader harvestVaultDownloader,
@@ -36,23 +36,23 @@ public class NewStrategyDownloader {
 
   public void start() {
     int minBlock = Integer.MAX_VALUE;
-    for (String poolName : contractNames) {
-      log.info("Start download " + poolName);
-      harvestVaultDownloader.setContractName(poolName);
+    for (String vaultName : vaults) {
+      log.info("Start download " + vaultName);
+      harvestVaultDownloader.setVaultName(vaultName);
       harvestVaultDownloader.start();
 
-      HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(poolName);
+      HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(vaultName);
       if (harvest == null) {
-        log.error("Download zero records for " + poolName);
+        log.error("Download zero records for " + vaultName);
         continue;
       }
       if (harvest.getBlock().intValue() < minBlock) {
         minBlock = harvest.getBlock().intValue();
       }
-      String stContract = ContractUtils.poolByVaultName(poolName)
+      String stContract = ContractUtils.poolByVaultName(vaultName)
           .map(PoolEntity::getContract)
           .map(ContractEntity::getAddress)
-          .orElseThrow(() -> new IllegalStateException("Not found pool by vault name " + poolName));
+          .orElseThrow(() -> new IllegalStateException("Not found pool by vault name " + vaultName));
       rewardDownloader.setContractName(stContract);
       rewardDownloader.start();
     }
