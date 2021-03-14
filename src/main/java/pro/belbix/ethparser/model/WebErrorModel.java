@@ -11,10 +11,10 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class WebErrorModel {
 
-    //    additional: [{headers: {normalizedNames: {}, lazyUpdate: null}, status: 200, statusText: "OK",…}]
-    String fileName;
-    Integer level;
-    String lineNumber;
-    String message;
-    String timestamp;
+  //    additional: [{headers: {normalizedNames: {}, lazyUpdate: null}, status: 200, statusText: "OK",…}]
+  String fileName;
+  Integer level;
+  String lineNumber;
+  String message;
+  String timestamp;
 }

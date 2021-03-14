@@ -12,34 +12,34 @@ import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 @Log4j2
 public class HardWorkRecalculate {
 
-    private final HardWorkRepository hardWorkRepository;
-    private final HardWorkDbService hardWorkDbService;
+  private final HardWorkRepository hardWorkRepository;
+  private final HardWorkDbService hardWorkDbService;
 
-    @Value("${hardwork-recalculate.from:}")
-    private Integer from;
-    @Value("${hardwork-recalculate.to:}")
-    private Integer to;
+  @Value("${hardwork-recalculate.from:}")
+  private Integer from;
+  @Value("${hardwork-recalculate.to:}")
+  private Integer to;
 
-    public HardWorkRecalculate(HardWorkRepository hardWorkRepository,
-                               HardWorkDbService hardWorkDbService) {
-        this.hardWorkRepository = hardWorkRepository;
-        this.hardWorkDbService = hardWorkDbService;
+  public HardWorkRecalculate(HardWorkRepository hardWorkRepository,
+      HardWorkDbService hardWorkDbService) {
+    this.hardWorkRepository = hardWorkRepository;
+    this.hardWorkDbService = hardWorkDbService;
+  }
+
+  public void start() {
+    if (from == null) {
+      from = 0;
     }
-
-    public void start() {
-        if (from == null) {
-            from = 0;
-        }
-        if (to == null) {
-            to = Integer.MAX_VALUE;
-        }
-        List<HardWorkDTO> dtos = hardWorkRepository.fetchAllInRange(from, to);
-        for (HardWorkDTO dto : dtos) {
-            hardWorkDbService.enrich(dto);
-            hardWorkRepository.saveAndFlush(dto);
-            log.info("Save hardwork for " + dto.print());
-        }
+    if (to == null) {
+      to = Integer.MAX_VALUE;
     }
+    List<HardWorkDTO> dtos = hardWorkRepository.fetchAllInRange(from, to);
+    for (HardWorkDTO dto : dtos) {
+      hardWorkDbService.enrich(dto);
+      hardWorkRepository.saveAndFlush(dto);
+      log.info("Save hardwork for " + dto.print());
+    }
+  }
 
 
 }

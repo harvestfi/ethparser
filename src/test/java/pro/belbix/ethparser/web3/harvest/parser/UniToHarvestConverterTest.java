@@ -2,50 +2,52 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class UniToHarvestConverterTest {
 
-    @Autowired
-    private UniswapLpLogParser uniswapLpLogParser;
-    @Autowired
-    private Web3Service web3Service;
-    @Autowired
-    private PriceProvider priceProvider;
-    @Autowired
-    private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private UniswapLpLogParser uniswapLpLogParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private PriceProvider priceProvider;
+  @Autowired
+  private UniToHarvestConverter uniToHarvestConverter;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Before
-    public void setUp() throws Exception {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+  @BeforeEach
+  public void setUp() throws Exception {
+    contractLoader.load();
+    priceProvider.setUpdateBlockDifference(1);
+  }
 
-    
-    @Test
-    @Ignore
+
+  @Test
+  @Disabled
     public void convertUNI_LP_USDC_FARM_ADD() {
         UniswapDTO dto = uniswapParseTest(
                 "0x514906fc121c7878424a5c928cad1852cc545892",
@@ -86,16 +88,20 @@ public class UniToHarvestConverterTest {
         String otherAmount,
         String lastPrice
     ) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
-        assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-        UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
-        assertDto(dto,
-            id,
-            owner,
-            amount,
-            type,
-            otherCoin,
-            otherAmount,
+      amount = numberFormat(amount);
+      otherAmount = numberFormat(otherAmount);
+      lastPrice = numberFormat(lastPrice);
+      List<LogResult> logResults = web3Service
+          .fetchContractLogs(singletonList(contract), onBlock, onBlock);
+      assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
+      UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+      assertDto(dto,
+          id,
+          owner,
+          amount,
+          type,
+          otherCoin,
+          otherAmount,
             lastPrice
         );
         return dto;
@@ -109,7 +115,7 @@ public class UniToHarvestConverterTest {
                            String otherCoin,
                            String otherAmount,
                            String lastPrice) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
                 () -> assertEquals("Id", id, dto.getId()),
                 () -> assertEquals("Amount", amount, String.format("%.8f", dto.getAmount())),

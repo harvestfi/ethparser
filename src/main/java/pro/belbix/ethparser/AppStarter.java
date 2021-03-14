@@ -135,6 +135,7 @@ public class AppStarter {
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
+        contractLoader.load();
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();

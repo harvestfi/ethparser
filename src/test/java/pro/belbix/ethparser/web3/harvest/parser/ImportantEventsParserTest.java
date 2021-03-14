@@ -2,47 +2,50 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.time.Instant;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class ImportantEventsParserTest {
 
-    @Autowired
-    private ImportantEventsParser importantEventsParser;
-    @Autowired
-    private Web3Service web3Service;
-    @Autowired
-    private PriceProvider priceProvider;
+  @Autowired
+  private ImportantEventsParser importantEventsParser;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private PriceProvider priceProvider;
 
-    @Before
-    public void setUp() {
-        priceProvider.setUpdateBlockDifference(1);
-    }
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Test
-    public void shouldParseStrategyChange() {
-        parserTest(
+   @BeforeEach
+  public void setUp() {
+    contractLoader.load();
+    priceProvider.setUpdateBlockDifference(1);
+  }
+
+  @Test
+  public void shouldParseStrategyChange() {
+    parserTest(
             "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
             11521350,
             0,
@@ -87,6 +90,7 @@ public class ImportantEventsParserTest {
         String blockDate,
         String mintAmount
     ) {
+      mintAmount = numberFormat(mintAmount);
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         ImportantEventsDTO dto = null;
@@ -99,7 +103,7 @@ public class ImportantEventsParserTest {
     }
 
     private void assertDto(ImportantEventsDTO dto, String newStrategy, String oldStrategy, String blockDate, String mintAmount) {
-        assertNotNull("Dto is null", dto);
+        assertNotNull(dto, "Dto is null");
         assertAll(
             () -> assertEquals("newStrategy", newStrategy.toLowerCase(), String.valueOf(dto.getNewStrategy())),
             () -> assertEquals("oldStrategy", oldStrategy.toLowerCase(), String.valueOf(dto.getOldStrategy())),

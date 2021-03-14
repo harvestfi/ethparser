@@ -8,6 +8,7 @@ import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DeployerTx extends EthTransaction {
+
   private DeployerActivityEnum type;
   private String methodName;
 

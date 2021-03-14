@@ -3,8 +3,8 @@ package pro.belbix.ethparser.web3;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
@@ -14,13 +14,12 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
@@ -33,25 +32,33 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class Web3ServiceTest {
 
-    @Autowired
-    private Web3Service web3Service;
+  @Autowired
+  private Web3Service web3Service;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Test
-    public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
-        TransactionReceipt transactionReceipt = web3Service
-            .fetchTransactionReceipt("0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
-        assertNotNull(transactionReceipt);
-        List<Log> logs = transactionReceipt.getLogs();
-        for (Log log : logs) {
-            System.out.println(log.toString());
-        }
+   @BeforeEach
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  @Test
+  public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
+    TransactionReceipt transactionReceipt = web3Service
+        .fetchTransactionReceipt(
+            "0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
+    assertNotNull(transactionReceipt);
+    List<Log> logs = transactionReceipt.getLogs();
+    for (Log log : logs) {
+      System.out.println(log.toString());
+    }
         Log lastLog = logs.get(logs.size() - 1);
         assertEquals("0x56feaccb7f750b997b36a68625c7c596f0b41a58", lastLog.getAddress().toLowerCase());
         String data = lastLog.getData();
@@ -84,7 +91,7 @@ public class Web3ServiceTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void checkLogsForAllVaults() {
         for (String hash : ContractUtils.getAllVaultAddresses()) {
             List<LogResult> logs = web3Service
@@ -95,7 +102,7 @@ public class Web3ServiceTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void getBalanceTest() {
         double balance = web3Service.fetchBalance("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB");
         assertTrue(balance > 0);

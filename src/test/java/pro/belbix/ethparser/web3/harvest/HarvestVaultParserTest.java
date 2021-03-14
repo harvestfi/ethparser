@@ -2,32 +2,31 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.TestUtils.numberFormat;
 
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HarvestVaultParserTest {
 
     private static final int LOG_ID = 0;
@@ -42,10 +41,32 @@ public class HarvestVaultParserTest {
     private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     @Autowired
     private HarvestDBService harvestDBService;
+    @Autowired
+    private ContractLoader contractLoader;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
+    }
+
+    @Test
+    public void parseVault_ETH_DAI_HODL() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x29EC64560ab14d3166222Bf07c3F29c4916E0027",
+            12029883,
+            LOG_ID,
+            "0x74c4bdea0f077ad7a29f988a3521a5289b017b08",
+            "Withdraw",
+            "ETH_DAI_HODL",
+            "0x8c7ecf6045f1d5490c0625a9c315a5af8bd75e29cf50ebbe694f3f710a7c34f3_312",
+            "95.41784704",
+            "",
+            "",
+            10143L,
+            7551281L,
+            true
+        );
     }
 
     @Test
@@ -71,8 +92,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "0,07288828", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "0,22119594", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("0,07288828"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("0.22055181"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -99,8 +122,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "0,10105548", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "35,14611483", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("0,10105548"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("35.23048816"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -117,8 +142,8 @@ public class HarvestVaultParserTest {
             "358,92678598",
             "",
             "",
-            130407L,
-            339508L,
+            130020L,
+            338498L,
             true
         );
         assertNotNull(dto);
@@ -127,8 +152,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "359,94131414", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "130407,75326223", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("359,94131414"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("130019.75772826"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -155,8 +182,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "68,32630764", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "68,32630764", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("68,32630764"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("68,32630764"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -183,8 +212,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "0,00000000", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "0,00000000", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("0,00000000"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("0,00000000"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -201,8 +232,8 @@ public class HarvestVaultParserTest {
             "899,91949809",
             "",
             "",
-            42067028L,
-            295068199L,
+            42064610L,
+            295051243L,
             true
         );
         assertNotNull(dto);
@@ -211,8 +242,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "0,00000000", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "0,00000000", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("0,00000000"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("0,00000000"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -229,8 +262,8 @@ public class HarvestVaultParserTest {
             "200,29795362",
             "",
             "",
-            62795L,
-            102718775L,
+            62971L,
+            103007339L,
             true
         );
         assertNotNull(dto);
@@ -832,7 +865,7 @@ public class HarvestVaultParserTest {
             "Withdraw",
             "UNI_ETH_DAI_V0",
             "0x44ed856bd4de7e4065cb4939b58f4ebc8ec30b564930d4c25b33b81cc03cead6_310",
-            "12448,99201236",
+            "12448.99201236",
             "",
             "",
             0L,
@@ -842,8 +875,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "0,00000000", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "0,00000000", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("0.00000000"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("0.00000000"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
 
         HarvestDTO migration = dto.getMigration();
@@ -862,8 +897,9 @@ public class HarvestVaultParserTest {
         );
         harvestOwnerBalanceCalculator.fillBalance(migration);
         assertAll(
-            () -> assertEquals("owner balance", "12657,60435602", String.format("%.8f", migration.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "583939,02122719",
+            () -> assertEquals("owner balance", numberFormat("12657,60435602"),
+                String.format("%.8f", migration.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("583939,02122719"),
                 String.format("%.8f", migration.getOwnerBalanceUsd()))
         );
     }
@@ -888,8 +924,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "241,08913795", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "11102,67103786", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("241,08913795"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("11102,67103786"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -913,8 +951,10 @@ public class HarvestVaultParserTest {
 
         harvestOwnerBalanceCalculator.fillBalance(dto);
         assertAll(
-            () -> assertEquals("owner balance", "6,08144172", String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", "3352,40976906", String.format("%.8f", dto.getOwnerBalanceUsd()))
+            () -> assertEquals("owner balance", numberFormat("6,08144172"),
+                String.format("%.8f", dto.getOwnerBalance())),
+            () -> assertEquals("owner balance usd", numberFormat("3352,40976906"),
+                String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
 
@@ -1568,8 +1608,8 @@ public class HarvestVaultParserTest {
             "0,00016459",
             "0,000164586064304197",
             "0",
-            165193L,
-            164070L,
+            166173L,
+            165044L,
             true
         );
     }
@@ -1594,6 +1634,82 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultMNFLX_UST() {
+        harvestVaultParseTest(
+            "0x99c2564c9d4767c13e13f38ab073d4758af396ae",
+            12000069,
+            LOG_ID,
+            "0xd98f36c2d99b6b8e610f70baa13df073928536c8",
+            "Deposit",
+            "MNFLX_UST",
+            "0xe657363d9437bb5403eb3a59122e10ba2cf488fe3a59c875ff7fe14c10d7004c_342",
+            "1108,86509634",
+            "1108,86509634",
+            "0",
+            50537L,
+            452090L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMTWTR_UST() {
+        harvestVaultParseTest(
+            "0xb37c79f954E3e1A4ACCC14A5CCa3E46F226038b7",
+            11999645,
+            LOG_ID,
+            "0xf6f75e3206b4bf2d3d6d12dbf633218894750c39",
+            "Deposit",
+            "MTWTR_UST",
+            "0xe4a88a35ae1c93c8550ca8f89448ba4941e3b3e8eb5500c61a35220bebc5bf0e_76",
+            "1587,47546529",
+            "1587,47546529",
+            "0",
+            25965L,
+            204142L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultSUSHI_ETH_UST() {
+        harvestVaultParseTest(
+            "0x4D4D85c6a1ffE6Bb7a1BEf51c9E2282893feE521",
+            11982549,
+            LOG_ID,
+            "0x814055779f8d2f591277b76c724b7adc74fb82d9",
+            "Deposit",
+            "SUSHI_ETH_UST",
+            "0x56bc16ee94269347678254f82de0a492b0ab960fda021e76bb291924b9e6db81_52",
+            "4,95147346",
+            "4,95147346",
+            "0",
+            403L,
+            555L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultCRV_LINK() {
+        harvestVaultParseTest(
+            "0x24C562E24A4B5D905f16F2391E07213efCFd216E",
+            12000189,
+            LOG_ID,
+            "0xa9c1c504652ab74e5fd22d6f36df53a2be4a4e0b",
+            "Withdraw",
+            "CRV_LINK",
+            "0xf172535612225e2dde3b0918475da5a6569cd3017ecfdaea383c5161a500f285_281",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
@@ -1609,14 +1725,17 @@ public class HarvestVaultParserTest {
         String methodName,
         String vault,
         String id,
-        String amount,
-        String amountIn,
+        String _amount,
+        String _amountIn,
         String sharePrice,
         Long usdAmount,
         Long usdTvl,
         boolean confirmed
     ) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+        String amount = numberFormat(_amount);
+        String amountIn = numberFormat(_amountIn);
+        List<LogResult> logResults = web3Service
+            .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertDto(dto,
@@ -1635,17 +1754,18 @@ public class HarvestVaultParserTest {
     }
 
     private void assertDto(HarvestDTO dto,
-                           String owner,
-                           String methodName,
-                           String vault,
-                           String id,
-                           String amount,
-                           String amountIn,
-                           String sharePrice,
-                           Long usdAmount,
-                           Long usdTvl,
-                           boolean confirmed) {
-        assertNotNull("Dto is null", dto);
+        String owner,
+        String methodName,
+        String vault,
+        String id,
+        String _amount,
+        String amountIn,
+        String sharePrice,
+        Long usdAmount,
+        Long usdTvl,
+        boolean confirmed) {
+        String amount = numberFormat(_amount);
+        assertNotNull(dto, "Dto is null");
         assertAll(() -> assertEquals("owner", owner, dto.getOwner()),
             () -> assertEquals("MethodName", methodName, dto.getMethodName()),
             () -> assertEquals("Vault", vault, dto.getVault()),

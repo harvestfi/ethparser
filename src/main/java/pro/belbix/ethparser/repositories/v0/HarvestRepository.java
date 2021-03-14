@@ -100,9 +100,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     List<Double> fetchUsdTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
 
     @Query("select max(t.blockDate) - min(t.blockDate) as period from HarvestDTO t where "
-        + "t.vault = :vault and t.blockDate <= :to "
-        + "group by t.blockDate "
-        + "order by t.blockDate desc")
+        + "t.vault = :vault and t.blockDate <= :to")
     List<Long> fetchPeriodOfWork(@Param("vault") String vault,
                                  @Param("to") long to,
                                  Pageable pageable);

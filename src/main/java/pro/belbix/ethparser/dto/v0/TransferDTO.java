@@ -18,39 +18,39 @@ import pro.belbix.ethparser.dto.DtoI;
 @Data
 public class TransferDTO implements DtoI {
 
-    @Id
-    private String id;
-    private String name;
-    private long block;
-    private long blockDate;
-    private String owner;
-    private String recipient;
-    private double value;
-    private double balanceOwner;
-    private double balanceRecipient;
-    private double price;
-    private String type;
-    private String methodName;
-    private Double profit;
-    private Double profitUsd;
+  @Id
+  private String id;
+  private String name;
+  private long block;
+  private long blockDate;
+  private String owner;
+  private String recipient;
+  private double value;
+  private double balanceOwner;
+  private double balanceRecipient;
+  private double price;
+  private String type;
+  private String methodName;
+  private Double profit;
+  private Double profitUsd;
 
-    public String print() {
-        return Instant.ofEpochSecond(blockDate) + " "
-            + type + " "
-            + methodName + " "
-            + value + " "
-            + name + " "
-            + " " + id;
-    }
+  public String print() {
+    return Instant.ofEpochSecond(blockDate) + " "
+        + type + " "
+        + methodName + " "
+        + value + " "
+        + name + " "
+        + " " + id;
+  }
 
-    public double getBalance(String address) {
-        if (address.equalsIgnoreCase(owner)) {
-            return balanceOwner;
-        } else if (address.equalsIgnoreCase(recipient)) {
-            return balanceRecipient;
-        } else {
-            throw new IllegalStateException("Not found address " + address + " in " + toString());
-        }
+  public double getBalance(String address) {
+    if (address.equalsIgnoreCase(owner)) {
+      return balanceOwner;
+    } else if (address.equalsIgnoreCase(recipient)) {
+      return balanceRecipient;
+    } else {
+      throw new IllegalStateException("Not found address " + address + " in " + toString());
     }
+  }
 
 }

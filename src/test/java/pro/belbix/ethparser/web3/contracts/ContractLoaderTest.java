@@ -1,18 +1,15 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
@@ -29,9 +26,8 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 import pro.belbix.ethparser.web3.Web3Service;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class ContractLoaderTest {
 
     @Autowired
@@ -46,25 +42,29 @@ public class ContractLoaderTest {
     private UniPairRepository uniPairRepository;
     @Autowired
     private TokenRepository tokenRepository;
-    @Autowired
-    private VaultToPoolRepository vaultToPoolRepository;
-    @Autowired
-    private TokenToUniPairRepository tokenToUniPairRepository;
-    @Autowired
-    private Web3Service web3Service;
+  @Autowired
+  private VaultToPoolRepository vaultToPoolRepository;
+  @Autowired
+  private TokenToUniPairRepository tokenToUniPairRepository;
+  @Autowired
+  private Web3Service web3Service;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-//    @Ignore
-    public void fullRunShouldBeOk() throws JsonProcessingException {
+   @BeforeEach
+  public void setUp() throws Exception {
+    contractLoader.load();
+  }
+
+  @Test
+//    @Disabled
+  public void fullRunShouldBeOk() throws JsonProcessingException {
 //        appProperties.setUpdateContracts(true);
-//        contractLoader.load();
-        System.out.println("**************** VAULTS ************************");
-        for (VaultEntity vaultEntity : vaultRepository.findAll()) {
-            assertNotNull(vaultEntity);
-            System.out.println(objectMapper.writeValueAsString(vaultEntity));
-        }
+    System.out.println("**************** VAULTS ************************");
+    for (VaultEntity vaultEntity : vaultRepository.findAll()) {
+      assertNotNull(vaultEntity);
+      System.out.println(objectMapper.writeValueAsString(vaultEntity));
+    }
         System.out.println("**************** POOLS ************************");
         for (PoolEntity poolEntity : poolRepository.findAll()) {
             assertNotNull(poolEntity);
@@ -93,7 +93,7 @@ public class ContractLoaderTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void loadKeyBlocks() {
         appProperties.setUpdateContracts(true);
         contractLoader.loadKeyBlocks();

@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.blocks.downloader.EthBlockDownloader;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
@@ -17,117 +18,121 @@ import pro.belbix.ethparser.web3.uniswap.downloader.UniswapLpDownloader;
 @Log4j2
 public class UtilsStarter {
 
-    private final AppProperties appProperties;
-    private final UniswapLpDownloader uniswapLpDownloader;
-    private final HarvestVaultDownloader harvestVaultDownloader;
-    private final TvlRecalculate tvlRecalculate;
-    private final DownloadIncome downloadIncome;
-    private final HardWorkDownloader hardWorkDownloader;
-    private final HardWorkRecalculate hardWorkRecalculate;
-    private final RewardDownloader rewardDownloader;
-    private final BlockCacher blockCacher;
-    private final LpTvlRecalculate lpTvlRecalculate;
-    private final OwnerBalanceRecalculate ownerBalanceRecalculate;
-    private final OwnerCountRecalculate ownerCountRecalculate;
-    private final MigrationRecalculate migrationRecalculate;
-    private final TransferDownloader transferDownloader;
-    private final TransfersRecalculate transfersRecalculate;
-    private final RewardRecalculate rewardRecalculate;
-    private final NewStrategyDownloader newStrategyDownloader;
-    private final PriceDownloader priceDownloader;
-    private final HarvestProfitRecalculate harvestProfitRecalculate;
-    private final DeployerTransactionsDownloader deployerTransactionsDownloader;
-    private final EthBlockDownloader ethBlockDownloader;
+  private final AppProperties appProperties;
+  private final UniswapLpDownloader uniswapLpDownloader;
+  private final HarvestVaultDownloader harvestVaultDownloader;
+  private final TvlRecalculate tvlRecalculate;
+  private final DownloadIncome downloadIncome;
+  private final HardWorkDownloader hardWorkDownloader;
+  private final HardWorkRecalculate hardWorkRecalculate;
+  private final RewardDownloader rewardDownloader;
+  private final BlockCacher blockCacher;
+  private final LpTvlRecalculate lpTvlRecalculate;
+  private final OwnerBalanceRecalculate ownerBalanceRecalculate;
+  private final OwnerCountRecalculate ownerCountRecalculate;
+  private final MigrationRecalculate migrationRecalculate;
+  private final TransferDownloader transferDownloader;
+  private final TransfersRecalculate transfersRecalculate;
+  private final RewardRecalculate rewardRecalculate;
+  private final NewStrategyDownloader newStrategyDownloader;
+  private final PriceDownloader priceDownloader;
+  private final HarvestProfitRecalculate harvestProfitRecalculate;
+  private final DeployerTransactionsDownloader deployerTransactionsDownloader;
+  private final EthBlockDownloader ethBlockDownloader;
+  private final ContractLoader contractLoader;
 
-    public UtilsStarter(AppProperties appProperties,
-                        UniswapLpDownloader uniswapLpDownloader,
-                        HarvestVaultDownloader harvestVaultDownloader,
-                        TvlRecalculate tvlRecalculate,
-                        DownloadIncome downloadIncome,
-                        HardWorkDownloader hardWorkDownloader,
-                        HardWorkRecalculate hardWorkRecalculate,
-                        RewardDownloader rewardDownloader, BlockCacher blockCacher,
-                        LpTvlRecalculate lpTvlRecalculate,
-                        OwnerBalanceRecalculate ownerBalanceRecalculate,
-                        OwnerCountRecalculate ownerCountRecalculate,
-                        MigrationRecalculate migrationRecalculate,
-                        TransferDownloader transferDownloader,
-                        TransfersRecalculate transfersRecalculate,
-                        RewardRecalculate rewardRecalculate,
-                        NewStrategyDownloader newStrategyDownloader,
-                        HarvestProfitRecalculate harvestProfitRecalculate,
-                        PriceDownloader priceDownloader,
-                        DeployerTransactionsDownloader deployerTransactionsDownloader,
-                        EthBlockDownloader ethBlockDownloader) {
-        this.appProperties = appProperties;
-        this.uniswapLpDownloader = uniswapLpDownloader;
-        this.harvestVaultDownloader = harvestVaultDownloader;
-        this.tvlRecalculate = tvlRecalculate;
-        this.downloadIncome = downloadIncome;
-        this.hardWorkDownloader = hardWorkDownloader;
-        this.hardWorkRecalculate = hardWorkRecalculate;
-        this.rewardDownloader = rewardDownloader;
-        this.blockCacher = blockCacher;
-        this.lpTvlRecalculate = lpTvlRecalculate;
-        this.ownerBalanceRecalculate = ownerBalanceRecalculate;
-        this.ownerCountRecalculate = ownerCountRecalculate;
-        this.migrationRecalculate = migrationRecalculate;
-        this.transferDownloader = transferDownloader;
-        this.transfersRecalculate = transfersRecalculate;
-        this.rewardRecalculate = rewardRecalculate;
-        this.newStrategyDownloader = newStrategyDownloader;
-        this.harvestProfitRecalculate = harvestProfitRecalculate;
-        this.priceDownloader = priceDownloader;
-        this.deployerTransactionsDownloader = deployerTransactionsDownloader;
-        this.ethBlockDownloader = ethBlockDownloader;
-    }
+  public UtilsStarter(AppProperties appProperties,
+      UniswapLpDownloader uniswapLpDownloader,
+      HarvestVaultDownloader harvestVaultDownloader,
+      TvlRecalculate tvlRecalculate,
+      DownloadIncome downloadIncome,
+      HardWorkDownloader hardWorkDownloader,
+      HardWorkRecalculate hardWorkRecalculate,
+      RewardDownloader rewardDownloader, BlockCacher blockCacher,
+      LpTvlRecalculate lpTvlRecalculate,
+      OwnerBalanceRecalculate ownerBalanceRecalculate,
+      OwnerCountRecalculate ownerCountRecalculate,
+      MigrationRecalculate migrationRecalculate,
+      TransferDownloader transferDownloader,
+      TransfersRecalculate transfersRecalculate,
+      RewardRecalculate rewardRecalculate,
+      NewStrategyDownloader newStrategyDownloader,
+      HarvestProfitRecalculate harvestProfitRecalculate,
+      PriceDownloader priceDownloader,
+      DeployerTransactionsDownloader deployerTransactionsDownloader,
+      EthBlockDownloader ethBlockDownloader,
+      ContractLoader contractLoader) {
+    this.appProperties = appProperties;
+    this.uniswapLpDownloader = uniswapLpDownloader;
+    this.harvestVaultDownloader = harvestVaultDownloader;
+    this.tvlRecalculate = tvlRecalculate;
+    this.downloadIncome = downloadIncome;
+    this.hardWorkDownloader = hardWorkDownloader;
+    this.hardWorkRecalculate = hardWorkRecalculate;
+    this.rewardDownloader = rewardDownloader;
+    this.blockCacher = blockCacher;
+    this.lpTvlRecalculate = lpTvlRecalculate;
+    this.ownerBalanceRecalculate = ownerBalanceRecalculate;
+    this.ownerCountRecalculate = ownerCountRecalculate;
+    this.migrationRecalculate = migrationRecalculate;
+    this.transferDownloader = transferDownloader;
+    this.transfersRecalculate = transfersRecalculate;
+    this.rewardRecalculate = rewardRecalculate;
+    this.newStrategyDownloader = newStrategyDownloader;
+    this.harvestProfitRecalculate = harvestProfitRecalculate;
+    this.priceDownloader = priceDownloader;
+    this.deployerTransactionsDownloader = deployerTransactionsDownloader;
+    this.ethBlockDownloader = ethBlockDownloader;
+    this.contractLoader = contractLoader;
+  }
 
-    public void startUtils() {
-        log.info("Start utils");
-        if ("cache-blocks".equals(appProperties.getStartUtil())) {
-            blockCacher.cacheBlocks();
-        } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
-            uniswapLpDownloader.start();
-        } else if ("harvest-download".equals(appProperties.getStartUtil())) {
-            harvestVaultDownloader.start();
-        } else if ("tvl-recalculate".equals(appProperties.getStartUtil())) {
-            tvlRecalculate.start();
-        } else if ("income-download".equals(appProperties.getStartUtil())) {
-            downloadIncome.start();
-        } else if ("hardwork-download".equals(appProperties.getStartUtil())) {
-            hardWorkDownloader.start();
-        } else if ("hardwork-recalculate".equals(appProperties.getStartUtil())) {
-            hardWorkRecalculate.start();
-        } else if ("reward-download".equals(appProperties.getStartUtil())) {
-            rewardDownloader.start();
-        } else if ("lp-tvl-recalculate".equals(appProperties.getStartUtil())) {
-            lpTvlRecalculate.start();
-        } else if ("balances-recalculate".equals(appProperties.getStartUtil())) {
-            ownerBalanceRecalculate.start();
-        } else if ("owners-count-recalculate".equals(appProperties.getStartUtil())) {
-            ownerCountRecalculate.start();
-        } else if ("migration-recalculate".equals(appProperties.getStartUtil())) {
-            migrationRecalculate.start();
-        } else if ("rewards-recalculate".equals(appProperties.getStartUtil())) {
-            rewardRecalculate.start();
-        } else if ("transfer-download".equals(appProperties.getStartUtil())) {
-            transferDownloader.start();
-        } else if ("transfer-recalculate".equals(appProperties.getStartUtil())) {
-            transfersRecalculate.start();
-        } else if ("new-strategy-download".equals(appProperties.getStartUtil())) {
-            newStrategyDownloader.start();
-        } else if ("price-download".equals(appProperties.getStartUtil())) {
-            priceDownloader.start();
-        } else if ("profit-recalculate".equals(appProperties.getStartUtil())) {
-            harvestProfitRecalculate.start();
-        } else if ("deployer-download".equals(appProperties.getStartUtil())) {
-            deployerTransactionsDownloader.start();
-        } else if ("block-download".equals(appProperties.getStartUtil())) {
-            ethBlockDownloader.start();
-        }
-        log.info("Utils completed");
-        System.exit(0);
+  public void startUtils() {
+    log.info("Start utils {}", appProperties.getStartUtil());
+    contractLoader.load();
+    if ("cache-blocks".equals(appProperties.getStartUtil())) {
+      blockCacher.cacheBlocks();
+    } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
+      uniswapLpDownloader.start();
+    } else if ("harvest-download".equals(appProperties.getStartUtil())) {
+      harvestVaultDownloader.start();
+    } else if ("tvl-recalculate".equals(appProperties.getStartUtil())) {
+      tvlRecalculate.start();
+    } else if ("income-download".equals(appProperties.getStartUtil())) {
+      downloadIncome.start();
+    } else if ("hardwork-download".equals(appProperties.getStartUtil())) {
+      hardWorkDownloader.start();
+    } else if ("hardwork-recalculate".equals(appProperties.getStartUtil())) {
+      hardWorkRecalculate.start();
+    } else if ("reward-download".equals(appProperties.getStartUtil())) {
+      rewardDownloader.start();
+    } else if ("lp-tvl-recalculate".equals(appProperties.getStartUtil())) {
+      lpTvlRecalculate.start();
+    } else if ("balances-recalculate".equals(appProperties.getStartUtil())) {
+      ownerBalanceRecalculate.start();
+    } else if ("owners-count-recalculate".equals(appProperties.getStartUtil())) {
+      ownerCountRecalculate.start();
+    } else if ("migration-recalculate".equals(appProperties.getStartUtil())) {
+      migrationRecalculate.start();
+    } else if ("rewards-recalculate".equals(appProperties.getStartUtil())) {
+      rewardRecalculate.start();
+    } else if ("transfer-download".equals(appProperties.getStartUtil())) {
+      transferDownloader.start();
+    } else if ("transfer-recalculate".equals(appProperties.getStartUtil())) {
+      transfersRecalculate.start();
+    } else if ("new-strategy-download".equals(appProperties.getStartUtil())) {
+      newStrategyDownloader.start();
+    } else if ("price-download".equals(appProperties.getStartUtil())) {
+      priceDownloader.start();
+    } else if ("profit-recalculate".equals(appProperties.getStartUtil())) {
+      harvestProfitRecalculate.start();
+    } else if ("deployer-download".equals(appProperties.getStartUtil())) {
+      deployerTransactionsDownloader.start();
+    } else if ("block-download".equals(appProperties.getStartUtil())) {
+      ethBlockDownloader.start();
     }
+    log.info("Utils completed");
+    System.exit(0);
+  }
 
 
 }

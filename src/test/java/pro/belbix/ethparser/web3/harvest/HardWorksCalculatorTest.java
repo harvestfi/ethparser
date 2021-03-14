@@ -8,46 +8,43 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class HardWorksCalculatorTest {
 
-    @MockBean
-    private HarvestRepository harvestRepository;
-    @MockBean
-    private HardWorkRepository hardworkRepository;
-    @MockBean
-    private EthBlockService ethBlockService;
+  @MockBean
+  private HarvestRepository harvestRepository;
+  @MockBean
+  private HardWorkRepository hardworkRepository;
+  @MockBean
+  private EthBlockService ethBlockService;
 
-    @Autowired
-    private HardWorkCalculator hardworkCalculator;
+  @Autowired
+  private HardWorkCalculator hardworkCalculator;
 
-    final String fakeEthAddr = "0x8f566f82c13ffb1bc72169ddb7beb1b19a5726ff";
+  final String fakeEthAddr = "0x8f566f82c13ffb1bc72169ddb7beb1b19a5726ff";
 
-    final String fakeVault1 = "v1";
-    final String fakeVault2 = "v2";
-    final long fakeBlock1 = 1L;
-    final long fakeBlock2 = 5L;
+  final String fakeVault1 = "v1";
+  final String fakeVault2 = "v2";
+  final long fakeBlock1 = 1L;
+  final long fakeBlock2 = 5L;
 
-    final long fakeStartBlockDate1 = 1L;
-    final long fakeEndBlockDate1 = 2L;
+  final long fakeStartBlockDate1 = 1L;
+  final long fakeEndBlockDate1 = 2L;
     final long fakeStartBlockDate2 = 5L;
     final long fakeEndBlockDate2 = 6L;
     final double fakeEthPrice = 2;
@@ -59,9 +56,9 @@ public class HardWorksCalculatorTest {
     final HarvestDTO harvest5 = mockHarvest(fakeEthAddr, fakeVault1, 1, fakeStartBlockDate2);
     final HarvestDTO harvest6 = mockHarvest(fakeEthAddr, fakeVault1, 0, fakeEndBlockDate2);
 
-    @Before
+  @BeforeEach
     public void setup() {
-        when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
+      when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
         when(ethBlockService.getTimestampSecForBlock(null, fakeBlock2)).thenReturn(fakeEndBlockDate2);
     }
 

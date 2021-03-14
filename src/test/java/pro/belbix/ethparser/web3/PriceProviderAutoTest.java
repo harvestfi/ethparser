@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3;
 
-import static org.mockito.Mockito.doReturn;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,12 +20,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.PriceController;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
@@ -36,31 +34,32 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class PriceProviderAutoTest {
 
-    private static final Double TOLERANCE_PCT = 0.5;
-    private static final long TARGET_BLOCK_NUMBER = 11922198;
+  private static final Double TOLERANCE_PCT = 0.6; // coingecko the has worst data for some tokens :(
+  private static final long TARGET_BLOCK_DATE = 1614201489;
 
-    @SpyBean
-    private EthBlockService ethBlockService;
+  @Autowired
+  private PriceController priceController;
 
-    @Autowired
-    private PriceController priceController;
+  @Autowired
+  private ContractLoader contractLoader;
 
-    @Autowired
-    private ContractLoader contractLoader;
+  @BeforeEach
+  void setUp() {
+    contractLoader.load();
+  }
 
-    private final Set<String> exclude = Set.of(
-        "ZERO",
-        "SBTC"
-    );
+  private final Set<String> exclude = Set.of(
+      "ZERO",
+      "SBTC"
+  );
 
-    @TestFactory
-    public Stream<DynamicTest> tokenPrices() throws InterruptedException, ExecutionException, JSONException {
-        contractLoader.load();
-        doReturn(TARGET_BLOCK_NUMBER).when(ethBlockService).getLastBlock();
-        String dateStr = this.getDateByBlockNumber();
+  @TestFactory
+  public Stream<DynamicTest> tokenPrices()
+      throws Exception {
+    String dateStr = this.getDateByBlockNumber();
         HashMap<String, Double> addressPriceMap = this.fetchPrices(dateStr);
 
         return ContractUtils.getAllTokens().stream()
@@ -162,11 +161,9 @@ public class PriceProviderAutoTest {
     }
 
     private String getDateByBlockNumber() {
-        long ts = ethBlockService.getTimestampSecForBlock(null, TARGET_BLOCK_NUMBER);
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return dateFormat.format(new Date(ts * 1000));
+      return dateFormat.format(new Date(TARGET_BLOCK_DATE * 1000));
     }
 
 
