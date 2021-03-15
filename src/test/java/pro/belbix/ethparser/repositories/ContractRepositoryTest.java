@@ -1,11 +1,11 @@
 package pro.belbix.ethparser.repositories;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.repositories.eth.ContractRepository;
 import pro.belbix.ethparser.repositories.eth.ContractTypeRepository;
@@ -19,7 +19,7 @@ public class ContractRepositoryTest {
     private ContractTypeRepository contractTypeRepository;
 
     @Test
-    public void test1() {
-        contractRepository.findAll();
+    public void findByIdSmokeTest() {
+        assertNotNull(contractRepository.findById(1));
     }
 }

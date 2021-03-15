@@ -8,13 +8,13 @@ import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
-public class EntityCollector {
+public class BlockEntityCollector {
 
   private final EthBlockEntity block;
   private final Map<String, EthHashEntity> hashes = new HashMap<>();
   private final Map<String, EthAddressEntity> addresses = new HashMap<>();
 
-  public EntityCollector(EthBlockEntity block) {
+  public BlockEntityCollector(EthBlockEntity block) {
     this.block = block;
   }
 
@@ -36,6 +36,7 @@ public class EntityCollector {
 
   private void collectFromLog(EthLogEntity log) {
     saveHash(log.getFirstTopic());
+    saveAddress(log.getAddress());
   }
 
   private void saveHash(EthHashEntity hash) {

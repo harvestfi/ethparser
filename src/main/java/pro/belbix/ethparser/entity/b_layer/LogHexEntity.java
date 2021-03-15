@@ -21,6 +21,6 @@ public class LogHexEntity {
   private String methodName;
 
   @ManyToOne
-  @JoinColumn(name = "hash", referencedColumnName = "idx")
-  private EthHashEntity topic;
+  @JoinColumn(name = "topic_hash", referencedColumnName = "idx")
+  private EthHashEntity topicHash;
 }

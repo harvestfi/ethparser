@@ -12,16 +12,18 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "a_eth_log", indexes = {
 //    @Index(name = "idx_eth_log_block", columnList = "blockNumber"),
 //    @Index(name = "idx_eth_log_hash_log_id", columnList = "hash, logId")
-})
+},
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"tx_id", "logId"})
+    })
 @Data
 @EqualsAndHashCode(exclude = {"tx", "blockNumber"})
 @JsonInclude(Include.NON_NULL)
@@ -29,7 +31,7 @@ public class EthLogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private long logId;
     private int removed;
     private long transactionIndex;
@@ -40,12 +42,15 @@ public class EthLogEntity {
     private String topics;
 
     @ManyToOne
+    @JoinColumn(name = "address", referencedColumnName = "idx")
+    private EthAddressEntity address;
+
+    @ManyToOne
     @JoinColumn(name = "first_topic", referencedColumnName = "idx")
     private EthHashEntity firstTopic;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private EthTxEntity tx;
 
     @JsonIgnore

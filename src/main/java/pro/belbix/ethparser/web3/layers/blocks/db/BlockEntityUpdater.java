@@ -7,13 +7,13 @@ import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
-public class EntityUpdater {
+public class BlockEntityUpdater {
 
   private final EthBlockEntity block;
   private final Map<String, EthHashEntity> hashes;
   private final Map<String, EthAddressEntity> addresses;
 
-  public EntityUpdater(EthBlockEntity block, EntityCollector collector) {
+  public BlockEntityUpdater(EthBlockEntity block, BlockEntityCollector collector) {
     this.block = block;
     this.hashes = collector.getHashes();
     this.addresses = collector.getAddresses();
@@ -37,6 +37,7 @@ public class EntityUpdater {
 
   private void persistLog(EthLogEntity l) {
     l.setFirstTopic(findHash(l.getFirstTopic()));
+    l.setAddress(findAddress(l.getAddress()));
   }
 
   private EthHashEntity findHash(EthHashEntity ethHashEntity) {

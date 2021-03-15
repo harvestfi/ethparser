@@ -29,9 +29,9 @@ public class ContractEntity {
     private String address;
     private String name;
     private Long created;
+
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "type")
-    @Fetch(FetchMode.JOIN)
+    @JoinColumn(name = "type", referencedColumnName = "type")
     private ContractTypeEntity type;
 
 //    @JsonIgnore

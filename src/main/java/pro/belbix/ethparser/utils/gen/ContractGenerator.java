@@ -24,7 +24,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.Web3j;
@@ -264,27 +263,18 @@ public class ContractGenerator {
     }
 
     public static Map<String, Class<?>> createMap(Object... values) {
-        if (values.length == 0 || values.length % 2 != 0) {
+        if (values.length == 0) {
+            return Map.of();
+        }
+        if (values.length % 2 != 0) {
             throw new IllegalStateException("Wrong strings: " + Arrays.toString(values));
         }
         Map<String, Class<?>> result = new HashMap<>();
-        for (int i = 0; i < values.length / 2; i++) {
+        for (int i = 0; i < values.length; i = i + 2) {
             result.put((String) values[i], (Class<?>) values[i + 1]);
         }
         return result;
     }
-
-    public static Map<String, Function> createFuncMap(Object... values) {
-        if (values.length == 0 || values.length % 2 != 0) {
-            throw new IllegalStateException("Wrong strings: " + Arrays.toString(values));
-        }
-        Map<String, Function> result = new HashMap<>();
-        for (int i = 0; i < values.length / 2; i++) {
-            result.put((String) values[i], (Function) values[i + 1]);
-        }
-        return result;
-    }
-
 
     public void setContract(String contract) {
         this.contract = contract;

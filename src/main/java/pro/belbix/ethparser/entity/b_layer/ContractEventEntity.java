@@ -13,28 +13,36 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
+import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
+import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 
 @Entity
-@Table(name = "b_contract_events")
+@Table(name = "b_contract_events",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"block", "contract"})
+    })
 @Data
 @JsonInclude(Include.NON_NULL)
 public class ContractEventEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "contract", referencedColumnName = "address")
-    private ContractEntity contract;
+    @JoinColumn(name = "contract", referencedColumnName = "idx")
+    private EthAddressEntity contract;
 
     @ManyToOne
-    private EthTxEntity tx;
+    @JoinColumn(name = "block", referencedColumnName = "number")
+    private EthBlockEntity block;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractEvent",
         fetch = FetchType.EAGER, orphanRemoval = true)
@@ -44,7 +52,6 @@ public class ContractEventEntity {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractEvent",
         fetch = FetchType.EAGER, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<ContractLogEntity> logs;
-
+    private Set<ContractTxEntity> txs;
 
 }

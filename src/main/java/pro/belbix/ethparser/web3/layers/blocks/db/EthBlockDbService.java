@@ -26,7 +26,7 @@ import pro.belbix.ethparser.service.SequenceService;
 @Log4j2
 public class EthBlockDbService {
 
-  private static final int MAX_TASKS = 10; // DON'T TURN ON! mt broken
+  private static final int MAX_TASKS = 10;
   private final static long MAX_SEQ = 100000;
 
   private final EthBlockRepository ethBlockRepository;
@@ -76,10 +76,10 @@ public class EthBlockDbService {
 
       AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
       long startSeq = seq.get();
-      EntityCollector collector = persistChildEntities(block, seq, startSeq);
-      new EntityUpdater(block, collector).update();
+      BlockEntityCollector collector = persistChildEntities(block, seq, startSeq);
+      new BlockEntityUpdater(block, collector).update();
       ethBlockRepository.save(block);
-      return block;
+      return ethBlockRepository.findById(block.getNumber()).orElseThrow();
     } catch (Exception e) {
       log.error("Block db service worker error with {}", block.getNumber(), e);
       throw e;
@@ -105,9 +105,9 @@ public class EthBlockDbService {
     }
   }
 
-  private EntityCollector persistChildEntities(EthBlockEntity block, AtomicLong seq,
+  private BlockEntityCollector persistChildEntities(EthBlockEntity block, AtomicLong seq,
       long startSeq) {
-    EntityCollector collector = new EntityCollector(block);
+    BlockEntityCollector collector = new BlockEntityCollector(block);
     collector.collectFromBlock();
     persistHashes(collector.getHashes(), seq, startSeq);
     persistAddresses(collector.getAddresses(), seq, startSeq);

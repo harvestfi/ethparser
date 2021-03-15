@@ -123,7 +123,7 @@ public abstract class MethodDecoder {
     }
     StringBuilder sb = new StringBuilder();
     for (Type type : types) {
-      sb.append(type.getTypeAsString());
+      sb.append(type.getValue().toString());
       sb.append(",");
     }
     sb.setLength(sb.length() - 1);

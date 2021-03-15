@@ -40,7 +40,7 @@ public class EthTxEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private String nonce;
     private long transactionIndex;
     private String value;
@@ -61,7 +61,7 @@ public class EthTxEntity {
     private String revertReason;
 
     @ManyToOne
-    @JoinColumn(name = "hash", referencedColumnName = "idx")
+    @JoinColumn(name = "hash", referencedColumnName = "idx", unique = true)
     private EthHashEntity hash;
 
     @ManyToOne

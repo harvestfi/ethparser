@@ -59,7 +59,6 @@ public class WrapperReader {
                     || field.getType() != Event.class) {
                     continue;
                 }
-                log.info("desc "+ field.getName());
                 events.add((Event) field.get(null));
             }
         } catch (Exception e) {

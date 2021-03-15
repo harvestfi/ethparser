@@ -1035,6 +1035,9 @@ public class SetToken_945381920 extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public void call_getPositions() {
+    }
+
     public RemoteFunctionCall<BigInteger> call_getTotalComponentRealUnits(String _component) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALCOMPONENTREALUNITS, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _component)), 

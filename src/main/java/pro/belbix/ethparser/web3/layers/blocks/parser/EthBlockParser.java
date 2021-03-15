@@ -202,6 +202,7 @@ public class EthBlockParser {
     EthLogEntity ethLogEntity = new EthLogEntity();
 
     ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
+    ethLogEntity.setAddress(new EthAddressEntity(ethLog.getAddress()));
     ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
     ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
     ethLogEntity.setData(ethLog.getData());
