@@ -8,15 +8,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.repositories.eth.ContractRepository;
-import pro.belbix.ethparser.repositories.eth.ContractTypeRepository;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class ContractRepositoryTest {
     @Autowired
     private ContractRepository contractRepository;
-    @Autowired
-    private ContractTypeRepository contractTypeRepository;
 
     @Test
     public void findByIdSmokeTest() {

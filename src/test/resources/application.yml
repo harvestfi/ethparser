@@ -2,7 +2,7 @@ spring:
   jpa:
     #    open-in-view: true
     database: postgresql
-#    show-sql: true
+    show-sql: true
     generate-ddl: true
     hibernate:
       ddl-auto: create
@@ -27,7 +27,6 @@ spring:
       classpath:sql/common.sql,
       classpath:sql/hardwork.sql,
       classpath:sql/harvest.sql,
-      classpath:sql/postgres_public_eth_contract_types.sql,
       classpath:sql/postgres_public_eth_contracts.sql,
       classpath:sql/postgres_public_eth_pools.sql,
       classpath:sql/postgres_public_eth_tokens.sql,

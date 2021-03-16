@@ -85,6 +85,11 @@ public class ContractUtils {
   }
 
   public static Optional<PoolEntity> poolByVaultAddress(String address) {
+    // PS_V0 doesn't have pool
+    if("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equals(address)) {
+      return Optional.ofNullable(ContractLoader
+          .poolsCacheByAddress.get("0x59258f4e15a5fc74a7284055a8094f58108dbd4f"));
+    }
     Optional<PoolEntity> poolEntity = ContractLoader.poolsCacheByAddress.values().stream()
         .filter(pool -> pool.getLpToken() != null
             && pool.getLpToken().getAddress().equalsIgnoreCase(address))

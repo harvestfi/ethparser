@@ -23,22 +23,24 @@ public class UniPairEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private Long updatedBlock;
+    private int type;
+    private Long decimals;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "contract", unique = true)
     @Fetch(FetchMode.JOIN)
     private ContractEntity contract;
-    private Long updatedBlock;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "key_token")
     @Fetch(FetchMode.JOIN)
     private TokenEntity keyToken;
-    private int type;
 
-    // contract info
-    private Long decimals;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity token0;
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity token1;
 
 }
