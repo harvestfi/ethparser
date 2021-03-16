@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import static org.web3j.codegen.Console.exitError;
 

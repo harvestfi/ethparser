@@ -3,7 +3,7 @@ package pro.belbix.ethparser.utils.recalculation;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.utils.gen.ContractGenerator;
+import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;

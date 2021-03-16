@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;

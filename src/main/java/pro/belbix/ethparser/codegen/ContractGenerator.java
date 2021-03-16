@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.ClassName;
@@ -9,6 +9,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -17,13 +18,18 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.lang.model.element.Modifier;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Event;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.Web3j;
@@ -34,6 +40,7 @@ import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Strings;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.service.EtherscanService;
+import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -45,7 +52,11 @@ public class ContractGenerator {
     public final static Credentials STUB_CREDENTIALS =
         Credentials.create("8da4ef21b864d2cc526dbdb2a120bd2874c36c9d0a1fb7f8c63d7f7a8b41de8f");
     private final EtherscanService etherscanService = new EtherscanService();
-    private final Map<String, String> contractToWrapper = new HashMap<>();
+    private final Map<String, String> contractToWrapperName = new HashMap<>();
+    private final Map<String, Class<?>> wrapperNameToClass = new HashMap<>();
+    private final Map<String, Event> eventsMap = new HashMap<>();
+    private final Map<String, URLClassLoader> classLoaders = new HashMap<>();
+    private final Set<String> parsedContractEvents = new HashSet<>();
 
     private final AppProperties appProperties;
     private final ContractLoader contractLoader;
@@ -55,10 +66,10 @@ public class ContractGenerator {
     private String contract;
     @Value("${contract-generator.category:}")
     private String category;
-    @Value("${contract-generator.destinationRootPackage:pro.belbix.ethparser.web3.abi.generated}")
-    private String destinationRootPackage;
-    @Value("${contract-generator.destinationDir:./../../src/main/java}")
-    private String destinationDir;
+    @Value("${contract-generator.rootPackage:generated}")
+    private String rootPackage;
+    @Value("${contract-generator.destDir:./tmp}")
+    private String destDir;
 
     private Instant lastCall = Instant.now();
 
@@ -71,28 +82,71 @@ public class ContractGenerator {
 
     public void start() {
         log.info("Start Contract Generator {} {} {} {}",
-            contract, category, destinationRootPackage, destinationDir);
+            contract, category, rootPackage, destDir);
         if (contract != null && !contract.isBlank()) {
-            generateFromAddress(contract, category);
+            generateFromAddress(contract, destDir, category);
         }
         contractLoader.load();
         ContractUtils.getAllVaultAddresses()
-            .forEach(address -> generateFromAddress(address, "harvest"));
+            .forEach(address ->
+                generateFromAddress(address, destDir, rootPackage + ".harvest"));
 
         ContractUtils.getAllPoolAddresses()
-            .forEach(address -> generateFromAddress(address, "harvest"));
+            .forEach(address ->
+                generateFromAddress(address, destDir, rootPackage + ".harvest"));
 
         ContractUtils.getAllUniPairs().stream()
             .map(u -> u.getContract().getAddress())
-            .forEach(address -> generateFromAddress(address, "uniswap"));
+            .forEach(address ->
+                generateFromAddress(address, destDir, rootPackage + ".uniswap"));
 
         ContractUtils.getAllTokens().stream()
             .map(u -> u.getContract().getAddress())
-            .forEach(address -> generateFromAddress(address, "erc20"));
+            .forEach(address ->
+                generateFromAddress(address, destDir, rootPackage + ".erc20"));
         generateMappingClass();
     }
 
-    String generateFromAddress(String address, String subPackage) {
+    public Class<?> getWrapperClassByAddress(String address) {
+        String wrapperName = contractToWrapperName.get(address);
+        if (wrapperName == null) {
+            wrapperName = generateFromAddress(address, destDir, rootPackage);
+        }
+        if(wrapperName == null) {
+            return null;
+        }
+        Class<?> clazz = wrapperNameToClass.get(wrapperName);
+        if (clazz != null) {
+            return clazz;
+        }
+        clazz = loadFromFile(destDir, wrapperName);
+        wrapperNameToClass.put(wrapperName, clazz);
+        return clazz;
+    }
+
+    public Class<?> loadFromFile(String dir, String fullName) {
+        try {
+            String javaFile = dir + File.separator
+                + fullName.replace(".", File.separator) + ".java";
+
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            compiler.run(null, null, null, javaFile);
+
+            URLClassLoader classLoader = classLoaders.get(dir);
+            if (classLoader == null) {
+                classLoader = new URLClassLoader(
+                    new URL[]{new File(dir).toURI().toURL()});
+                classLoaders.put(dir, classLoader);
+            }
+
+            return classLoader.loadClass(fullName);
+        } catch (Throwable e) {
+            log.error("Error load class {} from {}", fullName, dir, e);
+            return null;
+        }
+    }
+
+    String generateFromAddress(String address, String dir, String pkg) {
         try {
 
             // avoid etherscan throttling
@@ -104,7 +158,7 @@ public class ContractGenerator {
                 etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
             if (sourceCode == null || sourceCode.getResult() == null || sourceCode.getResult()
                 .isEmpty()) {
-                log.error("Empty response for {}", address);
+                log.error("Empty etherscan response for {}", address);
                 return null;
             }
             EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
@@ -113,18 +167,18 @@ public class ContractGenerator {
 
             String className = generate(
                 abiDefinitions,
-                new File(destinationDir),
+                new File(dir),
                 result.getContractName(),
-                destinationRootPackage + "." + subPackage
+                pkg
             );
-            contractToWrapper.put(address, className);
+            contractToWrapperName.put(address, className);
             lastCall = Instant.now();
             if (isProxy(abiDefinitions)) {
                 log.info("Detected proxy contract, parse implementation");
-                String implAddress = readProxy(address, className);
+                String implAddress = readProxy(address, dir, className);
                 if (implAddress != null) {
-                    String implClassName = generateFromAddress(implAddress, subPackage);
-                    contractToWrapper.put(address, implClassName);
+                    String implClassName = generateFromAddress(implAddress, dir, pkg);
+                    contractToWrapperName.put(address, implClassName);
                 } else {
                     log.error("Can't fetch implementation for proxy {}", address);
                 }
@@ -146,23 +200,23 @@ public class ContractGenerator {
     }
 
     @SuppressWarnings("unchecked")
-    private String readProxy(String proxyAddress, String className) {
+    private String readProxy(String proxyAddress, String dir, String className) {
         try {
-            Class cls = new URLClassLoader(
-                new URL[]{new File(destinationDir).toURI().toURL()}
-            ).loadClass(className);
-            for (Method method : cls.getDeclaredMethods()) {
+            Class<?> clazz = loadFromFile(dir, className);
+            if (clazz == null) {
+                return null;
+            }
+            for (Method method : clazz.getDeclaredMethods()) {
                 if (!"call_implementation".equals(method.getName())) {
                     continue;
                 }
-                Method load = cls.getDeclaredMethod("load",
+                Method load = clazz.getDeclaredMethod("load",
                     String.class, Web3j.class, Credentials.class, ContractGasProvider.class);
                 Object proxyInstance = load
                     .invoke(null, proxyAddress, web3Service.getWeb3(), STUB_CREDENTIALS, null);
                 RemoteFunctionCall<String> call =
                     (RemoteFunctionCall<String>) method.invoke(proxyInstance);
-                String proxyImplementationAddress = call.send();
-                return proxyImplementationAddress;
+                return call.send();
             }
             return null;
         } catch (Exception e) {
@@ -225,7 +279,7 @@ public class ContractGenerator {
             List<Object> values = new ArrayList<>();
             values.add(ContractGenerator.class);
             StringBuilder sbFormat = new StringBuilder();
-            contractToWrapper.forEach((contract, name) -> {
+            contractToWrapperName.forEach((contract, name) -> {
                 values.add(contract);
                 values.add(ClassName.bestGuess(name));
                 sbFormat.append("$S, $T.class").append(",\n");
@@ -251,12 +305,12 @@ public class ContractGenerator {
                         + ")", values.toArray(new Object[0]))
                     .build());
 
-            JavaFile javaFile = JavaFile.builder(destinationRootPackage, classBuilder.build())
+            JavaFile javaFile = JavaFile.builder(rootPackage, classBuilder.build())
                 .indent("    ")
                 .skipJavaLangImports(true)
                 .build();
 
-            javaFile.writeTo(new File(destinationDir));
+            javaFile.writeTo(new File(destDir));
         } catch (Exception e) {
             log.error("Error generate map class", e);
         }
@@ -276,19 +330,45 @@ public class ContractGenerator {
         return result;
     }
 
-    public void setContract(String contract) {
-        this.contract = contract;
+    public Event findEventByHex(String contractAddress, String methodHash) {
+        Event event = eventsMap.get(methodHash);
+        if (event != null) {
+            return event;
+        }
+        if (parsedContractEvents.contains(contractAddress)) {
+            log.warn("Event {} not found for contract {}", methodHash, contractAddress);
+        }
+        parsedContractEvents.add(contractAddress);
+        Class<?> clazz = getWrapperClassByAddress(contractAddress);
+        if (clazz == null) {
+            log.warn("Not found class for {}", contractAddress);
+            return null;
+        }
+        addEventsToMap(clazz);
+        return eventsMap.get(methodHash);
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    private void addEventsToMap(Class<?> clazz) {
+        for (Event event : collectEvents(clazz)) {
+            String methodHex = MethodDecoder
+                .createMethodFullHex(event.getName(), event.getParameters());
+            eventsMap.put(methodHex, event);
+        }
     }
 
-    public void setDestinationRootPackage(String destinationRootPackage) {
-        this.destinationRootPackage = destinationRootPackage;
-    }
-
-    public void setDestinationDir(String destinationDir) {
-        this.destinationDir = destinationDir;
+    private static List<Event> collectEvents(Class<?> clazz) {
+        List<Event> events = new ArrayList<>();
+        try {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (!field.getName().endsWith("_EVENT")
+                    || field.getType() != Event.class) {
+                    continue;
+                }
+                events.add((Event) field.get(null));
+            }
+        } catch (Exception e) {
+            log.error("Error collect events", e);
+        }
+        return events;
     }
 }

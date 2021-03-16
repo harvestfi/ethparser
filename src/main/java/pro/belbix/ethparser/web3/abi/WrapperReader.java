@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.abi;
 
-import static pro.belbix.ethparser.utils.gen.ContractGenerator.STUB_CREDENTIALS;
+import static pro.belbix.ethparser.codegen.ContractGenerator.STUB_CREDENTIALS;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -18,7 +18,6 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.tx.gas.ContractGasProvider;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.abi.generated.WrapperMapper;
 
 @Log4j2
 public class WrapperReader {
@@ -65,24 +64,6 @@ public class WrapperReader {
             log.error("Error collect events", e);
         }
         return events;
-    }
-
-    public static Event findEventByHex(String hex) {
-        if(eventsMap == null) {
-            initEventsMap();
-        }
-        return eventsMap.get(hex);
-    }
-
-    private static void initEventsMap() {
-        eventsMap = new HashMap<>();
-        for (Class<?> clazz : WrapperMapper.contractToWrapper.values()) {
-            for (Event event : collectEvents(clazz)) {
-                String methodHex = MethodDecoder
-                    .createMethodFullHex(event.getName(), event.getParameters());
-                eventsMap.put(methodHex, event);
-            }
-        }
     }
 
     public static Object createWrapperInstance(Class<?> clazz, String address, Web3j web3j) {

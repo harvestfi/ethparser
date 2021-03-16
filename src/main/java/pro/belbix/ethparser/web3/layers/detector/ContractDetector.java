@@ -31,10 +31,10 @@ import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.WrapperReader;
-import pro.belbix.ethparser.web3.abi.generated.WrapperMapper;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.layers.SubscriptionRouter;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -52,14 +52,17 @@ public class ContractDetector {
     private final AppProperties appProperties;
     private final SubscriptionRouter subscriptionRouter;
     private final ContractEventsDbService contractEventsDbService;
+    private final ContractGenerator contractGenerator;
 
     public ContractDetector(Web3Service web3Service, AppProperties appProperties,
         SubscriptionRouter subscriptionRouter,
-        ContractEventsDbService contractEventsDbService) {
+        ContractEventsDbService contractEventsDbService,
+        ContractGenerator contractGenerator) {
         this.web3Service = web3Service;
         this.appProperties = appProperties;
         this.subscriptionRouter = subscriptionRouter;
         this.contractEventsDbService = contractEventsDbService;
+        this.contractGenerator = contractGenerator;
     }
 
     public void start() {
@@ -118,9 +121,9 @@ public class ContractDetector {
             for (EthTxEntity tx : entry.getValue().values()) {
                 ContractTxEntity contractTxEntity = new ContractTxEntity();
                 contractTxEntity.setTx(tx);
+                contractTxEntity.setContractEvent(eventEntity);
 
                 collectLogs(tx, contractTxEntity);
-                contractTxEntity.setContractEvent(eventEntity);
                 contractTxEntities.add(contractTxEntity);
             }
             eventEntity.setTxs(contractTxEntities);
@@ -131,8 +134,7 @@ public class ContractDetector {
         return eventEntities;
     }
 
-    private void collectLogs(
-        EthTxEntity tx, ContractTxEntity contractTxEntity) {
+    private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
         // remove duplicates logs
         Map<String, EthLogEntity> logsMap = new LinkedHashMap<>();
         for (EthLogEntity ethLog : tx.getLogs()) {
@@ -141,8 +143,11 @@ public class ContractDetector {
 
         Set<ContractLogEntity> logEntities = new HashSet<>();
         for (EthLogEntity ethLog : logsMap.values()) {
-            Event event = WrapperReader.findEventByHex(ethLog.getFirstTopic().getHash());
+            Event event = contractGenerator.findEventByHex(
+                contractTxEntity.getContractEvent().getContract().getAddress(),
+                ethLog.getFirstTopic().getHash());
             if (event == null) {
+                log.warn("Not found event for {}", ethLog.getFirstTopic().getHash());
                 continue;
             }
             String logValues = null;
@@ -177,7 +182,7 @@ public class ContractDetector {
 
     private void collectStates(ContractEventEntity eventEntity) {
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
-        Class<?> clazz = WrapperMapper.contractToWrapper.get(contractAddress);
+        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress);
         if (clazz == null) {
             log.error("Wrapper class for {} not found", contractAddress);
             return;

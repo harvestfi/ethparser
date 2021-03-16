@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import java.io.File;
 import java.io.IOException;

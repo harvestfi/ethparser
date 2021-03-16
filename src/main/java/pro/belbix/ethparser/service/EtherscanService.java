@@ -4,11 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 @Log4j2
@@ -17,6 +21,14 @@ public class EtherscanService {
   private final static String ETHERSCAN_URI = "https://api.etherscan.io/api"
       + "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
+
+  public EtherscanService() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    MappingJackson2HttpMessageConverter convertor = new MappingJackson2HttpMessageConverter();
+    convertor.setObjectMapper(mapper);
+    restTemplate.setMessageConverters(Collections.singletonList(convertor));
+  }
 
   public ResponseSourceCode contractSourceCode(String address, String apiKey) {
     Map<String, ?> uriVariables = Map.of(

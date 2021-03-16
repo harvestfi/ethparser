@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.AnnotationSpec;

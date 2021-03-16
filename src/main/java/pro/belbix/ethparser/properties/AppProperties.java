@@ -14,7 +14,7 @@ public class AppProperties {
     private String web3Url = "";
     private String web3User = "";
     private String web3Password = "";
-    private String etherscanApiKey = "";
+    private String etherscanApiKey = "YourApiKeyToken";
 
     private boolean onlyApi = false;
     private boolean onlyParse = false;

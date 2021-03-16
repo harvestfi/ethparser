@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterSpec;

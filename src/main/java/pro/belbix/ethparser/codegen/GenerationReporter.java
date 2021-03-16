@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package pro.belbix.ethparser.utils.gen;
+package pro.belbix.ethparser.codegen;
 
 /** Can be used to provide report about a code generation process. */
 interface GenerationReporter {
