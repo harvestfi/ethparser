@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.entity.b_layer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Set;
@@ -42,6 +43,7 @@ public class ContractEventEntity {
 
     @ManyToOne
     @JoinColumn(name = "block", referencedColumnName = "number")
+    @JsonIgnore
     private EthBlockEntity block;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractEvent",

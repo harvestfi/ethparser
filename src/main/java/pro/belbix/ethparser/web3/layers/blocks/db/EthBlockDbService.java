@@ -132,6 +132,7 @@ public class EthBlockDbService {
       entry.getValue().setIdx(seq.incrementAndGet());
       checkSeq(seq, startSeq);
       notPersistent.add(entry.getValue());
+      ethHashRepository.save(entry.getValue());
     }
     if (!notPersistent.isEmpty()) {
       ethHashRepository.saveAll(notPersistent);

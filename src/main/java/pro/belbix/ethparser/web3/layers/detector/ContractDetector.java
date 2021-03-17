@@ -1,10 +1,13 @@
 package pro.belbix.ethparser.web3.layers.detector;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+
 import java.beans.MethodDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +22,7 @@ import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.tx.exceptions.ContractCallException;
+import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
@@ -31,7 +35,6 @@ import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.WrapperReader;
@@ -42,7 +45,7 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 @Service
 @Log4j2
 public class ContractDetector {
-
+    private static final int RETRY_COUNT = 10;
     private static final String EXEC_REVERTED = "Contract Call has been reverted by the EVM with the reason: 'execution reverted'.";
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<EthBlockEntity> input = new ArrayBlockingQueue<>(100);
@@ -117,7 +120,7 @@ public class ContractDetector {
             eventEntity.setContract(contractAddress);
             eventEntity.setBlock(block);
 
-            Set<ContractTxEntity> contractTxEntities = new HashSet<>();
+            Set<ContractTxEntity> contractTxEntities = new LinkedHashSet<>();
             for (EthTxEntity tx : entry.getValue().values()) {
                 ContractTxEntity contractTxEntity = new ContractTxEntity();
                 contractTxEntity.setTx(tx);
@@ -143,11 +146,15 @@ public class ContractDetector {
 
         Set<ContractLogEntity> logEntities = new HashSet<>();
         for (EthLogEntity ethLog : logsMap.values()) {
+            if (!isEligibleContract(ethLog.getAddress().getAddress())) {
+                continue;
+            }
             Event event = contractGenerator.findEventByHex(
-                contractTxEntity.getContractEvent().getContract().getAddress(),
+                ethLog.getAddress().getAddress(),
                 ethLog.getFirstTopic().getHash());
             if (event == null) {
-                log.warn("Not found event for {}", ethLog.getFirstTopic().getHash());
+                log.warn("Not found event for {} from {}",
+                    ethLog.getFirstTopic().getHash(), tx.getHash().getHash());
                 continue;
             }
             String logValues = null;
@@ -197,7 +204,7 @@ public class ContractDetector {
             try {
                 Object value = callFunction(method.getMethod(), wrapper);
                 if (value == null) {
-                    log.warn("Empty state for {}", method.getName());
+                    log.warn("Empty state for {} {}", method.getName(), contractAddress);
                     continue;
                 }
                 ContractStateEntity state = new ContractStateEntity();
@@ -225,7 +232,7 @@ public class ContractDetector {
                     }
                 }
                 count++;
-                if (count == 3) {
+                if (count == RETRY_COUNT) {
                     break;
                 }
             }
@@ -238,17 +245,14 @@ public class ContractDetector {
         EthBlockEntity block) {
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses = new LinkedHashMap<>();
         for (EthTxEntity tx : block.getTransactions()) {
-            if (ContractUtils.getAllContractAddresses().contains(
-                tx.getToAddress().getAddress().toLowerCase())) {
+            if (isEligibleContract(tx.getToAddress().getAddress().toLowerCase())) {
                 addToAddresses(addresses, tx.getToAddress(), tx);
             }
-            if (ContractUtils.getAllContractAddresses().contains(
-                tx.getFromAddress().getAddress().toLowerCase())) {
+            if (isEligibleContract(tx.getFromAddress().getAddress().toLowerCase())) {
                 addToAddresses(addresses, tx.getFromAddress(), tx);
             }
             for (EthLogEntity ethLog : tx.getLogs()) {
-                if (ContractUtils.getAllContractAddresses().contains(
-                    ethLog.getAddress().getAddress().toLowerCase())) {
+                if (isEligibleContract(ethLog.getAddress().getAddress().toLowerCase())) {
                     addToAddresses(addresses, ethLog.getAddress(), tx);
                     break;
                 }
@@ -257,10 +261,20 @@ public class ContractDetector {
         return addresses;
     }
 
+    private boolean isEligibleContract(String address) {
+        if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
+            return false;
+        }
+        return ContractUtils.getAllContractAddresses().contains(address.toLowerCase());
+    }
+
     private void addToAddresses(
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses,
         EthAddressEntity address,
         EthTxEntity tx) {
+        if (ZERO_ADDRESS.equals(address.getAddress())) {
+            return;
+        }
         Map<String, EthTxEntity> txs =
             addresses.computeIfAbsent(address, k -> new LinkedHashMap<>());
         txs.put(tx.getHash().getHash(), tx);

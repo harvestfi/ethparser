@@ -32,16 +32,15 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.ObjectMapperFactory;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.tx.Contract;
-import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Strings;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.service.EtherscanService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.abi.WrapperReader;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -51,6 +50,10 @@ public class ContractGenerator {
 
     public final static Credentials STUB_CREDENTIALS =
         Credentials.create("8da4ef21b864d2cc526dbdb2a120bd2874c36c9d0a1fb7f8c63d7f7a8b41de8f");
+    private final static Map<String, String> unstructuredOpenZeppelinProxy = Map.of(
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase(),
+        "0xB7277a6e95992041568D9391D09d0122023778A2".toLowerCase()
+    );
     private final EtherscanService etherscanService = new EtherscanService();
     private final Map<String, String> contractToWrapperName = new HashMap<>();
     private final Map<String, Class<?>> wrapperNameToClass = new HashMap<>();
@@ -149,7 +152,7 @@ public class ContractGenerator {
     String generateFromAddress(String address, String dir, String pkg) {
         try {
 
-            // avoid etherscan throttling
+            // etherscan throttling
             long diff = Duration.between(lastCall, Instant.now()).toMillis();
             if (diff < 200) {
                 Thread.sleep(200 - diff);
@@ -175,10 +178,11 @@ public class ContractGenerator {
             lastCall = Instant.now();
             if (isProxy(abiDefinitions)) {
                 log.info("Detected proxy contract, parse implementation");
-                String implAddress = readProxy(address, dir, className);
+                String implAddress = readProxyAddress(address, dir, className);
                 if (implAddress != null) {
                     String implClassName = generateFromAddress(implAddress, dir, pkg);
                     contractToWrapperName.put(address, implClassName);
+                    return implClassName;
                 } else {
                     log.error("Can't fetch implementation for proxy {}", address);
                 }
@@ -200,7 +204,11 @@ public class ContractGenerator {
     }
 
     @SuppressWarnings("unchecked")
-    private String readProxy(String proxyAddress, String dir, String className) {
+    private String readProxyAddress(String proxyAddress, String dir, String className) {
+        //TODO create a parse logic
+        if (unstructuredOpenZeppelinProxy.containsKey(proxyAddress.toLowerCase())) {
+            return unstructuredOpenZeppelinProxy.get(proxyAddress.toLowerCase());
+        }
         try {
             Class<?> clazz = loadFromFile(dir, className);
             if (clazz == null) {
@@ -210,10 +218,8 @@ public class ContractGenerator {
                 if (!"call_implementation".equals(method.getName())) {
                     continue;
                 }
-                Method load = clazz.getDeclaredMethod("load",
-                    String.class, Web3j.class, Credentials.class, ContractGasProvider.class);
-                Object proxyInstance = load
-                    .invoke(null, proxyAddress, web3Service.getWeb3(), STUB_CREDENTIALS, null);
+                Object proxyInstance =
+                    WrapperReader.createWrapperInstance(clazz, proxyAddress, web3Service.getWeb3());
                 RemoteFunctionCall<String> call =
                     (RemoteFunctionCall<String>) method.invoke(proxyInstance);
                 return call.send();
@@ -337,11 +343,12 @@ public class ContractGenerator {
         }
         if (parsedContractEvents.contains(contractAddress)) {
             log.warn("Event {} not found for contract {}", methodHash, contractAddress);
+            return null;
         }
         parsedContractEvents.add(contractAddress);
         Class<?> clazz = getWrapperClassByAddress(contractAddress);
         if (clazz == null) {
-            log.warn("Not found class for {}", contractAddress);
+            log.warn("Not found class for {} {}", contractAddress, methodHash);
             return null;
         }
         addEventsToMap(clazz);

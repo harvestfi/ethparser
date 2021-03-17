@@ -2,7 +2,7 @@ spring:
   jpa:
     #    open-in-view: true
     database: postgresql
-    show-sql: true
+#    show-sql: true
     generate-ddl: true
     hibernate:
       ddl-auto: create
@@ -37,3 +37,7 @@ spring:
 
     initialization-mode: always
     generate-unique-name: true
+
+logging:
+  level:
+    com.yannbriancon.interceptor.HibernateQueryInterceptor: OFF

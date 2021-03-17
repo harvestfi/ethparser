@@ -22,8 +22,6 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 @Log4j2
 public class WrapperReader {
 
-    private static Map<String, Event> eventsMap;
-
     public static List<MethodDescriptor> collectMethods(Class<?> clazz) {
         List<MethodDescriptor> result = new ArrayList<>();
         try {
@@ -48,22 +46,6 @@ public class WrapperReader {
             log.error("Error collect methods", e);
         }
         return result;
-    }
-
-    public static List<Event> collectEvents(Class<?> clazz) {
-        List<Event> events = new ArrayList<>();
-        try {
-            for(Field field : clazz.getDeclaredFields()) {
-                if(!field.getName().endsWith("_EVENT")
-                    || field.getType() != Event.class) {
-                    continue;
-                }
-                events.add((Event) field.get(null));
-            }
-        } catch (Exception e) {
-            log.error("Error collect events", e);
-        }
-        return events;
     }
 
     public static Object createWrapperInstance(Class<?> clazz, String address, Web3j web3j) {
