@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.layers.detector;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.beans.MethodDescriptor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,8 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.protocol.core.RemoteFunctionCall;
-import org.web3j.tx.exceptions.ContractCallException;
+import org.web3j.tx.Contract;
 import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
@@ -45,8 +43,6 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 @Service
 @Log4j2
 public class ContractDetector {
-    private static final int RETRY_COUNT = 10;
-    private static final String EXEC_REVERTED = "Contract Call has been reverted by the EVM with the reason: 'execution reverted'.";
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<EthBlockEntity> input = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -138,6 +134,7 @@ public class ContractDetector {
     }
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
+        int block = (int) tx.getBlockNumber().getNumber();
         // remove duplicates logs
         Map<String, EthLogEntity> logsMap = new LinkedHashMap<>();
         for (EthLogEntity ethLog : tx.getLogs()) {
@@ -151,24 +148,14 @@ public class ContractDetector {
             }
             Event event = contractGenerator.findEventByHex(
                 ethLog.getAddress().getAddress(),
-                ethLog.getFirstTopic().getHash());
+                ethLog.getFirstTopic().getHash(),
+                block);
             if (event == null) {
                 log.warn("Not found event for {} from {}",
                     ethLog.getFirstTopic().getHash(), tx.getHash().getHash());
                 continue;
             }
-            String logValues = null;
-            if (ethLog.getTopics() != null && !ethLog.getTopics().isBlank()) {
-                List<String> topics = new ArrayList<>(List.of(ethLog.getFirstTopic().getHash()));
-                topics.addAll(List.of(ethLog.getTopics().split(",")));
-                @SuppressWarnings("rawtypes")
-                List<Type> types = MethodDecoder.extractLogIndexedValues(
-                    topics,
-                    ethLog.getData(),
-                    event.getParameters()
-                );
-                logValues = MethodDecoder.typesToString(types);
-            }
+            String logValues = extractLogValues(ethLog, event);
 
             ContractLogEntity logEntity = new ContractLogEntity();
             logEntity.setLogIdx(ethLog.getLogId());
@@ -187,9 +174,25 @@ public class ContractDetector {
         contractTxEntity.setLogs(logEntities);
     }
 
+    private String extractLogValues(EthLogEntity ethLog, Event event) {
+        if (ethLog.getTopics() == null || ethLog.getTopics().isBlank()) {
+            return null;
+        }
+        List<String> topics = new ArrayList<>(List.of(ethLog.getFirstTopic().getHash()));
+        topics.addAll(List.of(ethLog.getTopics().split(",")));
+        @SuppressWarnings("rawtypes")
+        List<Type> types = MethodDecoder.extractLogIndexedValues(
+            topics,
+            ethLog.getData(),
+            event.getParameters()
+        );
+        return MethodDecoder.typesToString(types);
+    }
+
     private void collectStates(ContractEventEntity eventEntity) {
+        Integer block = (int) eventEntity.getBlock().getNumber();
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
-        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress);
+        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress, block);
         if (clazz == null) {
             log.error("Wrapper class for {} not found", contractAddress);
             return;
@@ -202,7 +205,8 @@ public class ContractDetector {
         Set<ContractStateEntity> states = new HashSet<>();
         for (MethodDescriptor method : methods) {
             try {
-                Object value = callFunction(method.getMethod(), wrapper);
+                Object value = WrapperReader
+                    .callFunction(method.getMethod(), (Contract) wrapper, block);
                 if (value == null) {
                     log.warn("Empty state for {} {}", method.getName(), contractAddress);
                     continue;
@@ -217,28 +221,6 @@ public class ContractDetector {
             }
         }
         eventEntity.setStates(states);
-    }
-
-    private Object callFunction(Method method, Object wrapper) {
-        int count = 0;
-        while (true) {
-            try {
-                return ((RemoteFunctionCall<?>) method.invoke(wrapper)).send();
-            } catch (Exception e) {
-                log.error("Error function call", e);
-                if (e instanceof ContractCallException) {
-                    if (EXEC_REVERTED.equals(e.getMessage())) {
-                        break;
-                    }
-                }
-                count++;
-                if (count == RETRY_COUNT) {
-                    break;
-                }
-            }
-            log.info("Retry func call {}", count);
-        }
-        return null;
     }
 
     private Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(

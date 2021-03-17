@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.codegen;
 
+import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -9,7 +11,6 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -30,10 +31,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
+import org.web3j.protocol.core.methods.response.EthLog.LogResult;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tx.Contract;
 import org.web3j.utils.Strings;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -50,10 +54,6 @@ public class ContractGenerator {
 
     public final static Credentials STUB_CREDENTIALS =
         Credentials.create("8da4ef21b864d2cc526dbdb2a120bd2874c36c9d0a1fb7f8c63d7f7a8b41de8f");
-    private final static Map<String, String> unstructuredOpenZeppelinProxy = Map.of(
-        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase(),
-        "0xB7277a6e95992041568D9391D09d0122023778A2".toLowerCase()
-    );
     private final EtherscanService etherscanService = new EtherscanService();
     private final Map<String, String> contractToWrapperName = new HashMap<>();
     private final Map<String, Class<?>> wrapperNameToClass = new HashMap<>();
@@ -83,37 +83,38 @@ public class ContractGenerator {
         this.web3Service = web3Service;
     }
 
+    @Deprecated // maybe will use, let's see on performance
     public void start() {
         log.info("Start Contract Generator {} {} {} {}",
             contract, category, rootPackage, destDir);
-        if (contract != null && !contract.isBlank()) {
-            generateFromAddress(contract, destDir, category);
-        }
-        contractLoader.load();
-        ContractUtils.getAllVaultAddresses()
-            .forEach(address ->
-                generateFromAddress(address, destDir, rootPackage + ".harvest"));
-
-        ContractUtils.getAllPoolAddresses()
-            .forEach(address ->
-                generateFromAddress(address, destDir, rootPackage + ".harvest"));
-
-        ContractUtils.getAllUniPairs().stream()
-            .map(u -> u.getContract().getAddress())
-            .forEach(address ->
-                generateFromAddress(address, destDir, rootPackage + ".uniswap"));
-
-        ContractUtils.getAllTokens().stream()
-            .map(u -> u.getContract().getAddress())
-            .forEach(address ->
-                generateFromAddress(address, destDir, rootPackage + ".erc20"));
-        generateMappingClass();
+//        if (contract != null && !contract.isBlank()) {
+//            generateFromAddress(contract, destDir, category);
+//        }
+//        contractLoader.load();
+//        ContractUtils.getAllVaultAddresses()
+//            .forEach(address ->
+//                generateFromAddress(address, destDir, rootPackage + ".harvest"));
+//
+//        ContractUtils.getAllPoolAddresses()
+//            .forEach(address ->
+//                generateFromAddress(address, destDir, rootPackage + ".harvest"));
+//
+//        ContractUtils.getAllUniPairs().stream()
+//            .map(u -> u.getContract().getAddress())
+//            .forEach(address ->
+//                generateFromAddress(address, destDir, rootPackage + ".uniswap"));
+//
+//        ContractUtils.getAllTokens().stream()
+//            .map(u -> u.getContract().getAddress())
+//            .forEach(address ->
+//                generateFromAddress(address, destDir, rootPackage + ".erc20"));
+//        generateMappingClass();
     }
 
-    public Class<?> getWrapperClassByAddress(String address) {
+    public Class<?> getWrapperClassByAddress(String address, Integer block) {
         String wrapperName = contractToWrapperName.get(address);
         if (wrapperName == null) {
-            wrapperName = generateFromAddress(address, destDir, rootPackage);
+            wrapperName = generateFromAddress(address, destDir, rootPackage, block);
         }
         if(wrapperName == null) {
             return null;
@@ -149,7 +150,7 @@ public class ContractGenerator {
         }
     }
 
-    String generateFromAddress(String address, String dir, String pkg) {
+    String generateFromAddress(String address, String dir, String pkg, Integer block) {
         try {
 
             // etherscan throttling
@@ -178,9 +179,9 @@ public class ContractGenerator {
             lastCall = Instant.now();
             if (isProxy(abiDefinitions)) {
                 log.info("Detected proxy contract, parse implementation");
-                String implAddress = readProxyAddress(address, dir, className);
+                String implAddress = readProxyAddress(address, dir, className, block);
                 if (implAddress != null) {
-                    String implClassName = generateFromAddress(implAddress, dir, pkg);
+                    String implClassName = generateFromAddress(implAddress, dir, pkg, block);
                     contractToWrapperName.put(address, implClassName);
                     return implClassName;
                 } else {
@@ -204,31 +205,62 @@ public class ContractGenerator {
     }
 
     @SuppressWarnings("unchecked")
-    private String readProxyAddress(String proxyAddress, String dir, String className) {
-        //TODO create a parse logic
-        if (unstructuredOpenZeppelinProxy.containsKey(proxyAddress.toLowerCase())) {
-            return unstructuredOpenZeppelinProxy.get(proxyAddress.toLowerCase());
-        }
+    private String readProxyAddress(
+        String proxyAddress,
+        String dir,
+        String className,
+        Integer block) {
+
         try {
             Class<?> clazz = loadFromFile(dir, className);
             if (clazz == null) {
                 return null;
             }
-            for (Method method : clazz.getDeclaredMethods()) {
-                if (!"call_implementation".equals(method.getName())) {
-                    continue;
-                }
-                Object proxyInstance =
-                    WrapperReader.createWrapperInstance(clazz, proxyAddress, web3Service.getWeb3());
-                RemoteFunctionCall<String> call =
-                    (RemoteFunctionCall<String>) method.invoke(proxyInstance);
-                return call.send();
+
+            // open zeppelin proxy doesn't have public call_implementation
+            String impAddress = findLastProxyUpgrade(proxyAddress, clazz, block);
+            if (impAddress != null) {
+                return impAddress;
             }
-            return null;
+
+            // EIP-897 DelegateProxy concept
+            Method method = clazz.getDeclaredMethod("call_implementation");
+            Object proxyInstance =
+                WrapperReader.createWrapperInstance(clazz, proxyAddress, web3Service.getWeb3());
+            RemoteFunctionCall<String> call =
+                (RemoteFunctionCall<String>) method.invoke(proxyInstance);
+            WrapperReader.call("call_implementation",
+                clazz, proxyAddress, web3Service.getWeb3(), block);
+            return call.send();
         } catch (Exception e) {
             log.error("Error load generated class {}", className, e);
             return null;
         }
+    }
+
+    private String findLastProxyUpgrade(String address, Class<?> clazz, Integer block) {
+        Event event = WrapperReader.extractEvent("UPGRADED_EVENT", clazz);
+        if (event == null) {
+            return null;
+        }
+        String methodHex =
+            MethodDecoder.createMethodFullHex(event.getName(), event.getParameters());
+        List<LogResult> logResults = web3Service.fetchContractLogs(
+            List.of(address),
+            null,
+            block,
+            methodHex);
+        if (logResults == null || logResults.isEmpty()) {
+            return null;
+        }
+        Log ethLog = (Log) logResults.get(logResults.size() - 1).get();
+        List<Type> types = extractLogIndexedValues(
+            ethLog.getTopics(), ethLog.getData(), event.getParameters());
+        if (types == null || types.isEmpty()) {
+            log.error("Empty types for {}", ethLog);
+            return null;
+        }
+        return (String) types.get(0).getValue();
     }
 
     private String generate(
@@ -336,7 +368,7 @@ public class ContractGenerator {
         return result;
     }
 
-    public Event findEventByHex(String contractAddress, String methodHash) {
+    public Event findEventByHex(String contractAddress, String methodHash, Integer block) {
         Event event = eventsMap.get(methodHash);
         if (event != null) {
             return event;
@@ -346,7 +378,7 @@ public class ContractGenerator {
             return null;
         }
         parsedContractEvents.add(contractAddress);
-        Class<?> clazz = getWrapperClassByAddress(contractAddress);
+        Class<?> clazz = getWrapperClassByAddress(contractAddress, block);
         if (clazz == null) {
             log.warn("Not found class for {} {}", contractAddress, methodHash);
             return null;
@@ -356,26 +388,10 @@ public class ContractGenerator {
     }
 
     private void addEventsToMap(Class<?> clazz) {
-        for (Event event : collectEvents(clazz)) {
+        for (Event event : WrapperReader.collectEvents(clazz)) {
             String methodHex = MethodDecoder
                 .createMethodFullHex(event.getName(), event.getParameters());
             eventsMap.put(methodHex, event);
         }
-    }
-
-    private static List<Event> collectEvents(Class<?> clazz) {
-        List<Event> events = new ArrayList<>();
-        try {
-            for (Field field : clazz.getDeclaredFields()) {
-                if (!field.getName().endsWith("_EVENT")
-                    || field.getType() != Event.class) {
-                    continue;
-                }
-                events.add((Event) field.get(null));
-            }
-        } catch (Exception e) {
-            log.error("Error collect events", e);
-        }
-        return events;
     }
 }

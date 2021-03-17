@@ -22,7 +22,7 @@ class ContractGeneratorTest {
   void contractGeneratorShouldCreateFile() {
     String className =
         contractGenerator.generateFromAddress(
-            "0x07dbe6aa35ef70dad124f4e2b748ffa6c9e1963a", ".", "tmp");
+            "0x07dbe6aa35ef70dad124f4e2b748ffa6c9e1963a", ".", "tmp", null);
     assertNotNull(className);
   }
 
@@ -30,14 +30,15 @@ class ContractGeneratorTest {
   void contractGeneratorShouldCreateFile2() {
     String className =
         contractGenerator.generateFromAddress(
-            "0x1494ca1f11d487c2bbe4543e90080aeba4ba3c2b", ".", "tmp");
+            "0x1494ca1f11d487c2bbe4543e90080aeba4ba3c2b", ".", "tmp", null);
     assertNotNull(className);
   }
 
   @Test
   void getWrapperClassByAddressTest() {
     Class<?> clazz =
-        contractGenerator.getWrapperClassByAddress("0x07dbe6aa35ef70dad124f4e2b748ffa6c9e1963a");
+        contractGenerator.getWrapperClassByAddress(
+            "0x07dbe6aa35ef70dad124f4e2b748ffa6c9e1963a", null);
     assertNotNull(clazz);
   }
 }
