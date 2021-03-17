@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3.layers.blocks.parser;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,15 +20,12 @@ import org.web3j.protocol.core.methods.response.EthBlock.TransactionResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
@@ -101,8 +98,8 @@ public class EthBlockParser {
     Block block = ethBlock.getBlock();
     EthBlockEntity ethBlockEntity = blockToEntity(block);
 
-    Set<EthTxEntity> ethTxEntities = new HashSet<>();
-    Map<String, EthTxEntity> txMap = new HashMap<>();
+    Set<EthTxEntity> ethTxEntities = new LinkedHashSet<>();
+    Map<String, EthTxEntity> txMap = new LinkedHashMap<>();
     //noinspection unchecked
     for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
       Transaction transaction = transactionResult.get();
@@ -187,14 +184,19 @@ public class EthBlockParser {
   private void fillTxFromReceipt(EthTxEntity tx, TransactionReceipt receipt) {
     tx.setCumulativeGasUsed(receipt.getCumulativeGasUsed().longValue());
     tx.setGasUsed(receipt.getCumulativeGasUsed().longValue());
-    tx.setContractAddress(receipt.getContractAddress());
     tx.setRoot(receipt.getRoot());
     tx.setStatus(receipt.getStatus());
     tx.setRevertReason(receipt.getRevertReason());
 
-    tx.setLogs(receipt.getLogs().stream()
+    if (receipt.getContractAddress() != null) {
+      EthAddressEntity contractAddress = new EthAddressEntity();
+      contractAddress.setAddress(receipt.getContractAddress());
+      tx.setContractAddress(contractAddress);
+    }
+
+    tx.setLogs(new LinkedHashSet<>(receipt.getLogs().stream()
         .map(l -> ethLogToEntity(l, tx))
-        .collect(Collectors.toSet())
+        .collect(Collectors.toList()))
     );
   }
 

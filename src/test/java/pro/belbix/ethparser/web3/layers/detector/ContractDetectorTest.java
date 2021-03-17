@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,63 @@ class ContractDetectorTest {
   }
 
   @Test
+  void handleBlock_12055610_empty() throws JsonProcessingException {
+    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
+        "0x8de7a4d9064e0a12b94ab833ca99ac76aecdb61c71e58926d256f92f8fb04dbe",
+        true
+    ));
+    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    assertTrue(events.isEmpty());
+  }
+
+  @Test
+  void handleBlock_10800000() throws JsonProcessingException {
+    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
+        "0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7",
+        true
+    ));
+    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+//    System.out.println(new ObjectMapper().writeValueAsString(events));
+
+    assertEventsByHash(events, Set.of(
+        "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "0x6b175474e89094c44da98b954eedeac495271d0f",
+        "0x514906fc121c7878424a5c928cad1852cc545892",
+        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
+        "0x0000000000085d4780b73119b644ae5ecd22b376"
+    ));
+
+    assertEvents(events, AssertData.builder()
+        .eventSize(7)
+        .eventNum(1)
+        .eventContractAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")
+        .txSize(5)
+        .txNum(1)
+        .txAddress("0xd997fdbf9ca2d31699214b73e3172ff187f83785cba262ced03129a83216b4dd")
+        .stateSize(18)
+        .stateNum(17)
+        .stateName("DECREASE_ALLOWANCE_WITH_AUTHORIZATION_TYPEHASH")
+        .stateValue("b70559e94cbda91958ebec07f9b65b3b490097c8d25c8dacd71105df1015b6d8")
+        .logSize(1)
+        .logNum(0)
+        .logAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")
+        .logTopic("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+        .logTopics("0x000000000000000000000000b493da310d29d1354096f76b3c2e81cdc9642ab3,0x000000000000000000000000ee44145a12ad57fb9723e05d51c1d0b3fe1ced3d")
+        .build()
+    );
+  }
+
+  private void assertEventsByHash(List<ContractEventEntity> events, Set<String> adrs) {
+    List<String> result = new ArrayList<>(adrs);
+    events.forEach(e -> assertTrue(result.remove(e.getContract().getAddress())));
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
   void handleBlock_SUSHI_HODL() throws JsonProcessingException {
     EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
         "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
@@ -57,17 +116,30 @@ class ContractDetectorTest {
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
+    events.forEach(e -> System.out.println(e.getContract().getAddress()));
+    assertEventsByHash(events, Set.of(
+        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "0x6b175474e89094c44da98b954eedeac495271d0f",
+        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48",
+        "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
+        "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc",
+        "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852",
+        "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+    ));
+
     assertEvents(events, AssertData.builder()
-        .eventSize(10)
-        .eventNum(7)
+        .eventSize(9)
+        .eventNum(4)
         .eventContractAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .txSize(1)
         .txNum(1)
         .txAddress("0x8b94d75dd5f3e4db2fc1ebcd9752aec88012760ba476ad31e9c216a085fdeddd")
         .stateSize(22)
         .stateNum(1)
-        .stateName("shouldUpgrade")
-        .stateValue("Tuple2{value1=false, value2=0x0000000000000000000000000000000000000000}")
+        .stateName("nextImplementationDelay")
+        .stateValue("43200")
         .logSize(3)
         .logNum(1)
         .logAddress("0x6b3595068778dd592e39a122f4f5a5cf09c90fe2")
@@ -92,9 +164,9 @@ class ContractDetectorTest {
   private void assertEvent(ContractEventEntity event, AssertData data) {
     assertAll(
         () -> assertEquals(data.eventContractAddress, event.getContract().getAddress(),
-            "contract Address"),
-        () -> assertEquals(data.txSize, event.getTxs().size(), "txs"),
-        () -> assertEquals(data.stateSize, event.getStates().size(), "states"),
+            "eventContractAddress"),
+        () -> assertEquals(data.txSize, event.getTxs().size(), "txSize"),
+        () -> assertEquals(data.stateSize, event.getStates().size(), "stateSize"),
         () -> assertTx(new ArrayList<>(event.getTxs()).get(0), data),
         () -> assertState(new ArrayList<>(event.getStates()).get(data.stateNum), data)
     );
@@ -109,8 +181,8 @@ class ContractDetectorTest {
 
   private void assertTx(ContractTxEntity tx, AssertData data) {
     assertAll(
-        () -> assertEquals(data.txAddress, tx.getTx().getHash().getHash(), "tx hash"),
-        () -> assertEquals(data.logSize, tx.getTx().getLogs().size(), "log size"),
+        () -> assertEquals(data.txAddress, tx.getTx().getHash().getHash(), "txAddress"),
+        () -> assertEquals(data.logSize, tx.getTx().getLogs().size(), "logSize"),
         () -> assertLog(new ArrayList<>(tx.getTx().getLogs()).get(data.logNum), data)
     );
   }

@@ -30,6 +30,7 @@ public class BlockEntityCollector {
     saveHash(tx.getHash());
     saveAddress(tx.getFromAddress());
     saveAddress(tx.getToAddress());
+    saveAddress(tx.getContractAddress());
 
     tx.getLogs().forEach(this::collectFromLog);
   }

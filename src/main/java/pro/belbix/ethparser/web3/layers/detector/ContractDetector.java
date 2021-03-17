@@ -202,7 +202,7 @@ public class ContractDetector {
         Object wrapper = WrapperReader.createWrapperInstance(
             clazz, contractAddress, web3Service.getWeb3());
 
-        Set<ContractStateEntity> states = new HashSet<>();
+        Set<ContractStateEntity> states = new LinkedHashSet<>();
         for (MethodDescriptor method : methods) {
             try {
                 Object value = WrapperReader
@@ -214,7 +214,7 @@ public class ContractDetector {
                 ContractStateEntity state = new ContractStateEntity();
                 state.setContractEvent(eventEntity);
                 state.setName(method.getName().replace("call_", ""));
-                state.setValue(value.toString());
+                state.setValue(valueToString(value));
                 states.add(state);
             } catch (Exception e) {
                 log.error("Error call method {}", method.getName(), e);
@@ -223,18 +223,35 @@ public class ContractDetector {
         eventEntity.setStates(states);
     }
 
+    private String valueToString(Object value) {
+        if (value instanceof byte[]) {
+            byte[] bytes = (byte[]) value;
+            StringBuilder sb = new StringBuilder(bytes.length * 2);
+            for (byte b : bytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        }
+        return value.toString();
+    }
+
     private Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
         EthBlockEntity block) {
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses = new LinkedHashMap<>();
         for (EthTxEntity tx : block.getTransactions()) {
-            if (isEligibleContract(tx.getToAddress().getAddress().toLowerCase())) {
+            if (tx.getToAddress() != null &&
+                isEligibleContract(tx.getToAddress().getAddress())) {
                 addToAddresses(addresses, tx.getToAddress(), tx);
             }
-            if (isEligibleContract(tx.getFromAddress().getAddress().toLowerCase())) {
+            if (tx.getContractAddress() != null &&
+                isEligibleContract(tx.getContractAddress().getAddress())) {
+                addToAddresses(addresses, tx.getContractAddress(), tx);
+            }
+            if (isEligibleContract(tx.getFromAddress().getAddress())) {
                 addToAddresses(addresses, tx.getFromAddress(), tx);
             }
             for (EthLogEntity ethLog : tx.getLogs()) {
-                if (isEligibleContract(ethLog.getAddress().getAddress().toLowerCase())) {
+                if (isEligibleContract(ethLog.getAddress().getAddress())) {
                     addToAddresses(addresses, ethLog.getAddress(), tx);
                     break;
                 }

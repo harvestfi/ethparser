@@ -55,7 +55,6 @@ public class EthTxEntity {
     // receipt info
     private long cumulativeGasUsed;
     private long gasUsed;
-    private String contractAddress;
     private String root;
     private String status;
     private String revertReason;
@@ -71,6 +70,10 @@ public class EthTxEntity {
     @ManyToOne
     @JoinColumn(name = "to_address", referencedColumnName = "idx")
     private EthAddressEntity toAddress;
+
+    @ManyToOne
+    @JoinColumn(name = "contract_address", referencedColumnName = "idx")
+    private EthAddressEntity contractAddress;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

@@ -31,6 +31,7 @@ public class BlockEntityUpdater {
     tx.setHash(findHash(tx.getHash()));
     tx.setFromAddress(findAddress(tx.getFromAddress()));
     tx.setToAddress(findAddress(tx.getToAddress()));
+    tx.setContractAddress(findAddress(tx.getContractAddress()));
 
     tx.getLogs().forEach(this::persistLog);
   }
