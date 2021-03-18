@@ -1710,6 +1710,82 @@ public class HarvestVaultParserTest {
         );
     }
 
+    @Test
+    public void parseVaultMUSE_ETH() {
+        harvestVaultParseTest(
+            "0xc45d471c77ff31C39474d68a5080Fe1FfACDBC04",
+            12057281,
+            LOG_ID,
+            "0x6bb8bc41e668b7c8ef3850486c9455b5c86830b3",
+            "Withdraw",
+            "MUSE_ETH",
+            "0xa87f7874ea7b98fd5b6a99752983a455de237ca2a630bc527a11114a8fcb189f",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultDUDES20_ETH() {
+        harvestVaultParseTest(
+            "0x1E5f4e7127ea3981551D2Bf97dCc8f17a4ECEbEf",
+            12056984,
+            LOG_ID,
+            "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
+            "Withdraw",
+            "DUDES20_ETH",
+            "0x7d69e86eadc8f791da68588af3ada72714450868f50d9c86182c74f038c5f775",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMASK20_ETH() {
+        harvestVaultParseTest(
+            "0xF2a671645D0DF54d2f03E9ad7916c8F7368D1C29",
+            12053942,
+            LOG_ID,
+            "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
+            "Withdraw",
+            "MASK20_ETH",
+            "0xccf883e70281b3f86286c94b10783da98e575e6b02287e891095efcf46b08454",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultROPE20_ETH() {
+        harvestVaultParseTest(
+            "0xAF9486E3DA0cE8d125aF9b256b3ecd104a3031B9",
+            12057371,
+            LOG_ID,
+            "0x42740f20aed483b69701a55ab295a2edc886b1fe",
+            "Withdraw",
+            "ROPE20_ETH",
+            "0xecee528512da7abdd884c3c0e7abb096a1838c19c74708e7ba5c782f38584dcf",
+            "200,89198021",
+            "",
+            "",
+            0L,
+            0L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
