@@ -1,7 +1,14 @@
 package pro.belbix.ethparser;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class TestUtils {
 
@@ -14,6 +21,22 @@ public class TestUtils {
     }
     number = number.replace(".", FORMAT.getDecimalSeparator() + "");
     return number.replace(",", FORMAT.getDecimalSeparator() + "");
+  }
+
+  public static void assertTwoArrays(List<String> actual, List<String> _expected) {
+    List<String> expected = new ArrayList<>(_expected);
+    Set<String> notExpected = new LinkedHashSet<>();
+    actual.forEach(a -> {
+      System.out.println(a);
+      boolean removed = expected.remove(a);
+      if (!removed) {
+        notExpected.add(a);
+      }
+    });
+    assertAll(
+        () -> assertTrue(notExpected.isEmpty(), "not expected, but exist: " + notExpected),
+        () -> assertTrue(expected.isEmpty(), "expected, but absent: " + expected)
+    );
   }
 
 }

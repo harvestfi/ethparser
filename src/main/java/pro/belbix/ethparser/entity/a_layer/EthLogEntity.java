@@ -15,6 +15,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "a_eth_log", indexes = {
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(exclude = {"tx", "blockNumber"})
 @JsonInclude(Include.NON_NULL)
+@ToString(exclude = {"tx", "blockNumber"})
 public class EthLogEntity {
 
     @Id

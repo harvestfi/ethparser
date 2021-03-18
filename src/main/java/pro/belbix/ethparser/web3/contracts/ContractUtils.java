@@ -363,6 +363,7 @@ public class ContractUtils {
   }
 
   public static Optional<ContractEntity> getContractByAddress(String address) {
+    address = address.toLowerCase();
     Optional<ContractEntity> contract = ContractLoader.getVaultByAddress(address)
         .map(VaultEntity::getContract);
 

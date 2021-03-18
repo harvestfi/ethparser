@@ -117,12 +117,14 @@ public class EthBlockParser {
   private EthTxEntity transactionToEntity(Transaction transaction, EthBlockEntity ethBlockEntity) {
     EthTxEntity ethTxEntity = new EthTxEntity();
 
-    ethTxEntity.setHash(new EthHashEntity(transaction.getHash()));
+    ethTxEntity.setHash(new EthHashEntity(transaction.getHash().toLowerCase()));
     ethTxEntity.setNonce(transaction.getNonce().toString());
     ethTxEntity.setTransactionIndex(transaction.getTransactionIndex().longValue());
     ethTxEntity.setBlockNumber(ethBlockEntity);
-    ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom()));
-    ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo()));
+    ethTxEntity.setFromAddress(new EthAddressEntity(transaction.getFrom().toLowerCase()));
+    if (transaction.getTo() != null) {
+      ethTxEntity.setToAddress(new EthAddressEntity(transaction.getTo().toLowerCase()));
+    }
     ethTxEntity.setValue(transaction.getValue().toString());
     ethTxEntity.setGasPrice(transaction.getGasPrice().longValue());
     ethTxEntity.setGas(transaction.getGas().longValue());
@@ -137,11 +139,11 @@ public class EthBlockParser {
   private EthBlockEntity blockToEntity(Block block) {
     EthBlockEntity ethBlockEntity = new EthBlockEntity();
     ethBlockEntity.setNumber(block.getNumber().longValue());
-    ethBlockEntity.setHash(new EthHashEntity(block.getHash()));
-    ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash()));
+    ethBlockEntity.setHash(new EthHashEntity(block.getHash().toLowerCase()));
+    ethBlockEntity.setParentHash(new EthHashEntity(block.getParentHash().toLowerCase()));
     ethBlockEntity.setNonce(block.getNonce().toString());
     ethBlockEntity.setAuthor(block.getAuthor());
-    ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner()));
+    ethBlockEntity.setMiner(new EthAddressEntity(block.getMiner().toLowerCase()));
     ethBlockEntity.setDifficulty(block.getDifficulty().toString());
     ethBlockEntity.setTotalDifficulty(block.getTotalDifficulty().toString());
     ethBlockEntity.setExtraData(block.getExtraData());
@@ -189,9 +191,7 @@ public class EthBlockParser {
     tx.setRevertReason(receipt.getRevertReason());
 
     if (receipt.getContractAddress() != null) {
-      EthAddressEntity contractAddress = new EthAddressEntity();
-      contractAddress.setAddress(receipt.getContractAddress());
-      tx.setContractAddress(contractAddress);
+      tx.setContractAddress(new EthAddressEntity(receipt.getContractAddress().toLowerCase()));
     }
 
     tx.setLogs(new LinkedHashSet<>(receipt.getLogs().stream()
@@ -204,7 +204,7 @@ public class EthBlockParser {
     EthLogEntity ethLogEntity = new EthLogEntity();
 
     ethLogEntity.setLogId(ethLog.getLogIndex().longValue());
-    ethLogEntity.setAddress(new EthAddressEntity(ethLog.getAddress()));
+    ethLogEntity.setAddress(new EthAddressEntity(ethLog.getAddress().toLowerCase()));
     ethLogEntity.setRemoved(ethLog.isRemoved() ? 1 : 0);
     ethLogEntity.setTransactionIndex(ethLog.getTransactionIndex().longValue());
     ethLogEntity.setData(ethLog.getData());
@@ -212,7 +212,7 @@ public class EthBlockParser {
     ethLogEntity.setTx(tx);
 
     if (ethLog.getTopics() != null && !ethLog.getTopics().isEmpty()) {
-      ethLogEntity.setFirstTopic(new EthHashEntity(ethLog.getTopics().remove(0)));
+      ethLogEntity.setFirstTopic(new EthHashEntity(ethLog.getTopics().remove(0).toLowerCase()));
       ethLogEntity.setTopics(String.join(",", ethLog.getTopics()));
     }
 

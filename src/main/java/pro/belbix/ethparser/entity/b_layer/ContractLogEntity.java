@@ -16,6 +16,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -27,6 +28,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Data
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractTx"})
+@ToString(exclude = {"contractTx"})
 public class ContractLogEntity {
 
   @Id

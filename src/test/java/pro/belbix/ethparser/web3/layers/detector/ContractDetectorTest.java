@@ -5,11 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
+import static pro.belbix.ethparser.web3.layers.detector.ContractDetector.collectEligibleContracts;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
+import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
@@ -70,22 +76,29 @@ class ContractDetectorTest {
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
-
-    assertEventsByHash(events, Set.of(
-        "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-        "0x6b175474e89094c44da98b954eedeac495271d0f",
-        "0x514906fc121c7878424a5c928cad1852cc545892",
-        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-        "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
-        "0x0000000000085d4780b73119b644ae5ecd22b376"
-    ));
+    assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
+        "eligible contracts");
+    assertTwoArrays(events.stream()
+            .map(e -> e.getContract().getAddress())
+            .collect(Collectors.toList())
+        , new ArrayList<>(Set.of(
+            "0xdac17f958d2ee523a2206206994597c13d831ec7".toLowerCase(),
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
+            "0x6b175474e89094c44da98b954eedeac495271d0f".toLowerCase(),
+            "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(),
+            "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase(),
+            "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase(),
+            "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase(),
+            "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
+            "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
+            "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase()
+        )));
 
     assertEvents(events, AssertData.builder()
-        .eventSize(7)
+        .eventSize(10)
         .eventNum(1)
         .eventContractAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")
-        .txSize(5)
+        .txSize(8)
         .txNum(1)
         .txAddress("0xd997fdbf9ca2d31699214b73e3172ff187f83785cba262ced03129a83216b4dd")
         .stateSize(18)
@@ -101,12 +114,6 @@ class ContractDetectorTest {
     );
   }
 
-  private void assertEventsByHash(List<ContractEventEntity> events, Set<String> adrs) {
-    List<String> result = new ArrayList<>(adrs);
-    events.forEach(e -> assertTrue(result.remove(e.getContract().getAddress())));
-    assertTrue(result.isEmpty());
-  }
-
   @Test
   void handleBlock_SUSHI_HODL() throws JsonProcessingException {
     EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
@@ -114,23 +121,31 @@ class ContractDetectorTest {
         true
     ));
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
+
+    assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
+        "eligible contracts");
+
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
-    events.forEach(e -> System.out.println(e.getContract().getAddress()));
-    assertEventsByHash(events, Set.of(
-        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-        "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        "0x6b175474e89094c44da98b954eedeac495271d0f",
-        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-        "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48",
-        "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
-        "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc",
-        "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852",
-        "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
-    ));
+
+    assertTwoArrays(events.stream()
+            .map(e -> e.getContract().getAddress())
+            .collect(Collectors.toList()),
+        new ArrayList<>(Set.of(
+            "0xdac17f958d2ee523a2206206994597c13d831ec7".toLowerCase(),
+            "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase(),
+            "0x06da0fd433c1a5d7a4faa01111c044910a184553".toLowerCase(),
+            "0x6b175474e89094c44da98b954eedeac495271d0f".toLowerCase(),
+            "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48".toLowerCase(),
+            "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
+            "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
+            "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
+            "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase()
+        )));
 
     assertEvents(events, AssertData.builder()
-        .eventSize(9)
+        .eventSize(10)
         .eventNum(4)
         .eventContractAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .txSize(1)
@@ -142,11 +157,38 @@ class ContractDetectorTest {
         .stateValue("43200")
         .logSize(3)
         .logNum(1)
-        .logAddress("0x6b3595068778dd592e39a122f4f5a5cf09c90fe2")
-        .logTopic("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-        .logTopics("0x000000000000000000000000274aa8b58e8c57c4e347c8768ed853eb6d375b48,0x0000000000000000000000001e7e3925012ac4fc2e35fe23415c877979eb6b04")
+        .logAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
+        .logTopic("0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364")
+        .logTopics("0x0000000000000000000000001e7e3925012ac4fc2e35fe23415c877979eb6b04")
         .build()
     );
+  }
+
+  @Test
+  void testEligibleContracts_SUSHI_HODL_12030868() {
+    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
+        "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
+        true
+    ));
+    Map<EthAddressEntity, Map<String, EthTxEntity>> eligible =
+        ContractDetector.collectEligibleContracts(ethBlockEntity);
+//    assertEquals(9, eligible.size(), "eligible contracts size");
+
+    assertTwoArrays(eligible.keySet().stream()
+            .map(EthAddressEntity::getAddress)
+            .collect(Collectors.toList()),
+        new ArrayList<>(Set.of(
+            "0xdac17f958d2ee523a2206206994597c13d831ec7".toLowerCase(),
+            "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase(),
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
+            "0x06da0fd433c1a5d7a4faa01111c044910a184553".toLowerCase(),
+            "0x6b175474e89094c44da98b954eedeac495271d0f".toLowerCase(),
+            "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
+            "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
+            "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
+            "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase(),
+            "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48".toLowerCase()
+        )));
   }
 
   private void assertEvents(List<ContractEventEntity> events, AssertData data) {

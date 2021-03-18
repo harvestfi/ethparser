@@ -3,7 +3,6 @@ package pro.belbix.ethparser.entity.b_layer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -14,6 +13,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -25,6 +25,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Data
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractEvent"})
+@ToString(exclude = {"contractEvent"})
 public class ContractStateEntity {
 
     @Id

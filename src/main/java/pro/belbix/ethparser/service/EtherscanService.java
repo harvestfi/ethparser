@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Log4j2
 public class EtherscanService {
-
+  private final static int RETRY_COUNT = 10;
   private final static String ETHERSCAN_URI = "https://api.etherscan.io/api"
       + "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
@@ -39,11 +39,7 @@ public class EtherscanService {
     );
     ResponseEntity<ResponseSourceCode> response;
     try {
-      response = restTemplate.getForEntity(
-          ETHERSCAN_URI,
-          ResponseSourceCode.class,
-          uriVariables
-      );
+      response = sendRequest(uriVariables);
     } catch (Exception e) {
       log.error("Error fetch contract info for {}", address, e);
       return null;
@@ -60,6 +56,30 @@ public class EtherscanService {
       return null;
     }
     return response.getBody();
+  }
+
+  private ResponseEntity<ResponseSourceCode> sendRequest(Map<String, ?> vars) {
+    int count = 0;
+    while (true) {
+      try {
+        return restTemplate.getForEntity(
+            ETHERSCAN_URI,
+            ResponseSourceCode.class,
+            vars
+        );
+      } catch (Exception e) {
+        log.error("Error send request {}, retry {}", vars, count, e);
+        count++;
+        if (count == RETRY_COUNT) {
+          throw e;
+        }
+        try {
+          //noinspection BusyWait
+          Thread.sleep(5000);
+        } catch (InterruptedException ignored) {
+        }
+      }
+    }
   }
 
   @Data

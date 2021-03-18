@@ -17,6 +17,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -35,6 +36,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "a_eth_tx")
 @Data
 @EqualsAndHashCode(exclude = {"logs", "blockNumber"})
+@ToString(exclude = {"blockNumber"})
 @JsonInclude(Include.NON_NULL)
 public class EthTxEntity {
 

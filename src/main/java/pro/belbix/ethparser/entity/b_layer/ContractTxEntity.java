@@ -16,6 +16,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
@@ -28,6 +29,7 @@ import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 @Data
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractEvent"})
+@ToString(exclude = {"contractEvent"})
 public class ContractTxEntity {
 
   @Id

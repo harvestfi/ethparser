@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS
 
 import java.beans.MethodDescriptor;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -95,8 +94,8 @@ public class ContractDetector {
             return List.of();
         }
 
-        Map<EthAddressEntity, Map<String, EthTxEntity>> contractsWithTxs = collectEligibleContracts(
-            block);
+        Map<EthAddressEntity, Map<String, EthTxEntity>> contractsWithTxs =
+            collectEligibleContracts(block);
         if (contractsWithTxs.isEmpty()) {
             return List.of();
         }
@@ -141,7 +140,7 @@ public class ContractDetector {
             logsMap.put(tx.getHash().getHash() + "_" + ethLog.getId(), ethLog);
         }
 
-        Set<ContractLogEntity> logEntities = new HashSet<>();
+        Set<ContractLogEntity> logEntities = new LinkedHashSet<>();
         for (EthLogEntity ethLog : logsMap.values()) {
             if (!isEligibleContract(ethLog.getAddress().getAddress())) {
                 continue;
@@ -235,7 +234,7 @@ public class ContractDetector {
         return value.toString();
     }
 
-    private Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
+    static Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
         EthBlockEntity block) {
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses = new LinkedHashMap<>();
         for (EthTxEntity tx : block.getTransactions()) {
@@ -253,29 +252,28 @@ public class ContractDetector {
             for (EthLogEntity ethLog : tx.getLogs()) {
                 if (isEligibleContract(ethLog.getAddress().getAddress())) {
                     addToAddresses(addresses, ethLog.getAddress(), tx);
-                    break;
                 }
             }
         }
         return addresses;
     }
 
-    private boolean isEligibleContract(String address) {
+    private static boolean isEligibleContract(String address) {
         if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
             return false;
         }
         return ContractUtils.getAllContractAddresses().contains(address.toLowerCase());
     }
 
-    private void addToAddresses(
+    private static void addToAddresses(
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses,
         EthAddressEntity address,
         EthTxEntity tx) {
-        if (ZERO_ADDRESS.equals(address.getAddress())) {
+        if (ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
             return;
         }
-        Map<String, EthTxEntity> txs =
-            addresses.computeIfAbsent(address, k -> new LinkedHashMap<>());
+        Map<String, EthTxEntity> txs = addresses
+            .computeIfAbsent(address, k -> new LinkedHashMap<>());
         txs.put(tx.getHash().getHash(), tx);
     }
 }

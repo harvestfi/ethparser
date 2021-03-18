@@ -21,8 +21,8 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACT
 import static pro.belbix.ethparser.web3.contracts.HarvestPoolAddresses.POOLS;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -71,17 +71,17 @@ public class ContractLoader {
   private Long currentBlock;
   boolean loaded = false;
 
-  static final Map<String, PoolEntity> poolsCacheByAddress = new HashMap<>();
-  static final Map<String, VaultEntity> vaultsCacheByAddress = new HashMap<>();
-  static final Map<String, UniPairEntity> uniPairsCacheByAddress = new HashMap<>();
-  static final Map<String, TokenEntity> tokensCacheByAddress = new HashMap<>();
-  static final Map<String, PoolEntity> poolsCacheByName = new HashMap<>();
-  static final Map<String, VaultEntity> vaultsCacheByName = new HashMap<>();
-  static final Map<String, UniPairEntity> uniPairsCacheByName = new HashMap<>();
-  static final Map<String, TokenEntity> tokensCacheByName = new HashMap<>();
-  static final Map<Integer, VaultToPoolEntity> vaultToPoolsCache = new HashMap<>();
-  static final Map<Integer, TokenToUniPairEntity> tokenToUniPairCache = new HashMap<>();
-  static final Set<String> contracts = new HashSet<>();
+  static final Map<String, PoolEntity> poolsCacheByAddress = new LinkedHashMap<>();
+  static final Map<String, VaultEntity> vaultsCacheByAddress = new LinkedHashMap<>();
+  static final Map<String, UniPairEntity> uniPairsCacheByAddress = new LinkedHashMap<>();
+  static final Map<String, TokenEntity> tokensCacheByAddress = new LinkedHashMap<>();
+  static final Map<String, PoolEntity> poolsCacheByName = new LinkedHashMap<>();
+  static final Map<String, VaultEntity> vaultsCacheByName = new LinkedHashMap<>();
+  static final Map<String, UniPairEntity> uniPairsCacheByName = new LinkedHashMap<>();
+  static final Map<String, TokenEntity> tokensCacheByName = new LinkedHashMap<>();
+  static final Map<Integer, VaultToPoolEntity> vaultToPoolsCache = new LinkedHashMap<>();
+  static final Map<Integer, TokenToUniPairEntity> tokenToUniPairCache = new LinkedHashMap<>();
+  static final Set<String> contracts = new LinkedHashSet<>();
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,

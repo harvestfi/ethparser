@@ -20,9 +20,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
-import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
-import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
-import pro.belbix.ethparser.entity.contracts.ContractEntity;
 
 @Entity
 @Table(name = "b_contract_events",
