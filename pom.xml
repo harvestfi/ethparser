@@ -243,22 +243,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.web3j</groupId>
-        <artifactId>web3j-maven-plugin</artifactId>
-        <version>4.6.5</version>
-        <configuration>
-          <packageName>pro.belbix.ethparser.web3.abi.contracts.generated</packageName>
-          <sourceDestination>src/main/java/generated</sourceDestination>
-          <soliditySourceFiles>
-            <directory>src/main/resources/contracts</directory>
-            <includes>
-              <include>**/*.abi</include>
-            </includes>
-          </soliditySourceFiles>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.6</version>

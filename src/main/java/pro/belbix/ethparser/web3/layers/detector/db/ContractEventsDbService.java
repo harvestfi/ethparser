@@ -63,7 +63,6 @@ public class ContractEventsDbService {
   }
 
   private void persistChildren(ContractEventEntity event) {
-//    event.setContract(saveOrGetAddress(event.getContract()));
     for (ContractTxEntity tx : event.getTxs()) {
       tx.setTx(ethTxRepository.findById(tx.getTx().getId())
           .orElseThrow(() -> new IllegalStateException("Not found tx " + tx.getTx().getId())));

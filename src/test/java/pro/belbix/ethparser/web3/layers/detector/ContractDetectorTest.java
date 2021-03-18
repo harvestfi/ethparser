@@ -23,11 +23,12 @@ import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
-import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
+import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
+import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
@@ -50,6 +51,8 @@ class ContractDetectorTest {
   private ContractEventsDbService contractEventsDbService;
   @Autowired
   private EthBlockDbService ethBlockDbService;
+  @Autowired
+  private EthBlockRepository ethBlockRepository;
 
   @BeforeEach
   void setUp() {
@@ -58,20 +61,16 @@ class ContractDetectorTest {
 
   @Test
   void handleBlock_12055610_empty() throws JsonProcessingException {
-    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-        "0x8de7a4d9064e0a12b94ab833ca99ac76aecdb61c71e58926d256f92f8fb04dbe",
-        true
-    ));
+    EthBlockEntity ethBlockEntity =
+        loadBlock("0x8de7a4d9064e0a12b94ab833ca99ac76aecdb61c71e58926d256f92f8fb04dbe");
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
     assertTrue(events.isEmpty());
   }
 
   @Test
   void handleBlock_10800000() throws JsonProcessingException {
-    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-        "0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7",
-        true
-    ));
+    EthBlockEntity ethBlockEntity =
+        loadBlock("0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7");
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
     assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
@@ -94,30 +93,25 @@ class ContractDetectorTest {
 
     assertEvents(events, AssertData.builder()
         .eventSize(10)
-        .eventNum(1)
-        .eventContractAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")
-        .txSize(8)
-        .txNum(1)
-        .txAddress("0xd997fdbf9ca2d31699214b73e3172ff187f83785cba262ced03129a83216b4dd")
-        .stateSize(18)
-        .stateNum(17)
-        .stateName("DECREASE_ALLOWANCE_WITH_AUTHORIZATION_TYPEHASH")
-        .stateValue("b70559e94cbda91958ebec07f9b65b3b490097c8d25c8dacd71105df1015b6d8")
-        .logSize(1)
-        .logNum(0)
-        .logAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")
-        .logTopic("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-        .logTopics("0x000000000000000000000000b493da310d29d1354096f76b3c2e81cdc9642ab3,0x000000000000000000000000ee44145a12ad57fb9723e05d51c1d0b3fe1ced3d")
+        .eventContractAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+        .txSize(15)
+        .txAddress("0xf9fba9a4ed29d8dfc8895737e62f71957abcfb64f503864fc5f68230efa33abf")
+        .stateSize(4)
+        .stateName("symbol")
+        .stateValue("WETH")
+        .logSize(5)
+        .logIdx(5)
+        .logName("Withdrawal")
+        .logValues("0x7a250d5630b4cf539739df2c5dacb4c659f2488d,13134584198476690558")
+        .logMethodId("0x7fcf532c")
         .build()
     );
   }
 
   @Test
   void handleBlock_SUSHI_HODL() throws JsonProcessingException {
-    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-        "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
-        true
-    ));
+    EthBlockEntity ethBlockEntity =
+        loadBlock("0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1");
     assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
         "eligible contracts");
 
@@ -142,30 +136,25 @@ class ContractDetectorTest {
 
     assertEvents(events, AssertData.builder()
         .eventSize(10)
-        .eventNum(4)
         .eventContractAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .txSize(1)
-        .txNum(1)
         .txAddress("0x8b94d75dd5f3e4db2fc1ebcd9752aec88012760ba476ad31e9c216a085fdeddd")
         .stateSize(22)
-        .stateNum(1)
         .stateName("nextImplementationDelay")
         .stateValue("43200")
+        .logIdx(239)
         .logSize(3)
-        .logNum(1)
-        .logAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
-        .logTopic("0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364")
-        .logTopics("0x0000000000000000000000001e7e3925012ac4fc2e35fe23415c877979eb6b04")
+        .logName("Withdraw")
+        .logMethodId("0x884edad9")
+        .logValues("0x1e7e3925012ac4fc2e35fe23415c877979eb6b04,954273586164387783198")
         .build()
     );
   }
 
   @Test
   void testEligibleContracts_SUSHI_HODL_12030868() {
-    EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-        "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
-        true
-    ));
+    EthBlockEntity ethBlockEntity =
+        loadBlock("0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1");
     Map<EthAddressEntity, Map<String, EthTxEntity>> eligible =
         ContractDetector.collectEligibleContracts(ethBlockEntity);
 //    assertEquals(9, eligible.size(), "eligible contracts size");
@@ -187,14 +176,29 @@ class ContractDetectorTest {
         )));
   }
 
+  private EthBlockEntity loadBlock(String hash) {
+    EthBlockEntity ethBlockEntity =
+        ethBlockParser.parse(web3Service.findBlockByHash(hash, true));
+    long blockNumber = ethBlockEntity.getNumber();
+    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
+    if (ethBlockEntity == null) {
+      ethBlockEntity = ethBlockRepository.findById(blockNumber).orElseThrow();
+    }
+    return ethBlockEntity;
+  }
+
   private void assertEvents(List<ContractEventEntity> events, AssertData data) {
+    ContractEventEntity event = events.stream()
+        .filter(e -> e.getContract().getAddress().equals(data.eventContractAddress))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("event not found " + data.eventContractAddress));
     assertAll(
         () -> assertNotNull(events, "events is null"),
         () -> assertEquals(data.eventSize, events.size(), "event size"),
-        () -> assertEvent(events.get(data.eventNum), data),
-        () -> assertNotNull(contractEventsDbService.save(events.get(data.eventNum)),
+        () -> assertEvent(event, data),
+        () -> assertNotNull(contractEventsDbService.save(event),
             "save result"),
-        () -> assertNull(contractEventsDbService.save(events.get(data.eventNum)),
+        () -> assertNull(contractEventsDbService.save(event),
             "Duplicate should be null")
     );
   }
@@ -205,8 +209,14 @@ class ContractDetectorTest {
             "eventContractAddress"),
         () -> assertEquals(data.txSize, event.getTxs().size(), "txSize"),
         () -> assertEquals(data.stateSize, event.getStates().size(), "stateSize"),
-        () -> assertTx(new ArrayList<>(event.getTxs()).get(0), data),
-        () -> assertState(new ArrayList<>(event.getStates()).get(data.stateNum), data)
+        () -> assertTx(event.getTxs().stream()
+            .filter(t -> t.getTx().getHash().getHash().equals(data.txAddress))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("tx not found " + data.txAddress)), data),
+        () -> assertState(event.getStates().stream()
+            .filter(s -> s.getName().equals(data.stateName))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("state not found " + data.stateName)), data)
     );
   }
 
@@ -221,15 +231,18 @@ class ContractDetectorTest {
     assertAll(
         () -> assertEquals(data.txAddress, tx.getTx().getHash().getHash(), "txAddress"),
         () -> assertEquals(data.logSize, tx.getTx().getLogs().size(), "logSize"),
-        () -> assertLog(new ArrayList<>(tx.getTx().getLogs()).get(data.logNum), data)
+        () -> assertLog(tx.getLogs().stream()
+            .filter(l -> l.getLogIdx() == data.logIdx)
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("log not found " + data.logIdx)), data)
     );
   }
 
-  private void assertLog(EthLogEntity ethLog, AssertData data) {
+  private void assertLog(ContractLogEntity ethLog, AssertData data) {
     assertAll(
-        () -> assertEquals(data.logAddress, ethLog.getAddress().getAddress(), "log adr"),
-        () -> assertEquals(data.logTopic, ethLog.getFirstTopic().getHash(), "log topic"),
-        () -> assertEquals(data.logTopics, ethLog.getTopics(), "log topics")
+        () -> assertEquals(data.logName, ethLog.getTopic().getMethodName(), "log name"),
+        () -> assertEquals(data.logMethodId, ethLog.getTopic().getMethodId(), "logMethodId"),
+        () -> assertEquals(data.logValues, ethLog.getLogs(), "log values")
     );
   }
 
@@ -237,19 +250,17 @@ class ContractDetectorTest {
   private static class AssertData {
 
     int eventSize;
-    int eventNum;
     String eventContractAddress;
     int txSize;
-    int txNum;
     String txAddress;
     int stateSize;
-    int stateNum;
     String stateName;
     String stateValue;
     int logSize;
-    int logNum;
+    int logIdx;
     String logAddress;
-    String logTopic;
-    String logTopics;
+    String logName;
+    String logMethodId;
+    String logValues;
   }
 }
