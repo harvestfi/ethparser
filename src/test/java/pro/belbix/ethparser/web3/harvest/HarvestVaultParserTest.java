@@ -1758,7 +1758,7 @@ public class HarvestVaultParserTest {
             "Deposit",
             "MASK20_ETH",
             "0xccf883e70281b3f86286c94b10783da98e575e6b02287e891095efcf46b08454_357",
-            "61.23927696",
+            "21.042193952134852",
             "",
             "",
             26914L,
