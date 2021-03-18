@@ -1717,14 +1717,14 @@ public class HarvestVaultParserTest {
             12057281,
             LOG_ID,
             "0x6bb8bc41e668b7c8ef3850486c9455b5c86830b3",
-            "Withdraw",
+            "Deposit",
             "MUSE_ETH",
-            "0xa87f7874ea7b98fd5b6a99752983a455de237ca2a630bc527a11114a8fcb189f",
-            "200,89198021",
+            "0xa87f7874ea7b98fd5b6a99752983a455de237ca2a630bc527a11114a8fcb189f_154",
+            "47.22271827",
             "",
-            "",
-            0L,
-            0L,
+            "0",
+            82732L,
+            189494L,
             true
         );
     }
@@ -1736,14 +1736,14 @@ public class HarvestVaultParserTest {
             12056984,
             LOG_ID,
             "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
-            "Withdraw",
+            "Deposit",
             "DUDES20_ETH",
-            "0x7d69e86eadc8f791da68588af3ada72714450868f50d9c86182c74f038c5f775",
-            "200,89198021",
+            "0x7d69e86eadc8f791da68588af3ada72714450868f50d9c86182c74f038c5f775_235",
+            "4.89730901",
             "",
             "",
-            0L,
-            0L,
+            1776L,
+            147638L,
             true
         );
     }
@@ -1755,14 +1755,14 @@ public class HarvestVaultParserTest {
             12053942,
             LOG_ID,
             "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
-            "Withdraw",
+            "Deposit",
             "MASK20_ETH",
-            "0xccf883e70281b3f86286c94b10783da98e575e6b02287e891095efcf46b08454",
-            "200,89198021",
+            "0xccf883e70281b3f86286c94b10783da98e575e6b02287e891095efcf46b08454_357",
+            "61.23927696",
             "",
             "",
-            0L,
-            0L,
+            26914L,
+            81484L,
             true
         );
     }
@@ -1774,14 +1774,14 @@ public class HarvestVaultParserTest {
             12057371,
             LOG_ID,
             "0x42740f20aed483b69701a55ab295a2edc886b1fe",
-            "Withdraw",
+            "Deposit",
             "ROPE20_ETH",
-            "0xecee528512da7abdd884c3c0e7abb096a1838c19c74708e7ba5c782f38584dcf",
-            "200,89198021",
+            "0xecee528512da7abdd884c3c0e7abb096a1838c19c74708e7ba5c782f38584dcf_244",
+            "29.04792201",
             "",
             "",
-            0L,
-            0L,
+            2289L,
+            155348L,
             true
         );
     }
