@@ -62,7 +62,6 @@ class ContractDetectorTest {
         "0x8de7a4d9064e0a12b94ab833ca99ac76aecdb61c71e58926d256f92f8fb04dbe",
         true
     ));
-    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
     assertTrue(events.isEmpty());
   }
@@ -73,7 +72,6 @@ class ContractDetectorTest {
         "0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7",
         true
     ));
-    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
     assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
@@ -120,8 +118,6 @@ class ContractDetectorTest {
         "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
         true
     ));
-    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
-
     assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
         "eligible contracts");
 

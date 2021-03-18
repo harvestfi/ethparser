@@ -236,6 +236,9 @@ public class ContractDetector {
 
     static Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
         EthBlockEntity block) {
+        if(block == null) {
+            return Map.of();
+        }
         Map<EthAddressEntity, Map<String, EthTxEntity>> addresses = new LinkedHashMap<>();
         for (EthTxEntity tx : block.getTransactions()) {
             if (tx.getToAddress() != null &&
