@@ -24,22 +24,16 @@ public class ContractEventsDbService {
   private final EthBlockRepository ethBlockRepository;
   private final LogHexRepository logHexRepository;
   private final EthTxRepository ethTxRepository;
-  private final EthHashRepository ethHashRepository;
-  private final EthAddressRepository ethAddressRepository;
 
   public ContractEventsDbService(
       ContractEventRepository contractEventRepository,
       EthBlockRepository ethBlockRepository,
       LogHexRepository logHexRepository,
-      EthTxRepository ethTxRepository,
-      EthHashRepository ethHashRepository,
-      EthAddressRepository ethAddressRepository) {
+      EthTxRepository ethTxRepository) {
     this.contractEventRepository = contractEventRepository;
     this.ethBlockRepository = ethBlockRepository;
     this.logHexRepository = logHexRepository;
     this.ethTxRepository = ethTxRepository;
-    this.ethHashRepository = ethHashRepository;
-    this.ethAddressRepository = ethAddressRepository;
   }
 
   @Transactional
@@ -80,28 +74,4 @@ public class ContractEventsDbService {
     }
     return logHexPersisted;
   }
-
-  private EthAddressEntity saveOrGetAddress(EthAddressEntity hash) {
-    EthAddressEntity hashPersisted = ethAddressRepository
-        .findById(hash.getAddress()).orElse(null);
-    if (hashPersisted == null) {
-      hashPersisted = ethAddressRepository.save(hash);
-    }
-    return hashPersisted;
-  }
-
-  private EthHashEntity saveOrGetHash(EthHashEntity hash) {
-    EthHashEntity hashPersisted = ethHashRepository
-        .findById(hash.getHash()).orElse(null);
-    if (hashPersisted == null) {
-      hashPersisted = ethHashRepository.save(hash);
-    }
-    return hashPersisted;
-  }
-
-//  private void persist() {
-//    BlockEntityCollector collector = persistChildEntities(block, seq, startSeq);
-//    new BlockEntityUpdater(block, collector).update();
-//  }
-
 }
