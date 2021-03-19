@@ -2,7 +2,7 @@ spring:
   jpa:
     #    open-in-view: true
     database: postgresql
-    #    show-sql: true
+#    show-sql: true
     generate-ddl: true
     hibernate:
       ddl-auto: create
@@ -13,6 +13,7 @@ spring:
     platform: postgresql
     # DON'T change the file - setup JVM args
     #-Dethparser.web3Url=https://eth-mainnet.alchemyapi.io/v2/KEY
+    #-Dethparser.etherscanApiKey=key
     #-Dspring.datasource.url=jdbc:postgresql://url:5432/test
     #-Dspring.datasource.username=test
     #-Dspring.datasource.password=test
@@ -26,7 +27,6 @@ spring:
       classpath:sql/common.sql,
       classpath:sql/hardwork.sql,
       classpath:sql/harvest.sql,
-      classpath:sql/postgres_public_eth_contract_types.sql,
       classpath:sql/postgres_public_eth_contracts.sql,
       classpath:sql/postgres_public_eth_pools.sql,
       classpath:sql/postgres_public_eth_tokens.sql,
@@ -37,3 +37,7 @@ spring:
 
     initialization-mode: always
     generate-unique-name: true
+
+logging:
+  level:
+    com.yannbriancon.interceptor.HibernateQueryInterceptor: OFF

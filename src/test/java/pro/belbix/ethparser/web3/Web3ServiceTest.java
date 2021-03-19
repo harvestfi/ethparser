@@ -28,6 +28,7 @@ import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -138,13 +139,28 @@ public class Web3ServiceTest {
             .divide(new BigInteger("1000000000000000000")).longValue() > 0);
         assertTrue(((Uint112) types.get(1)).getValue()
             .divide(new BigInteger("1000000000000000000")).longValue() > 0);
-        assertTrue(((Uint32) types.get(2)).getValue().longValue() > 0);
+      assertTrue(((Uint32) types.get(2)).getValue().longValue() > 0);
     }
 
-    @Test
-    public void getReceiptShouldWork() {
-        TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(
-            "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
-        assertNotNull(transactionReceipt);
-    }
+  @Test
+  public void getReceiptShouldWork() {
+    TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(
+        "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
+    assertNotNull(transactionReceipt);
+  }
+
+  @Test
+  void testRequestWithTopics() {
+    List<EthLog.LogResult> results = web3Service.fetchContractLogs(
+        List.of("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+        null,
+        null,
+        "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b"
+    );
+    assertNotNull(results);
+    assertFalse(results.isEmpty());
+    assertNotNull(results.get(0).get());
+    EthLog.LogObject log = (EthLog.LogObject) results.get(0).get();
+    System.out.println(log);
+  }
 }

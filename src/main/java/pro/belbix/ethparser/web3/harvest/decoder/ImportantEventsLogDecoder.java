@@ -35,7 +35,7 @@ public class ImportantEventsLogDecoder extends MethodDecoder {
       return null;
     }
 
-    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
 
     // Mint function emits only Transfer event from zero address
     // and we want only FARM token

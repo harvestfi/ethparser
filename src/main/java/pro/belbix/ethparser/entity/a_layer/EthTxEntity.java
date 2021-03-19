@@ -17,6 +17,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -35,12 +36,13 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "a_eth_tx")
 @Data
 @EqualsAndHashCode(exclude = {"logs", "blockNumber"})
+@ToString(exclude = {"blockNumber"})
 @JsonInclude(Include.NON_NULL)
 public class EthTxEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private String nonce;
     private long transactionIndex;
     private String value;
@@ -55,13 +57,12 @@ public class EthTxEntity {
     // receipt info
     private long cumulativeGasUsed;
     private long gasUsed;
-    private String contractAddress;
     private String root;
     private String status;
     private String revertReason;
 
     @ManyToOne
-    @JoinColumn(name = "hash", referencedColumnName = "idx")
+    @JoinColumn(name = "hash", referencedColumnName = "idx", unique = true)
     private EthHashEntity hash;
 
     @ManyToOne
@@ -71,6 +72,10 @@ public class EthTxEntity {
     @ManyToOne
     @JoinColumn(name = "to_address", referencedColumnName = "idx")
     private EthAddressEntity toAddress;
+
+    @ManyToOne
+    @JoinColumn(name = "contract_address", referencedColumnName = "idx")
+    private EthAddressEntity contractAddress;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

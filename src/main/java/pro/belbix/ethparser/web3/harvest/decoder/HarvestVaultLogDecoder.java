@@ -25,7 +25,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
     List<TypeReference<Type>> parameters = findParameters(methodId)
         .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
 
-    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     HarvestTx tx = new HarvestTx();
     tx.setVault(new Address(ethLog.getAddress()));
     tx.setLogId(ethLog.getLogIndex().longValue());

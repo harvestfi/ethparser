@@ -30,28 +30,26 @@ import pro.belbix.ethparser.web3.Web3Service;
 @ContextConfiguration
 public class ContractLoaderTest {
 
-    @Autowired
-    private ContractLoader contractLoader;
-    @Autowired
-    private AppProperties appProperties;
-    @Autowired
-    private VaultRepository vaultRepository;
-    @Autowired
-    private PoolRepository poolRepository;
-    @Autowired
-    private UniPairRepository uniPairRepository;
-    @Autowired
-    private TokenRepository tokenRepository;
+  @Autowired
+  private ContractLoader contractLoader;
+  @Autowired
+  private AppProperties appProperties;
+  @Autowired
+  private VaultRepository vaultRepository;
+  @Autowired
+  private PoolRepository poolRepository;
+  @Autowired
+  private UniPairRepository uniPairRepository;
+  @Autowired
+  private TokenRepository tokenRepository;
   @Autowired
   private VaultToPoolRepository vaultToPoolRepository;
   @Autowired
   private TokenToUniPairRepository tokenToUniPairRepository;
-  @Autowired
-  private Web3Service web3Service;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-   @BeforeEach
+  @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
