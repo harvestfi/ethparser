@@ -113,10 +113,7 @@ public class EthBlockParserTest {
             .logTopics(
                 "0x000000000000000000000000d2d865c9d2960b53127c3bfca8a237bc7c803adc,0x0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d")
             .build());
-        EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity).join();
-        assertNotNull(persisted);
-        assertContracts(persisted, "data/10800000_contracts.txt");
-        assertNull(ethBlockDbService.save(ethBlockEntity).join());
+        assertContracts(ethBlockEntity, "data/10800000_contracts.txt");
     }
 
     @Test
@@ -151,10 +148,7 @@ public class EthBlockParserTest {
             .logTopics(
                 "0x000000000000000000000000acc865b581314595eb7d68afa109678797cbf0a1,0x000000000000000000000000f050227be1a7ce587aa83d5013f900dbc3be0611")
             .build());
-        EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity).join();
-        assertNotNull(persisted);
-        assertContracts(persisted, "data/12030868_contracts.txt");
-        assertNull(ethBlockDbService.save(ethBlockEntity).join());
+        assertContracts(ethBlockEntity, "data/12030868_contracts.txt");
     }
 
     @Test
@@ -206,7 +200,7 @@ public class EthBlockParserTest {
     }
 
     private void assertBlock(EthBlockEntity block, AssertData data) {
-        assertNotNull(block);
+        assertNotNull(block, "EthBlockEntity is null");
         assertAll(
             () -> assertEquals(data.blockNum, block.getNumber(), "block num"),
             () -> assertEquals(data.blockTimestamp, block.getTimestamp(), "block timestamp"),
