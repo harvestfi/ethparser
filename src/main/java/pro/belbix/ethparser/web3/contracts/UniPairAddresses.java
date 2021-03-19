@@ -107,13 +107,13 @@ class UniPairAddresses {
           "0xC99A74145682C4b4A6e9fa55d559eb49A6884F75"),
       new LpContract(11380726, "UNI_LP_MTWTR_UST", "MTWTR",
           "0x34856be886A2dBa5F7c38c4df7FD86869aB08040"),
-      new LpContract(11023967, "UNI_LP_MUSE_ETH", "MUSE_ETH",
+      new LpContract(11023967, "UNI_LP_MUSE_ETH", "MUSE",
           "0x20d2C17d1928EF4290BF17F922a10eAa2770BF43"),
-      new LpContract(12010817, "UNI_LP_DUDES20_ETH", "DUDES20_ETH",
+      new LpContract(12010817, "UNI_LP_DUDES20_ETH", "DUDES20",
           "0x04914cb01eeC94E320e3A88b3c7A7e9B1609d13C"),
-      new LpContract(11844164, "UNI_LP_MASK20_ETH", "MASK20_ETH",
+      new LpContract(11844164, "UNI_LP_MASK20_ETH", "MASK20",
           "0xaa617C8726ADFDe9e7b08746457E6b90ddB21480"),
-      new LpContract(11878846, "UNI_LP_ROPE20_ETH", "ROPE20_ETH",
+      new LpContract(11878846, "UNI_LP_ROPE20_ETH", "ROPE20",
           "0x95ACF4ba2c53E31Db1459172332D52bAaC433bB3")
   );
 }
