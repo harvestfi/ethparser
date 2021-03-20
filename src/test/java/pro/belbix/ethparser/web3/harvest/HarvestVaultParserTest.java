@@ -51,6 +51,25 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_SUSHI_ETH_DAI() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x203e97aa6eb65a1a02d9e80083414058303f241e",
+            11989698,
+            LOG_ID,
+            "0x0d492c9bfd27778ee42270f7e5bbd9b73cf56c49",
+            "Withdraw",
+            "SUSHI_ETH_DAI",
+            "0x756e5967243cf42f5a3310fade50a7c5a38e3f5854bb6bfd185cc5ae87dbec67_143",
+            "35.98647758",
+            "",
+            "",
+            3751L,
+            12230395L,
+            true
+        );
+    }
+
+    @Test
     public void parseVault_ETH_DAI_HODL() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x29EC64560ab14d3166222Bf07c3F29c4916E0027",

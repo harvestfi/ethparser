@@ -114,6 +114,8 @@ class UniPairAddresses {
       new LpContract(11844164, "UNI_LP_MASK20_ETH", "MASK20",
           "0xaa617C8726ADFDe9e7b08746457E6b90ddB21480"),
       new LpContract(11878846, "UNI_LP_ROPE20_ETH", "ROPE20",
-          "0x95ACF4ba2c53E31Db1459172332D52bAaC433bB3")
+          "0x95ACF4ba2c53E31Db1459172332D52bAaC433bB3"),
+      new LpContract(10091428, "UNI_LP_LINK_ETH", "LINK",
+          "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974")
   );
 }

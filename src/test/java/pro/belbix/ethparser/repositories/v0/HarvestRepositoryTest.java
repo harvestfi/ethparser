@@ -104,13 +104,17 @@ public class HarvestRepositoryTest {
     public void fetchPeriodOfWork() {
         List<Long> period = harvestRepository.fetchPeriodOfWork("USDC", Long.MAX_VALUE, limitOne);
         assertNotNull(period, "query result is not null");
-        assertEquals(period.size(), 1, "result contains elements");
+        assertEquals(1, period.size(), "result contains elements");
         assertTrue(period.get(0) > 0, "period not equal zero");
     }
 
     @Test
     public void fetchAverageTvl() {
-        assertNotNull(harvestRepository.fetchAverageTvl("USDC", 0, Long.MAX_VALUE, limitOne));
+        List<Double> avgTvl =
+            harvestRepository.fetchAverageTvl("USDC", 0, Long.MAX_VALUE, limitOne);
+        assertNotNull(avgTvl);
+        assertEquals(1, avgTvl.size());
+        assertEquals(2.87036734E7, avgTvl.get(0).doubleValue());
     }
 
     @Test
