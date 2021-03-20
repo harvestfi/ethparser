@@ -37,8 +37,9 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @ContextConfiguration
 public class PriceProviderAutoTest {
 
+  // todo create a tolerance for each token
   private static final Double TOLERANCE_PCT = 0.6; // coingecko the has worst data for some tokens :(
-  private static final long TARGET_BLOCK_DATE = 1614201489;
+  private static final long TARGET_BLOCK_DATE = 1616262520;
 
   @Autowired
   private PriceController priceController;

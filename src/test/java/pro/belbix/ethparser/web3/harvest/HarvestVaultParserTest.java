@@ -1723,8 +1723,8 @@ public class HarvestVaultParserTest {
             "200,89198021",
             "",
             "",
-            0L,
-            0L,
+            6227L,
+            1621758L,
             true
         );
     }

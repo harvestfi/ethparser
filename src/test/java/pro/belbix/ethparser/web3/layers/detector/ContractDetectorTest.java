@@ -73,7 +73,7 @@ class ContractDetectorTest {
         loadBlock("0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7");
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
-    assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
+    assertEquals(12, collectEligibleContracts(ethBlockEntity).size(),
         "eligible contracts");
     assertTwoArrays(events.stream()
             .map(e -> e.getContract().getAddress())
@@ -88,11 +88,13 @@ class ContractDetectorTest {
             "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase(),
             "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
-            "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase()
+            "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
+            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
     assertEvents(events, AssertData.builder()
-        .eventSize(10)
+        .eventSize(12)
         .eventContractAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
         .txSize(15)
         .txAddress("0xf9fba9a4ed29d8dfc8895737e62f71957abcfb64f503864fc5f68230efa33abf")
@@ -112,7 +114,7 @@ class ContractDetectorTest {
   void handleBlock_SUSHI_HODL() throws JsonProcessingException {
     EthBlockEntity ethBlockEntity =
         loadBlock("0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1");
-    assertEquals(10, collectEligibleContracts(ethBlockEntity).size(),
+    assertEquals(12, collectEligibleContracts(ethBlockEntity).size(),
         "eligible contracts");
 
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
@@ -131,11 +133,13 @@ class ContractDetectorTest {
             "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
             "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
-            "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase()
+            "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase(),
+            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
     assertEvents(events, AssertData.builder()
-        .eventSize(10)
+        .eventSize(12)
         .eventContractAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .txSize(1)
         .txAddress("0x8b94d75dd5f3e4db2fc1ebcd9752aec88012760ba476ad31e9c216a085fdeddd")
@@ -172,7 +176,9 @@ class ContractDetectorTest {
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
             "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
             "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase(),
-            "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48".toLowerCase()
+            "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48".toLowerCase(),
+            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
   }
 

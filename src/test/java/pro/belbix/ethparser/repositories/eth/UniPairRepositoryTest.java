@@ -19,7 +19,7 @@ class UniPairRepositoryTest {
   @Test
   void findFirstByContractSmokeTest() {
     ContractEntity contract = new ContractEntity();
-    contract.setId(306);
+    contract.setId(326);
     assertNotNull(uniPairRepository.findFirstByContract(contract));
   }
 }
