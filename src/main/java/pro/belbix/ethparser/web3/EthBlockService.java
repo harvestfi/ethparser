@@ -41,6 +41,27 @@ public class EthBlockService {
     return extractDateFromBlock(block);
   }
 
+  public synchronized long getTimestampSecForBlockByNumber(long blockId) {
+    BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
+    if (cachedBlock != null) {
+      return cachedBlock.getBlockDate();
+    }
+    
+    Block block = web3.findBlockByNumber(blockId, false).getBlock();
+    if (block == null) {
+      return 0;
+    }
+
+    cachedBlock = new BlockCacheEntity();
+    cachedBlock.setBlock(blockId);
+    cachedBlock.setBlockDate(extractDateFromBlock(block));
+    blockCacheRepository.save(cachedBlock);
+    if (lastBlock < blockId) {
+      lastBlock = blockId;
+    }
+    return extractDateFromBlock(block);
+  }
+
   private static long extractDateFromBlock(Block block) {
     return block.getTimestamp().longValue();
   }

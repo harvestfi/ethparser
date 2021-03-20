@@ -32,5 +32,6 @@ public class FunctionsNames {
   public static final String UNDERLYING_BALANCE_WITH_INVESTMENT = "underlyingBalanceWithInvestment";
   public static final String VAULT_FRACTION_TO_INVEST_NUMERATOR = "vaultFractionToInvestNumerator";
   public static final String VAULT_FRACTION_TO_INVEST_DENOMINATOR = "vaultFractionToInvestDenominator";
-
+  public static final String GET_PRICE = "getPrice";
+    
 }
