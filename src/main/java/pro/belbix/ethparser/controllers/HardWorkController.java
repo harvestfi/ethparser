@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,7 +30,7 @@ public class HardWorkController {
     }
 
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
-    public List<HardWorkDTO> lastHardWork() {
+    public List<HardWorkDTO> lastHardWorks() {
         return hardWorkRepository.fetchLatest();
     }
 
@@ -75,6 +76,11 @@ public class HardWorkController {
             log.error(msg, e);
             return RestResponse.error(msg);
         }
+    }
+
+    @GetMapping(value = "/last/hardwork")
+    public HardWorkDTO lastHardWork() {
+        return hardWorkRepository.findFirstByOrderByBlockDateDesc();
     }
 
 

@@ -21,7 +21,7 @@ public class ERC20Decoder extends MethodDecoder {
     String methodName = methodNamesByMethodId.get(methodId);
     List<TypeReference<Type>> parameters = findParameters(methodId).orElse(List.of());
 
-    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     TokenTx tx = new TokenTx();
     tx.setLogId(ethLog.getLogIndex().toString());
     tx.setHash(ethLog.getTransactionHash());

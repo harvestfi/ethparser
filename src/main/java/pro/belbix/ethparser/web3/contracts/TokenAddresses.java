@@ -96,7 +96,17 @@ class TokenAddresses {
           .addLp(0, "UNI_LP_MNFLX_UST"),
       new TokenContract(11345288, "MTWTR", "0xedb0414627e6f1e3f082de65cd4f9c693d78cca9")
           .addLp(0, "UNI_LP_MTWTR_UST"),
-      new TokenContract(11875162, "CRV_LINK", "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a")
+      new TokenContract(11875162, "CRV_LINK", "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a"),
+      new TokenContract(11022769, "MUSE", "0xb6ca7399b4f9ca56fc27cbff44f4d2e4eef1fc81")
+          .addLp(0, "UNI_LP_MUSE_ETH"),
+      new TokenContract(12007358, "DUDES20", "0x2313e39841fb3809da0ff6249c2067ca84795846")
+          .addLp(0, "UNI_LP_DUDES20_ETH"),
+      new TokenContract(11841388, "MASK20", "0xc2bde1a2fa26890c8e6acb10c91cc6d9c11f4a73")
+          .addLp(0, "UNI_LP_MASK20_ETH"),
+      new TokenContract(11869798, "ROPE20", "0xb3cdc594d8c8e8152d99f162cf8f9edfdc0a80a2")
+          .addLp(0, "UNI_LP_ROPE20_ETH"),
+      new TokenContract(4281611, "LINK", "0x514910771af9ca656af840dff83e8264ecf986ca")
+          .addLp(0, "UNI_LP_LINK_ETH")
   );
 
 }

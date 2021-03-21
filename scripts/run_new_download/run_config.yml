@@ -2,4 +2,4 @@ ethparser:
   startUtil: new-strategy-download
 
 new-strategy-download:
-  vaults: SUSHI_HODL, ETH_DAI_HODL, ETH_USDC_HODL, ETH_USDT_HODL, ETH_WBTC_HODL
+  vaults: MUSE_ETH, DUDES20_ETH, MASK20_ETH, ROPE20_ETH

@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -84,6 +85,11 @@ public class ContractUtils {
   }
 
   public static Optional<PoolEntity> poolByVaultAddress(String address) {
+    // PS_V0 doesn't have pool
+    if("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equals(address)) {
+      return Optional.ofNullable(ContractLoader
+          .poolsCacheByAddress.get("0x59258f4e15a5fc74a7284055a8094f58108dbd4f"));
+    }
     Optional<PoolEntity> poolEntity = ContractLoader.poolsCacheByAddress.values().stream()
         .filter(pool -> pool.getLpToken() != null
             && pool.getLpToken().getAddress().equalsIgnoreCase(address))
@@ -350,5 +356,29 @@ public class ContractUtils {
         .map(UniPairEntity::getContract)
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList());
+  }
+
+  public static Set<String> getAllContractAddresses() {
+    return ContractLoader.contracts;
+  }
+
+  public static Optional<ContractEntity> getContractByAddress(String address) {
+    address = address.toLowerCase();
+    Optional<ContractEntity> contract = ContractLoader.getVaultByAddress(address)
+        .map(VaultEntity::getContract);
+
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getPoolByAddress(address)
+          .map(PoolEntity::getContract);
+    }
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getUniPairByAddress(address)
+          .map(UniPairEntity::getContract);
+    }
+    if (contract.isEmpty()) {
+      contract = ContractLoader.getTokenByAddress(address)
+          .map(TokenEntity::getContract);
+    }
+    return contract;
   }
 }

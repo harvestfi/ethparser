@@ -1,5 +1,6 @@
 ethparser:
   startUtil: harvest-download
+  overrideDuplicates: true
 
 uniswap-download:
   contract:
@@ -10,11 +11,11 @@ reward-download:
   from: 11861229
 #  to: 11733132
 hardwork-download:
-  from: 11919330
+  from: 12037500
 #  to: 11445244
 harvest-download:
-  contract: ETH_DAI_HODL
-#  from: 11655725
+  contract: SUSHI_HODL
+  from: 12074303
 #  to: 11655725
 tvl-recalculate:
   recalculate: true

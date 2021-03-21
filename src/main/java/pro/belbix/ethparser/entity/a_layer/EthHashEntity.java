@@ -6,11 +6,13 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.NaturalId;
 
 @Entity
 @Table(name = "a_eth_hash")
 @Data
+@EqualsAndHashCode
 public class EthHashEntity implements Serializable {
 
     @Id
