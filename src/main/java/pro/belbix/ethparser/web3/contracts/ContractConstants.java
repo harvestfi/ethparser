@@ -91,6 +91,8 @@ public class ContractConstants {
         return "EURS";
       case "CRV_LINK":
         return "LINK";
+      case "SUSHI_HODL":
+        return "SUSHI";
     }
     return name;
   }

@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY;
-import static pro.belbix.ethparser.web3.FunctionsNames.STRATEGY_TIME_LOCK;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY_TIME_LOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +21,7 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;

@@ -10,7 +10,6 @@ public interface TokenRepository extends JpaRepository<TokenEntity, Integer> {
 
     @Query("select t from TokenEntity t "
         + "left join fetch t.contract f1 "
-        + "left join fetch f1.type f1f "
         + "where t.contract = :contract")
     TokenEntity findFirstByContract(@Param("contract") ContractEntity tokenContract);
 }

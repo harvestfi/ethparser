@@ -29,10 +29,7 @@ public class ContractEntity {
     private String address;
     private String name;
     private Long created;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "type")
-    @Fetch(FetchMode.JOIN)
-    private ContractTypeEntity type;
+    private int type;
 
 //    @JsonIgnore
 //    @OneToOne(cascade = CascadeType.ALL, mappedBy = "contract", fetch = FetchType.LAZY)

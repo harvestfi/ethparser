@@ -51,6 +51,25 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVault_SUSHI_ETH_DAI() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x203e97aa6eb65a1a02d9e80083414058303f241e",
+            11989698,
+            LOG_ID,
+            "0x0d492c9bfd27778ee42270f7e5bbd9b73cf56c49",
+            "Withdraw",
+            "SUSHI_ETH_DAI",
+            "0x756e5967243cf42f5a3310fade50a7c5a38e3f5854bb6bfd185cc5ae87dbec67_143",
+            "35.98647758",
+            "",
+            "",
+            3751L,
+            12230395L,
+            true
+        );
+    }
+
+    @Test
     public void parseVault_ETH_DAI_HODL() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x29EC64560ab14d3166222Bf07c3F29c4916E0027",
@@ -1704,8 +1723,84 @@ public class HarvestVaultParserTest {
             "200,89198021",
             "",
             "",
-            0L,
-            0L,
+            6227L,
+            1621758L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMUSE_ETH() {
+        harvestVaultParseTest(
+            "0xc45d471c77ff31C39474d68a5080Fe1FfACDBC04",
+            12057281,
+            LOG_ID,
+            "0x6bb8bc41e668b7c8ef3850486c9455b5c86830b3",
+            "Deposit",
+            "MUSE_ETH",
+            "0xa87f7874ea7b98fd5b6a99752983a455de237ca2a630bc527a11114a8fcb189f_154",
+            "47.22271827",
+            "",
+            "0",
+            82732L,
+            189494L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultDUDES20_ETH() {
+        harvestVaultParseTest(
+            "0x1E5f4e7127ea3981551D2Bf97dCc8f17a4ECEbEf",
+            12056984,
+            LOG_ID,
+            "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
+            "Deposit",
+            "DUDES20_ETH",
+            "0x7d69e86eadc8f791da68588af3ada72714450868f50d9c86182c74f038c5f775_235",
+            "4.89730901",
+            "",
+            "",
+            1776L,
+            147638L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMASK20_ETH() {
+        harvestVaultParseTest(
+            "0xF2a671645D0DF54d2f03E9ad7916c8F7368D1C29",
+            12053942,
+            LOG_ID,
+            "0xf28dcdf515e69da11ebd264163b09b1b30dc9dc8",
+            "Withdraw",
+            "MASK20_ETH",
+            "0xccf883e70281b3f86286c94b10783da98e575e6b02287e891095efcf46b08454_357",
+            "61.23927696",
+            "",
+            "",
+            26914L,
+            81484L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultROPE20_ETH() {
+        harvestVaultParseTest(
+            "0xAF9486E3DA0cE8d125aF9b256b3ecd104a3031B9",
+            12057371,
+            LOG_ID,
+            "0x42740f20aed483b69701a55ab295a2edc886b1fe",
+            "Deposit",
+            "ROPE20_ETH",
+            "0xecee528512da7abdd884c3c0e7abb096a1838c19c74708e7ba5c782f38584dcf_244",
+            "29.04792201",
+            "",
+            "",
+            2289L,
+            155348L,
             true
         );
     }

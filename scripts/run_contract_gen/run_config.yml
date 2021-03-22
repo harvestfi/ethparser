@@ -1,0 +1,6 @@
+ethparser:
+  startUtil: contract-generator
+
+contract-generator:
+  contract:
+  category:

@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
-import static pro.belbix.ethparser.web3.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

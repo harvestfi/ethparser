@@ -24,11 +24,11 @@ public class UniswapLpLogDecoder extends MethodDecoder {
   private static final Set<String> allowedMethods = new HashSet<>(
       Arrays.asList("Mint", "Burn", "Swap"));
 
-  public void decode(UniswapTx tx, Log log) {
-    if (!isValidLog(log)) {
+  public void decode(UniswapTx tx, Log ethLog) {
+    if (!isValidLog(ethLog)) {
       return;
     }
-    String topic0 = log.getTopics().get(0);
+    String topic0 = ethLog.getTopics().get(0);
     String methodId = methodIdByFullHex.get(topic0);
 
     if (methodId == null) {
@@ -46,17 +46,17 @@ public class UniswapLpLogDecoder extends MethodDecoder {
           "Not found parameters for topic " + topic0 + " with " + methodId);
     }
 
-    List<Type> types = extractLogIndexedValues(log, parameters);
-    tx.setHash(log.getTransactionHash());
-    tx.setLogId(log.getLogIndex().longValue());
-    tx.setBlock(log.getBlockNumber());
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
+    tx.setHash(ethLog.getTransactionHash());
+    tx.setLogId(ethLog.getLogIndex().longValue());
+    tx.setBlock(ethLog.getBlockNumber());
     tx.setSuccess(true);
-    tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(log.getAddress())
+    tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(ethLog.getAddress())
         .orElseThrow(
-            () -> new IllegalStateException("Not found key token for " + log.getAddress())));
-    tx.setLpAddress(log.getAddress());
+            () -> new IllegalStateException("Not found key token for " + ethLog.getAddress())));
+    tx.setLpAddress(ethLog.getAddress());
     tx.setMethodName(methodName);
-    enrich(types, methodName, tx, log);
+    enrich(types, methodName, tx, ethLog);
   }
 
   private boolean isValidLog(Log log) {

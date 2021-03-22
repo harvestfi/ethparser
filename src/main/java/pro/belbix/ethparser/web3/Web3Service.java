@@ -33,10 +33,12 @@ import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.BatchRequest;
 import org.web3j.protocol.core.BatchResponse;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -79,6 +81,7 @@ public class Web3Service {
   private final List<BlockingQueue<EthBlock>> blockConsumers = new ArrayList<>();
   private final AtomicReference<Instant> lastTxTime = new AtomicReference<>(Instant.now());
   private Web3j web3;
+  private Web3jService web3jService;
   private boolean init = false;
   private Web3Checker web3Checker;
   private LogFlowable logFlowable;
@@ -246,8 +249,11 @@ public class Web3Service {
     return result.getGasPrice().doubleValue() / 1000_000_000;
   }
 
-  public List<LogResult> fetchContractLogs(List<String> addresses, Integer start,
-      Integer end) {
+  public List<LogResult> fetchContractLogs(
+      List<String> addresses,
+      Integer start,
+      Integer end,
+      String... topics) {
     checkInit();
     DefaultBlockParameter fromBlock;
     DefaultBlockParameter toBlock;
@@ -263,6 +269,7 @@ public class Web3Service {
     }
     EthFilter filter = new EthFilter(fromBlock,
         toBlock, addresses);
+    filter.addOptionalTopics(topics);
     EthLog result = callWithRetry(() -> {
       EthLog ethLog = web3.ethGetLogs(filter).send();
       if (ethLog == null) {
@@ -415,6 +422,7 @@ public class Web3Service {
 
       HttpService service =
           new HttpService(appProperties.getWeb3Url(), clientBuilder.build(), false);
+      web3jService = service;
       web3 = Web3j.build(service);
     }
     log.info("Successfully connected to Ethereum");

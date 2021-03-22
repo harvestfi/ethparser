@@ -36,7 +36,7 @@ public class PriceDecoder extends MethodDecoder {
       return null;
     }
 
-    List<Type> types = extractLogIndexedValues(ethLog, parameters);
+    List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     PriceTx tx = new PriceTx();
     tx.setHash(ethLog.getTransactionHash());
     tx.setLogId(ethLog.getLogIndex().longValue());
