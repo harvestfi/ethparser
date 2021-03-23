@@ -144,7 +144,7 @@ public class ContractLoader {
       if (contract.getCreatedOnBlock() > currentBlock) {
         log.info("Token not created yet, skip {}", contract.getName());
       }
-      log.info("Load {}", contract.getName());
+      log.debug("Load {}", contract.getName());
       ContractEntity tokenContract = findOrCreateContract(
           contract.getAddress(),
           contract.getName(),
@@ -175,7 +175,7 @@ public class ContractLoader {
       }
       String name = vault.getName();
       String hash = vault.getAddress();
-      log.info("Load {}", name);
+      log.debug("Load {}", name);
       ContractEntity vaultContract =
           findOrCreateContract(hash, name, ContractType.VAULT.getId(), vault.getCreatedOnBlock(),
               true);
@@ -203,7 +203,7 @@ public class ContractLoader {
       }
       String name = pool.getName();
       String hash = pool.getAddress();
-      log.info("Load {}", name);
+      log.debug("Load {}", name);
       ContractEntity poolContract =
           findOrCreateContract(hash, name, ContractType.POOL.getId(), pool.getCreatedOnBlock(),
               true);
@@ -227,7 +227,7 @@ public class ContractLoader {
     for (LpContract uniPair : UniPairAddresses.UNI_PAIRS) {
       String name = uniPair.getName();
       String hash = uniPair.getAddress();
-      log.info("Load {}", name);
+      log.debug("Load {}", name);
       ContractEntity poolContract = findOrCreateContract(
           hash, name, ContractType.UNI_PAIR.getId(), uniPair.getCreatedOnBlock(), true);
       UniPairEntity uniPairEntity = uniPairRepository.findFirstByContract(poolContract);

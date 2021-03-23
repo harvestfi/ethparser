@@ -35,3 +35,7 @@ INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (35, 0, 48, 46);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (36, 0, 49, 48);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (37, 0, 50, 49);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (38, 0, 52, 50);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (39, 0, 53, 51);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (40, 0, 54, 52);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (41, 0, 55, 53);
