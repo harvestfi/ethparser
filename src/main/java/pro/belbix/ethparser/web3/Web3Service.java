@@ -38,7 +38,6 @@ import org.web3j.protocol.core.BatchRequest;
 import org.web3j.protocol.core.BatchResponse;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -336,12 +335,12 @@ public class Web3Service {
     EthCall result = callWithRetry(() -> {
       EthCall ethCall = web3.ethCall(transaction, block).send();
       if (ethCall == null) {
-        log.warn("Eth call is null " + function.getName());
+        log.warn("callFunction is null {}", function.getName());
         return null;
       }
       if (ethCall.getError() != null) {
-        log.warn(function.getName() + " Eth call callback is error "
-            + ethCall.getError().getMessage());
+        log.warn("{} callFunction callback is error {}",
+            function.getName(), ethCall.getError().getMessage());
         return null;
       }
       return ethCall;
@@ -480,7 +479,7 @@ public class Web3Service {
     }
     checkInit();
     Flowable<EthBlock> flowable;
-    if (Strings.isBlank(appProperties.getStartBlocksBlock())) {
+    if (Strings.isBlank(appProperties.getParseBlocksFrom())) {
       Optional<Long> lastBlock =
           Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
               .map(EthBlockEntity::getNumber);
@@ -496,7 +495,7 @@ public class Web3Service {
     } else {
       flowable = web3.replayPastAndFutureBlocksFlowable(
           DefaultBlockParameter.valueOf(
-              new BigInteger(appProperties.getStartBlocksBlock())),
+              new BigInteger(appProperties.getParseBlocksFrom())),
           true
       );
     }

@@ -46,7 +46,6 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.WrapperReader;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
@@ -167,7 +166,7 @@ public class ContractGenerator {
             }
             EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
 
-            List<AbiDefinition> abiDefinitions = toContractDefinition(result.getAbi());
+            List<AbiDefinition> abiDefinitions = abiToDefinition(result.getAbi());
 
             String className = generate(
                 abiDefinitions,
@@ -301,7 +300,7 @@ public class ContractGenerator {
         return (sb.toString().hashCode() + "").replace("-", "0");
     }
 
-    private List<AbiDefinition> toContractDefinition(String abi) {
+    public static List<AbiDefinition> abiToDefinition(String abi) {
         ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
         AbiDefinition[] abiDefinition;
         try {

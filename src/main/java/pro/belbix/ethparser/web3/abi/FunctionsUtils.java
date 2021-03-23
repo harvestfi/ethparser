@@ -2,11 +2,11 @@ package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -33,6 +33,7 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -132,6 +133,21 @@ public class FunctionsUtils {
         Collections.singletonList(new Address(arg)),
         Collections.singletonList(new TypeReference<Uint256>() {
         })), hash, block);
+  }
+
+  public Optional<String> callViewFunction(Function function, String address, long block) {
+    List<Type> response = web3Service.callFunction(function, address,
+        DefaultBlockParameter.valueOf(BigInteger.valueOf(block)));
+    if (response == null || response.isEmpty()) {
+      return Optional.empty();
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Type value : response) {
+      sb.append(MethodDecoder.valueToString(value.getValue()))
+          .append("\n");
+    }
+    sb.setLength(sb.length() - 1);
+    return Optional.of(sb.toString());
   }
 
   // ************ PRIVATE METHODS **************************

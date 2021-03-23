@@ -181,6 +181,18 @@ public abstract class MethodDecoder {
     return result.toString();
   }
 
+  public static String valueToString(Object value) {
+    if (value instanceof byte[]) {
+      byte[] bytes = (byte[]) value;
+      StringBuilder sb = new StringBuilder(bytes.length * 2);
+      for (byte b : bytes) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    }
+    return value.toString();
+  }
+
   static <T extends Type> String getTypeName(TypeReference<T> typeReference) {
     try {
       java.lang.reflect.Type reflectedType = typeReference.getType();

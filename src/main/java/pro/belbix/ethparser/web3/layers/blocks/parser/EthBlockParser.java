@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.layers.blocks.parser;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -95,6 +96,7 @@ public class EthBlockParser {
     if (ethBlock == null) {
       return null;
     }
+    Instant timer = Instant.now();
     Block block = ethBlock.getBlock();
     EthBlockEntity ethBlockEntity = blockToEntity(block);
 
@@ -111,6 +113,8 @@ public class EthBlockParser {
 
     transactionReceipts(txMap, 0);
 
+    log.info("Block {} parsed by {}ms", ethBlockEntity.getNumber(),
+        Duration.between(timer, Instant.now()).toMillis());
     return ethBlockEntity;
   }
 

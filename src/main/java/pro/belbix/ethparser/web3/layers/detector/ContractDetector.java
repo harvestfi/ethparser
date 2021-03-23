@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.layers.detector;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
-import java.beans.MethodDescriptor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -17,9 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.tx.Contract;
-import pro.belbix.ethparser.codegen.ContractGenerator;
+import pro.belbix.ethparser.codegen.GeneratedContract;
+import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
@@ -29,12 +29,12 @@ import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
+import pro.belbix.ethparser.entity.b_layer.FunctionHashEntity;
 import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.Web3Service;
-import pro.belbix.ethparser.web3.abi.WrapperReader;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.layers.SubscriptionRouter;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -42,25 +42,27 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 @Service
 @Log4j2
 public class ContractDetector {
+
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<EthBlockEntity> input = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
 
-    private final Web3Service web3Service;
     private final AppProperties appProperties;
     private final SubscriptionRouter subscriptionRouter;
     private final ContractEventsDbService contractEventsDbService;
-    private final ContractGenerator contractGenerator;
+    private final SimpleContractGenerator simpleContractGenerator;
+    private final FunctionsUtils functionsUtils;
 
-    public ContractDetector(Web3Service web3Service, AppProperties appProperties,
+    public ContractDetector(AppProperties appProperties,
         SubscriptionRouter subscriptionRouter,
         ContractEventsDbService contractEventsDbService,
-        ContractGenerator contractGenerator) {
-        this.web3Service = web3Service;
+        SimpleContractGenerator simpleContractGenerator,
+        FunctionsUtils functionsUtils) {
         this.appProperties = appProperties;
         this.subscriptionRouter = subscriptionRouter;
         this.contractEventsDbService = contractEventsDbService;
-        this.contractGenerator = contractGenerator;
+        this.simpleContractGenerator = simpleContractGenerator;
+        this.functionsUtils = functionsUtils;
     }
 
     public void start() {
@@ -120,6 +122,7 @@ public class ContractDetector {
                 ContractTxEntity contractTxEntity = new ContractTxEntity();
                 contractTxEntity.setTx(tx);
                 contractTxEntity.setContractEvent(eventEntity);
+                fillFuncData(tx, contractTxEntity);
 
                 collectLogs(tx, contractTxEntity);
                 contractTxEntities.add(contractTxEntity);
@@ -130,6 +133,28 @@ public class ContractDetector {
             eventEntities.add(eventEntity);
         }
         return eventEntities;
+    }
+
+    private void fillFuncData(EthTxEntity tx, ContractTxEntity contractTx) {
+        String input = tx.getInput();
+        if (input == null || input.isBlank()) {
+            return;
+        }
+
+        String methodId = input.substring(0, 10);
+        String inputData = input.substring(10);
+
+        // todo find func by hash and parse values
+
+        String funcData = "";
+        String funcName = "";
+
+        FunctionHashEntity funcHash = new FunctionHashEntity();
+        funcHash.setMethodId(methodId);
+        funcHash.setName(funcName);
+
+        contractTx.setFuncHash(funcHash);
+        contractTx.setFuncData(funcData);
     }
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
@@ -145,13 +170,14 @@ public class ContractDetector {
             if (!isEligibleContract(ethLog.getAddress().getAddress())) {
                 continue;
             }
-            Event event = contractGenerator.findEventByHex(
+            Event event = findEvent(
                 ethLog.getAddress().getAddress(),
                 ethLog.getFirstTopic().getHash(),
                 block);
             if (event == null) {
-                log.warn("Not found event for {} from {}",
-                    ethLog.getFirstTopic().getHash(), tx.getHash().getHash());
+                log.warn("Not found event for hash: {} from tx: {} contract: {}",
+                    ethLog.getFirstTopic().getHash(), tx.getHash().getHash(),
+                    ethLog.getAddress().getAddress());
                 continue;
             }
             String logValues = extractLogValues(ethLog, event);
@@ -173,6 +199,18 @@ public class ContractDetector {
         contractTxEntity.setLogs(logEntities);
     }
 
+//    private Event findEvent(String address, String hash, int block) {
+//        return contractGenerator.findEventByHex(address, hash, block);
+//    }
+
+    private Event findEvent(String address, String hash, int block) {
+        GeneratedContract contract = simpleContractGenerator.getContract(address, block);
+        if (contract == null) {
+            return null;
+        }
+        return contract.getEvent(hash);
+    }
+
     private String extractLogValues(EthLogEntity ethLog, Event event) {
         if (ethLog.getTopics() == null || ethLog.getTopics().isBlank()) {
             return null;
@@ -188,50 +226,66 @@ public class ContractDetector {
         return MethodDecoder.typesToString(types);
     }
 
-    private void collectStates(ContractEventEntity eventEntity) {
-        Integer block = (int) eventEntity.getBlock().getNumber();
-        String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
-        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress, block);
-        if (clazz == null) {
-            log.error("Wrapper class for {} not found", contractAddress);
-            return;
-        }
+//    private void collectStatesOld(ContractEventEntity eventEntity) {
+//        Integer block = (int) eventEntity.getBlock().getNumber();
+//        String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
+//
+//        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress, block);
+//        if (clazz == null) {
+//            log.error("Wrapper class for {} not found", contractAddress);
+//            return;
+//        }
+//
+//        List<MethodDescriptor> methods = WrapperReader.collectMethods(clazz);
+//        Object wrapper = WrapperReader.createWrapperInstance(
+//            clazz, contractAddress, web3Service.getWeb3());
+//
+//        Set<ContractStateEntity> states = new LinkedHashSet<>();
+//        for (MethodDescriptor method : methods) {
+//            try {
+//                Object value = WrapperReader
+//                    .callFunction(method.getMethod(), (Contract) wrapper, block);
+//                if (value == null) {
+//                    log.warn("Empty state for {} {}", method.getName(), contractAddress);
+//                    continue;
+//                }
+//                ContractStateEntity state = new ContractStateEntity();
+//                state.setContractEvent(eventEntity);
+//                state.setName(method.getName().replace("call_", ""));
+//                state.setValue(valueToString(value));
+//                states.add(state);
+//            } catch (Exception e) {
+//                log.error("Error call method {}", method.getName(), e);
+//            }
+//        }
+//        eventEntity.setStates(states);
+//    }
 
-        List<MethodDescriptor> methods = WrapperReader.collectMethods(clazz);
-        Object wrapper = WrapperReader.createWrapperInstance(
-            clazz, contractAddress, web3Service.getWeb3());
+    private void collectStates(ContractEventEntity eventEntity) {
+        int block = (int) eventEntity.getBlock().getNumber();
+        String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
+
+        GeneratedContract contract =
+            simpleContractGenerator.getContract(contractAddress, block);
 
         Set<ContractStateEntity> states = new LinkedHashSet<>();
-        for (MethodDescriptor method : methods) {
+        for (Function function : contract.getFunctions()) {
             try {
-                Object value = WrapperReader
-                    .callFunction(method.getMethod(), (Contract) wrapper, block);
+                String value = functionsUtils.callViewFunction(function, contractAddress, block)
+                    .orElse(null);
                 if (value == null) {
-                    log.warn("Empty state for {} {}", method.getName(), contractAddress);
                     continue;
                 }
                 ContractStateEntity state = new ContractStateEntity();
                 state.setContractEvent(eventEntity);
-                state.setName(method.getName().replace("call_", ""));
-                state.setValue(valueToString(value));
+                state.setName(function.getName());
+                state.setValue(value);
                 states.add(state);
             } catch (Exception e) {
-                log.error("Error call method {}", method.getName(), e);
+                log.error("Error call func {}", function.getName(), e);
             }
         }
         eventEntity.setStates(states);
-    }
-
-    private String valueToString(Object value) {
-        if (value instanceof byte[]) {
-            byte[] bytes = (byte[]) value;
-            StringBuilder sb = new StringBuilder(bytes.length * 2);
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        }
-        return value.toString();
     }
 
     static Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
