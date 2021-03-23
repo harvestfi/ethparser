@@ -19,6 +19,7 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
+import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.service.EtherscanService;
 import pro.belbix.ethparser.web3.MethodDecoder;
@@ -90,7 +91,8 @@ public class SimpleContractGenerator {
       return Optional.empty();
     }
     EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
-    List<AbiDefinition> abis = ContractGenerator.abiToDefinition(result.getAbi());
+    String abi = resolveAbi(address, result.getAbi());
+    List<AbiDefinition> abis = ContractGenerator.abiToDefinition(abi);
     GeneratedContract contract = new GeneratedContract(
         result.getContractName(),
         address,
@@ -100,6 +102,7 @@ public class SimpleContractGenerator {
     if (!isProxy && isProxy(abis)) {
       String proxyAddress = readProxyAddress(address, block, contract);
       if (proxyAddress == null) {
+        log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
       }
       return generateContract(proxyAddress, block, true);
@@ -110,10 +113,20 @@ public class SimpleContractGenerator {
     return Optional.of(contract);
   }
 
+  private String resolveAbi(String address, String abi) {
+    if (StaticAbiMap.MAP.containsKey(address.toLowerCase())) {
+      return StaticAbiMap.MAP.get(address.toLowerCase());
+    }
+    return abi;
+  }
+
   private String readProxyAddress(String address, long block, GeneratedContract contract) {
     // open zeppelin proxy doesn't have public call_implementation
-    if (contract.getEvent(UPGRADED_EVENT) != null) {
-      return findLastProxyUpgrade(address, (int) block, contract.getEvent(UPGRADED_EVENT));
+    // some contracts have event but didn't call it
+    String proxyImpl =
+        findLastProxyUpgrade(address, (int) block, contract.getEvent(UPGRADED_EVENT));
+    if (proxyImpl != null) {
+      return proxyImpl;
     }
     // EIP-897 DelegateProxy concept
     return proxyAddressFromFunc(address, block);

@@ -267,6 +267,10 @@ public class ContractDetector {
 
         GeneratedContract contract =
             simpleContractGenerator.getContract(contractAddress, block);
+        if (contract == null) {
+            log.error("Can't generate contract for {} at {}", contractAddress, block);
+            return;
+        }
 
         Set<ContractStateEntity> states = new LinkedHashSet<>();
         for (Function function : contract.getFunctions()) {
