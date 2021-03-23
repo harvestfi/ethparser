@@ -5,9 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,12 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
-import org.web3j.protocol.core.methods.response.EthLog.LogResult;
-import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.dto.v0.PriceDTO;
-import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 
@@ -47,7 +39,7 @@ public class PriceOracleTest {
         double priceWETH = priceProvider.getPriceForCoin("WETH", 12015725);
         double priceUSDC = priceProvider.getPriceForCoin("USDC", 12015725);
         double priceUSDT = priceProvider.getPriceForCoin("USDT", 12015725);
-        //double priceSUSHI_LP_ETH_WBTC = priceProvider.getPriceForCoin("SUSHI_LP_ETH_WBTC", 12015725);
+        double priceSUSHI_LP_ETH_WBTC = priceProvider.getLpTokenUsdPrice("0xceff51756c56ceffca006cd410b03ffc46dd3a58", 1, 12015725);
         double priceCRV_EURS = priceProvider.getPriceForCoin("CRV_EURS", 12015725);
         double priceMGOOGL = priceProvider.getPriceForCoin("MGOOGL", 12015725);
         double priceFARM = priceProvider.getPriceForCoin("FARM", 12015725);
@@ -60,7 +52,7 @@ public class PriceOracleTest {
             () -> assertEquals("Price", numberFormat("1786,09068119"), String.format("%.8f", priceWETH)),
             () -> assertEquals("Price", numberFormat("1,00000000"), String.format("%.8f", priceUSDC)),
             () -> assertEquals("Price", numberFormat("0,99958400"), String.format("%.8f", priceUSDT)),
-            //() -> assertEquals("Price", numberFormat("47351069766,33282500"), String.format("%.8f", priceSUSHI_LP_ETH_WBTC)),
+            () -> assertEquals("Price", numberFormat("47351069766,33282500"), String.format("%.8f", priceSUSHI_LP_ETH_WBTC)),
             () -> assertEquals("Price", numberFormat("1,19183883"), String.format("%.8f", priceCRV_EURS)),
             () -> assertEquals("Price", numberFormat("2079,61790428"), String.format("%.8f", priceMGOOGL)),
             () -> assertEquals("Price", numberFormat("229,46677216"), String.format("%.8f", priceFARM)),
@@ -70,9 +62,10 @@ public class PriceOracleTest {
     }
 
     @Test
-    public void testCacheResponse () {
+    public void testDbAndCacheResponse () {
         checkTokenPrice("WBTC", 12015725, 55435.19606653);
-        // currently answering from DB, not using cache, because updateBlockDifference is 0
+        checkTokenPrice("WBTC", 12015725, 55435.19606653);
+        priceProvider.setUpdateBlockDifference(1);
         checkTokenPrice("WBTC", 12015725, 55435.19606653);
     }
     

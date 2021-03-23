@@ -1,32 +1,19 @@
 package pro.belbix.ethparser.web3.prices;
 
-import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
-
-import org.apache.commons.math3.analysis.FunctionUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
@@ -36,9 +23,8 @@ import pro.belbix.ethparser.web3.EthBlockService;
 @Log4j2
 public class PriceOracle {
 
-    private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
-    private long updateBlockDifference = 0;
     private final Pageable limitOne = PageRequest.of(0, 1);
+    public static final String ORACLE_SOURCE = "ORACLE";
 
     private final FunctionsUtils functionsUtils;
     private final PriceRepository priceRepository;
@@ -55,58 +41,66 @@ public class PriceOracle {
         this.priceDBService = priceDBService;
         this.ethBlockService = ethBlockService;
     }
-
-    public double getPriceForCoinWithoutCache(String name, Long block) {
-
-        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastOraclePrice(name, block, limitOne))
+    
+    // you can use token or LP tokenName, or address
+    public double getPriceForCoin(String coin, Long block) {
+        String tokenName;
+        String tokenAdr;
+        if (coin.startsWith("0x")) {
+            tokenName = ContractUtils.getNameByAddress(coin)
+            .orElseThrow(() -> new IllegalStateException("Not found lp tokenName for " + coin));
+            tokenAdr = coin;
+        } else {
+            tokenAdr = ContractUtils.getAddressByName(coin, ContractType.TOKEN)
+            .orElseGet(() -> ContractUtils.getAddressByName(coin, ContractType.UNI_PAIR)
+            .orElseThrow(() -> new IllegalStateException("Not found address for " + coin)));
+            tokenName = coin;
+        }
+        
+        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastOraclePrice(tokenName, block, ORACLE_SOURCE, limitOne))
             .filter(Caller::isFilledList)
             .map(l -> l.get(0))
             .orElse(null);
         if (priceDTO == null) {
-            log.warn("Saved price not found for " + name + " at block " + block);
-            return getPriceForCoinFromEth(name, block);
+            log.warn("Saved price not found for " + tokenName + " at block " + block);
+            return getPriceForCoinFromEth(tokenName, tokenAdr, block);
         }
         if (block - priceDTO.getBlock() > 1000) {
-            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
-            return getPriceForCoinFromEth(name, block);
+            log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), tokenName);
+            return getPriceForCoinFromEth(tokenName, tokenAdr, block);
         }
         
         return priceDTO.getPrice();
     }
 
-    private double getPriceForCoinFromEth(String name, Long block) {
+    private double getPriceForCoinFromEth(String tokenName, String tokenAdr, Long block) {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
 
-        String tokenAdr = ContractUtils.getAddressByName(name, ContractType.TOKEN)
-        .orElseGet(() -> ContractUtils.getAddressByName(name, ContractType.UNI_PAIR)
-        .orElseThrow(() -> new IllegalStateException("Not found address for " + name)));
-
         double price = functionsUtils.callIntByName(GET_PRICE, tokenAdr, ORACLE, block)
-        .orElseThrow(() -> new IllegalStateException("Can't fetch price for " + name)).doubleValue();
+        .orElseThrow(() -> new IllegalStateException("Can't fetch price for " + tokenName)).doubleValue();
         
         price = price / D18;
-        savePrice(price, name, block, tokenAdr);
+        savePrice(price, tokenName, block, tokenAdr);
         return price;
     }
 
-    private void savePrice(double price, String name, long block, String tokenAdr) {
-        
-        PriceDTO dto = enrichPriceDTO(name, block, price, tokenAdr);
+    private void savePrice(double price, String tokenName, long block, String tokenAdr) {
+        PriceDTO dto = enrichPriceDTO(tokenName, block, price, tokenAdr);
         boolean success = priceDBService.savePriceDto(dto);
         if (success) {
             log.info("Saved " + dto.print());
         }
     }
 
-    public PriceDTO enrichPriceDTO(String name, Long block, Double price, String tokenAdr) {
+    public PriceDTO enrichPriceDTO(String tokenName, Long block, Double price, String tokenAdr) {
         PriceDTO dto = new PriceDTO();
-        dto.setSource("ORACLE");
+        dto.setSource(ORACLE_SOURCE);
         dto.setId(tokenAdr + "_" + block);
         dto.setBlock(block);
         dto.setPrice(price);
-        dto.setToken(name); 
+        dto.setToken(tokenName); 
         dto.setBlockDate(
             ethBlockService.getTimestampSecForBlockByNumber(block));
         return dto;

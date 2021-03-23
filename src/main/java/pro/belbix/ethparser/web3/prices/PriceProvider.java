@@ -25,7 +25,6 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.prices.PriceOracle;
 
 @Service
 @Log4j2
@@ -55,6 +54,11 @@ public class PriceProvider {
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block) {
     String lpName = ContractUtils.getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
+    
+    if (block > ORACLE_START_BLOCK) {
+      return amount * priceOracle.getPriceForCoin(lpName, block);
+    }
+
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
         .map(l -> l.get(0))
@@ -74,12 +78,16 @@ public class PriceProvider {
         priceDTO.getLpToken1Pooled()
     );
     double lpBalance = priceDTO.getLpTotalSupply();
-    return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);
+    return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);    
   }
 
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block) {
     if (appProperties.isOnlyApi()) {
       return 0.0;
+    }
+
+    if (block > ORACLE_START_BLOCK) {
+      return amount * priceOracle.getPriceForCoin(lpAddress, block);
     }
 
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, block);
@@ -162,16 +170,15 @@ public class PriceProvider {
       return;
     }
     if (ContractUtils.isStableCoin(coinName) && block <= ORACLE_START_BLOCK) {
-      // todo parse stablecoin prices
       return;
     }
 
     if (hasFreshPrice(coinName, block)) {
       return;
     }
-    double price = block <= ORACLE_START_BLOCK 
-    ? getPriceForCoinWithoutCache(coinName, block) 
-    : priceOracle.getPriceForCoinWithoutCache(coinName, block);
+    double price = block > ORACLE_START_BLOCK 
+    ? priceOracle.getPriceForCoin(coinName, block) 
+    : getPriceForCoinWithoutCache(coinName, block);
 
     savePrice(price, coinName, block);
   }
