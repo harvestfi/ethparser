@@ -128,6 +128,7 @@ public class HardWorkParser implements Web3Parser {
     dto.setShareChange(
         parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
+    parseRates(dto, tx.getStrategy());
     parseRewards(dto, tx.getHash(), tx.getStrategy());
     parseVaultInvestedFunds(dto);
 
@@ -159,6 +160,21 @@ public class HardWorkParser implements Web3Parser {
 //            }
 //        }
     fillFeeInfo(dto, txHash, tr);
+  }
+
+  private void parseRates(HardWorkDTO dto, String strategyHash) {
+    long profitSharingDenominator =  functionsUtils.callIntByName("profitSharingDenominator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).longValue();
+    long profitSharingNumerator =  functionsUtils.callIntByName("profitSharingNumerator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).longValue();
+    long profitSharingRate = 0;
+    
+    long buybackRate = 0;
+
+    if (profitSharingDenominator>0) {
+      profitSharingRate = profitSharingNumerator/profitSharingNumerator;
+    }
+
+    dto.setProfitSharingRate(profitSharingRate);
+    dto.setBuyBackRate(buybackRate);
   }
 
   private boolean isAutoStake(List<Log> logs) {
