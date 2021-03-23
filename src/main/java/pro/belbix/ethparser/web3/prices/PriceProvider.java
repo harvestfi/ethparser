@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.prices.PriceOracle;
 
 @Service
 @Log4j2
@@ -36,12 +38,14 @@ public class PriceProvider {
   private final FunctionsUtils functionsUtils;
   private final PriceRepository priceRepository;
   private final AppProperties appProperties;
+  private final PriceOracle priceOracle;
 
   public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
-      AppProperties appProperties) {
+      AppProperties appProperties, PriceOracle priceOracle) {
     this.functionsUtils = functionsUtils;
     this.priceRepository = priceRepository;
     this.appProperties = appProperties;
+    this.priceOracle = priceOracle;
   }
 
   public void setUpdateBlockDifference(long updateBlockDifference) {
@@ -115,13 +119,14 @@ public class PriceProvider {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
       return 0.0;
     }
+    
     if (coinName.startsWith("0x")) {
       coinName = ContractUtils.getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Wrong input"));
     }
     String coinNameSimple = ContractConstants.simplifyName(coinName);
     updateUSDPrice(coinNameSimple, block);
-    if (ContractUtils.isStableCoin(coinNameSimple)) {
+    if (ContractUtils.isStableCoin(coinNameSimple) && block <= ORACLE_START_BLOCK) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -156,7 +161,7 @@ public class PriceProvider {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (ContractUtils.isStableCoin(coinName)) {
+    if (ContractUtils.isStableCoin(coinName) && block <= ORACLE_START_BLOCK) {
       // todo parse stablecoin prices
       return;
     }
@@ -164,8 +169,9 @@ public class PriceProvider {
     if (hasFreshPrice(coinName, block)) {
       return;
     }
-
-    double price = getPriceForCoinWithoutCache(coinName, block);
+    double price = block <= ORACLE_START_BLOCK 
+    ? getPriceForCoinWithoutCache(coinName, block) 
+    : priceOracle.getPriceForCoinWithoutCache(coinName, block);
 
     savePrice(price, coinName, block);
   }

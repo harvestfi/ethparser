@@ -2,9 +2,9 @@ package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
-import static pro.belbix.ethparser.web3.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.FunctionsNames.UNDERLYING;
-import static pro.belbix.ethparser.web3.FunctionsNames.GET_PRICE;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE;
@@ -25,7 +25,7 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
-import pro.belbix.ethparser.web3.FunctionsUtils;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -56,106 +56,48 @@ public class PriceOracle {
         this.ethBlockService = ethBlockService;
     }
 
-    // you can use Vault name instead of coinName if it is not a LP
-    public Double getPriceForCoin(String coinName, long block) {
-            if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
-                return 0.0;
-            }
-            if (coinName.startsWith("0x")) {
-                coinName = ContractUtils.getNameByAddress(coinName)
-                    .orElseThrow(() -> new IllegalStateException("Wrong input"));
-            }
-            String coinNameSimple = ContractConstants.simplifyName(coinName);
-            updateUSDPrice(coinNameSimple, block);
-       
-            return getLastPrice(coinNameSimple, block);
-    }
+    public double getPriceForCoinWithoutCache(String name, Long block) {
 
-    private void updateUSDPrice(String coinName, long block) {
-        String tokenAdr = ContractUtils.getAddressByName(coinName, ContractType.TOKEN)
-            .orElseGet(() -> ContractUtils.getAddressByName(coinName, ContractType.UNI_PAIR)
-            .orElseThrow(() -> new IllegalStateException("Not found address for " + coinName)));
-
-        //if (!ContractUtils.isTokenCreated(coinName, block)) {
-        //    savePrice(0.0, coinName, block, tokenAdr);
-        //    return;
-        //}
-        
-        if (hasFreshPrice(coinName, block)) {
-            return;
-        }
-
-        double price = getPriceForCoinWithoutCache(coinName, block, tokenAdr);
-
-        savePrice(price, coinName, block, tokenAdr);
-    }
-
-    private double getPriceForCoinWithoutCache(String name, Long block, String tokenAdr) {
-
-        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice("ORACLE", block, limitOne))
+        PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastOraclePrice(name, block, limitOne))
             .filter(Caller::isFilledList)
             .map(l -> l.get(0))
             .orElse(null);
         if (priceDTO == null) {
             log.warn("Saved price not found for " + name + " at block " + block);
-            return getPriceForCoinFromEth(name, block, tokenAdr);
+            return getPriceForCoinFromEth(name, block);
         }
         if (block - priceDTO.getBlock() > 1000) {
             log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
-            return getPriceForCoinFromEth(name, block, tokenAdr);
+            return getPriceForCoinFromEth(name, block);
         }
         
-        return getPriceForCoinFromEth(name, block, tokenAdr);
+        return priceDTO.getPrice();
     }
 
-    private double getPriceForCoinFromEth(String name, Long block, String tokenAdr) {
+    private double getPriceForCoinFromEth(String name, Long block) {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
-        
+
+        String tokenAdr = ContractUtils.getAddressByName(name, ContractType.TOKEN)
+        .orElseGet(() -> ContractUtils.getAddressByName(name, ContractType.UNI_PAIR)
+        .orElseThrow(() -> new IllegalStateException("Not found address for " + name)));
 
         double price = functionsUtils.callIntByName(GET_PRICE, tokenAdr, ORACLE, block)
         .orElseThrow(() -> new IllegalStateException("Can't fetch price for " + name)).doubleValue();
-        return price / D18;
-    }
-
-    private boolean hasFreshPrice(String name, long block) {
-        TreeMap<Long, Double> lastPriceByBlock = lastPrices.get(name);
-        if (lastPriceByBlock == null) {
-            return false;
-        }
-
-        Entry<Long, Double> entry = lastPriceByBlock.floorEntry(block);
-        if (entry == null || Math.abs(entry.getKey() - block) >= updateBlockDifference) {
-            return false;
-        }
-        return entry.getValue() != null && entry.getValue() != 0;
+        
+        price = price / D18;
+        savePrice(price, name, block, tokenAdr);
+        return price;
     }
 
     private void savePrice(double price, String name, long block, String tokenAdr) {
-        TreeMap<Long, Double> lastPriceByBlock = lastPrices.computeIfAbsent(name, k -> new TreeMap<>());
-        lastPriceByBlock.put(block, price);
-
-        if (price > 0.0) {
-            PriceDTO dto = enrichPriceDTO(name, block, price, tokenAdr);
-            boolean success = priceDBService.savePriceDto(dto);
-            if (success) {
-                log.info("Saved " + dto.print());
-            }
+        
+        PriceDTO dto = enrichPriceDTO(name, block, price, tokenAdr);
+        boolean success = priceDBService.savePriceDto(dto);
+        if (success) {
+            log.info("Saved " + dto.print());
         }
-
-    }
-
-    private double getLastPrice(String name, long block) {
-        TreeMap<Long, Double> lastPriceByBlocks = lastPrices.get(name);
-        if (lastPriceByBlocks == null) {
-            return 0.0;
-        }
-        Entry<Long, Double> entry = lastPriceByBlocks.floorEntry(requireNonNullElse(block, 0L));
-        if (entry != null && entry.getValue() != null) {
-            return entry.getValue();
-        }
-        return 0.0;
     }
 
     public PriceDTO enrichPriceDTO(String name, Long block, Double price, String tokenAdr) {
@@ -164,7 +106,7 @@ public class PriceOracle {
         dto.setId(tokenAdr + "_" + block);
         dto.setBlock(block);
         dto.setPrice(price);
-        //dto.setBuy(0); 
+        dto.setToken(name); 
         dto.setBlockDate(
             ethBlockService.getTimestampSecForBlockByNumber(block));
         return dto;
