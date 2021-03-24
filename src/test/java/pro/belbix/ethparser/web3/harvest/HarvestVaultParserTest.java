@@ -1742,8 +1742,8 @@ public class HarvestVaultParserTest {
             "47.22271827",
             "",
             "0",
-            82472L,
-            188899L,
+            82518L,
+            189005L,
             true
         );
     }
