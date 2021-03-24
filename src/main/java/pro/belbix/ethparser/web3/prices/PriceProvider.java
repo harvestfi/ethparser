@@ -54,7 +54,6 @@ public class PriceProvider {
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block) {
     String lpName = ContractUtils.getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
-    
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
         .map(l -> l.get(0))
@@ -74,7 +73,7 @@ public class PriceProvider {
         priceDTO.getLpToken1Pooled()
     );
     double lpBalance = priceDTO.getLpTotalSupply();
-    return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);    
+    return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);
   }
 
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block) {
@@ -123,7 +122,6 @@ public class PriceProvider {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
       return 0.0;
     }
-    
     if (coinName.startsWith("0x")) {
       coinName = ContractUtils.getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Wrong input"));
