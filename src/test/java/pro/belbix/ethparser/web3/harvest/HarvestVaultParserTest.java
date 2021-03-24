@@ -82,8 +82,8 @@ public class HarvestVaultParserTest {
             "95.41784704",
             "",
             "",
-            10143L,
-            7551281L,
+            10155L,
+            7560724L,
             true
         );
     }
@@ -1742,8 +1742,8 @@ public class HarvestVaultParserTest {
             "47.22271827",
             "",
             "0",
-            82732L,
-            189494L,
+            82472L,
+            188899L,
             true
         );
     }
@@ -1761,8 +1761,8 @@ public class HarvestVaultParserTest {
             "4.89730901",
             "",
             "",
-            1776L,
-            147638L,
+            1779L,
+            147897L,
             true
         );
     }
@@ -1780,8 +1780,8 @@ public class HarvestVaultParserTest {
             "61.23927696",
             "",
             "",
-            26914L,
-            81484L,
+            26928L,
+            81527L,
             true
         );
     }
@@ -1799,8 +1799,8 @@ public class HarvestVaultParserTest {
             "29.04792201",
             "",
             "",
-            2289L,
-            155348L,
+            2295L,
+            155779L,
             true
         );
     }
