@@ -15,13 +15,6 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "order by t.block desc")
     List<PriceDTO> fetchLastPrice(@Param("source") String source, @Param("block") long block, Pageable pageable);
 
-    @Query("select t from PriceDTO t where "
-    + "t.source = :source "
-    + "and t.token = :token "
-    + "and t.block <= :block "
-    + "order by t.block desc")
-    List<PriceDTO> fetchLastOraclePrice(@Param("token") String token, @Param("block") long block, @Param("source") String source, Pageable pageable);
-
     @Query(nativeQuery = true, value = "" +
         "select distinct on (source) "
         + "    last_value(id) over w                 as id, "

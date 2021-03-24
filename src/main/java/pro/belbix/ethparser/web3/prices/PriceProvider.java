@@ -55,10 +55,6 @@ public class PriceProvider {
     String lpName = ContractUtils.getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     
-    if (block > ORACLE_START_BLOCK) {
-      return amount * priceOracle.getPriceForCoin(lpName, block);
-    }
-
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
         .map(l -> l.get(0))
@@ -87,7 +83,7 @@ public class PriceProvider {
     }
 
     if (block > ORACLE_START_BLOCK) {
-      return amount * priceOracle.getPriceForCoin(lpAddress, block);
+      return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block);
     }
 
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, block);
@@ -134,7 +130,7 @@ public class PriceProvider {
     }
     String coinNameSimple = ContractConstants.simplifyName(coinName);
     updateUSDPrice(coinNameSimple, block);
-    if (ContractUtils.isStableCoin(coinNameSimple) && block <= ORACLE_START_BLOCK) {
+    if (ContractUtils.isStableCoin(coinNameSimple)) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -169,16 +165,14 @@ public class PriceProvider {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (ContractUtils.isStableCoin(coinName) && block <= ORACLE_START_BLOCK) {
+    if (ContractUtils.isStableCoin(coinName)) {
       return;
     }
 
     if (hasFreshPrice(coinName, block)) {
       return;
     }
-    double price = block > ORACLE_START_BLOCK 
-    ? priceOracle.getPriceForCoin(coinName, block) 
-    : getPriceForCoinWithoutCache(coinName, block);
+    double price = getPriceForCoinWithoutCache(coinName, block);
 
     savePrice(price, coinName, block);
   }
@@ -212,6 +206,9 @@ public class PriceProvider {
     }
     String tokenAdr = ContractUtils.getAddressByName(name, ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
+    if (block > ORACLE_START_BLOCK) {
+      return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
+    }
     String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
     if (!ContractUtils.isUniPairCreated(lpName, block)) {
       return 0.0;
