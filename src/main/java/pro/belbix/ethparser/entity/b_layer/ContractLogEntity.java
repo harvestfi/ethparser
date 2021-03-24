@@ -3,6 +3,7 @@ package pro.belbix.ethparser.entity.b_layer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -18,6 +19,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 @Entity
 @Table(name = "b_contract_logs",
@@ -28,13 +31,15 @@ import org.hibernate.annotations.OnDeleteAction;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractTx"})
 @ToString(exclude = {"contractTx"})
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class ContractLogEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private long logIdx;
-  @Column(columnDefinition = "text") // json type will be a big headache
+  @Type(type = "jsonb")
+  @Column(columnDefinition = "jsonb")
   private String logs;
 
   @JsonIgnore

@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.layers.detector;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -170,12 +171,18 @@ public class ContractDetector {
         contractTx.setFuncData(funcData);
     }
 
+    @SuppressWarnings("rawtypes")
     private String parseFunctionInput(
         String inputData,
         List<TypeReference<Type>> parameters
     ) {
         List<Type> types = FunctionReturnDecoder.decode(inputData, parameters);
-        return MethodDecoder.typesToString(types);
+        try {
+            return MethodDecoder.typesToString(types);
+        } catch (JsonProcessingException e) {
+            log.error("Error parse function", e);
+            return "";
+        }
     }
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
@@ -240,7 +247,12 @@ public class ContractDetector {
             ethLog.getData(),
             event.getParameters()
         );
-        return MethodDecoder.typesToString(types);
+        try {
+            return MethodDecoder.typesToString(types);
+        } catch (JsonProcessingException e) {
+            log.error("Error parse logs", e);
+            return "";
+        }
     }
 
     private void collectStates(ContractEventEntity eventEntity) {

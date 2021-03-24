@@ -3,6 +3,7 @@ package pro.belbix.ethparser.entity.b_layer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -21,6 +22,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
 @Entity
@@ -32,12 +35,14 @@ import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractEvent"})
 @ToString(exclude = {"contractEvent"})
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class ContractTxEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  @Column(columnDefinition = "text")
+  @Type(type = "jsonb")
+  @Column(columnDefinition = "jsonb")
   private String funcData;
 
   @ManyToOne(fetch = FetchType.EAGER)

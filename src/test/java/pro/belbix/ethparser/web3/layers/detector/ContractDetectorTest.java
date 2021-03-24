@@ -104,11 +104,11 @@ class ContractDetectorTest {
         .logSize(5)
         .logIdx(5)
         .logName("Withdrawal")
-        .logValues("0x7a250d5630b4cf539739df2c5dacb4c659f2488d,13134584198476690558")
+        .logValues("[\"0x7a250d5630b4cf539739df2c5dacb4c659f2488d\",\"13134584198476690558\"]")
         .logMethodId("0x7fcf532c")
         .funcHex("0x18cbafe5")
         .funcName("swapExactTokensForETH")
-        .funcData("5000000000,13092066704280485888,[0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2],0x19ae14a6aeb13b2bf2307bf010a329831a1cfbfe,1599290553")
+        .funcData("[\"5000000000\",\"13092066704280485888\",\"[0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2]\",\"0x19ae14a6aeb13b2bf2307bf010a329831a1cfbfe\",\"1599290553\"]")
         .build()
     );
   }
@@ -153,10 +153,10 @@ class ContractDetectorTest {
         .logSize(3)
         .logName("Withdraw")
         .logMethodId("0x884edad9")
-        .logValues("0x1e7e3925012ac4fc2e35fe23415c877979eb6b04,954273586164387783198")
+        .logValues("[\"0x1e7e3925012ac4fc2e35fe23415c877979eb6b04\",\"954273586164387783198\"]")
         .funcHex("0x2e1a7d4d")
         .funcName("withdraw")
-        .funcData("953887111471288279008")
+        .funcData("[\"953887111471288279008\"]")
         .build()
     );
   }
