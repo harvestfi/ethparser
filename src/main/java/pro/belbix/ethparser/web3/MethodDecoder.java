@@ -225,6 +225,12 @@ public abstract class MethodDecoder {
             + "["
             + ((TypeReference.StaticArrayTypeReference) typeReference).getSize()
             + "]";
+      } else if (type.getSuperclass().equals(StaticArray.class)) {
+        Class<U> parameterizedType = getParameterizedTypeFromArray(typeReference);
+        String parameterizedTypeName = getSimpleTypeName(parameterizedType);
+        int size = Integer.parseInt(
+            type.getSimpleName().replace("StaticArray", ""));
+        return parameterizedTypeName + "[" + size + "]";
       } else {
         throw new UnsupportedOperationException("Invalid type provided " + type.getName());
       }

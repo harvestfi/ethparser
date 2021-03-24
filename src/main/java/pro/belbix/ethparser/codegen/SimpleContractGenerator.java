@@ -89,6 +89,8 @@ public class SimpleContractGenerator {
     boolean isOverride = isOverrideAbi(address);
     String abi = null;
     String contractName = "UNKNOWN";
+    boolean etherscanIsProxy = false;
+    String etherscanProxyImpl = "";
 
     EtherscanService.SourceCodeResult sourceCode =
         etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
@@ -98,9 +100,9 @@ public class SimpleContractGenerator {
         return Optional.empty();
       }
     } else {
-      if ("1".equals(sourceCode.getProxy())) {
-        log.info("Detect proxy via etherscan {}", address);
-        return generateContract(sourceCode.getImplementation(), block, true);
+      etherscanIsProxy = "1".equals(sourceCode.getProxy());
+      if(etherscanIsProxy) {
+        etherscanProxyImpl = sourceCode.getImplementation();
       }
       abi = sourceCode.getAbi();
       contractName = sourceCode.getContractName();
@@ -115,11 +117,15 @@ public class SimpleContractGenerator {
         abiToEvents(abis),
         abiToFunctions(abis)
     );
-    //use etherscan instead of this manual detecting
-    if (!isProxy && isProxy(abis)) {
+
+    if (!isProxy && (etherscanIsProxy || isProxy(abis))) {
       log.info("Detect proxy {}", address);
-      String proxyAddress = readProxyAddress(address, block, contract);
+      String proxyAddress = readProxyAddressOnChain(address, block, contract);
       if (proxyAddress == null) {
+        if(etherscanIsProxy) {
+          // only last implementation but it's better than nothing
+          return generateContract(etherscanProxyImpl, block, true);
+        }
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
       }
@@ -142,7 +148,7 @@ public class SimpleContractGenerator {
     return StaticAbiMap.MAP.containsKey(address.toLowerCase());
   }
 
-  private String readProxyAddress(String address, long block, GeneratedContract contract) {
+  private String readProxyAddressOnChain(String address, long block, GeneratedContract contract) {
     // open zeppelin proxy doesn't have public call_implementation
     // some contracts have event but didn't call it
     String proxyImpl =
@@ -151,7 +157,12 @@ public class SimpleContractGenerator {
       return proxyImpl;
     }
     // EIP-897 DelegateProxy concept
-    return proxyAddressFromFunc(address, block);
+    proxyImpl = proxyAddressFromFunc(address, block);
+    if(proxyImpl != null) {
+      return proxyImpl;
+    }
+    // manual proxy implementation can't be detected onchain
+    return null;
   }
 
   private String proxyAddressFromFunc(String address, long block) {
@@ -240,15 +251,11 @@ public class SimpleContractGenerator {
         if (event == null) {
           return;
         }
-        try {
           String hash = MethodDecoder
               .createMethodFullHex(event.getName(), event.getParameters());
           eventsByHash.put(hash, event);
-        } catch (Exception e) {
-          log.error("Error create event from {}", abi, e);
-        }
       } catch (Exception e) {
-        log.error("Error abi to event {}", abi, e);
+        log.error("Error abi to event {}", abi.getName(), e);
       }
     });
     return eventsByHash;

@@ -7,7 +7,7 @@ import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.entity.b_layer.FunctionHashEntity;
-import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
+import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthTxRepository;
 import pro.belbix.ethparser.repositories.b_layer.ContractEventRepository;
@@ -69,6 +69,9 @@ public class ContractEventsDbService {
   }
 
   private FunctionHashEntity saveOrGetFuncHash(FunctionHashEntity funcHash) {
+    if (funcHash == null) {
+      return null;
+    }
     FunctionHashEntity funcHashPersisted = functionHashRepository
         .findById(funcHash.getMethodId()).orElse(null);
     if (funcHashPersisted == null) {
@@ -77,8 +80,11 @@ public class ContractEventsDbService {
     return funcHashPersisted;
   }
 
-  private LogHexEntity saveOrGetLogHex(LogHexEntity logHex) {
-    LogHexEntity logHexPersisted = logHexRepository
+  private LogHashEntity saveOrGetLogHex(LogHashEntity logHex) {
+    if (logHex == null) {
+      return null;
+    }
+    LogHashEntity logHexPersisted = logHexRepository
         .findById(logHex.getMethodId()).orElse(null);
     if (logHexPersisted == null) {
       logHexPersisted = logHexRepository.save(logHex);

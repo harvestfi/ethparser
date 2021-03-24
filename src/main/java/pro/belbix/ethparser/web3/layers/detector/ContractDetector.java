@@ -33,7 +33,7 @@ import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.entity.b_layer.FunctionHashEntity;
-import pro.belbix.ethparser.entity.b_layer.LogHexEntity;
+import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.MethodDecoder;
@@ -151,7 +151,7 @@ public class ContractDetector {
         GeneratedContract contract =
             simpleContractGenerator.getContract(address, (int) tx.getBlockNumber().getNumber());
         if (contract == null) {
-            log.error("Not found contract {}", address);
+            log.warn("Can't generate contract for {}", address);
             return;
         }
         FunctionWrapper function = contract.getFunction(methodId);
@@ -180,7 +180,7 @@ public class ContractDetector {
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
         int block = (int) tx.getBlockNumber().getNumber();
-        // remove duplicates logs
+        // map for remove duplicates logs
         Map<String, EthLogEntity> logsMap = new LinkedHashMap<>();
         for (EthLogEntity ethLog : tx.getLogs()) {
             logsMap.put(tx.getHash().getHash() + "_" + ethLog.getId(), ethLog);
@@ -208,21 +208,17 @@ public class ContractDetector {
             logEntity.setLogs(logValues);
             logEntity.setContractTx(contractTxEntity);
 
-            LogHexEntity logHexEntity = new LogHexEntity();
+            LogHashEntity logHashEntity = new LogHashEntity();
             String methodId = MethodDecoder.createMethodId(event.getName(), event.getParameters());
-            logHexEntity.setMethodId(methodId);
-            logHexEntity.setMethodName(event.getName());
-            logHexEntity.setTopicHash(ethLog.getFirstTopic());
-            logEntity.setTopic(logHexEntity);
+            logHashEntity.setMethodId(methodId);
+            logHashEntity.setMethodName(event.getName());
+            logHashEntity.setTopicHash(ethLog.getFirstTopic());
+            logEntity.setTopic(logHashEntity);
 
             logEntities.add(logEntity);
         }
         contractTxEntity.setLogs(logEntities);
     }
-
-//    private Event findEvent(String address, String hash, int block) {
-//        return contractGenerator.findEventByHex(address, hash, block);
-//    }
 
     private Event findEvent(String address, String hash, int block) {
         GeneratedContract contract = simpleContractGenerator.getContract(address, block);
@@ -247,41 +243,6 @@ public class ContractDetector {
         return MethodDecoder.typesToString(types);
     }
 
-//    private void collectStatesOld(ContractEventEntity eventEntity) {
-//        Integer block = (int) eventEntity.getBlock().getNumber();
-//        String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
-//
-//        Class<?> clazz = contractGenerator.getWrapperClassByAddress(contractAddress, block);
-//        if (clazz == null) {
-//            log.error("Wrapper class for {} not found", contractAddress);
-//            return;
-//        }
-//
-//        List<MethodDescriptor> methods = WrapperReader.collectMethods(clazz);
-//        Object wrapper = WrapperReader.createWrapperInstance(
-//            clazz, contractAddress, web3Service.getWeb3());
-//
-//        Set<ContractStateEntity> states = new LinkedHashSet<>();
-//        for (MethodDescriptor method : methods) {
-//            try {
-//                Object value = WrapperReader
-//                    .callFunction(method.getMethod(), (Contract) wrapper, block);
-//                if (value == null) {
-//                    log.warn("Empty state for {} {}", method.getName(), contractAddress);
-//                    continue;
-//                }
-//                ContractStateEntity state = new ContractStateEntity();
-//                state.setContractEvent(eventEntity);
-//                state.setName(method.getName().replace("call_", ""));
-//                state.setValue(valueToString(value));
-//                states.add(state);
-//            } catch (Exception e) {
-//                log.error("Error call method {}", method.getName(), e);
-//            }
-//        }
-//        eventEntity.setStates(states);
-//    }
-
     private void collectStates(ContractEventEntity eventEntity) {
         int block = (int) eventEntity.getBlock().getNumber();
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
@@ -303,6 +264,7 @@ public class ContractDetector {
                 String value = functionsUtils.callViewFunction(function, contractAddress, block)
                     .orElse(null);
                 if (value == null) {
+                    log.info("Null value for {} {}", function.getName(), contractAddress);
                     continue;
                 }
                 ContractStateEntity state = new ContractStateEntity();

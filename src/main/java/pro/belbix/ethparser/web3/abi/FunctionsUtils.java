@@ -186,7 +186,7 @@ public class FunctionsUtils {
   private Optional<String> callStringFunction(Function function, String hash, Long block) {
     List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
-      log.error(function.getName() + " Wrong callback for hash: " + hash);
+      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((String) types.get(0).getValue());
@@ -195,7 +195,7 @@ public class FunctionsUtils {
   private Optional<BigInteger> callUint256Function(Function function, String hash, Long block) {
     List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
-      log.error(function.getName() + " Wrong callback for hash: " + hash);
+      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((BigInteger) types.get(0).getValue());

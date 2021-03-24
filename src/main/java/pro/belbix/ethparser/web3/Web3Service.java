@@ -163,6 +163,10 @@ public class Web3Service {
       Exception lastError = null;
       try {
         result = callable.call();
+      } catch (IllegalStateException e) {
+        if (e.getMessage().startsWith("Not retryable response")) {
+          return null;
+        }
       } catch (Exception e) { //by default all errors, but can be filtered by type
         log.warn("Retryable error: " + e.getMessage());
         lastError = e;
@@ -341,7 +345,8 @@ public class Web3Service {
       if (ethCall.getError() != null) {
         log.warn("{} callFunction callback is error {}",
             function.getName(), ethCall.getError().getMessage());
-        return null;
+        throw new IllegalStateException(
+            "Not retryable response: " + ethCall.getError().getMessage());
       }
       return ethCall;
     });

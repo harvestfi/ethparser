@@ -3,7 +3,6 @@ package pro.belbix.ethparser.entity.b_layer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -45,5 +44,5 @@ public class ContractLogEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "topic", referencedColumnName = "methodId")
-  private LogHexEntity topic;
+  private LogHashEntity topic;
 }

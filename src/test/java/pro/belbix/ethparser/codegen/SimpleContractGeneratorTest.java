@@ -74,8 +74,8 @@ class SimpleContractGeneratorTest {
         "0x329239599afB305DA0A2eC69c58F8a6697F9F88d", 11954198);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
-        () -> assertEquals(6, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(27, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(9, contract.getEvents().size(), "Events size"),
+        () -> assertEquals(31, contract.getFunctions().size(), "Functions size")
     );
   }
 }
