@@ -12,17 +12,17 @@ public class GeneratedContract {
   private final String name;
   private final String address;
   private final Map<String, Event> eventsByHash;
-  private final Map<String, Function> functionsByHash;
+  private final Map<String, FunctionWrapper> functionsByMethodId;
   private boolean proxy = false;
 
 
   public GeneratedContract(String name, String address,
       Map<String, Event> eventsByHash,
-      Map<String, Function> functionsByHash) {
+      Map<String, FunctionWrapper> functionsByMethodId) {
     this.name = name;
     this.address = address;
     this.eventsByHash = eventsByHash;
-    this.functionsByHash = functionsByHash;
+    this.functionsByMethodId = functionsByMethodId;
   }
 
   public boolean isProxy() {
@@ -37,8 +37,8 @@ public class GeneratedContract {
     return eventsByHash.get(hash);
   }
 
-  public Function getFunction(String hash) {
-    return functionsByHash.get(hash);
+  public FunctionWrapper getFunction(String hash) {
+    return functionsByMethodId.get(hash);
   }
 
   public String getName() {
@@ -49,8 +49,8 @@ public class GeneratedContract {
     return address;
   }
 
-  public Collection<Function> getFunctions() {
-    return functionsByHash.values();
+  public Collection<FunctionWrapper> getFunctions() {
+    return functionsByMethodId.values();
   }
 
   public Collection<Event> getEvents() {

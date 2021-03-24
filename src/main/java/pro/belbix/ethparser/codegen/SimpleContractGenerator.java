@@ -81,25 +81,43 @@ public class SimpleContractGenerator {
     return newContract.getAddress().equalsIgnoreCase(existContract.getAddress());
   }
 
-  private Optional<GeneratedContract> generateContract(String address, long block,
+  private Optional<GeneratedContract> generateContract(
+      String address,
+      long block,
       boolean isProxy) {
-    EtherscanService.ResponseSourceCode sourceCode =
+
+    boolean isOverride = isOverrideAbi(address);
+    String abi = null;
+    String contractName = "UNKNOWN";
+
+    EtherscanService.SourceCodeResult sourceCode =
         etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
-    if (sourceCode == null || sourceCode.getResult() == null || sourceCode.getResult()
-        .isEmpty()) {
-      log.error("Empty etherscan response for {}", address);
-      return Optional.empty();
+
+    if (sourceCode == null) {
+      if (!isOverride) {
+        return Optional.empty();
+      }
+    } else {
+      if ("1".equals(sourceCode.getProxy())) {
+        log.info("Detect proxy via etherscan {}", address);
+        return generateContract(sourceCode.getImplementation(), block, true);
+      }
+      abi = sourceCode.getAbi();
+      contractName = sourceCode.getContractName();
     }
-    EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
-    String abi = resolveAbi(address, result.getAbi());
+
+    abi = resolveAbi(address, abi);
+
     List<AbiDefinition> abis = ContractGenerator.abiToDefinition(abi);
     GeneratedContract contract = new GeneratedContract(
-        result.getContractName(),
+        contractName,
         address,
         abiToEvents(abis),
         abiToFunctions(abis)
     );
+    //use etherscan instead of this manual detecting
     if (!isProxy && isProxy(abis)) {
+      log.info("Detect proxy {}", address);
       String proxyAddress = readProxyAddress(address, block, contract);
       if (proxyAddress == null) {
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
@@ -118,6 +136,10 @@ public class SimpleContractGenerator {
       return StaticAbiMap.MAP.get(address.toLowerCase());
     }
     return abi;
+  }
+
+  private boolean isOverrideAbi(String address) {
+    return StaticAbiMap.MAP.containsKey(address.toLowerCase());
   }
 
   private String readProxyAddress(String address, long block, GeneratedContract contract) {
@@ -189,24 +211,25 @@ public class SimpleContractGenerator {
     return false;
   }
 
-  private static Map<String, Function> abiToFunctions(List<AbiDefinition> abis) {
-    Map<String, Function> functionsByHash = new HashMap<>();
+  private static Map<String, FunctionWrapper> abiToFunctions(List<AbiDefinition> abis) {
+    Map<String, FunctionWrapper> functionsByMethodId = new HashMap<>();
 
     abis.forEach(abi -> {
       try {
-        Function function = abiToFunction(abi);
+        FunctionWrapper function = abiToFunction(abi);
         if (function == null) {
           return;
         }
-        String hash = MethodDecoder // todo change when will parse not only output
-            .createMethodFullHex(function.getName(), function.getOutputParameters());
-        functionsByHash.put(hash, function);
+        String methodId = MethodDecoder
+            .createMethodId(function.getFunction().getName(),
+                function.getInput());
+        functionsByMethodId.put(methodId, function);
       } catch (Exception e) {
         log.error("Error abi to function");
       }
     });
 
-    return functionsByHash;
+    return functionsByMethodId;
   }
 
   private static Map<String, Event> abiToEvents(List<AbiDefinition> abis) {
@@ -217,9 +240,13 @@ public class SimpleContractGenerator {
         if (event == null) {
           return;
         }
-        String hash = MethodDecoder
-            .createMethodFullHex(event.getName(), event.getParameters());
-        eventsByHash.put(hash, event);
+        try {
+          String hash = MethodDecoder
+              .createMethodFullHex(event.getName(), event.getParameters());
+          eventsByHash.put(hash, event);
+        } catch (Exception e) {
+          log.error("Error create event from {}", abi, e);
+        }
       } catch (Exception e) {
         log.error("Error abi to event {}", abi, e);
       }
@@ -227,15 +254,13 @@ public class SimpleContractGenerator {
     return eventsByHash;
   }
 
-  private static Function abiToFunction(AbiDefinition abi) throws ClassNotFoundException {
-    if (!abi.getType().equals(TYPE_FUNCTION)
-        || !(abi.isConstant()
-        || PURE.equals(abi.getStateMutability())
-        || VIEW.equals(abi.getStateMutability()))
-        || !abi.getInputs().isEmpty() // todo parse functions with inputs
-    ) {
+  private static FunctionWrapper abiToFunction(AbiDefinition abi) throws ClassNotFoundException {
+    if (!abi.getType().equals(TYPE_FUNCTION)) {
       return null;
     }
+    boolean isView = abi.isConstant()
+        || PURE.equals(abi.getStateMutability())
+        || VIEW.equals(abi.getStateMutability());
 
     List<TypeReference<?>> output = new ArrayList<>();
     for (AbiDefinition.NamedType namedType : abi.getOutputs()) {
@@ -243,10 +268,30 @@ public class SimpleContractGenerator {
         //todo parse tuples
         return null;
       }
+      if (!namedType.getComponents().isEmpty()) {
+        //todo parse multi components
+        log.error("Multi components {}", abi);
+        return null;
+      }
       output.add(buildTypeReference(namedType.getType(), namedType.isIndexed()));
     }
 
-    return new Function(abi.getName(), Collections.emptyList(), output);
+    List<TypeReference<?>> input = new ArrayList<>();
+    for (AbiDefinition.NamedType namedType : abi.getInputs()) {
+      if (namedType.getType().startsWith(TUPLE)) {
+        //todo parse tuples
+        return null;
+      }
+      if (!namedType.getComponents().isEmpty()) {
+        //todo parse multi components
+        log.error("Multi components {}", abi);
+        return null;
+      }
+      input.add(buildTypeReference(namedType.getType(), false));
+    }
+
+    Function function = new Function(abi.getName(), Collections.emptyList(), output);
+    return new FunctionWrapper(function, isView, input);
   }
 
   private static Event abiToEvent(AbiDefinition abi) throws ClassNotFoundException {

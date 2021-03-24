@@ -31,7 +31,7 @@ class SimpleContractGeneratorTest {
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(11, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(13, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(32, contract.getFunctions().size(), "Functions size")
     );
   }
 
@@ -42,7 +42,7 @@ class SimpleContractGeneratorTest {
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(17, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(18, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(52, contract.getFunctions().size(), "Functions size")
     );
   }
 
@@ -52,8 +52,8 @@ class SimpleContractGeneratorTest {
         "0x514910771AF9Ca656af840dff83E8264EcF986CA", 10800000);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
-        () -> assertEquals(2, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(4, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(3, contract.getEvents().size(), "Events size"),
+        () -> assertEquals(12, contract.getFunctions().size(), "Functions size")
     );
   }
 
@@ -64,7 +64,18 @@ class SimpleContractGeneratorTest {
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(7, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(22, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(48, contract.getFunctions().size(), "Functions size")
+    );
+  }
+
+  @Test
+  void getContract_YPoolDelegator() {
+    GeneratedContract contract = simpleContractGenerator.getContract(
+        "0x329239599afB305DA0A2eC69c58F8a6697F9F88d", 11954198);
+    assertAll(
+        () -> assertNotNull(contract, "contract is not null"),
+        () -> assertEquals(6, contract.getEvents().size(), "Events size"),
+        () -> assertEquals(27, contract.getFunctions().size(), "Functions size")
     );
   }
 }

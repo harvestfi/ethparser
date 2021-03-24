@@ -15,9 +15,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
+import pro.belbix.ethparser.codegen.FunctionWrapper;
 import pro.belbix.ethparser.codegen.GeneratedContract;
 import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
@@ -144,17 +147,35 @@ public class ContractDetector {
         String methodId = input.substring(0, 10);
         String inputData = input.substring(10);
 
-        // todo find func by hash and parse values
+        String address = tx.getToAddress().getAddress();
+        GeneratedContract contract =
+            simpleContractGenerator.getContract(address, (int) tx.getBlockNumber().getNumber());
+        if (contract == null) {
+            log.error("Not found contract {}", address);
+            return;
+        }
+        FunctionWrapper function = contract.getFunction(methodId);
+        if (function == null) {
+            log.error("Not found function for {} in {}", methodId, tx.getHash().getHash());
+            return;
+        }
 
-        String funcData = "";
-        String funcName = "";
+        String funcData = parseFunctionInput(inputData, function.getInput());
 
         FunctionHashEntity funcHash = new FunctionHashEntity();
         funcHash.setMethodId(methodId);
-        funcHash.setName(funcName);
+        funcHash.setName(function.getFunction().getName());
 
         contractTx.setFuncHash(funcHash);
         contractTx.setFuncData(funcData);
+    }
+
+    private String parseFunctionInput(
+        String inputData,
+        List<TypeReference<Type>> parameters
+    ) {
+        List<Type> types = FunctionReturnDecoder.decode(inputData, parameters);
+        return MethodDecoder.typesToString(types);
     }
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
@@ -273,7 +294,11 @@ public class ContractDetector {
         }
 
         Set<ContractStateEntity> states = new LinkedHashSet<>();
-        for (Function function : contract.getFunctions()) {
+        for (FunctionWrapper functionW : contract.getFunctions()) {
+            if (!functionW.isView() || !functionW.getInput().isEmpty()) {
+                continue;
+            }
+            Function function = functionW.getFunction();
             try {
                 String value = functionsUtils.callViewFunction(function, contractAddress, block)
                     .orElse(null);

@@ -157,21 +157,18 @@ public class ContractGenerator {
             if (diff < 200) {
                 Thread.sleep(200 - diff);
             }
-            EtherscanService.ResponseSourceCode sourceCode =
+            EtherscanService.SourceCodeResult sourceCode =
                 etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
-            if (sourceCode == null || sourceCode.getResult() == null || sourceCode.getResult()
-                .isEmpty()) {
-                log.error("Empty etherscan response for {}", address);
+            if (sourceCode == null) {
                 return null;
             }
-            EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
 
-            List<AbiDefinition> abiDefinitions = abiToDefinition(result.getAbi());
+            List<AbiDefinition> abiDefinitions = abiToDefinition(sourceCode.getAbi());
 
             String className = generate(
                 abiDefinitions,
                 new File(dir),
-                result.getContractName(),
+                sourceCode.getContractName(),
                 pkg
             );
             contractToWrapperName.put(address, className);
@@ -306,6 +303,7 @@ public class ContractGenerator {
         try {
             abiDefinition = objectMapper.readValue(abi, AbiDefinition[].class);
         } catch (IOException e) {
+            log.error("abiToDefinition error for: {}", abi);
             throw new RuntimeException(e);
         }
         return Arrays.asList(abiDefinition);
