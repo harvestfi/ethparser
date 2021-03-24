@@ -38,4 +38,10 @@ public class PriceOracle {
         return price / D18;
     }
 
+    public boolean isAvailable(String coinName, long block) {
+        if (block <= ORACLE_START_BLOCK || coinName.equals("USDC")){
+            return false;
+        }
+        return true;
+    }
 }

@@ -121,14 +121,14 @@ public class PriceProvider {
   public Double getPriceForCoin(String coinName, long block) {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
       return 0.0;
-    }
+    } 
     if (coinName.startsWith("0x")) {
       coinName = ContractUtils.getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Wrong input"));
     }
     String coinNameSimple = ContractConstants.simplifyName(coinName);
     updateUSDPrice(coinNameSimple, block);
-    if (ContractUtils.isStableCoin(coinNameSimple)) {
+    if (ContractUtils.isStableCoin(coinNameSimple) && !priceOracle.isAvailable(coinName, block)) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -163,7 +163,7 @@ public class PriceProvider {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (ContractUtils.isStableCoin(coinName)) {
+    if (ContractUtils.isStableCoin(coinName) && !priceOracle.isAvailable(coinName, block)) {
       return;
     }
 
@@ -176,7 +176,7 @@ public class PriceProvider {
   }
 
   private double getPriceForCoinWithoutCache(String name, Long block) {
-    String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
+    String lpName = ContractUtils.findUniPairNameForTokenName(name, block).orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
         .map(l -> l.get(0))
@@ -207,7 +207,7 @@ public class PriceProvider {
     if (block > ORACLE_START_BLOCK) {
       return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
     }
-    String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
+    String lpName = ContractUtils.findUniPairNameForTokenName(name, block).orElse(null);
     if (!ContractUtils.isUniPairCreated(lpName, block)) {
       return 0.0;
     }

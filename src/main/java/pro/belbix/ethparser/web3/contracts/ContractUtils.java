@@ -266,7 +266,7 @@ public class ContractUtils {
         .orElse(0);
   }
 
-  public static String findUniPairNameForTokenName(String tokenName, long block) {
+  public static Optional<String> findUniPairNameForTokenName(String tokenName, long block) {
     TokenToUniPairEntity freshest = null;
     for (TokenToUniPairEntity tokenToUniPairEntity : ContractLoader.tokenToUniPairCache.values()) {
       if (!tokenToUniPairEntity.getToken().getContract().getName().equals(tokenName)) {
@@ -280,10 +280,11 @@ public class ContractUtils {
         freshest = tokenToUniPairEntity;
       }
     }
-    if (freshest == null) {
-      throw new IllegalStateException("Not found uni pair for " + tokenName);
-    }
-    return freshest.getUniPair().getContract().getName();
+    return Optional.ofNullable(freshest)
+          .map(TokenToUniPairEntity::getUniPair) 
+          .map(UniPairEntity::getContract)
+          .map(ContractEntity::getName);
+          //.getUniPair().getContract().getName();
   }
 
   public static Collection<String> getAllPoolAddresses() {
