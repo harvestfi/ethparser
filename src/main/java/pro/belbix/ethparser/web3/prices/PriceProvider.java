@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,12 +37,14 @@ public class PriceProvider {
   private final FunctionsUtils functionsUtils;
   private final PriceRepository priceRepository;
   private final AppProperties appProperties;
+  private final PriceOracle priceOracle;
 
   public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
-      AppProperties appProperties) {
+      AppProperties appProperties, PriceOracle priceOracle) {
     this.functionsUtils = functionsUtils;
     this.priceRepository = priceRepository;
     this.appProperties = appProperties;
+    this.priceOracle = priceOracle;
   }
 
   public void setUpdateBlockDifference(long updateBlockDifference) {
@@ -76,6 +79,10 @@ public class PriceProvider {
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block) {
     if (appProperties.isOnlyApi()) {
       return 0.0;
+    }
+
+    if (block > ORACLE_START_BLOCK) {
+      return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block);
     }
 
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, block);
@@ -114,14 +121,14 @@ public class PriceProvider {
   public Double getPriceForCoin(String coinName, long block) {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
       return 0.0;
-    }
+    } 
     if (coinName.startsWith("0x")) {
       coinName = ContractUtils.getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Wrong input"));
     }
     String coinNameSimple = ContractConstants.simplifyName(coinName);
     updateUSDPrice(coinNameSimple, block);
-    if (ContractUtils.isStableCoin(coinNameSimple)) {
+    if (ContractUtils.isStableCoin(coinNameSimple) && !priceOracle.isAvailable(coinName, block)) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -156,22 +163,20 @@ public class PriceProvider {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (ContractUtils.isStableCoin(coinName)) {
-      // todo parse stablecoin prices
+    if (ContractUtils.isStableCoin(coinName) && !priceOracle.isAvailable(coinName, block)) {
       return;
     }
 
     if (hasFreshPrice(coinName, block)) {
       return;
     }
-
     double price = getPriceForCoinWithoutCache(coinName, block);
 
     savePrice(price, coinName, block);
   }
 
   private double getPriceForCoinWithoutCache(String name, Long block) {
-    String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
+    String lpName = ContractUtils.findUniPairNameForTokenName(name, block).orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
         .map(l -> l.get(0))
@@ -199,7 +204,10 @@ public class PriceProvider {
     }
     String tokenAdr = ContractUtils.getAddressByName(name, ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
-    String lpName = ContractUtils.findUniPairNameForTokenName(name, block);
+    if (block > ORACLE_START_BLOCK) {
+      return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
+    }
+    String lpName = ContractUtils.findUniPairNameForTokenName(name, block).orElse(null);
     if (!ContractUtils.isUniPairCreated(lpName, block)) {
       return 0.0;
     }

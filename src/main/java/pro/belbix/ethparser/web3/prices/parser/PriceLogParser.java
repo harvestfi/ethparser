@@ -155,7 +155,10 @@ public class PriceLogParser implements Web3Parser {
 
   private boolean isValidSource(PriceDTO dto) {
     String currentLpName = ContractUtils
-        .findUniPairNameForTokenName(dto.getToken(), dto.getBlock());
+        .findUniPairNameForTokenName(dto.getToken(), dto.getBlock()).orElse(null);
+    if (currentLpName == null) {
+      return false;
+    }
     boolean result = currentLpName.equals(dto.getSource());
     if (result) {
       return true;
