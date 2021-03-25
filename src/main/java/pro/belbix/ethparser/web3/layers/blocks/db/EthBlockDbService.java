@@ -26,7 +26,7 @@ import pro.belbix.ethparser.service.SequenceService;
 @Log4j2
 public class EthBlockDbService {
 
-  private static final int MAX_TASKS = 10;
+  private static final int MAX_TASKS = 1; // todo fix hash/address persist
   private final static long MAX_SEQ = 100000;
 
   private final EthBlockRepository ethBlockRepository;

@@ -4,16 +4,14 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -21,6 +19,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.codegen.FunctionWrapper;
 import pro.belbix.ethparser.codegen.GeneratedContract;
 import pro.belbix.ethparser.codegen.SimpleContractGenerator;
@@ -100,43 +99,67 @@ public class ContractDetector {
             return List.of();
         }
 
-        Map<EthAddressEntity, Map<String, EthTxEntity>> contractsWithTxs =
-            collectEligibleContracts(block);
-        if (contractsWithTxs.isEmpty()) {
+        Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> eligible = collectEligible(block);
+        if (eligible.component1().isEmpty()) {
             return List.of();
         }
-        List<ContractEventEntity> eventEntities = new ArrayList<>();
-        for (Entry<EthAddressEntity, Map<String, EthTxEntity>> entry : contractsWithTxs
-            .entrySet()) {
-            ContractEventEntity eventEntity = new ContractEventEntity();
+        List<ContractEventEntity> eventEntities =
+            handleEligibleAddresses(eligible.component1(), block);
 
-            EthAddressEntity contractAddress = entry.getKey();
+        handleEligibleTxs(eligible.component2(), eventEntities);
+
+        return eventEntities;
+    }
+
+    private List<ContractEventEntity> handleEligibleAddresses(
+        Set<EthAddressEntity> addresses,
+        EthBlockEntity block
+    ) {
+        List<ContractEventEntity> eventEntities = new ArrayList<>();
+        for (EthAddressEntity address : addresses) {
+            ContractEventEntity eventEntity = new ContractEventEntity();
             ContractEntity contract = ContractUtils
-                .getContractByAddress(contractAddress.getAddress())
+                .getContractByAddress(address.getAddress())
                 .orElse(null);
             if (contract == null) {
-                log.error("Not found contract for {}", contractAddress);
+                log.error("Not found contract for {}", address.getAddress());
                 continue;
             }
-            eventEntity.setContract(contractAddress);
+            eventEntity.setContract(address);
             eventEntity.setBlock(block);
-
-            Set<ContractTxEntity> contractTxEntities = new LinkedHashSet<>();
-            for (EthTxEntity tx : entry.getValue().values()) {
-                ContractTxEntity contractTxEntity = new ContractTxEntity();
-                contractTxEntity.setTx(tx);
-                contractTxEntity.setContractEvent(eventEntity);
-                fillFuncData(tx, contractTxEntity);
-
-                collectLogs(tx, contractTxEntity);
-                contractTxEntities.add(contractTxEntity);
-            }
-            eventEntity.setTxs(contractTxEntities);
-
             collectStates(eventEntity);
             eventEntities.add(eventEntity);
         }
         return eventEntities;
+    }
+
+    private void handleEligibleTxs(
+        Set<EthTxEntity> txs,
+        List<ContractEventEntity> eventEntities
+    ) {
+        for (EthTxEntity tx : txs) {
+
+            Set<String> eligibleAddresses = collectEligibleAddresses(tx).stream()
+                .map(EthAddressEntity::getAddress)
+                .collect(Collectors.toSet());
+
+            Set<ContractEventEntity> eligibleEvents = eventEntities.stream()
+                .filter(e -> eligibleAddresses.contains(e.getContract().getAddress()))
+                .collect(Collectors.toSet());
+
+            ContractTxEntity contractTxEntity = new ContractTxEntity();
+            contractTxEntity.setTx(tx);
+            fillFuncData(tx, contractTxEntity);
+            collectLogs(tx, contractTxEntity);
+
+            eligibleEvents.forEach(e -> {
+                if (e.getTxs() == null) {
+                    e.setTxs(new LinkedHashSet<>());
+                }
+                e.getTxs().add(contractTxEntity);
+            });
+            contractTxEntity.setContractEvents(eligibleEvents);
+        }
     }
 
     private void fillFuncData(EthTxEntity tx, ContractTxEntity contractTx) {
@@ -187,17 +210,12 @@ public class ContractDetector {
 
     private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
         int block = (int) tx.getBlockNumber().getNumber();
-        // map for remove duplicates logs
-        Map<String, EthLogEntity> logsMap = new LinkedHashMap<>();
-        for (EthLogEntity ethLog : tx.getLogs()) {
-            logsMap.put(tx.getHash().getHash() + "_" + ethLog.getId(), ethLog);
-        }
 
         Set<ContractLogEntity> logEntities = new LinkedHashSet<>();
-        for (EthLogEntity ethLog : logsMap.values()) {
-            if (!isEligibleContract(ethLog.getAddress().getAddress())) {
-                continue;
-            }
+        for (EthLogEntity ethLog : tx.getLogs()) {
+//            if (!isEligibleContract(ethLog.getAddress().getAddress())) {
+//                continue;
+//            }
             Event event = findEvent(
                 ethLog.getAddress().getAddress(),
                 ethLog.getFirstTopic().getHash(),
@@ -291,49 +309,55 @@ public class ContractDetector {
         eventEntity.setStates(states);
     }
 
-    static Map<EthAddressEntity, Map<String, EthTxEntity>> collectEligibleContracts(
-        EthBlockEntity block) {
-        if(block == null) {
-            return Map.of();
+    static Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> collectEligible(EthBlockEntity block) {
+        if (block == null) {
+            return new Tuple2<>(Set.of(), Set.of());
         }
-        Map<EthAddressEntity, Map<String, EthTxEntity>> addresses = new LinkedHashMap<>();
+        Set<EthAddressEntity> addresses = new LinkedHashSet<>();
+        Set<EthTxEntity> txs = new LinkedHashSet<>();
         for (EthTxEntity tx : block.getTransactions()) {
-            if (tx.getToAddress() != null &&
-                isEligibleContract(tx.getToAddress().getAddress())) {
-                addToAddresses(addresses, tx.getToAddress(), tx);
-            }
-            if (tx.getContractAddress() != null &&
-                isEligibleContract(tx.getContractAddress().getAddress())) {
-                addToAddresses(addresses, tx.getContractAddress(), tx);
-            }
-            if (isEligibleContract(tx.getFromAddress().getAddress())) {
-                addToAddresses(addresses, tx.getFromAddress(), tx);
-            }
-            for (EthLogEntity ethLog : tx.getLogs()) {
-                if (isEligibleContract(ethLog.getAddress().getAddress())) {
-                    addToAddresses(addresses, ethLog.getAddress(), tx);
-                }
+            collectEligibleAddresses(tx)
+                .forEach(a -> addToSets(addresses, txs, tx, a));
+        }
+        return new Tuple2<>(addresses, txs);
+    }
+
+    private static List<EthAddressEntity> collectEligibleAddresses(EthTxEntity tx) {
+        List<EthAddressEntity> addresses = new ArrayList<>();
+        if (isEligibleContract(tx.getToAddress())) {
+            addresses.add(tx.getToAddress());
+        }
+        if (isEligibleContract(tx.getContractAddress())) {
+            addresses.add(tx.getToAddress());
+        }
+        if (isEligibleContract(tx.getFromAddress())) {
+            addresses.add(tx.getToAddress());
+        }
+        for (EthLogEntity ethLog : tx.getLogs()) {
+            if (isEligibleContract(ethLog.getAddress())) {
+                addresses.add(ethLog.getAddress());
             }
         }
         return addresses;
     }
 
-    private static boolean isEligibleContract(String address) {
-        if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
-            return false;
+    private static void addToSets(
+        Set<EthAddressEntity> addresses,
+        Set<EthTxEntity> txs,
+        EthTxEntity tx,
+        EthAddressEntity address
+    ) {
+        if (isEligibleContract(address)) {
+            addresses.add(address);
+            txs.add(tx);
         }
-        return ContractUtils.getAllContractAddresses().contains(address.toLowerCase());
     }
 
-    private static void addToAddresses(
-        Map<EthAddressEntity, Map<String, EthTxEntity>> addresses,
-        EthAddressEntity address,
-        EthTxEntity tx) {
-        if (ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
-            return;
+    private static boolean isEligibleContract(EthAddressEntity address) {
+        if (address == null || ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
+            return false;
         }
-        Map<String, EthTxEntity> txs = addresses
-            .computeIfAbsent(address, k -> new LinkedHashMap<>());
-        txs.put(tx.getHash().getHash(), tx);
+        return ContractUtils.getAllContractAddresses()
+            .contains(address.getAddress().toLowerCase());
     }
 }

@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -27,14 +28,11 @@ import org.hibernate.annotations.TypeDef;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
 @Entity
-@Table(name = "b_contract_txs",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"contract_event_id", "tx_id"})
-    })
+@Table(name = "b_contract_txs")
 @Data
 @JsonInclude(Include.NON_NULL)
-@EqualsAndHashCode(exclude = {"contractEvent"})
-@ToString(exclude = {"contractEvent"})
+@EqualsAndHashCode(exclude = {"contractEvents"})
+@ToString(exclude = {"contractEvents"})
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class ContractTxEntity {
 
@@ -49,16 +47,20 @@ public class ContractTxEntity {
   @JoinColumn(name = "func_hash", referencedColumnName = "methodId")
   private FunctionHashEntity funcHash;
 
-  @JsonIgnore
-  @ManyToOne(fetch = FetchType.LAZY)
-  private ContractEventEntity contractEvent;
-
   @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(unique = true)
   private EthTxEntity tx;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractTx",
       fetch = FetchType.EAGER, orphanRemoval = true)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private Set<ContractLogEntity> logs;
+
+  @JsonIgnore
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "txs")
+//  @JoinTable(name = "b_contract_event_to_tx",
+//      joinColumns = @JoinColumn(name = "tx_id", referencedColumnName = "id"),
+//      inverseJoinColumns = @JoinColumn(name = "event_id", referencedColumnName = "id"))
+  private Set<ContractEventEntity> contractEvents;
 
 }
