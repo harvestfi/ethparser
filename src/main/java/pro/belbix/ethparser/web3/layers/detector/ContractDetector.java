@@ -178,20 +178,19 @@ public class ContractDetector {
             log.warn("Can't generate contract for {}", address);
             return;
         }
-        FunctionWrapper function = contract.getFunction(methodId);
-        if (function == null) {
-            log.error("Not found function for {} in {}", methodId, tx.getHash().getHash());
-            return;
-        }
-
-        String funcData = parseFunctionInput(inputData, function.getInput());
 
         FunctionHashEntity funcHash = new FunctionHashEntity();
         funcHash.setMethodId(methodId);
-        funcHash.setName(function.getFunction().getName());
-
         contractTx.setFuncHash(funcHash);
-        contractTx.setFuncData(funcData);
+
+        FunctionWrapper function = contract.getFunction(methodId);
+        if (function == null) {
+            log.warn("Not found function for {} in {}", methodId, tx.getHash().getHash());
+        } else {
+            String funcData = parseFunctionInput(inputData, function.getInput());
+            contractTx.setFuncData(funcData);
+            funcHash.setName(function.getFunction().getName());
+        }
     }
 
     @SuppressWarnings("rawtypes")

@@ -16,7 +16,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.Builder;
 import org.junit.jupiter.api.Test;
@@ -75,10 +74,10 @@ public class EthBlockParserTest {
             .logTopics(
                 "0x000000000000000000000000570febdf89c07f256c75686caca215289bb11cfc,0x000000000000000000000000000000000000084e91743124a982076c59f10084")
             .build());
-        EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity).join();
+        EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity);
         assertNotNull(persisted);
         assertContracts(persisted, "data/12055816_contracts.txt");
-        assertNull(ethBlockDbService.save(ethBlockEntity).join());
+        assertNull(ethBlockDbService.save(ethBlockEntity));
     }
 
     @Test
@@ -162,15 +161,13 @@ public class EthBlockParserTest {
         String entityStr = new ObjectMapper().writeValueAsString(ethBlockEntity);
         assertNotNull(entityStr);
 //        System.out.println(entityStr);
-        CompletableFuture<EthBlockEntity> result = ethBlockDbService.save(ethBlockEntity);
-        if (result != null) {
-            EthBlockEntity persistedEntity = result.join();
-            if (persistedEntity != null) {
-                String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
-                assertNotNull(persisted);
-                System.out.println(persisted);
-            }
+        EthBlockEntity persistedEntity = ethBlockDbService.save(ethBlockEntity);
+        if (persistedEntity != null) {
+            String persisted = new ObjectMapper().writeValueAsString(persistedEntity);
+            assertNotNull(persisted);
+            System.out.println(persisted);
         }
+
         System.out.println("load entity");
         EthBlockEntity saved = ethBlockRepository.findById(ethBlockEntity.getNumber())
             .orElseThrow();

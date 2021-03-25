@@ -78,4 +78,15 @@ class SimpleContractGeneratorTest {
         () -> assertEquals(31, contract.getFunctions().size(), "Functions size")
     );
   }
+
+  @Test
+  void getContract_ZeroEx() {
+    GeneratedContract contract = simpleContractGenerator.getContract(
+        "0xDef1C0ded9bec7F1a1670819833240f027b25EfF", 11954198);
+    assertAll(
+        () -> assertNotNull(contract, "contract is not null"),
+        () -> assertEquals(3, contract.getEvents().size(), "Events size"),
+        () -> assertEquals(10, contract.getFunctions().size(), "Functions size")
+    );
+  }
 }

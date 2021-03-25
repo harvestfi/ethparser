@@ -32,6 +32,9 @@ public class SimpleContractGenerator {
 
   private static final String UPGRADED_EVENT = "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b";
   private static final String IMPLEMENTATION = "implementation";
+  private static final String IMPLEMENTATION_HASH = "0x5c60da1b";
+  private static final String IMPLEMENTATION_0X = "getFunctionImplementation";
+  private static final String IMPLEMENTATION_0X_HASH = "0x972fdd26";
   private static final String TYPE_FUNCTION = "function";
   private static final String TYPE_EVENT = "event";
   private static final String TUPLE = "tuple";
@@ -123,6 +126,7 @@ public class SimpleContractGenerator {
       String proxyAddress = readProxyAddressOnChain(address, block, contract);
       if (proxyAddress == null) {
         if(etherscanIsProxy) {
+          log.info("Try to generate proxy from etherscan implementation");
           // only last implementation but it's better than nothing
           return generateContract(etherscanProxyImpl, block, true);
         }
@@ -157,10 +161,22 @@ public class SimpleContractGenerator {
       return proxyImpl;
     }
     // EIP-897 DelegateProxy concept
-    proxyImpl = proxyAddressFromFunc(address, block);
-    if(proxyImpl != null) {
-      return proxyImpl;
+    if (contract.getFunction(IMPLEMENTATION_HASH) != null) {
+      proxyImpl = proxyAddressFromFunc(address, block);
+      if (proxyImpl != null) {
+        return proxyImpl;
+      }
     }
+
+    //0xProxy https://github.com/0xProject/0x-protocol-specification/blob/master/exchange-proxy/exchange-proxy.md
+    if (contract.getFunction(IMPLEMENTATION_0X_HASH) != null) {
+//      byte[] selector = {0, 0, 0, 2};
+//      return functionsUtils.callAddressByNameBytes4(IMPLEMENTATION_0X, selector, address, block)
+//          .orElse(null);
+      // todo
+      return null;
+    }
+
     // manual proxy implementation can't be detected onchain
     return null;
   }

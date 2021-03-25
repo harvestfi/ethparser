@@ -182,7 +182,7 @@ class ContractDetectorTest {
     EthBlockEntity ethBlockEntity =
         ethBlockParser.parse(web3Service.findBlockByHash(hash, true));
     long blockNumber = ethBlockEntity.getNumber();
-    ethBlockEntity = ethBlockDbService.save(ethBlockEntity).join();
+    ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
       ethBlockEntity = ethBlockRepository.findById(blockNumber).orElseThrow();
     }

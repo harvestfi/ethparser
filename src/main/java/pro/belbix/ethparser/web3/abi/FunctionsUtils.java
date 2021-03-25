@@ -26,6 +26,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
@@ -117,6 +118,19 @@ public class FunctionsUtils {
     return callStringFunction(findSimpleFunction(functionName, TYPE_ADR), hash, block);
   }
 
+  public Optional<String> callAddressByNameBytes4(
+      String functionName,
+      byte[] arg,
+      String hash,
+      Long block) {
+    // you should create function for every new argument
+    return callStringFunction(new Function(
+        functionName,
+        Collections.singletonList(new Bytes4(arg)),
+        Collections.singletonList(new TypeReference<Address>() {
+        })), hash, block);
+  }
+
   public Optional<String> callStrByName(String functionName, String hash, Long block) {
     return callStringFunction(findSimpleFunction(functionName, TYPE_STR), hash, block);
   }
@@ -125,7 +139,10 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block);
   }
 
-  public Optional<BigInteger> callIntByName(String functionName, String arg, String hash,
+  public Optional<BigInteger> callIntByName(
+      String functionName,
+      String arg,
+      String hash,
       Long block) {
     // you should create function for every new argument
     return callUint256Function(new Function(
