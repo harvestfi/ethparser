@@ -58,9 +58,6 @@ public class ContractTxEntity {
 
   @JsonIgnore
   @ManyToMany(fetch = FetchType.LAZY, mappedBy = "txs")
-//  @JoinTable(name = "b_contract_event_to_tx",
-//      joinColumns = @JoinColumn(name = "tx_id", referencedColumnName = "id"),
-//      inverseJoinColumns = @JoinColumn(name = "event_id", referencedColumnName = "id"))
   private Set<ContractEventEntity> contractEvents;
 
 }

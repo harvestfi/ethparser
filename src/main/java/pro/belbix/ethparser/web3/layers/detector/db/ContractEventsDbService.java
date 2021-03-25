@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.layers.detector.db;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthTxRepository;
 import pro.belbix.ethparser.repositories.b_layer.ContractEventRepository;
+import pro.belbix.ethparser.repositories.b_layer.ContractTxRepository;
 import pro.belbix.ethparser.repositories.b_layer.FunctionHashRepository;
 import pro.belbix.ethparser.repositories.b_layer.LogHexRepository;
 
@@ -23,18 +26,21 @@ public class ContractEventsDbService {
   private final LogHexRepository logHexRepository;
   private final EthTxRepository ethTxRepository;
   private final FunctionHashRepository functionHashRepository;
+  private final ContractTxRepository contractTxRepository;
 
   public ContractEventsDbService(
       ContractEventRepository contractEventRepository,
       EthBlockRepository ethBlockRepository,
       LogHexRepository logHexRepository,
       EthTxRepository ethTxRepository,
-      FunctionHashRepository functionHashRepository) {
+      FunctionHashRepository functionHashRepository,
+      ContractTxRepository contractTxRepository) {
     this.contractEventRepository = contractEventRepository;
     this.ethBlockRepository = ethBlockRepository;
     this.logHexRepository = logHexRepository;
     this.ethTxRepository = ethTxRepository;
     this.functionHashRepository = functionHashRepository;
+    this.contractTxRepository = contractTxRepository;
   }
 
   @Transactional
@@ -58,14 +64,30 @@ public class ContractEventsDbService {
   }
 
   private void persistChildren(ContractEventEntity event) {
+    Set<ContractTxEntity> persistedTxs = new LinkedHashSet<>();
     for (ContractTxEntity tx : event.getTxs()) {
       tx.setTx(ethTxRepository.findById(tx.getTx().getId())
-          .orElseThrow(() -> new IllegalStateException("Not found tx " + tx.getTx().getId())));
-      tx.setFuncHash(saveOrGetFuncHash(tx.getFuncHash()));
-      for (ContractLogEntity cLog : tx.getLogs()) {
+          .orElseThrow(() -> new IllegalStateException(
+              "Not found tx " + tx.getTx().getId())));
+      persistedTxs.add(saveOrGetContractTx(tx));
+    }
+    event.setTxs(persistedTxs);
+  }
+
+  private ContractTxEntity saveOrGetContractTx(ContractTxEntity contractTx) {
+    if (contractTx == null) {
+      return null;
+    }
+    ContractTxEntity contractTxPersisted = contractTxRepository
+        .findFirstByTx(contractTx.getTx());
+    if (contractTxPersisted == null) {
+      contractTx.setFuncHash(saveOrGetFuncHash(contractTx.getFuncHash()));
+      for (ContractLogEntity cLog : contractTx.getLogs()) {
         cLog.setTopic(saveOrGetLogHex(cLog.getTopic()));
       }
+      return contractTxRepository.save(contractTx);
     }
+    return contractTxPersisted;
   }
 
   private FunctionHashEntity saveOrGetFuncHash(FunctionHashEntity funcHash) {
