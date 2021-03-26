@@ -96,7 +96,7 @@ class ContractDetectorTest {
         .txAddress("0xf9fba9a4ed29d8dfc8895737e62f71957abcfb64f503864fc5f68230efa33abf")
         .stateSize(4)
         .stateName("symbol")
-        .stateValue("WETH")
+        .stateValue("[\"WETH\"]")
         .logSize(5)
         .logIdx(5)
         .logName("Withdrawal")
@@ -104,7 +104,7 @@ class ContractDetectorTest {
         .logMethodId("0x7fcf532c")
         .funcHex("0x18cbafe5")
         .funcName("swapExactTokensForETH")
-        .funcData("[\"5000000000\",\"13092066704280485888\",\"[0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2]\",\"0x19ae14a6aeb13b2bf2307bf010a329831a1cfbfe\",\"1599290553\"]")
+        .funcData("[\"5000000000\",\"13092066704280485888\",\"[\\\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\\\",\\\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\\\"]\",\"0x19ae14a6aeb13b2bf2307bf010a329831a1cfbfe\",\"1599290553\"]")
         .build()
     );
   }
@@ -142,7 +142,7 @@ class ContractDetectorTest {
         .txAddress("0x8b94d75dd5f3e4db2fc1ebcd9752aec88012760ba476ad31e9c216a085fdeddd")
         .stateSize(22)
         .stateName("nextImplementationDelay")
-        .stateValue("43200")
+        .stateValue("[\"43200\"]")
         .logIdx(239)
         .logSize(3)
         .logName("Withdraw")

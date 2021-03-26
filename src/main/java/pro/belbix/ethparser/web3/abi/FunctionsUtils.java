@@ -10,6 +10,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -158,13 +159,11 @@ public class FunctionsUtils {
     if (response == null || response.isEmpty()) {
       return Optional.empty();
     }
-    StringBuilder sb = new StringBuilder();
-    for (Type value : response) {
-      sb.append(MethodDecoder.valueToString(value.getValue()))
-          .append("\n");
+    try {
+      return Optional.ofNullable(MethodDecoder.typesToString(response));
+    } catch (JsonProcessingException e) {
+      return Optional.empty();
     }
-    sb.setLength(sb.length() - 1);
-    return Optional.of(sb.toString());
   }
 
   // ************ PRIVATE METHODS **************************

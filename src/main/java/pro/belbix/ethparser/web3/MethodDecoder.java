@@ -125,16 +125,31 @@ public abstract class MethodDecoder {
     }
     return ObjectMapperFactory.getObjectMapper().writeValueAsString(
         types.stream()
-            .map(t -> t.getValue().toString())
+            .map(t -> typeValueToString(t.getValue()))
             .collect(Collectors.toList())
     );
-//    StringBuilder sb = new StringBuilder();
-//    for (Type type : types) {
-//      sb.append(type.getValue().toString());
-//      sb.append(",");
-//    }
-//    sb.setLength(sb.length() - 1);
-//    return sb.toString();
+  }
+
+  public static String typeValueToString(Object value) {
+    if (value instanceof byte[]) {
+      return byteToHex((byte[]) value);
+    }
+    if (value instanceof List) {
+      try {
+        return typesToString((List<Type>) value);
+      } catch (JsonProcessingException e) {
+        return "";
+      }
+    }
+    return value.toString();
+  }
+
+  public static String byteToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder(bytes.length * 2);
+    for (byte b : bytes) {
+      sb.append(String.format("%02x", b));
+    }
+    return sb.toString();
   }
 
   protected Optional<String> parseMethodId(Log ethLog) {
@@ -186,18 +201,6 @@ public abstract class MethodDecoder {
     result.append(params);
     result.append(")");
     return result.toString();
-  }
-
-  public static String valueToString(Object value) {
-    if (value instanceof byte[]) {
-      byte[] bytes = (byte[]) value;
-      StringBuilder sb = new StringBuilder(bytes.length * 2);
-      for (byte b : bytes) {
-        sb.append(String.format("%02x", b));
-      }
-      return sb.toString();
-    }
-    return value.toString();
   }
 
   static <T extends Type> String getTypeName(TypeReference<T> typeReference) {
