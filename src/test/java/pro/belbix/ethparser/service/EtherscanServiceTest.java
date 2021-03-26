@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class EtherscanServiceTest {
 
-  private EtherscanService etherscanService = new EtherscanService();
+  private final EtherscanService etherscanService = new EtherscanService();
 
   @Test
   void contractSourceCode() {

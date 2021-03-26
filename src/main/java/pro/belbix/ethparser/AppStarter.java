@@ -31,6 +31,8 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
+import pro.belbix.ethparser.web3.layers.detector.ContractDetector;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 import pro.belbix.ethparser.ws.WsService;
@@ -53,22 +55,27 @@ public class AppStarter {
     private final PriceLogParser priceLogParser;
     private final ContractLoader contractLoader;
     private final DeployerTransactionsParser deployerTransactionsParser;
+    private final EthBlockParser ethBlockParser;
+    private final ContractDetector contractDetector;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
     private boolean web3LogsStarted = false;
+    private boolean web3BlocksStarted = false;
 
     public AppStarter(Web3Service web3Service,
-                      HarvestTransactionsParser harvestTransactionsParser,
-                      UniswapLpLogParser uniswapLpLogParser,
-                      HarvestVaultParserV2 harvestVaultParserV2,
-                      RewardParser rewardParser, HardWorkParser hardWorkParser,
-                      ImportantEventsParser importantEventsParser,
-                      UniToHarvestConverter uniToHarvestConverter,
-                      TransferParser transferParser, WsService wsService,
-                      AppProperties appProperties,
-                      PriceLogParser priceLogParser, ContractLoader contractLoader,
-                      DeployerTransactionsParser deployerTransactionsParser) {
+        HarvestTransactionsParser harvestTransactionsParser,
+        UniswapLpLogParser uniswapLpLogParser,
+        HarvestVaultParserV2 harvestVaultParserV2,
+        RewardParser rewardParser, HardWorkParser hardWorkParser,
+        ImportantEventsParser importantEventsParser,
+        UniToHarvestConverter uniToHarvestConverter,
+        TransferParser transferParser, WsService wsService,
+        AppProperties appProperties,
+        PriceLogParser priceLogParser, ContractLoader contractLoader,
+        DeployerTransactionsParser deployerTransactionsParser,
+        EthBlockParser ethBlockParser,
+        ContractDetector contractDetector) {
         this.web3Service = web3Service;
         this.harvestTransactionsParser = harvestTransactionsParser;
         this.uniswapLpLogParser = uniswapLpLogParser;
@@ -83,6 +90,8 @@ public class AppStarter {
         this.priceLogParser = priceLogParser;
         this.contractLoader = contractLoader;
         this.deployerTransactionsParser = deployerTransactionsParser;
+        this.ethBlockParser = ethBlockParser;
+        this.contractDetector = contractDetector;
     }
 
     public void start() {
@@ -129,7 +138,11 @@ public class AppStarter {
                 startParse(web3Service, priceLogParser, ws, PRICES_TOPIC_NAME, true);
             }
             if (conf.isParseDeployerTransactions()) {
-                startParse(web3Service, deployerTransactionsParser, ws, DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+                startParse(web3Service, deployerTransactionsParser, ws,
+                    DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+            }
+            if (conf.isParseBlocks()) {
+                startParseBlocks();
             }
         }
     }
@@ -190,5 +203,15 @@ public class AppStarter {
             web3Service.subscribeTransactionFlowable();
             web3TransactionsStarted = true;
         }
+    }
+
+    private void startParseBlocks() {
+        if (!web3BlocksStarted) {
+            web3Service.subscribeOnBlocks();
+            web3BlocksStarted = true;
+        }
+        ethBlockParser.startParse();
+        contractDetector.start();
+
     }
 }

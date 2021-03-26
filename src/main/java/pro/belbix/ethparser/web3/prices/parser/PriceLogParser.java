@@ -125,7 +125,7 @@ public class PriceLogParser implements Web3Parser {
     fillLpStats(dto);
 
     dto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), tx.getBlock().longValue()));
+        ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue()));
     log.info(dto.print());
     return dto;
   }

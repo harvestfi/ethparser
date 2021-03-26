@@ -29,7 +29,7 @@ public class HardWorkCalculator {
 
   public double calculateTotalHardWorksFeeByOwner(String ownerAddress) {
     long lastBlock = ethBlockService.getLastBlock();
-    long lastBlockDate = ethBlockService.getTimestampSecForBlock(null, lastBlock);
+    long lastBlockDate = ethBlockService.getTimestampSecForBlock(lastBlock);
 
     HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
     List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);

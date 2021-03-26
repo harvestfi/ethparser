@@ -12,7 +12,7 @@ import org.hibernate.annotations.NaturalId;
 @Entity
 @Table(name = "a_eth_address")
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "idx")
 public class EthAddressEntity implements Serializable {
 
     @Id

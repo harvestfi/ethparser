@@ -41,7 +41,7 @@ public class HardWorkControllerTest {
     public void shouldTotalCalculateHardWorksFeeByPeriodsAndVault() {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
-            .getTimestampSecForBlock(null, fakeBlock);
+            .getTimestampSecForBlock(fakeBlock);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String data = response.getData();
         Assertions.assertEquals("161.97026179", data);

@@ -2,14 +2,15 @@ package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -26,6 +27,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
@@ -33,6 +35,7 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -116,6 +119,19 @@ public class FunctionsUtils {
     return callStringFunction(findSimpleFunction(functionName, TYPE_ADR), hash, block);
   }
 
+  public Optional<String> callAddressByNameBytes4(
+      String functionName,
+      byte[] arg,
+      String hash,
+      Long block) {
+    // you should create function for every new argument
+    return callStringFunction(new Function(
+        functionName,
+        Collections.singletonList(new Bytes4(arg)),
+        Collections.singletonList(new TypeReference<Address>() {
+        })), hash, block);
+  }
+
   public Optional<String> callStrByName(String functionName, String hash, Long block) {
     return callStringFunction(findSimpleFunction(functionName, TYPE_STR), hash, block);
   }
@@ -124,7 +140,10 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block);
   }
 
-  public Optional<BigInteger> callIntByName(String functionName, String arg, String hash,
+  public Optional<BigInteger> callIntByName(
+      String functionName,
+      String arg,
+      String hash,
       Long block) {
     // you should create function for every new argument
     return callUint256Function(new Function(
@@ -132,6 +151,19 @@ public class FunctionsUtils {
         Collections.singletonList(new Address(arg)),
         Collections.singletonList(new TypeReference<Uint256>() {
         })), hash, block);
+  }
+
+  public Optional<String> callViewFunction(Function function, String address, long block) {
+    List<Type> response = web3Service.callFunction(function, address,
+        DefaultBlockParameter.valueOf(BigInteger.valueOf(block)));
+    if (response == null || response.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.ofNullable(MethodDecoder.typesToString(response));
+    } catch (JsonProcessingException e) {
+      return Optional.empty();
+    }
   }
 
   // ************ PRIVATE METHODS **************************
@@ -170,7 +202,7 @@ public class FunctionsUtils {
   private Optional<String> callStringFunction(Function function, String hash, Long block) {
     List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
-      log.error(function.getName() + " Wrong callback for hash: " + hash);
+      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((String) types.get(0).getValue());
@@ -179,7 +211,7 @@ public class FunctionsUtils {
   private Optional<BigInteger> callUint256Function(Function function, String hash, Long block) {
     List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
-      log.error(function.getName() + " Wrong callback for hash: " + hash);
+      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((BigInteger) types.get(0).getValue());

@@ -38,7 +38,6 @@ import org.web3j.protocol.core.BatchRequest;
 import org.web3j.protocol.core.BatchResponse;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -164,6 +163,10 @@ public class Web3Service {
       Exception lastError = null;
       try {
         result = callable.call();
+      } catch (IllegalStateException e) {
+        if (e.getMessage().startsWith("Not retryable response")) {
+          return null;
+        }
       } catch (Exception e) { //by default all errors, but can be filtered by type
         log.warn("Retryable error: " + e.getMessage());
         lastError = e;
@@ -336,13 +339,14 @@ public class Web3Service {
     EthCall result = callWithRetry(() -> {
       EthCall ethCall = web3.ethCall(transaction, block).send();
       if (ethCall == null) {
-        log.warn("Eth call is null " + function.getName());
+        log.warn("callFunction is null {}", function.getName());
         return null;
       }
       if (ethCall.getError() != null) {
-        log.warn(function.getName() + " Eth call callback is error "
-            + ethCall.getError().getMessage());
-        return null;
+        log.warn("{} callFunction callback is error {}",
+            function.getName(), ethCall.getError().getMessage());
+        throw new IllegalStateException(
+            "Not retryable response: " + ethCall.getError().getMessage());
       }
       return ethCall;
     });
@@ -480,7 +484,7 @@ public class Web3Service {
     }
     checkInit();
     Flowable<EthBlock> flowable;
-    if (Strings.isBlank(appProperties.getStartBlocksBlock())) {
+    if (Strings.isBlank(appProperties.getParseBlocksFrom())) {
       Optional<Long> lastBlock =
           Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
               .map(EthBlockEntity::getNumber);
@@ -496,7 +500,7 @@ public class Web3Service {
     } else {
       flowable = web3.replayPastAndFutureBlocksFlowable(
           DefaultBlockParameter.valueOf(
-              new BigInteger(appProperties.getStartBlocksBlock())),
+              new BigInteger(appProperties.getParseBlocksFrom())),
           true
       );
     }
@@ -563,8 +567,8 @@ public class Web3Service {
 
   private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
     try {
-      while (!queue.offer(o, 10, SECONDS)) {
-        log.warn("The queue is full for " + o);
+      while (!queue.offer(o, 60, SECONDS)) {
+        log.warn("The queue is full for {}", o.getClass().getSimpleName());
       }
 
       lastTxTime.set(Instant.now());

@@ -154,8 +154,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
     //enrich date
     dto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(),
-            ethLog.getBlockNumber().longValue()));
+        ethBlockService.getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
 
     if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
       fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue());
@@ -279,8 +278,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private void createHarvestFromMigration(HarvestDTO dto, HarvestTx migrationTx) {
     HarvestDTO migrationDto = migrationTx.toDto();
     migrationDto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(migrationTx.getBlockHash(),
-            migrationTx.getBlock().longValue()));
+        ethBlockService.getTimestampSecForBlock(migrationTx.getBlock().longValue()));
     migrationDto.setMethodName("Deposit");
     migrationDto.setVault(dto.getVault().replace("_V0", ""));
 

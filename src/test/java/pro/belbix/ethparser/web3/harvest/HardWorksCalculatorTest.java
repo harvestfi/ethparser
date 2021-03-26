@@ -59,7 +59,7 @@ public class HardWorksCalculatorTest {
   @BeforeEach
     public void setup() {
       when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
-        when(ethBlockService.getTimestampSecForBlock(null, fakeBlock2)).thenReturn(fakeEndBlockDate2);
+        when(ethBlockService.getTimestampSecForBlock(fakeBlock2)).thenReturn(fakeEndBlockDate2);
     }
 
     private HarvestDTO mockHarvest(String ethAddr, String vault, double balance, long blockDate) {

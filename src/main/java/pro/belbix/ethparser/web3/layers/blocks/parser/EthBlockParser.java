@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.layers.blocks.parser;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,8 +35,8 @@ import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 public class EthBlockParser {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(100);
-    private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
+    private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
     private final Web3Service web3Service;
     private final AppProperties appProperties;
     private final EthBlockDbService ethBlockDbService;
@@ -64,22 +65,13 @@ public class EthBlockParser {
                     }
                     EthBlockEntity entity = parse(ethBlock);
                     if (entity != null) {
-                        lastTx = Instant.now();
-                        ethBlockDbService.save(entity)
-                            .thenAccept(persistedBlock -> {
-                                if (persistedBlock != null) {
-                                    try {
-                                        output.put(persistedBlock);
-                                    } catch (InterruptedException ignored) {
-                                    }
-                                }
-                            }).exceptionally(e -> {
-                                log.error("Error save {}", entity, e);
-                                if (appProperties.isStopOnParseError()) {
-                                    System.exit(-1);
-                                }
-                                return null;
-                            });
+                      lastTx = Instant.now();
+                      var persistedBlock = ethBlockDbService.save(entity);
+                      log.info("Persisted block {} by {}",
+                          entity.getNumber(), Duration.between(lastTx, Instant.now()).toMillis());
+                      if (persistedBlock != null) {
+                        output.put(persistedBlock);
+                      }
                     }
                 } catch (Exception e) {
                     log.error("Error block parser loop " + ethBlock, e);
@@ -95,6 +87,7 @@ public class EthBlockParser {
     if (ethBlock == null) {
       return null;
     }
+    Instant timer = Instant.now();
     Block block = ethBlock.getBlock();
     EthBlockEntity ethBlockEntity = blockToEntity(block);
 
@@ -111,6 +104,8 @@ public class EthBlockParser {
 
     transactionReceipts(txMap, 0);
 
+    log.info("Block {} parsed by {}ms", ethBlockEntity.getNumber(),
+        Duration.between(timer, Instant.now()).toMillis());
     return ethBlockEntity;
   }
 

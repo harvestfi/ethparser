@@ -41,4 +41,10 @@ public class PriceProviderTest {
         double price = priceProvider.getPriceForCoin("BAS", 11619379L);
       assertEquals(numberFormat("143,06"), String.format("%.2f", price));
     }
+
+  @Test
+  public void priceForFARM() {
+    double price = priceProvider.getPriceForCoin("FARM", 12113876);
+    assertEquals(numberFormat("243.24"), String.format("%.2f", price));
+  }
 }
