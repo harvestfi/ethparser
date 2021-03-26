@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import javax.xml.bind.DatatypeConverter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
@@ -56,11 +57,15 @@ public class SimpleContractGenerator {
   }
 
   public GeneratedContract getContract(String address, int block) {
+    return getContract(address, block, null);
+  }
+
+  public GeneratedContract getContract(String address, int block, String selector) {
     GeneratedContract generatedContract = findInCache(address, block);
     if (generatedContract != null) {
       return generatedContract;
     }
-    return generateContract(address, block, false)
+    return generateContract(address, block, false, selector)
         .map(newContract -> {
           log.info("Generated {} {}", newContract.getName(), newContract.getAddress());
           var implementations
@@ -87,7 +92,9 @@ public class SimpleContractGenerator {
   private Optional<GeneratedContract> generateContract(
       String address,
       long block,
-      boolean isProxy) {
+      boolean isProxy,
+      String selector
+  ) {
 
     boolean isOverride = isOverrideAbi(address);
     String abi = null;
@@ -123,17 +130,17 @@ public class SimpleContractGenerator {
 
     if (!isProxy && (etherscanIsProxy || isProxy(abis))) {
       log.info("Detect proxy {}", address);
-      String proxyAddress = readProxyAddressOnChain(address, block, contract);
+      String proxyAddress = readProxyAddressOnChain(address, block, contract, selector);
       if (proxyAddress == null) {
         if(etherscanIsProxy) {
           log.info("Try to generate proxy from etherscan implementation");
           // only last implementation but it's better than nothing
-          return generateContract(etherscanProxyImpl, block, true);
+          return generateContract(etherscanProxyImpl, block, true, selector);
         }
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
       }
-      return generateContract(proxyAddress, block, true);
+      return generateContract(proxyAddress, block, true, selector);
     }
 
     contract.setProxy(isProxy);
@@ -152,7 +159,12 @@ public class SimpleContractGenerator {
     return StaticAbiMap.MAP.containsKey(address.toLowerCase());
   }
 
-  private String readProxyAddressOnChain(String address, long block, GeneratedContract contract) {
+  private String readProxyAddressOnChain(
+      String address,
+      long block,
+      GeneratedContract contract,
+      String selector
+  ) {
     // open zeppelin proxy doesn't have public call_implementation
     // some contracts have event but didn't call it
     String proxyImpl =
@@ -169,12 +181,11 @@ public class SimpleContractGenerator {
     }
 
     //0xProxy https://github.com/0xProject/0x-protocol-specification/blob/master/exchange-proxy/exchange-proxy.md
-    if (contract.getFunction(IMPLEMENTATION_0X_HASH) != null) {
-//      byte[] selector = {0, 0, 0, 2};
-//      return functionsUtils.callAddressByNameBytes4(IMPLEMENTATION_0X, selector, address, block)
-//          .orElse(null);
-      // todo
-      return null;
+    if (contract.getFunction(IMPLEMENTATION_0X_HASH) != null && selector != null) {
+      selector = selector.replace("0x", "");
+      byte[] selectorB = DatatypeConverter.parseHexBinary(selector);
+      return functionsUtils.callAddressByNameBytes4(IMPLEMENTATION_0X, selectorB, address, block)
+          .orElse(null);
     }
 
     // manual proxy implementation can't be detected onchain

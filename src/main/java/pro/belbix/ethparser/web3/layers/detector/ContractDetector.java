@@ -40,6 +40,7 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.layers.SubscriptionRouter;
+import pro.belbix.ethparser.web3.layers.ViewRouter;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 
 @Service
@@ -55,17 +56,19 @@ public class ContractDetector {
     private final ContractEventsDbService contractEventsDbService;
     private final SimpleContractGenerator simpleContractGenerator;
     private final FunctionsUtils functionsUtils;
+    private final ViewRouter viewRouter;
 
     public ContractDetector(AppProperties appProperties,
         SubscriptionRouter subscriptionRouter,
         ContractEventsDbService contractEventsDbService,
         SimpleContractGenerator simpleContractGenerator,
-        FunctionsUtils functionsUtils) {
+        FunctionsUtils functionsUtils, ViewRouter viewRouter) {
         this.appProperties = appProperties;
         this.subscriptionRouter = subscriptionRouter;
         this.contractEventsDbService = contractEventsDbService;
         this.simpleContractGenerator = simpleContractGenerator;
         this.functionsUtils = functionsUtils;
+        this.viewRouter = viewRouter;
     }
 
     public void start() {
@@ -81,7 +84,7 @@ public class ContractDetector {
                         ContractEventEntity eventPersisted =
                             contractEventsDbService.save(event);
                         if (eventPersisted != null) {
-                            //TODO send on C layer
+                            viewRouter.route(eventPersisted);
                         }
                     }
                 } catch (Exception e) {
@@ -173,7 +176,11 @@ public class ContractDetector {
 
         String address = tx.getToAddress().getAddress();
         GeneratedContract contract =
-            simpleContractGenerator.getContract(address, (int) tx.getBlockNumber().getNumber());
+            simpleContractGenerator.getContract(
+                address,
+                (int) tx.getBlockNumber().getNumber(),
+                methodId
+            );
         if (contract == null) {
             log.warn("Can't generate contract for {}", address);
             return;
