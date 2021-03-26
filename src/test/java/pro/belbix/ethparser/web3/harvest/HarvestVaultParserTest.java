@@ -51,6 +51,28 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void parseVaultDebug_iPS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            12090189,
+            LOG_ID,
+            "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
+            "Withdraw",
+            "iPS",
+            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_202",
+            "96,67835046",
+            "",
+            "",
+            27630L,
+            37436685L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
     public void parseVault_SUSHI_ETH_DAI() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x203e97aa6eb65a1a02d9e80083414058303f241e",
