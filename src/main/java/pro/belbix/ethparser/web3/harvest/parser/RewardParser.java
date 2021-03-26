@@ -119,7 +119,7 @@ public class RewardParser implements Web3Parser {
       log.error("Wrong values for " + ethLog);
       return null;
     }
-    long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlockHash(), nextBlock);
+    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock);
 
     double farmRewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {

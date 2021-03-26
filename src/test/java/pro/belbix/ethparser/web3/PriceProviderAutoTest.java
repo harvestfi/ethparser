@@ -1,22 +1,20 @@
 package pro.belbix.ethparser.web3;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +26,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.PriceController;
-import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -38,14 +35,20 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 public class PriceProviderAutoTest {
 
   // todo create a tolerance for each token
-  private static final Double TOLERANCE_PCT = 0.6; // coingecko the has worst data for some tokens :(
-  private static final long TARGET_BLOCK_DATE = 1616262520;
+  private static final Double TOLERANCE_PCT = 0.1; // coingecko the has worst data for some tokens :(
+  private static final String CG_URL = "https://api.coingecko.com/api/v3/";
 
   @Autowired
   private PriceController priceController;
 
   @Autowired
   private ContractLoader contractLoader;
+
+  @Autowired
+  private EthBlockService ethBlockService;
+
+  @Autowired
+  private Web3Service web3Service;
 
   @BeforeEach
   void setUp() {
@@ -54,118 +57,84 @@ public class PriceProviderAutoTest {
 
   private final Set<String> exclude = Set.of(
       "ZERO",
-      "SBTC"
+      "YCRV",
+      "CRV_CMPND",
+      "CRV_BUSD"
   );
 
   @TestFactory
-  public Stream<DynamicTest> tokenPrices()
-      throws Exception {
-    String dateStr = this.getDateByBlockNumber();
-        HashMap<String, Double> addressPriceMap = this.fetchPrices(dateStr);
+  public Stream<DynamicTest> tokenPrices() throws Exception {
+    long block = web3Service.fetchCurrentBlock().longValue();
+    HashMap<String, Double> addressPriceMap = this.fetchPrices();
 
-        return ContractUtils.getAllTokens().stream()
-            .filter(token -> !exclude.contains(token.getContract().getName()))
-            .map(token -> DynamicTest.dynamicTest("token: " + token.getSymbol(), () -> {
-                String tokenAddress = token.getContract().getAddress();
-                RestResponse response = priceController.token(tokenAddress);
-                if (!response.getCode().equals("200")) {
-                    Assertions.fail("Failed to calculate price for token: " + token.getSymbol());
-                }
-
-                String priceStr = response.getData();
-                double price = Double.parseDouble(priceStr.replace(",", "."));
-
-                Double coingeckoPrice = addressPriceMap.get(tokenAddress);
-                if (coingeckoPrice == null) {
-                    System.out.println("No external price found, Skip token test: " + token.getSymbol());
-                    return;
-                }
-
-                double priceToleranceDelta = coingeckoPrice * TOLERANCE_PCT;
-                Assertions.assertEquals(coingeckoPrice, price, priceToleranceDelta,
-                    "Token price deviation: " + token.getSymbol());
-            }));
-    }
-
-    private HashMap<String, Double> fetchPrices(String date)
-        throws InterruptedException, ExecutionException, JSONException {
-        HashMap<String, Double> coinPriceMap = new HashMap<>();
-
-        URI coinListUri = getCoinListAPIUri();
-        CompletableFuture<String> coinListFuture = this.callCoinGeckoAPI(coinListUri);
-        String coinListJsonStr = coinListFuture.get();
-        JSONArray coinListJsonArray = new JSONArray(coinListJsonStr);
-
-        List<CompletableFuture<Void>> futuresList = new ArrayList<>();
-
-        for (int i = 0; i < coinListJsonArray.length(); i++) {
-            JSONObject coin = coinListJsonArray.getJSONObject(i);
-            JSONObject platforms = coin.getJSONObject("platforms");
-            if (!platforms.has("ethereum")) {
-                continue;
+    return ContractUtils.getAllTokens().stream()
+        .filter(token -> !exclude.contains(token.getContract().getName()))
+        .map(token -> {
+          String name = token.getContract().getName() + "(" + token.getSymbol() + ")";
+          return DynamicTest.dynamicTest(name, () -> {
+            String tokenAddress = token.getContract().getAddress();
+            RestResponse response = priceController.token(tokenAddress, block);
+            if (!response.getCode().equals("200")) {
+              Assertions.fail("Failed to calculate price for token: " + token.getSymbol());
             }
 
-            String ethAddr = platforms.getString("ethereum");
-            Optional<TokenEntity> token = ContractUtils.getTokenByAddress(ethAddr);
-            if (token.isEmpty()) {
-                continue;
+            String priceStr = response.getData();
+            double price = Double.parseDouble(priceStr.replace(",", "."));
+
+            Double coingeckoPrice = addressPriceMap.get(tokenAddress);
+            if (coingeckoPrice == null) {
+              System.out.println("No external price found, Skip token test: " + name);
+              return;
             }
 
-            URI coinHistoryUri = this.getCoinHistoryAPIUri(coin.getString("id"), date);
-            CompletableFuture<String> coinHistoryFuture = this.callCoinGeckoAPI(coinHistoryUri);
-            CompletableFuture<Void> future = coinHistoryFuture.thenAccept(coinHistoryJsonStr -> {
-                JSONObject coinHistoryJson;
-                try {
-                    coinHistoryJson = new JSONObject(coinHistoryJsonStr);
-                    if (!coinHistoryJson.has("market_data")) {
-                        return;
-                    }
+            double priceToleranceDelta = coingeckoPrice * TOLERANCE_PCT;
+            Assertions.assertEquals(coingeckoPrice, price, priceToleranceDelta,
+                "Token price deviation: " + name);
+          });
+        });
+  }
 
-                    String historyPrice = coinHistoryJson
-                        .getJSONObject("market_data")
-                        .getJSONObject("current_price")
-                        .getString("usd");
-                    coinPriceMap.put(ethAddr, Double.parseDouble(historyPrice));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+  private HashMap<String, Double> fetchPrices() throws Exception {
+    HashMap<String, Double> result = new HashMap<>();
 
-            });
+    String coins = ContractUtils.getAllTokens().stream()
+        .map(t -> t.getContract().getAddress())
+        .collect(Collectors.joining(","));
+    JSONObject json = new JSONObject(this.callCoinGeckoAPI(getCoinPriceAPIUri(coins)).get());
 
-            futuresList.add(future);
-        }
+    ContractUtils.getAllTokens().forEach(t -> {
+      String adr = t.getContract().getAddress();
+      try {
+        double price = json.getJSONObject(adr).getDouble("usd");
+        result.put(adr, price);
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    });
+    return result;
+  }
 
-        CompletableFuture
-            .allOf(futuresList.toArray(new CompletableFuture[0]))
-            .get();
+  private URI getCoinPriceAPIUri(String coins) {
+    String coinHistoryTpl =
+        CG_URL + "simple/token_price/ethereum?vs_currencies=usd&contract_addresses=%s";
+    String coinHistoryUri = String.format(coinHistoryTpl, coins);
+    return URI.create(coinHistoryUri);
+  }
 
-        return coinPriceMap;
-    }
+  private CompletableFuture<String> callCoinGeckoAPI(URI uri) {
+    HttpRequest request = HttpRequest.newBuilder(uri).header("Accept", "application/json").build();
 
-    private URI getCoinListAPIUri() {
-        String coinListUri = "https://api.coingecko.com/api/v3/coins/list?include_platform=true";
-        return URI.create(coinListUri);
-    }
+    return HttpClient.newHttpClient()
+        .sendAsync(request, BodyHandlers.ofString())
+        .thenApply(HttpResponse::body);
+  }
 
-    private URI getCoinHistoryAPIUri(String coinId, String date) {
-        String coinHistoryTpl = "https://api.coingecko.com/api/v3/coins/%s/history?date=%s";
-        String coinHistoryUri = String.format(coinHistoryTpl, coinId, date);
-        return URI.create(coinHistoryUri);
-    }
-
-    private CompletableFuture<String> callCoinGeckoAPI(URI uri) {
-        HttpRequest request = HttpRequest.newBuilder(uri).header("Accept", "application/json").build();
-
-        return HttpClient.newHttpClient()
-            .sendAsync(request, BodyHandlers.ofString())
-            .thenApply(HttpResponse::body);
-    }
-
-    private String getDateByBlockNumber() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-      return dateFormat.format(new Date(TARGET_BLOCK_DATE * 1000));
-    }
+  private String getDateByBlockNumber(long block) {
+    long ts = ethBlockService.getTimestampSecForBlock(block);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    return dateFormat.format(new Date(ts * 1000));
+  }
 
 
 }

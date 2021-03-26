@@ -36,8 +36,11 @@ public class PriceController {
     }
 
     @GetMapping(value = "/lp/{lp}")
-    public RestResponse lpUsdAmount(@PathVariable("lp") String lp,
-                                    @RequestParam("amount") double amount) {
+    public RestResponse lpUsdAmount(
+        @PathVariable("lp") String lp,
+        @RequestParam("amount") double amount,
+        @RequestParam(value = "block", required = false) Long block
+    ) {
         try {
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
@@ -49,7 +52,9 @@ public class PriceController {
                     return RestResponse.error("LP " + lp + " not supported");
                 }
             }
-            long block = ethBlockService.getLastBlock();
+            if (block == null) {
+                block = ethBlockService.getLastBlock();
+            }
             double amountUsd = priceProvider.getLpTokenUsdPrice(
                 lpAddress.toLowerCase(), amount, block);
             return RestResponse.ok(String.format("%.8f", amountUsd)).addBlock(block);
@@ -60,10 +65,15 @@ public class PriceController {
     }
 
     @GetMapping(value = "/token/{token}")
-    public RestResponse token(@PathVariable("token") String token) {
+    public RestResponse token(
+        @PathVariable("token") String token,
+        @RequestParam(value = "block", required = false) Long block
+    ) {
         try {
             String tokenName = token;
-            long block = ethBlockService.getLastBlock();
+            if (block == null) {
+                block = ethBlockService.getLastBlock();
+            }
             if (token.startsWith("0x")) {
                 //shortcut for LP tokens from the dashboard
                 if (ContractUtils.isUniPairAddress(token)) {
