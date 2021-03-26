@@ -151,7 +151,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     HarvestDTO dto = harvestTx.toDto();
-    
     //enrich date
     dto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(),
@@ -208,7 +207,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
       TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
       String vault = receipt.getTo();
-      if (vault.equals(ContractUtils.getAddressByName("iPS", ContractType.VAULT).toString())) {
+      if (vault.equalsIgnoreCase(ContractUtils.getAddressByName("iPS", ContractType.VAULT).get())) {
         return false; //not count deposit from iPS
       }
       harvestTx.setMethodName("Deposit");
