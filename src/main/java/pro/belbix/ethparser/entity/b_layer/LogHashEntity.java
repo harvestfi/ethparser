@@ -11,10 +11,10 @@ import lombok.Data;
 import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 
 @Entity
-@Table(name = "b_log_hexes")
+@Table(name = "b_log_hashes")
 @Data
 @JsonInclude(Include.NON_NULL)
-public class LogHexEntity {
+public class LogHashEntity {
 
   @Id
   private String methodId;

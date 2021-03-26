@@ -7,9 +7,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
+import pro.belbix.ethparser.web3.erc20.db.TransferDTOComparator;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration

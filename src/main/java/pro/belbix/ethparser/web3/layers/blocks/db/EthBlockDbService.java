@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -26,21 +25,12 @@ import pro.belbix.ethparser.service.SequenceService;
 @Log4j2
 public class EthBlockDbService {
 
-  private static final int MAX_TASKS = 10;
   private final static long MAX_SEQ = 100000;
 
   private final EthBlockRepository ethBlockRepository;
   private final EthHashRepository ethHashRepository;
   private final EthAddressRepository ethAddressRepository;
   private final SequenceService sequenceService;
-
-  ThreadPoolExecutor executor = new ThreadPoolExecutor(
-      0,
-      MAX_TASKS,
-      1L, TimeUnit.SECONDS,
-      new SynchronousQueue<>()
-  );
-  private final AtomicInteger activeWorkers = new AtomicInteger(0);
 
   public EthBlockDbService(EthBlockRepository ethBlockRepository,
       EthHashRepository ethHashRepository,
@@ -52,57 +42,19 @@ public class EthBlockDbService {
     this.sequenceService = sequenceService;
   }
 
-  public CompletableFuture<EthBlockEntity> save(EthBlockEntity block) {
+  //multithreading doesn't work with current solution
+  @Transactional
+  public synchronized EthBlockEntity save(EthBlockEntity block) {
     if (ethBlockRepository.existsById(block.getNumber())) {
       log.warn("Duplicate eth block " + block.getNumber());
-      return CompletableFuture.supplyAsync(() -> null);
+      return null;
     }
+    AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
+    long startSeq = seq.get();
+    BlockEntityCollector collector = persistChildEntities(block, seq, startSeq);
+    new BlockEntityUpdater(block, collector).update();
+    return ethBlockRepository.saveAndFlush(block);
 
-    waitFreeExecutors();
-    return CompletableFuture.supplyAsync(() -> startWorker(block), executor)
-        .handle((b, e) -> {
-          log.debug("Block task completed, workers: {}", activeWorkers.decrementAndGet());
-          if (e != null) {
-            throw new RuntimeException(e);
-          }
-          return b;
-        });
-  }
-
-  @Transactional
-  EthBlockEntity startWorker(EthBlockEntity block) {
-    try {
-      Thread.currentThread().setName(block.getNumber() + " block saver");
-
-      AtomicLong seq = new AtomicLong(sequenceService.releaseRange(MAX_SEQ));
-      long startSeq = seq.get();
-      BlockEntityCollector collector = persistChildEntities(block, seq, startSeq);
-      new BlockEntityUpdater(block, collector).update();
-      ethBlockRepository.save(block);
-      return ethBlockRepository.findById(block.getNumber()).orElseThrow();
-    } catch (Exception e) {
-      log.error("Block db service worker error with {}", block.getNumber(), e);
-      throw e;
-    }
-  }
-
-  private void waitFreeExecutors() {
-    while (true) {
-      int w = activeWorkers.get();
-      log.debug("Active block executors {}", w);
-      if (w + 1 > MAX_TASKS) {
-        log.warn("Block task queue is full, wait a second");
-        try {
-          //noinspection BusyWait
-          Thread.sleep(1000);
-        } catch (InterruptedException ignored) {
-        }
-        continue;
-      }
-      if (activeWorkers.compareAndSet(w, w + 1)) {
-        break;
-      }
-    }
   }
 
   private BlockEntityCollector persistChildEntities(EthBlockEntity block, AtomicLong seq,

@@ -1,0 +1,19 @@
+ethparser:
+  onlyParse: true
+  stopOnParseError: true
+
+  parseLog: false
+  parseTransactions: false
+  parseUniswapLog: false
+  parseHarvestLog: false
+  parseHardWorkLog: false
+  parseRewardsLog: false
+  parseImportantEvents: false
+  convertUniToHarvest: false
+  parseTransfers: false
+  parsePrices: false
+  parseHarvest: false
+  parseDeployerTransactions: false
+
+  parseBlocks: true
+  parseBlocksFrom: 12080691

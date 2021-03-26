@@ -46,7 +46,6 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.WrapperReader;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
@@ -158,21 +157,18 @@ public class ContractGenerator {
             if (diff < 200) {
                 Thread.sleep(200 - diff);
             }
-            EtherscanService.ResponseSourceCode sourceCode =
+            EtherscanService.SourceCodeResult sourceCode =
                 etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
-            if (sourceCode == null || sourceCode.getResult() == null || sourceCode.getResult()
-                .isEmpty()) {
-                log.error("Empty etherscan response for {}", address);
+            if (sourceCode == null) {
                 return null;
             }
-            EtherscanService.SourceCodeResult result = sourceCode.getResult().get(0);
 
-            List<AbiDefinition> abiDefinitions = toContractDefinition(result.getAbi());
+            List<AbiDefinition> abiDefinitions = abiToDefinition(sourceCode.getAbi());
 
             String className = generate(
                 abiDefinitions,
                 new File(dir),
-                result.getContractName(),
+                sourceCode.getContractName(),
                 pkg
             );
             contractToWrapperName.put(address, className);
@@ -301,12 +297,13 @@ public class ContractGenerator {
         return (sb.toString().hashCode() + "").replace("-", "0");
     }
 
-    private List<AbiDefinition> toContractDefinition(String abi) {
+    public static List<AbiDefinition> abiToDefinition(String abi) {
         ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
         AbiDefinition[] abiDefinition;
         try {
             abiDefinition = objectMapper.readValue(abi, AbiDefinition[].class);
         } catch (IOException e) {
+            log.error("abiToDefinition error for: {}", abi);
             throw new RuntimeException(e);
         }
         return Arrays.asList(abiDefinition);

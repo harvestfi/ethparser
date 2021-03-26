@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.comparator;
+package pro.belbix.ethparser.web3.erc20.db;
 
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 

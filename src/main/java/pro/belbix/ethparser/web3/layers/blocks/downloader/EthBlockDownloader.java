@@ -54,40 +54,37 @@ public class EthBlockDownloader {
     }
 
     private void parseBlockAndSave(long block) {
-        Instant timer = Instant.now();
+      Instant timer = Instant.now();
 
-    EthBlock ethBlock = web3Service.findBlockByNumber(block, true);
-    log.debug("Fetched via web3 {} {}", block,
-        Duration.between(timer, Instant.now()).toMillis());
-    timer = Instant.now();
-    EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock);
-    if (ethBlockEntity == null) {
-      return;
+      EthBlock ethBlock = web3Service.findBlockByNumber(block, true);
+      log.debug("Fetched via web3 {} {}", block,
+          Duration.between(timer, Instant.now()).toMillis());
+      timer = Instant.now();
+      EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock);
+      if (ethBlockEntity == null) {
+        return;
+      }
+      log.debug("Parsed {} {}", block,
+          Duration.between(timer, Instant.now()).toMillis());
+
+      final long blockNum = ethBlockEntity.getNumber();
+      final Instant taskTimer = Instant.now();
+      try {
+        var persistedBlock = ethBlockDbService.save(ethBlockEntity);
+        long dur = Duration.between(taskTimer, Instant.now()).toMillis();
+        if (persistedBlock != null) {
+          log.info("Handled {}. Saved block {} for {}",
+              count.get(), blockNum, dur);
+        } else {
+          log.info("Handled {}. Block have not saved {} for {}",
+              count.get(), blockNum, dur);
+        }
+
+        count.incrementAndGet();
+      } catch (Exception e) {
+        log.error("Error save {}", blockNum, e);
+        run.set(false);
+      }
     }
-    log.debug("Parsed {} {}", block,
-        Duration.between(timer, Instant.now()).toMillis());
-
-    final long blockNum = ethBlockEntity.getNumber();
-    final Instant taskTimer = Instant.now();
-    ethBlockDbService.save(ethBlockEntity)
-        .thenAccept(persistedBlock -> {
-          if (persistedBlock != null) {
-            log.info("Handled {}. Saved block {} for {}", count.get(), blockNum,
-                Duration.between(taskTimer, Instant.now()).toMillis());
-          } else {
-            log.info("Handled {}. Block have not saved {} for {}", count.get(), blockNum,
-                Duration.between(taskTimer, Instant.now()).toMillis());
-          }
-
-          count.incrementAndGet();
-        })
-        .exceptionally(e -> {
-          log.error("Error save {}", blockNum, e);
-          run.set(false);
-          // try to parse it again
-//                parseAndSave(blockNum);
-          return null;
-        });
-  }
 
 }

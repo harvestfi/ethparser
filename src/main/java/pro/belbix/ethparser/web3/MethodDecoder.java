@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -25,6 +26,7 @@ import org.web3j.abi.datatypes.Ufixed;
 import org.web3j.abi.datatypes.Uint;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.crypto.Hash;
+import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
@@ -117,17 +119,22 @@ public abstract class MethodDecoder {
     return parameters.stream().filter(TypeReference::isIndexed).collect(Collectors.toList());
   }
 
-  public static String typesToString(List<Type> types) {
+  public static String typesToString(List<Type> types) throws JsonProcessingException {
     if (types == null || types.size() == 0) {
       return "";
     }
-    StringBuilder sb = new StringBuilder();
-    for (Type type : types) {
-      sb.append(type.getValue().toString());
-      sb.append(",");
-    }
-    sb.setLength(sb.length() - 1);
-    return sb.toString();
+    return ObjectMapperFactory.getObjectMapper().writeValueAsString(
+        types.stream()
+            .map(t -> t.getValue().toString())
+            .collect(Collectors.toList())
+    );
+//    StringBuilder sb = new StringBuilder();
+//    for (Type type : types) {
+//      sb.append(type.getValue().toString());
+//      sb.append(",");
+//    }
+//    sb.setLength(sb.length() - 1);
+//    return sb.toString();
   }
 
   protected Optional<String> parseMethodId(Log ethLog) {
@@ -181,6 +188,18 @@ public abstract class MethodDecoder {
     return result.toString();
   }
 
+  public static String valueToString(Object value) {
+    if (value instanceof byte[]) {
+      byte[] bytes = (byte[]) value;
+      StringBuilder sb = new StringBuilder(bytes.length * 2);
+      for (byte b : bytes) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    }
+    return value.toString();
+  }
+
   static <T extends Type> String getTypeName(TypeReference<T> typeReference) {
     try {
       java.lang.reflect.Type reflectedType = typeReference.getType();
@@ -213,6 +232,12 @@ public abstract class MethodDecoder {
             + "["
             + ((TypeReference.StaticArrayTypeReference) typeReference).getSize()
             + "]";
+      } else if (type.getSuperclass().equals(StaticArray.class)) {
+        Class<U> parameterizedType = getParameterizedTypeFromArray(typeReference);
+        String parameterizedTypeName = getSimpleTypeName(parameterizedType);
+        int size = Integer.parseInt(
+            type.getSimpleName().replace("StaticArray", ""));
+        return parameterizedTypeName + "[" + size + "]";
       } else {
         throw new UnsupportedOperationException("Invalid type provided " + type.getName());
       }
