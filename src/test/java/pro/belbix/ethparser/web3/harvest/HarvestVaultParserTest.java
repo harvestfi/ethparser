@@ -51,6 +51,37 @@ public class HarvestVaultParserTest {
     }
 
     @Test
+    public void shouldParseWithdraw_iPS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            12090189,
+            LOG_ID,
+            "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
+            "Withdraw",
+            "iPS",
+            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_202",
+            "96,67835046",
+            "",
+            "",
+            27630L,
+            37436685L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void shouldNotParseDeposit_iPS() {
+        harvestVaultParseTestNull(
+            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            12090189,
+            2
+        );
+    }
+
+    @Test
     public void parseVault_SUSHI_ETH_DAI() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x203e97aa6eb65a1a02d9e80083414058303f241e",
@@ -1846,6 +1877,18 @@ public class HarvestVaultParserTest {
             confirmed
         );
         return dto;
+    }
+
+    private void harvestVaultParseTestNull(
+        String fromVault,
+        int onBlock,
+        int logId
+    ) {
+        List<LogResult> logResults = web3Service
+            .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+        assertTrue("Log smaller then necessary", logId < logResults.size());
+        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
+        assertNull(dto);
     }
 
     private void assertDto(HarvestDTO dto,
