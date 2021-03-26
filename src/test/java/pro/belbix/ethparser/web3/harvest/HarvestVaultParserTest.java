@@ -77,17 +77,7 @@ public class HarvestVaultParserTest {
         harvestVaultParseTestNull(
             "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
             12090189,
-            2,
-            "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
-            "Staked#V2",
-            "PS",
-            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_222",
-            "0",
-            "",
-            "",
-            0L,
-            0L,
-            true
+            2
         );
     }
 
@@ -1892,17 +1882,7 @@ public class HarvestVaultParserTest {
     private void harvestVaultParseTestNull(
         String fromVault,
         int onBlock,
-        int logId,
-        String owner,
-        String methodName,
-        String vault,
-        String id,
-        String _amount,
-        String _amountIn,
-        String sharePrice,
-        Long usdAmount,
-        Long usdTvl,
-        boolean confirmed
+        int logId
     ) {
         List<LogResult> logResults = web3Service
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
