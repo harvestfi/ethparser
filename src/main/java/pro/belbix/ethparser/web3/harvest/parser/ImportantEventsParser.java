@@ -112,7 +112,7 @@ public class ImportantEventsParser implements Web3Parser {
     //enrich date
     dto.setBlockDate(
         ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
+            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
 
     parseEvent(dto, tx.getMethodName());
     parseVault(dto, tx.getVault());

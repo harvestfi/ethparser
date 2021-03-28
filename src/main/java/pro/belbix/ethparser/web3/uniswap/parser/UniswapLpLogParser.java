@@ -112,7 +112,7 @@ public class UniswapLpLogParser implements Web3Parser {
     //enrich date
     dto.setBlockDate(
         ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockHash(), ethLog.getBlockNumber().longValue()));
+            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
 
     if (dto.getLastPrice() == null) {
       Double otherCoinPrice = priceProvider

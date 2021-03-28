@@ -18,10 +18,13 @@ public class ContractConstants {
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
+  public static final String ORACLE = "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase();
+  public static final Long ORACLE_START_BLOCK = 12015724L;
   public static final double D2 = 100.0;
   public static final double D6 = 1000_000.0;
   public static final double D8 = 100_000_000.0;
   public static final double D18 = 1000_000_000_000_000_000.0;
+
 
   public static final int PAIR_TYPE_UNISWAP = 1;
   public static final int PAIR_TYPE_SUSHI = 2;

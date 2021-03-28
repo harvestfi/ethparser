@@ -151,11 +151,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
     }
 
     HarvestDTO dto = harvestTx.toDto();
-
     //enrich date
     dto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(harvestTx.getBlockHash(),
-            ethLog.getBlockNumber().longValue()));
+        ethBlockService.getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
 
     if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
       fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue());
@@ -206,6 +204,11 @@ public class HarvestVaultParserV2 implements Web3Parser {
     if ("Staked".equals(harvestTx.getMethodName())) {
       harvestTx.setMethodName("Deposit");
     } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
+      TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+      String vault = receipt.getTo();
+      if (vault.equalsIgnoreCase(ContractUtils.getAddressByName("iPS", ContractType.VAULT).get())) {
+        return false; //not count deposit from iPS
+      }
       harvestTx.setMethodName("Deposit");
       harvestTx.setAmount(harvestTx.getIntFromArgs()[0]);
     } else if ("withdrawn".equals(harvestTx.getMethodName().toLowerCase())) {
@@ -279,8 +282,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private void createHarvestFromMigration(HarvestDTO dto, HarvestTx migrationTx) {
     HarvestDTO migrationDto = migrationTx.toDto();
     migrationDto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(migrationTx.getBlockHash(),
-            migrationTx.getBlock().longValue()));
+        ethBlockService.getTimestampSecForBlock(migrationTx.getBlock().longValue()));
     migrationDto.setMethodName("Deposit");
     migrationDto.setVault(dto.getVault().replace("_V0", ""));
 

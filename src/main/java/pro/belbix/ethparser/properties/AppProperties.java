@@ -45,7 +45,7 @@ public class AppProperties {
 
     // block parsing
     private boolean parseBlocks = false;
-    private String startBlocksBlock = "";
+    private String parseBlocksFrom = "";
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;

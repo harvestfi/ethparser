@@ -15,6 +15,9 @@ public class WsService {
   public final static String PRICES_TOPIC_NAME = "/topic/prices";
   public final static String DEPLOYER_TRANSACTIONS_TOPIC_NAME = "/topic/transactions/deployer";
 
+  // ABC layers
+  public final static String UNI_PRICES_TOPIC_NAME = "/topic/uni_prices";
+
   private final SimpMessagingTemplate messagingTemplate;
 
   public WsService(SimpMessagingTemplate messagingTemplate) {

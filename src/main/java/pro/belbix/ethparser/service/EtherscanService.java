@@ -30,7 +30,7 @@ public class EtherscanService {
     restTemplate.setMessageConverters(Collections.singletonList(convertor));
   }
 
-  public ResponseSourceCode contractSourceCode(String address, String apiKey) {
+  public SourceCodeResult contractSourceCode(String address, String apiKey) {
     Map<String, ?> uriVariables = Map.of(
         "module", "contract",
         "action", "getsourcecode",
@@ -55,7 +55,25 @@ public class EtherscanService {
       log.error("Error status: {}", response.getBody().getMessage());
       return null;
     }
-    return response.getBody();
+    ResponseSourceCode code = response.getBody();
+
+    if (code.getResult() == null || code.getResult().isEmpty()) {
+      log.error("Empty response for {}", address);
+      return null;
+    }
+    SourceCodeResult result = code.getResult().get(0);
+    if (result == null) {
+      log.error("Empty code result for {}", address);
+      return null;
+    }
+
+    if (result.getAbi() == null
+        || "Contract source code not verified".equals(result.getAbi())) {
+      log.warn("Not verified source code for {} {}", result.getContractName(), address);
+      return null;
+    }
+
+    return result;
   }
 
   private ResponseEntity<ResponseSourceCode> sendRequest(Map<String, ?> vars) {

@@ -18,15 +18,12 @@ public class EthBlockService {
     this.blockCacheRepository = blockCacheRepository;
   }
 
-  public synchronized long getTimestampSecForBlock(String blockHash, long blockId) {
+  public synchronized long getTimestampSecForBlock(long blockId) {
     BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
     if (cachedBlock != null) {
       return cachedBlock.getBlockDate();
     }
-    if (blockHash == null) {
-      throw new IllegalStateException("Not found block " + blockId + " in cache");
-    }
-    Block block = web3.findBlockByHash(blockHash, false).getBlock();
+    Block block = web3.findBlockByNumber(blockId, false).getBlock();
     if (block == null) {
       return 0;
     }
