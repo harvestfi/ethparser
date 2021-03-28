@@ -16,7 +16,7 @@ import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.repositories.c_layer.UniPriceViewRepository;
-import pro.belbix.ethparser.views.ViewI;
+import pro.belbix.ethparser.repositories.c_layer.ViewI;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.ws.WsService;
 

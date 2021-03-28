@@ -60,7 +60,7 @@ public class ContractEventsDbService {
           "Try to save event from not persisted block " + blockNumber);
     }
     persistChildren(event);
-    return contractEventRepository.save(event);
+    return contractEventRepository.saveAndFlush(event);
   }
 
   private void persistChildren(ContractEventEntity event) {

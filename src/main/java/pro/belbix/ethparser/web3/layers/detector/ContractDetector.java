@@ -110,7 +110,8 @@ public class ContractDetector {
             handleEligibleAddresses(eligible.component1(), block);
 
         handleEligibleTxs(eligible.component2(), eventEntities);
-
+        log.info("Block {} handled and generated {} events",
+            block.getNumber(), eventEntities.size());
         return eventEntities;
     }
 
