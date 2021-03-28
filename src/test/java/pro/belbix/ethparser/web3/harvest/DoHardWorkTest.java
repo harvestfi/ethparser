@@ -204,8 +204,9 @@ public class DoHardWorkTest {
         if (dto.getFullRewardUsd() != 0) {
             double psReward = dto.getFarmBuyback();
             double psRewardUsd = psReward * dto.getFarmPrice();
-            double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
-            double wholeRewardBasedOnVaultReward = dto.getFullRewardUsd() / 0.7;
+
+            double wholeRewardBasedOnPsReward = psRewardUsd / dto.getProfitSharingRate();
+            double wholeRewardBasedOnVaultReward = dto.getFullRewardUsd() / (1-dto.getProfitSharingRate());
             // when price volatile we can by less % value for the strategy income
             double diff =
                 Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward)

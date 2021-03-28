@@ -163,17 +163,35 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void parseRates(HardWorkDTO dto, String strategyHash) {
-    long profitSharingDenominator =  functionsUtils.callIntByName("profitSharingDenominator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).longValue();
-    long profitSharingNumerator =  functionsUtils.callIntByName("profitSharingNumerator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).longValue();
-    long profitSharingRate = 0;
-    
-    long buybackRate = 0;
-
+    double profitSharingDenominator =  functionsUtils.callIntByName("profitSharingDenominator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+    double profitSharingNumerator =  functionsUtils.callIntByName("profitSharingNumerator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+    double profitSharingRate = 0.0;
     if (profitSharingDenominator>0) {
-      profitSharingRate = profitSharingNumerator/profitSharingNumerator;
+      profitSharingRate = profitSharingNumerator/profitSharingDenominator;
     }
-
     dto.setProfitSharingRate(profitSharingRate);
+
+
+    double buybackRate = 0;
+    double buyBackRatio = functionsUtils.callIntByName("buybackRatio", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+    if (buyBackRatio>0){
+      buybackRate = buyBackRatio / 10000;
+    }
+    else{
+      String universalLiquidator = functionsUtils.callStrByName("universalLiquidator", strategyHash, dto.getBlock()).orElse("");
+      if (universalLiquidator != null && universalLiquidator!=""){
+        buybackRate = 1;
+      }
+      else {
+        String liquidateRewardToWethInSushi = functionsUtils.callStrByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse("");
+        if (liquidateRewardToWethInSushi != null && liquidateRewardToWethInSushi=="True"){
+          buybackRate = 1;
+        }
+        else {
+          buybackRate = 0;
+        }
+      }
+    }
     dto.setBuyBackRate(buybackRate);
   }
 
@@ -208,7 +226,7 @@ public class HardWorkParser implements Web3Parser {
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
-        double fullReward = (reward * dto.getFarmPrice()) / 0.7; // full reward
+        double fullReward = (reward * dto.getFarmPrice()) / (1-dto.getProfitSharingRate()); // full reward
         dto.setFullRewardUsd(fullReward);
       } else {
         // PS pool reward
@@ -217,7 +235,7 @@ public class HardWorkParser implements Web3Parser {
         // for non AutoStake strategy we will not have accurate data for strategy reward
         // just calculate aprox value based on PS reward
         if (!autoStake) {
-          double fullReward = ((reward * dto.getFarmPrice()) / 0.3); // full reward
+          double fullReward = ((reward * dto.getFarmPrice()) / dto.getProfitSharingRate()); // full reward
           dto.setFullRewardUsd(fullReward);
         }
       }

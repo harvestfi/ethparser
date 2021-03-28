@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import java.math.BigInteger;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -32,5 +34,12 @@ public class FunctionsUtilsTest {
         .orElseThrow();
     assertNotNull(result);
     System.out.println("reward token " + result);
+  }
+
+  @Test
+  public void testprofitSharingDenominator() {
+    double result = functionsUtils.callIntByName("profitSharingDenominator", "0x9e315822a18f8d332782d1c3f3f24bb10d2161ad", 12086139L).orElse(BigInteger.ZERO).doubleValue();
+    assertEquals(result, 30.0);
+    System.out.println("profitSharingDenominator " + result);
   }
 }
