@@ -17,6 +17,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
@@ -232,7 +233,7 @@ public class HardWorkParser implements Web3Parser {
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
-        double fullReward = (reward * dto.getFarmPrice()) / (1-dto.getProfitSharingRate()); // full reward
+        double fullReward = (reward * dto.getFarmPrice()) / (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.7)); // full reward
         dto.setFullRewardUsd(fullReward);
       } else {
         // PS pool reward
@@ -241,7 +242,7 @@ public class HardWorkParser implements Web3Parser {
         // for non AutoStake strategy we will not have accurate data for strategy reward
         // just calculate aprox value based on PS reward
         if (!autoStake) {
-          double fullReward = ((reward * dto.getFarmPrice()) / dto.getProfitSharingRate()); // full reward
+          double fullReward = ((reward * dto.getFarmPrice()) / Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
           dto.setFullRewardUsd(fullReward);
         }
       }
