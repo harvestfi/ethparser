@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import javax.persistence.Column;
 import lombok.Data;
 import pro.belbix.ethparser.dto.DtoI;
 
@@ -52,10 +51,8 @@ public class HardWorkDTO implements DtoI {
   private double investmentTarget;
   private double farmPrice;
   private double ethPrice;
-  @Column(columnDefinition = "float8 default 0")
-  private double profitSharingRate;
-  @Column(columnDefinition = "float8 default 0")
-  private double buyBackRate;
+  private Double profitSharingRate;
+  private Double buyBackRate;
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
