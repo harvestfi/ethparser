@@ -141,6 +141,10 @@ public class Web3Service {
       return batchRequest.send();
     });
 
+    if (batchResponse == null) {
+      return Stream.of();
+    }
+
     return batchResponse.getResponses().stream()
         .map(r -> ((EthGetTransactionReceipt) r).getTransactionReceipt());
   }

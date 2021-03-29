@@ -56,7 +56,6 @@ class UniPriceViewRepositoryTest {
     List<UniPriceViewEntity> uniPrices =
         uniPriceViewRepository.findByAddressesAndLogNames(
             List.of("0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase()),
-            List.of("Swap"),
             0,
             999999999,
             PageRequest.of(0, 1)
@@ -71,7 +70,6 @@ class UniPriceViewRepositoryTest {
         .sourceName("UNI_LP_ETH_USDT")
         .txHash("0x3f34b81aa0086d8f1ee93faeb622ee727b1f01f73afff600c1a80e77c482d73b")
         .funcName("swapExactTokensForTokens")
-        .logName("Swap")
         .sender("0x7a250d5630b4cf539739df2c5dacb4c659f2488d")
         .toAdr("0xa986f2a12d85c44429f574ba50c0e21052b18ba1")
         .amount0In("0")
@@ -99,7 +97,6 @@ class UniPriceViewRepositoryTest {
         () -> assertEquals(expected.getSourceName(), actual.getSourceName(), "source name"),
         () -> assertEquals(expected.getTxHash(), actual.getTxHash(), "tx hash"),
         () -> assertEquals(expected.getFuncName(), actual.getFuncName(), "getFuncName"),
-        () -> assertEquals(expected.getLogName(), actual.getLogName(), "getLogName"),
         () -> assertEquals(expected.getSender(), actual.getSender(), "getSender"),
         () -> assertEquals(expected.getToAdr(), actual.getToAdr(), "getToAdr"),
         () -> assertEquals(expected.getAmount0In(), actual.getAmount0In(), "getAmount0In"),

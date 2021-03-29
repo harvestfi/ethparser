@@ -11,12 +11,10 @@ public interface UniPriceViewRepository extends JpaRepository<UniPriceViewEntity
 
   @Query("select t from UniPriceViewEntity t where "
       + "t.address in :addresses "
-      + "and t.logName in :logNames "
       + "and t.blockNumber between :startBlock and :endBlock"
   )
   List<UniPriceViewEntity> findByAddressesAndLogNames(
       @Param("addresses") List<String> addresses,
-      @Param("logNames") List<String> logNames,
       @Param("startBlock") long startBlock,
       @Param("endBlock") long endBlock,
       Pageable pageable

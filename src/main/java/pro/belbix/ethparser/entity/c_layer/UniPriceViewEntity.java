@@ -29,7 +29,6 @@ public class UniPriceViewEntity implements ViewI {
   private Long txId;
   private String txHash;
   private String funcName;
-  private String logName;
   private String sender;
   private String toAdr;
   private String amount0In;

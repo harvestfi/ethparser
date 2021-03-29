@@ -42,7 +42,6 @@ public class ViewRouter {
                   .map(UniPairEntity::getContract)
                   .map(ContractEntity::getAddress)
                   .collect(Collectors.toList()),
-              List.of("Swap"),
               event.getBlock().getNumber(),
               event.getBlock().getNumber(),
               PageRequest.of(0, Integer.MAX_VALUE)
