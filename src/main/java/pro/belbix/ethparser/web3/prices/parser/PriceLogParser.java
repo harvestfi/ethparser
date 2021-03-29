@@ -200,17 +200,17 @@ public class PriceLogParser implements Web3Parser {
 
   private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
     if (keyCoinFirst) {
-      if (isZero(tx, 3)) {
+      if (isZero(tx, 3)) { // amount1Out
         return true;
-      } else if (isZero(tx, 2)) {
+      } else if (isZero(tx, 2)) { // amount0Out
         return false;
       } else {
         throw new IllegalStateException("Swap doesn't contains zero value " + tx);
       }
     } else {
-      if (isZero(tx, 2)) {
+      if (isZero(tx, 2)) { // amount0Out
         return true;
-      } else if (isZero(tx, 3)) {
+      } else if (isZero(tx, 3)) { // amount1Out
         return false;
       } else {
         throw new IllegalStateException("Swap doesn't contains zero value " + tx);

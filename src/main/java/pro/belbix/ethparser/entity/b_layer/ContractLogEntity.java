@@ -21,6 +21,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 
 @Entity
 @Table(name = "b_contract_logs",
@@ -41,6 +42,10 @@ public class ContractLogEntity {
   @Type(type = "jsonb")
   @Column(columnDefinition = "jsonb")
   private String logs;
+
+  @ManyToOne
+  @JoinColumn(name = "address", referencedColumnName = "idx")
+  private EthAddressEntity address;
 
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
