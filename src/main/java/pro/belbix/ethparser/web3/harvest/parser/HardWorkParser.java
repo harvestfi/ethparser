@@ -4,6 +4,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -163,8 +165,12 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void parseRates(HardWorkDTO dto, String strategyHash) {
-    double profitSharingDenominator =  functionsUtils.callIntByName("profitSharingDenominator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
-    double profitSharingNumerator =  functionsUtils.callIntByName("profitSharingNumerator", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+    double profitSharingDenominator =  functionsUtils.callIntByName(PROFITSHARING_DENOMINATOR, strategyHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get profitSharingDenominator from " + strategyHash))
+            .doubleValue();
+    double profitSharingNumerator =  functionsUtils.callIntByName(PROFITSHARING_NUMERATOR, strategyHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get profitSharingNumerator from " + strategyHash))
+            .doubleValue();
     double profitSharingRate = 0.0;
     if (profitSharingDenominator>0) {
       profitSharingRate = profitSharingNumerator/profitSharingDenominator;
