@@ -17,12 +17,14 @@ import org.springframework.web.client.RestTemplate;
 
 @Log4j2
 public class EtherscanService {
-  private final static int RETRY_COUNT = 10;
-  private final static String ETHERSCAN_URI = "https://api.etherscan.io/api"
-      + "?module={module}&action={action}&address={address}&apikey={apikey}";
-  private final RestTemplate restTemplate = new RestTemplate();
 
-  public EtherscanService() {
+  private final static int RETRY_COUNT = 10;
+  private final static String ETHERSCAN_PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
+  private final RestTemplate restTemplate = new RestTemplate();
+  private final String etherscanUrl;
+
+  public EtherscanService(String etherscanUrl) {
+    this.etherscanUrl = etherscanUrl;
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     MappingJackson2HttpMessageConverter convertor = new MappingJackson2HttpMessageConverter();
@@ -81,7 +83,7 @@ public class EtherscanService {
     while (true) {
       try {
         return restTemplate.getForEntity(
-            ETHERSCAN_URI,
+            etherscanUrl + ETHERSCAN_PARAMS,
             ResponseSourceCode.class,
             vars
         );

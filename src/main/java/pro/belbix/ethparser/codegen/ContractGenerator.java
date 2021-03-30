@@ -53,7 +53,7 @@ public class ContractGenerator {
 
     public final static Credentials STUB_CREDENTIALS =
         Credentials.create("8da4ef21b864d2cc526dbdb2a120bd2874c36c9d0a1fb7f8c63d7f7a8b41de8f");
-    private final EtherscanService etherscanService = new EtherscanService();
+    private final EtherscanService etherscanService;
     private final Map<String, String> contractToWrapperName = new HashMap<>();
     private final Map<String, Class<?>> wrapperNameToClass = new HashMap<>();
     private final Map<String, Event> eventsMap = new HashMap<>();
@@ -80,6 +80,7 @@ public class ContractGenerator {
         this.appProperties = appProperties;
         this.contractLoader = contractLoader;
         this.web3Service = web3Service;
+        this.etherscanService = new EtherscanService(appProperties.getEtherscanUrl());
     }
 
     @Deprecated // maybe will use, let's see on performance

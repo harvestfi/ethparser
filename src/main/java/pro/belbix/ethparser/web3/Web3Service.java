@@ -476,7 +476,12 @@ public class Web3Service {
     Disposable subscription = flowable
         .subscribe(tx -> transactionConsumers.forEach(queue ->
                 writeInQueue(queue, tx)),
-            e -> log.error("Transaction flowable error", e));
+            e -> {
+              log.error("Transaction flowable error", e);
+              if (appProperties.isStopOnParseError()) {
+                System.exit(-1);
+              }
+            });
     subscriptions.add(subscription);
     initChecker();
     log.info("Subscribe to Transaction Flowable");
@@ -511,7 +516,12 @@ public class Web3Service {
     Disposable subscription = flowable
         .subscribe(tx -> blockConsumers.forEach(queue ->
                 writeInQueue(queue, tx)),
-            e -> log.error("Block flowable error", e));
+            e -> {
+              log.error("Block flowable error", e);
+              if (appProperties.isStopOnParseError()) {
+                System.exit(-1);
+              }
+            });
     subscriptions.add(subscription);
     initChecker();
     log.info("Subscribe to Block Flowable");
@@ -533,7 +543,12 @@ public class Web3Service {
     Disposable subscription =
         flowable.subscribe(
             tx -> writeInQueue(transactionQueue, tx),
-            e -> log.error("Transaction flowable error", e));
+            e -> {
+              log.error("Transaction flowable error", e);
+              if (appProperties.isStopOnParseError()) {
+                System.exit(-1);
+              }
+            });
     initChecker();
     log.info("Subscribed to Transaction Flowable Range");
     return subscription;
