@@ -189,13 +189,17 @@ public class HardWorkParser implements Web3Parser {
     }
 
     if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog)) {
+      if (!autoStake && dto.getFarmBuyback() != 0.0) {
+        throw new IllegalStateException("Duplicate RewardAdded for " + dto);
+      }
       double reward = tx.getReward().doubleValue() / D18;
+
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
-      if (ContractUtils.isPoolAddress(ethLog.getAddress().toLowerCase())) {
+      if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
         double fullReward = (reward * dto.getFarmPrice()) / 0.7; // full reward
         dto.setFullRewardUsd(fullReward);
-      } else if("0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())){
+      } else {
         // PS pool reward
         dto.setFarmBuyback(reward);
 
