@@ -46,6 +46,18 @@ public class DoHardWorkTest {
     }
 
     @Test
+    public void parseSUSHI_MIC_USDT() {
+        assertOnBlock(
+            12138001,
+            "0x4a8b9b49edda75fc2ce1d8e119ae952c92707c1b4cc04ccfacd066c0164ab35e_166",
+            "SUSHI_MIC_USDT",
+            "0.000000",
+            "9189.958992",
+            "10.425585"
+        );
+    }
+
+    @Test
     public void parseSUSHI_ETH_DAI() {
         HardWorkDTO dto = assertOnBlock(
             12064923,
