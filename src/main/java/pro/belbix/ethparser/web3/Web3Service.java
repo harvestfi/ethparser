@@ -347,8 +347,11 @@ public class Web3Service {
         return null;
       }
       if (ethCall.getError() != null) {
-        log.warn("{} callFunction callback is error {}",
+        log.warn("{} callFunction callback is error: {}",
             function.getName(), ethCall.getError().getMessage());
+        if ("execution aborted (timeout = 5s)".equals(ethCall.getError().getMessage())) {
+          return null;
+        }
         throw new IllegalStateException(
             "Not retryable response: " + ethCall.getError().getMessage());
       }

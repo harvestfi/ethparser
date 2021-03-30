@@ -16,4 +16,4 @@ ethparser:
   parseDeployerTransactions: false
 
   parseBlocks: true
-  parseBlocksFrom: 0
+  parseBlocksFrom:
