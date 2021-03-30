@@ -50,5 +50,6 @@ public class AppProperties {
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
+    private boolean reconnectOnWeb3Errors = true;
     private boolean skipSimilarPrices = true;
 }

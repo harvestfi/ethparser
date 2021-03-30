@@ -518,8 +518,13 @@ public class Web3Service {
                 writeInQueue(queue, tx)),
             e -> {
               log.error("Block flowable error", e);
-              if (appProperties.isStopOnParseError()) {
-                System.exit(-1);
+              if (appProperties.isReconnectOnWeb3Errors()) {
+                Thread.sleep(10000);
+                subscribeOnBlocks();
+              } else {
+                if (appProperties.isStopOnParseError()) {
+                  System.exit(-1);
+                }
               }
             });
     subscriptions.add(subscription);
