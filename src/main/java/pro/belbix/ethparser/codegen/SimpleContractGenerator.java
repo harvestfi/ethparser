@@ -3,7 +3,10 @@ package pro.belbix.ethparser.codegen;
 
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +20,13 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.service.EtherscanService;
+import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -42,7 +46,7 @@ public class SimpleContractGenerator {
   private static final String PURE = "pure";
   private static final String VIEW = "view";
 
-  private final EtherscanService etherscanService;
+  private final AbiProviderService abiProviderService;
   private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
   private final Web3Service web3Service;
@@ -54,7 +58,7 @@ public class SimpleContractGenerator {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.web3Service = web3Service;
-    this.etherscanService = new EtherscanService(appProperties.getEtherscanUrl());
+    this.abiProviderService = new AbiProviderService(appProperties.getNetwork());
   }
 
   public GeneratedContract getContract(String address, int block) {
@@ -103,8 +107,8 @@ public class SimpleContractGenerator {
     boolean etherscanIsProxy = false;
     String etherscanProxyImpl = "";
 
-    EtherscanService.SourceCodeResult sourceCode =
-        etherscanService.contractSourceCode(address, appProperties.getEtherscanApiKey());
+    AbiProviderService.SourceCodeResult sourceCode =
+        abiProviderService.contractSourceCode(address, appProperties.getEtherscanApiKey());
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -121,7 +125,7 @@ public class SimpleContractGenerator {
 
     abi = resolveAbi(address, abi);
 
-    List<AbiDefinition> abis = ContractGenerator.abiToDefinition(abi);
+    List<AbiDefinition> abis = abiToDefinition(abi);
     GeneratedContract contract = new GeneratedContract(
         contractName,
         address,
@@ -357,6 +361,18 @@ public class SimpleContractGenerator {
     } else {
       return type;
     }
+  }
+
+  private static List<AbiDefinition> abiToDefinition(String abi) {
+    ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
+    AbiDefinition[] abiDefinition;
+    try {
+      abiDefinition = objectMapper.readValue(abi, AbiDefinition[].class);
+    } catch (IOException e) {
+      log.error("abiToDefinition error for: {}", abi);
+      throw new RuntimeException(e);
+    }
+    return Arrays.asList(abiDefinition);
   }
 
 }

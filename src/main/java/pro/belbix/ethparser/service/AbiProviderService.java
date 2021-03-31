@@ -16,15 +16,25 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 @Log4j2
-public class EtherscanService {
+public class AbiProviderService {
 
+  public final static String ETH_NETWORK = "eth";
+  public final static String BSC_NETWORK = "bsc";
   private final static int RETRY_COUNT = 10;
-  private final static String ETHERSCAN_PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
+  private final static String ETHERSCAN_URL = "https://api.etherscan.io/api";
+  private final static String BSC_URL = "https://api.bscscan.com/api";
+  private final static String PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
-  private final String etherscanUrl;
+  private final String url;
 
-  public EtherscanService(String etherscanUrl) {
-    this.etherscanUrl = etherscanUrl;
+  public AbiProviderService(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      this.url = ETHERSCAN_URL;
+    } else if (BSC_NETWORK.equals(network)) {
+      this.url = BSC_URL;
+    } else {
+      throw new IllegalStateException("Unknown network " + network);
+    }
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     MappingJackson2HttpMessageConverter convertor = new MappingJackson2HttpMessageConverter();
@@ -83,7 +93,7 @@ public class EtherscanService {
     while (true) {
       try {
         return restTemplate.getForEntity(
-            etherscanUrl + ETHERSCAN_PARAMS,
+            url + PARAMS,
             ResponseSourceCode.class,
             vars
         );
