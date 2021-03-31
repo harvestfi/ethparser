@@ -13,6 +13,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
@@ -20,7 +21,7 @@ import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 @Log4j2
 public class DeployerTransactionsDownloader {
 
-  private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final DeployerDbService deployerDbService;
   private final DeployerTransactionsParser parser;
   private final BlockingQueue<Transaction> transactionQueue = new ArrayBlockingQueue<>(100);
@@ -32,10 +33,9 @@ public class DeployerTransactionsDownloader {
   private Integer to;
 
   public DeployerTransactionsDownloader(
-      Web3Service web3Service,
-      DeployerDbService deployerDbService,
+      Web3Subscriber web3Subscriber, DeployerDbService deployerDbService,
       DeployerTransactionsParser parser) {
-    this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.deployerDbService = deployerDbService;
     this.parser = parser;
   }
@@ -62,7 +62,7 @@ public class DeployerTransactionsDownloader {
 
   private void parse(DefaultBlockParameter start, DefaultBlockParameter end) {
     Disposable subscription =
-        web3Service.getTransactionFlowableRangeSubscription(transactionQueue, start, end);
+        web3Subscriber.getTransactionFlowableRangeSubscription(transactionQueue, start, end);
     while (!subscription.isDisposed()) {
       Transaction transaction = null;
       try {

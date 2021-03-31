@@ -20,6 +20,7 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
@@ -31,6 +32,7 @@ public class HarvestTransactionsParser implements Web3Parser {
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HarvestDBService harvestDBService;
@@ -41,10 +43,11 @@ public class HarvestTransactionsParser implements Web3Parser {
   private Instant lastTx = Instant.now();
 
   public HarvestTransactionsParser(Web3Service web3Service,
-      HarvestDBService harvestDBService,
+      Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
       EthBlockService ethBlockService, ParserInfo parserInfo,
       AppProperties appProperties) {
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.harvestDBService = harvestDBService;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
@@ -54,7 +57,7 @@ public class HarvestTransactionsParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Harvest");
     parserInfo.addParser(this);
-    web3Service.subscribeOnTransactions(transactions);
+    web3Subscriber.subscribeOnTransactions(transactions);
     new Thread(() -> {
       while (run.get()) {
         Transaction transaction = null;

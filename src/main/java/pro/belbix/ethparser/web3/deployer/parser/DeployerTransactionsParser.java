@@ -17,7 +17,7 @@ import pro.belbix.ethparser.model.DeployerTx;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
 
@@ -26,7 +26,7 @@ import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
 public class DeployerTransactionsParser implements Web3Parser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final DeployerDecoder deployerDecoder;
   private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -37,12 +37,12 @@ public class DeployerTransactionsParser implements Web3Parser {
   private Instant lastTx = Instant.now();
 
   public DeployerTransactionsParser(
-      Web3Service web3Service,
+      Web3Subscriber web3Subscriber,
       DeployerDecoder deployerDecoder,
       DeployerDbService deployerDbService,
       EthBlockService ethBlockService,
       ParserInfo parserInfo) {
-    this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.deployerDecoder = deployerDecoder;
     this.deployerDbService = deployerDbService;
     this.ethBlockService = ethBlockService;
@@ -52,7 +52,7 @@ public class DeployerTransactionsParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Deployer transactions");
     parserInfo.addParser(this);
-    web3Service.subscribeOnTransactions(transactions);
+    web3Subscriber.subscribeOnTransactions(transactions);
     new Thread(
         () -> {
           while (run.get()) {

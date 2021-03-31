@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
@@ -25,13 +25,13 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -44,10 +44,10 @@ public class HardWorkParser implements Web3Parser {
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
-  private final ERC20Decoder erc20Decoder = new ERC20Decoder();
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
@@ -60,11 +60,13 @@ public class HardWorkParser implements Web3Parser {
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
       Web3Service web3Service,
-      HardWorkDbService hardWorkDbService, ParserInfo parserInfo,
+      Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
+      ParserInfo parserInfo,
       AppProperties appProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
@@ -73,7 +75,7 @@ public class HardWorkParser implements Web3Parser {
   @Override
   public void startParse() {
     log.info("Start parse Hard work logs");
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {

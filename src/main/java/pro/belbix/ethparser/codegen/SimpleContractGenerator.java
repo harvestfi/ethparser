@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.codegen;
 
 
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,7 +110,7 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, appProperties.getEtherscanApiKey());
+        abiProviderService.contractSourceCode(address, getAbiProviderKey());
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -151,6 +153,17 @@ public class SimpleContractGenerator {
     contract.setProxy(isProxy);
 
     return Optional.of(contract);
+  }
+
+  private String getAbiProviderKey() {
+    switch (appProperties.getNetwork()) {
+      case ETH_NETWORK:
+        return appProperties.getEtherscanApiKey();
+      case BSC_NETWORK:
+        return appProperties.getEtherscanApiKey();
+      default:
+        throw new IllegalStateException("Unknown network " + appProperties.getNetwork());
+    }
   }
 
   private String resolveAbi(String address, String abi) {

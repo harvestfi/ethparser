@@ -18,6 +18,7 @@ import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
@@ -31,6 +32,7 @@ public class UniswapLpLogParser implements Web3Parser {
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final UniswapDbService uniswapDbService;
@@ -44,7 +46,7 @@ public class UniswapLpLogParser implements Web3Parser {
   private long count = 0;
 
   public UniswapLpLogParser(Web3Service web3Service,
-      UniswapDbService uniswapDbService,
+      Web3Subscriber web3Subscriber, UniswapDbService uniswapDbService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
       UniToHarvestConverter uniToHarvestConverter,
@@ -52,6 +54,7 @@ public class UniswapLpLogParser implements Web3Parser {
       UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
       AppProperties appProperties) {
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
@@ -65,7 +68,7 @@ public class UniswapLpLogParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Uniswap logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;

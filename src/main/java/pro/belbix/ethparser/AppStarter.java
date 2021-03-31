@@ -22,6 +22,7 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
@@ -42,6 +43,7 @@ import pro.belbix.ethparser.ws.WsService;
 public class AppStarter {
 
     private final Web3Service web3Service;
+    private final Web3Subscriber web3Subscriber;
     private final HarvestTransactionsParser harvestTransactionsParser;
     private final UniswapLpLogParser uniswapLpLogParser;
     private final HarvestVaultParserV2 harvestVaultParserV2;
@@ -64,6 +66,7 @@ public class AppStarter {
     private boolean web3BlocksStarted = false;
 
     public AppStarter(Web3Service web3Service,
+        Web3Subscriber web3Subscriber,
         HarvestTransactionsParser harvestTransactionsParser,
         UniswapLpLogParser uniswapLpLogParser,
         HarvestVaultParserV2 harvestVaultParserV2,
@@ -77,6 +80,7 @@ public class AppStarter {
         EthBlockParser ethBlockParser,
         ContractDetector contractDetector) {
         this.web3Service = web3Service;
+        this.web3Subscriber = web3Subscriber;
         this.harvestTransactionsParser = harvestTransactionsParser;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.harvestVaultParserV2 = harvestVaultParserV2;
@@ -193,21 +197,21 @@ public class AppStarter {
 
     private void startWeb3SubscribeLog(Web3Service web3Service) {
         if (!web3LogsStarted) {
-            web3Service.subscribeLogFlowable();
+            web3Subscriber.subscribeLogFlowable();
             web3LogsStarted = true;
         }
     }
 
     private void startWeb3SubscribeTx(Web3Service web3Service) {
         if (!web3TransactionsStarted) {
-            web3Service.subscribeTransactionFlowable();
+            web3Subscriber.subscribeTransactionFlowable();
             web3TransactionsStarted = true;
         }
     }
 
     private void startParseBlocks() {
         if (!web3BlocksStarted) {
-            web3Service.subscribeOnBlocks();
+            web3Subscriber.subscribeOnBlocks();
             web3BlocksStarted = true;
         }
         ethBlockParser.startParse();

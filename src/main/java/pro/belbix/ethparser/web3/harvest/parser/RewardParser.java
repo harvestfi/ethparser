@@ -23,6 +23,7 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -43,6 +44,7 @@ public class RewardParser implements Web3Parser {
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
   private final FunctionsUtils functionsUtils;
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final RewardsDBService rewardsDBService;
   private final AppProperties appProperties;
@@ -52,11 +54,12 @@ public class RewardParser implements Web3Parser {
 
   public RewardParser(FunctionsUtils functionsUtils,
       Web3Service web3Service,
-      EthBlockService ethBlockService,
+      Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
       RewardsDBService rewardsDBService, AppProperties appProperties,
       ParserInfo parserInfo) {
     this.functionsUtils = functionsUtils;
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.rewardsDBService = rewardsDBService;
     this.appProperties = appProperties;
@@ -67,7 +70,7 @@ public class RewardParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Rewards logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;

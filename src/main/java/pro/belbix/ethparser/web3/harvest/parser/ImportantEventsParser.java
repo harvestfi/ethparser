@@ -21,6 +21,7 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -40,6 +41,7 @@ public class ImportantEventsParser implements Web3Parser {
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
   private final ParserInfo parserInfo;
   private final EthBlockService ethBlockService;
@@ -49,11 +51,13 @@ public class ImportantEventsParser implements Web3Parser {
 
   public ImportantEventsParser(
       Web3Service web3Service,
+      Web3Subscriber web3Subscriber,
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
       FunctionsUtils functionsUtils, AppProperties appProperties) {
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
     this.ethBlockService = ethBlockService;
@@ -64,7 +68,7 @@ public class ImportantEventsParser implements Web3Parser {
   @Override
   public void startParse() {
     log.info("Start parse Important Events logs");
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {

@@ -28,52 +28,55 @@ import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
 @Service
 @Log4j2
 public class EthBlockParser {
 
-    private static final AtomicBoolean run = new AtomicBoolean(true);
-    private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
-    private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
-    private final Web3Service web3Service;
-    private final AppProperties appProperties;
-    private final EthBlockDbService ethBlockDbService;
-    private Instant lastTx = Instant.now();
-    private long count = 0;
+  private static final AtomicBoolean run = new AtomicBoolean(true);
+  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
+  private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
+  private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
+  private final AppProperties appProperties;
+  private final EthBlockDbService ethBlockDbService;
+  private Instant lastTx = Instant.now();
+  private long count = 0;
 
-    public EthBlockParser(Web3Service web3Service,
-                          AppProperties appProperties,
-                          EthBlockDbService ethBlockDbService) {
-        this.web3Service = web3Service;
-        this.appProperties = appProperties;
-        this.ethBlockDbService = ethBlockDbService;
-    }
+  public EthBlockParser(Web3Service web3Service,
+      Web3Subscriber web3Subscriber, AppProperties appProperties,
+      EthBlockDbService ethBlockDbService) {
+    this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
+    this.appProperties = appProperties;
+    this.ethBlockDbService = ethBlockDbService;
+  }
 
-    public void startParse() {
-        log.info("Start parse Blocks");
-        web3Service.subscribeOnBlocks(input);
-        new Thread(() -> {
-            while (run.get()) {
-                EthBlock ethBlock = null;
-                try {
-                    ethBlock = input.poll(1, TimeUnit.SECONDS);
-                    count++;
-                    if (count % 100 == 0) {
-                        log.info(this.getClass().getSimpleName() + " handled " + count);
-                    }
-                    EthBlockEntity entity = parse(ethBlock);
-                    if (entity != null) {
-                      lastTx = Instant.now();
-                      var persistedBlock = ethBlockDbService.save(entity);
-                      log.info("Persisted block {} by {}",
-                          entity.getNumber(), Duration.between(lastTx, Instant.now()).toMillis());
-                      if (persistedBlock != null) {
-                        output.put(persistedBlock);
-                      }
-                    }
-                } catch (Exception e) {
+  public void startParse() {
+    log.info("Start parse Blocks");
+    web3Subscriber.subscribeOnBlocks(input);
+    new Thread(() -> {
+      while (run.get()) {
+        EthBlock ethBlock = null;
+        try {
+          ethBlock = input.poll(1, TimeUnit.SECONDS);
+          count++;
+          if (count % 100 == 0) {
+            log.info(this.getClass().getSimpleName() + " handled " + count);
+          }
+          EthBlockEntity entity = parse(ethBlock);
+          if (entity != null) {
+            lastTx = Instant.now();
+            var persistedBlock = ethBlockDbService.save(entity);
+            log.info("Persisted block {} by {}",
+                entity.getNumber(), Duration.between(lastTx, Instant.now()).toMillis());
+            if (persistedBlock != null) {
+              output.put(persistedBlock);
+            }
+          }
+        } catch (Exception e) {
                     log.error("Error block parser loop " + ethBlock, e);
                     if (appProperties.isStopOnParseError()) {
                         System.exit(-1);

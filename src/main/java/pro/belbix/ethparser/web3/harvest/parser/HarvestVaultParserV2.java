@@ -33,6 +33,7 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -55,6 +56,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       Collections.singletonList("transfer"));
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
   private final Web3Service web3Service;
+  private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HarvestDBService harvestDBService;
@@ -68,7 +70,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private long count = 0;
 
   public HarvestVaultParserV2(Web3Service web3Service,
-      HarvestDBService harvestDBService,
+      Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -76,6 +78,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       AppProperties appProperties,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
     this.web3Service = web3Service;
+    this.web3Subscriber = web3Subscriber;
     this.harvestDBService = harvestDBService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
@@ -89,7 +92,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   public void startParse() {
     log.info("Start parse Harvest vaults logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;
