@@ -42,7 +42,7 @@ public class SimpleContractGenerator {
   private static final String PURE = "pure";
   private static final String VIEW = "view";
 
-  private final EtherscanService etherscanService = new EtherscanService();
+  private final EtherscanService etherscanService;
   private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
   private final Web3Service web3Service;
@@ -54,6 +54,7 @@ public class SimpleContractGenerator {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.web3Service = web3Service;
+    this.etherscanService = new EtherscanService(appProperties.getEtherscanUrl());
   }
 
   public GeneratedContract getContract(String address, int block) {

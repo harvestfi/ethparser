@@ -82,25 +82,33 @@ public class Web3ServiceTest {
 
     @Test
     public void testFetchBlock() {
-        Block block = web3Service.findBlockByHash(
-            "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
-            , false)
-            .getBlock();
-        assertNotNull(block);
-        Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
-        assertEquals(Instant.ofEpochSecond(1603810501L), date);
+      Block block = web3Service.findBlockByHash(
+          "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
+          , false)
+          .getBlock();
+      assertNotNull(block);
+      Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
+      assertEquals(Instant.ofEpochSecond(1603810501L), date);
     }
 
-    @Test
-    @Disabled
-    public void checkLogsForAllVaults() {
-        for (String hash : ContractUtils.getAllVaultAddresses()) {
-            List<LogResult> logs = web3Service
-                .fetchContractLogs(singletonList(hash), null, null);
-            assertNotNull(logs);
-            System.out.println(hash + " " + logs.size());
-        }
+  @Test
+  void testFetchBlockByNumber() {
+    Block block = web3Service.findBlockByNumber(9000000, false)
+        .getBlock();
+    assertNotNull(block);
+    assertEquals(BigInteger.valueOf(1574706444L), block.getTimestamp());
+  }
+
+  @Test
+  @Disabled
+  public void checkLogsForAllVaults() {
+    for (String hash : ContractUtils.getAllVaultAddresses()) {
+      List<LogResult> logs = web3Service
+          .fetchContractLogs(singletonList(hash), null, null);
+      assertNotNull(logs);
+      System.out.println(hash + " " + logs.size());
     }
+  }
 
     @Test
     @Disabled

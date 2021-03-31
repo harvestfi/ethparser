@@ -11,6 +11,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +52,10 @@ public class HardWorkParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
   private Instant lastTx = Instant.now();
+
+  private final static Set<String> allowedRewardAddedContracts = Set.of(
+    "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase()
+  );
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -183,7 +188,7 @@ public class HardWorkParser implements Web3Parser {
       return;
     }
 
-    if ("RewardAdded".equals(tx.getMethodName())) {
+    if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog)) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
       }
@@ -207,6 +212,11 @@ public class HardWorkParser implements Web3Parser {
       }
 
     }
+  }
+
+  private boolean isAllowedLog(Log ethLog) {
+    return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
+        || ContractUtils.isPoolAddress(ethLog.getAddress().toLowerCase());
   }
 
   private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {

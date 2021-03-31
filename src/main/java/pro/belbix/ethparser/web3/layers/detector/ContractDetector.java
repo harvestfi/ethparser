@@ -110,7 +110,8 @@ public class ContractDetector {
             handleEligibleAddresses(eligible.component1(), block);
 
         handleEligibleTxs(eligible.component2(), eventEntities);
-
+        log.info("Block {} handled and generated {} events",
+            block.getNumber(), eventEntities.size());
         return eventEntities;
     }
 
@@ -222,19 +223,21 @@ public class ContractDetector {
 //            if (!isEligibleContract(ethLog.getAddress().getAddress())) {
 //                continue;
 //            }
+            String logAddress = ethLog.getAddress().getAddress();
             Event event = findEvent(
-                ethLog.getAddress().getAddress(),
+                logAddress,
                 ethLog.getFirstTopic().getHash(),
                 block);
             if (event == null) {
                 log.warn("Not found event for hash: {} from tx: {} contract: {}",
                     ethLog.getFirstTopic().getHash(), tx.getHash().getHash(),
-                    ethLog.getAddress().getAddress());
+                    logAddress);
                 continue;
             }
             String logValues = extractLogValues(ethLog, event);
 
             ContractLogEntity logEntity = new ContractLogEntity();
+            logEntity.setAddress(new EthAddressEntity(logAddress));
             logEntity.setLogIdx(ethLog.getLogId());
             logEntity.setLogs(logValues);
             logEntity.setContractTx(contractTxEntity);

@@ -41,9 +41,6 @@ INSERT INTO public.events_tx (id, block, block_date, event, hash, info, mint_amo
 
 INSERT INTO public.harvest_tvl (calculate_hash, calculate_time, last_all_owners_count, last_owners_count, last_price, last_tvl) VALUES ('0x00018f953339fbb7c708698f4a69c030ff4464114beeda7bfc83c0c548747add_338', 1603472475, 10094, 1853, 202.5659866011, 1090496226.6724818);
 
-
-INSERT INTO public.income (id, amount, amount_sum, amount_sum_usd, amount_usd, perc, ps_tvl, ps_tvl_usd, timestamp, week_perc) VALUES ('0x006243bad9ae1f6a6264da0c1dcf3249d3001b567faa9fdec1d2e63ad724c0aa_280', 5.4943178091, 5433.8931391715, 656315.3479700004, 885.349948, 0.0052103424, 105450.2264377116, 16408582.965265011, 1602771011, 0.7976684758);
-
 INSERT INTO public.prices (id, block, block_date, buy, lp_token0pooled, lp_token1pooled, lp_total_supply, other_token, other_token_amount, price, source, token, token_amount) VALUES ('0x00011fb0780aa16e7f8ce785f2a038b31c25b344bbab3def44fb3f99766b790b_312', 11918804, 1614156184, 0, 13424385.204148998, 124121.509756646, 1126412.0303373176, 'ETH', 11.4869787796, 0.0092190913, 'SUSHI_LP_SUSHI_ETH', 'SUSHI', 1245.9990323311);
 
 INSERT INTO public.rewards (id, apy, block, block_date, farm_balance, period_finish, reward, tvl, vault, weekly_apy) VALUES ('0x00e2884a39f809b8c609b48185c66447fa12af01da3d6e5dd514665c035e79ff_44', 3229.0658293262, 11732675, 1611681468, 0, 1612286268, 376.3074822001, 702650, 'SUSHI_MIS_USDT', 2003.6098570761);

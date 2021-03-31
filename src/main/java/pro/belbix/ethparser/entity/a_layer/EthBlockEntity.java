@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Set;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -57,6 +58,7 @@ public class EthBlockEntity implements DtoI {
     private String author;
     private String difficulty;
     private String totalDifficulty;
+    @Column(columnDefinition = "TEXT")
     private String extraData;
     private long size;
     private long gasLimit;

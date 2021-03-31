@@ -5,11 +5,13 @@ import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.entity.b_layer.FunctionHashEntity;
 import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
+import pro.belbix.ethparser.repositories.a_layer.EthAddressRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthTxRepository;
 import pro.belbix.ethparser.repositories.b_layer.ContractEventRepository;
@@ -27,6 +29,7 @@ public class ContractEventsDbService {
   private final EthTxRepository ethTxRepository;
   private final FunctionHashRepository functionHashRepository;
   private final ContractTxRepository contractTxRepository;
+  private final EthAddressRepository ethAddressRepository;
 
   public ContractEventsDbService(
       ContractEventRepository contractEventRepository,
@@ -34,13 +37,15 @@ public class ContractEventsDbService {
       LogHexRepository logHexRepository,
       EthTxRepository ethTxRepository,
       FunctionHashRepository functionHashRepository,
-      ContractTxRepository contractTxRepository) {
+      ContractTxRepository contractTxRepository,
+      EthAddressRepository ethAddressRepository) {
     this.contractEventRepository = contractEventRepository;
     this.ethBlockRepository = ethBlockRepository;
     this.logHexRepository = logHexRepository;
     this.ethTxRepository = ethTxRepository;
     this.functionHashRepository = functionHashRepository;
     this.contractTxRepository = contractTxRepository;
+    this.ethAddressRepository = ethAddressRepository;
   }
 
   @Transactional
@@ -60,7 +65,7 @@ public class ContractEventsDbService {
           "Try to save event from not persisted block " + blockNumber);
     }
     persistChildren(event);
-    return contractEventRepository.save(event);
+    return contractEventRepository.saveAndFlush(event);
   }
 
   private void persistChildren(ContractEventEntity event) {
@@ -84,6 +89,7 @@ public class ContractEventsDbService {
       contractTx.setFuncHash(saveOrGetFuncHash(contractTx.getFuncHash()));
       for (ContractLogEntity cLog : contractTx.getLogs()) {
         cLog.setTopic(saveOrGetLogHex(cLog.getTopic()));
+        cLog.setAddress(saveOrGetAddress(cLog.getAddress()));
       }
       return contractTxRepository.save(contractTx);
     }
@@ -97,7 +103,7 @@ public class ContractEventsDbService {
     FunctionHashEntity funcHashPersisted = functionHashRepository
         .findById(funcHash.getMethodId()).orElse(null);
     if (funcHashPersisted == null) {
-      funcHashPersisted = functionHashRepository.save(funcHash);
+      return functionHashRepository.save(funcHash);
     }
     return funcHashPersisted;
   }
@@ -109,8 +115,20 @@ public class ContractEventsDbService {
     LogHashEntity logHexPersisted = logHexRepository
         .findById(logHex.getMethodId()).orElse(null);
     if (logHexPersisted == null) {
-      logHexPersisted = logHexRepository.save(logHex);
+      return logHexRepository.save(logHex);
     }
     return logHexPersisted;
+  }
+
+  private EthAddressEntity saveOrGetAddress(EthAddressEntity ethAddress) {
+    if (ethAddress == null) {
+      return null;
+    }
+    EthAddressEntity ethAddressPersisted = ethAddressRepository
+        .findById(ethAddress.getAddress()).orElse(null);
+    if (ethAddressPersisted == null) {
+      return ethAddressRepository.save(ethAddress);
+    }
+    return ethAddressPersisted;
   }
 }

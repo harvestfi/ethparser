@@ -6,10 +6,9 @@ import org.junit.jupiter.api.Test;
 
 class EtherscanServiceTest {
 
-  private final EtherscanService etherscanService = new EtherscanService();
-
   @Test
   void contractSourceCode() {
+    EtherscanService etherscanService = new EtherscanService("https://api.etherscan.io/api");
     assertNotNull(etherscanService.contractSourceCode(
         "0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413", "YourApiKeyToken"));
   }

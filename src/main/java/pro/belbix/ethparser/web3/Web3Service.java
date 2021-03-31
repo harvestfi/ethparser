@@ -141,6 +141,10 @@ public class Web3Service {
       return batchRequest.send();
     });
 
+    if (batchResponse == null) {
+      return Stream.of();
+    }
+
     return batchResponse.getResponses().stream()
         .map(r -> ((EthGetTransactionReceipt) r).getTransactionReceipt());
   }
@@ -343,8 +347,11 @@ public class Web3Service {
         return null;
       }
       if (ethCall.getError() != null) {
-        log.warn("{} callFunction callback is error {}",
+        log.warn("{} callFunction callback is error: {}",
             function.getName(), ethCall.getError().getMessage());
+        if ("execution aborted (timeout = 5s)".equals(ethCall.getError().getMessage())) {
+          return null;
+        }
         throw new IllegalStateException(
             "Not retryable response: " + ethCall.getError().getMessage());
       }
@@ -472,7 +479,12 @@ public class Web3Service {
     Disposable subscription = flowable
         .subscribe(tx -> transactionConsumers.forEach(queue ->
                 writeInQueue(queue, tx)),
-            e -> log.error("Transaction flowable error", e));
+            e -> {
+              log.error("Transaction flowable error", e);
+              if (appProperties.isStopOnParseError()) {
+                System.exit(-1);
+              }
+            });
     subscriptions.add(subscription);
     initChecker();
     log.info("Subscribe to Transaction Flowable");
@@ -507,7 +519,17 @@ public class Web3Service {
     Disposable subscription = flowable
         .subscribe(tx -> blockConsumers.forEach(queue ->
                 writeInQueue(queue, tx)),
-            e -> log.error("Block flowable error", e));
+            e -> {
+              log.error("Block flowable error", e);
+              if (appProperties.isReconnectOnWeb3Errors()) {
+                Thread.sleep(10000);
+                subscribeOnBlocks();
+              } else {
+                if (appProperties.isStopOnParseError()) {
+                  System.exit(-1);
+                }
+              }
+            });
     subscriptions.add(subscription);
     initChecker();
     log.info("Subscribe to Block Flowable");
@@ -529,7 +551,12 @@ public class Web3Service {
     Disposable subscription =
         flowable.subscribe(
             tx -> writeInQueue(transactionQueue, tx),
-            e -> log.error("Transaction flowable error", e));
+            e -> {
+              log.error("Transaction flowable error", e);
+              if (appProperties.isStopOnParseError()) {
+                System.exit(-1);
+              }
+            });
     initChecker();
     log.info("Subscribed to Transaction Flowable Range");
     return subscription;

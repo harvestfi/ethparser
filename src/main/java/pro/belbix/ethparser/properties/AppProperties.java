@@ -14,6 +14,7 @@ public class AppProperties {
     private String web3Url = "";
     private String web3User = "";
     private String web3Password = "";
+    private String etherscanUrl = "https://api.etherscan.io/api";
     private String etherscanApiKey = "YourApiKeyToken";
 
     private boolean onlyApi = false;
@@ -49,5 +50,6 @@ public class AppProperties {
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
+    private boolean reconnectOnWeb3Errors = true;
     private boolean skipSimilarPrices = true;
 }

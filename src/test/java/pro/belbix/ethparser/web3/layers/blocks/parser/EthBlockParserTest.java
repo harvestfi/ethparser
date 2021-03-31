@@ -44,11 +44,21 @@ public class EthBlockParserTest {
     private EthBlockRepository ethBlockRepository;
 
     @Test
+    void testBlockParsing_0() {
+        EthBlockEntity block = ethBlockParser.parse(
+            web3Service.findBlockByNumber(0, true));
+        assertNotNull(block, "EthBlockEntity is null");
+        assertAll(
+            () -> assertEquals(0, block.getNumber(), "block num"),
+            () -> assertEquals(0, block.getTimestamp(), "block timestamp")
+        );
+        assertNotNull(ethBlockDbService.save(block), "persist result");
+    }
+
+    @Test
     void testBlockParsing_12055816() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0xd9f8b787073cae9e09162a156e5b93731a2c46bd93a50a93a1feb684ddfd16ba",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Service.findBlockByNumber(12055816, true));
         assertContracts(ethBlockEntity, "data/12055816_contracts.txt");
         assertBlock(ethBlockEntity, AssertData.builder()
             .blockNum(12055816)
@@ -82,10 +92,8 @@ public class EthBlockParserTest {
 
     @Test
     void testBlockParsing_10800000() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Service.findBlockByNumber(10800000, true));
         assertContracts(ethBlockEntity, "data/10800000_contracts.txt");
         assertBlock(ethBlockEntity, AssertData.builder()
             .blockNum(10800000)
@@ -117,10 +125,8 @@ public class EthBlockParserTest {
 
     @Test
     void testBlockParsing__SUSHI_HODL_12030868() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Service.findBlockByNumber(12030868, true));
         assertContracts(ethBlockEntity, "data/12030868_contracts.txt");
         assertBlock(ethBlockEntity, AssertData.builder()
             .blockNum(12030868)

@@ -24,6 +24,7 @@ spring:
     hikari:
       maximum-pool-size: 1
     data: >
+      classpath:sql/views.sql,
       classpath:sql/common.sql,
       classpath:sql/hardwork.sql,
       classpath:sql/harvest.sql,
