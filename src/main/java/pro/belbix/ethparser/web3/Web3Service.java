@@ -8,16 +8,19 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.Web3Utils.callWithRetry;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import io.reactivex.Flowable;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -46,9 +49,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 @Service
 @Log4j2
 public class Web3Service {
-  public static final int LOG_LAST_PARSED_COUNT = 1_000;
-  public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
-      .valueOf(new BigInteger("10765094"));
   private final AppProperties appProperties;
 
   private Web3j web3;
@@ -334,8 +334,53 @@ public class Web3Service {
     return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
   }
 
-  public Web3j getWeb3() {
-    return web3;
+  Flowable<Transaction> transactionFlowable(String startBlock) {
+    waitInit();
+    Flowable<Transaction> flowable;
+    if (Strings.isBlank(startBlock)) {
+      flowable = callWithRetry(() -> web3.transactionFlowable());
+    } else {
+      log.info("Start flow from block " + startBlock);
+      flowable = callWithRetry(() -> web3.replayPastAndFutureTransactionsFlowable(
+          DefaultBlockParameter.valueOf(new BigInteger(startBlock))));
+    }
+    if (flowable == null) {
+      return Flowable.empty();
+    }
+    return flowable;
+  }
+
+  Flowable<Transaction> transactionsFlowable(
+      DefaultBlockParameter start,
+      DefaultBlockParameter end
+  ) {
+    waitInit();
+    Flowable<Transaction> flowable =
+        callWithRetry(() -> web3.replayPastTransactionsFlowable(start, end));
+    if (flowable == null) {
+      return Flowable.empty();
+    }
+    return flowable;
+  }
+
+  Flowable<EthBlock> blockFlowable(String startBlock, Supplier<Optional<Long>> lastBlockSupplier) {
+    waitInit();
+    DefaultBlockParameter startBlockP;
+    if (Strings.isBlank(startBlock)) {
+      startBlockP = DefaultBlockParameter.valueOf(
+          BigInteger.valueOf(lastBlockSupplier.get().orElse(0L)));
+
+    } else {
+      startBlockP = DefaultBlockParameter.valueOf(
+          new BigInteger(appProperties.getParseBlocksFrom()));
+    }
+    Flowable<EthBlock> flowable =
+        callWithRetry(() ->
+            web3.replayPastAndFutureBlocksFlowable(startBlockP, true));
+    if (flowable == null) {
+      return Flowable.empty();
+    }
+    return flowable;
   }
 
   @PreDestroy

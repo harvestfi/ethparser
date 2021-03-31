@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.deployer.downloader;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
+
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,7 +14,6 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
-import pro.belbix.ethparser.web3.Web3Service;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
@@ -45,7 +46,7 @@ public class DeployerTransactionsDownloader {
     DefaultBlockParameter blockTo;
 
     if (from == null) {
-      blockFrom = Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
+      blockFrom = BLOCK_NUMBER_30_AUGUST_2020;
     } else {
       blockFrom = DefaultBlockParameter.valueOf(new BigInteger(from.toString()));
     }

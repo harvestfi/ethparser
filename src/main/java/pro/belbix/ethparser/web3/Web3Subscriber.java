@@ -2,16 +2,14 @@ package pro.belbix.ethparser.web3;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.Web3Utils.callWithRetry;
 
-import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
@@ -44,7 +42,7 @@ public class Web3Subscriber {
   private final List<BlockingQueue<Transaction>> transactionConsumers = new ArrayList<>();
   private final List<BlockingQueue<Log>> logConsumers = new ArrayList<>();
   private final List<BlockingQueue<EthBlock>> blockConsumers = new ArrayList<>();
-  private final Set<Disposable> subscriptions = new HashSet<>();
+  private final Map<String, Disposable> subscriptions = new HashMap<>();
 
   public Web3Subscriber(Web3Service web3Service,
       AppProperties appProperties,
@@ -88,25 +86,27 @@ public class Web3Subscriber {
     if (!appProperties.isParseTransactions()) {
       return;
     }
-    web3Service.waitInit();
-    Flowable<Transaction> flowable;
-    if (Strings.isBlank(appProperties.getStartTransactionBlock())) {
-      flowable = callWithRetry(() -> web3Service.getWeb3().transactionFlowable());
-    } else {
-      log.info("Start flow from block " + appProperties.getStartTransactionBlock());
-      flowable = callWithRetry(() -> web3Service.getWeb3().replayPastAndFutureTransactionsFlowable(
-          DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartTransactionBlock()))));
-    }
-    Disposable subscription = flowable
-        .subscribe(tx -> transactionConsumers.forEach(queue ->
-                writeInQueue(queue, tx)),
-            e -> {
-              log.error("Transaction flowable error", e);
-              if (appProperties.isStopOnParseError()) {
-                System.exit(-1);
-              }
-            });
-    subscriptions.add(subscription);
+    String name = "subscribeTransactionFlowable";
+    subscriptions.computeIfPresent(name, (s, d) -> {
+      d.dispose();
+      return null;
+    });
+    subscriptions.put(name,
+        web3Service.transactionFlowable(appProperties.getStartTransactionBlock())
+            .subscribe(tx -> transactionConsumers.forEach(queue ->
+                    writeInQueue(queue, tx)),
+                e -> {
+                  log.error("Transaction flowable error", e);
+                  if (appProperties.isReconnectOnWeb3Errors()) {
+                    Thread.sleep(10000);
+                    subscribeTransactionFlowable();
+                  } else {
+                    if (appProperties.isStopOnParseError()) {
+                      System.exit(-1);
+                    }
+                  }
+                })
+    );
     log.info("Subscribe to Transaction Flowable");
   }
 
@@ -114,46 +114,29 @@ public class Web3Subscriber {
     if (!appProperties.isParseBlocks()) {
       return;
     }
-    web3Service.waitInit();
-    Flowable<EthBlock> flowable;
-    if (Strings.isBlank(appProperties.getParseBlocksFrom())) {
-      Optional<Long> lastBlock =
-          Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
-              .map(EthBlockEntity::getNumber);
-      if (lastBlock.isPresent()) {
-        flowable = web3Service.getWeb3().replayPastAndFutureBlocksFlowable(
-            DefaultBlockParameter.valueOf(
-                BigInteger.valueOf(lastBlock.get())),
-            true
-        );
-      } else {
-        flowable = web3Service.getWeb3().blockFlowable(true);
-      }
-    } else {
-      flowable = web3Service.getWeb3().replayPastAndFutureBlocksFlowable(
-          DefaultBlockParameter.valueOf(
-              new BigInteger(appProperties.getParseBlocksFrom())),
-          true
-      );
-    }
-    if (flowable == null) {
-      throw new IllegalStateException("Can't subscribe on blocks");
-    }
-    Disposable subscription = flowable
-        .subscribe(tx -> blockConsumers.forEach(queue ->
-                writeInQueue(queue, tx)),
-            e -> {
-              log.error("Block flowable error", e);
-              if (appProperties.isReconnectOnWeb3Errors()) {
-                Thread.sleep(10000);
-                subscribeOnBlocks();
-              } else {
-                if (appProperties.isStopOnParseError()) {
-                  System.exit(-1);
-                }
-              }
-            });
-    subscriptions.add(subscription);
+    String name = "subscribeOnBlocks";
+    subscriptions.computeIfPresent(name, (s, d) -> {
+      d.dispose();
+      return null;
+    });
+    subscriptions.put(name,
+        web3Service.blockFlowable(appProperties.getParseBlocksFrom(), () ->
+            Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
+                .map(EthBlockEntity::getNumber))
+            .subscribe(tx -> blockConsumers.forEach(queue ->
+                    writeInQueue(queue, tx)),
+                e -> {
+                  log.error("Block flowable error", e);
+                  if (appProperties.isReconnectOnWeb3Errors()) {
+                    Thread.sleep(10000);
+                    subscribeOnBlocks();
+                  } else {
+                    if (appProperties.isStopOnParseError()) {
+                      System.exit(-1);
+                    }
+                  }
+                })
+    );
     log.info("Subscribe to Block Flowable");
   }
 
@@ -161,22 +144,12 @@ public class Web3Subscriber {
       BlockingQueue<Transaction> transactionQueue,
       DefaultBlockParameter start,
       DefaultBlockParameter end) {
-    web3Service.waitInit();
-    String logStart =
-        start.getValue().startsWith("0x") ? Long.decode(start.getValue()).toString()
-            : start.getValue();
-    String logEnd =
-        end.getValue().startsWith("0x") ? Long.decode(end.getValue()).toString() : end.getValue();
-    log.info("Start flow for block range " + logStart + " - " + logEnd);
-    Flowable<Transaction> flowable =
-        callWithRetry(() -> web3Service.getWeb3().replayPastTransactionsFlowable(start, end));
-    if (flowable == null) {
-      throw new IllegalStateException("Can't subscribe on transactions");
-    }
+    log.info("Start flow for block range " + start.getValue() + " - " + end.getValue());
     Disposable subscription =
-        flowable.subscribe(
+        web3Service.transactionsFlowable(start, end).subscribe(
             tx -> writeInQueue(transactionQueue, tx),
-            e -> log.error("Transaction flowable error", e));
+            e -> log.error("Transaction flowable error", e)
+        );
     log.info("Subscribed to Transaction Flowable Range");
     return subscription;
   }
@@ -230,6 +203,10 @@ public class Web3Subscriber {
   @PreDestroy
   private void close() {
     log.info("Close web3 subscriber");
-    subscriptions.forEach(Disposable::dispose);
+    subscriptions.forEach((s, disposable) -> {
+      if (disposable != null && !disposable.isDisposed()) {
+        disposable.dispose();
+      }
+    });
   }
 }

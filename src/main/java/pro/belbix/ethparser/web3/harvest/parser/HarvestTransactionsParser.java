@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
-
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -28,7 +26,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 @Service
 @Log4j2
 public class HarvestTransactionsParser implements Web3Parser {
-
+  public static final int LOG_LAST_PARSED_COUNT = 1_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
   private final Web3Service web3Service;

@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
-import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
-
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -24,7 +22,7 @@ import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
 @Service
 @Log4j2
 public class DeployerTransactionsParser implements Web3Parser {
-
+  public static final int LOG_LAST_PARSED_COUNT = 1_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Subscriber web3Subscriber;
   private final DeployerDecoder deployerDecoder;

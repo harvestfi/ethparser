@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.Web3Service.BLOCK_NUMBER_30_AUGUST_2020;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
 
 import java.math.BigInteger;
 import java.time.Instant;
