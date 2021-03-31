@@ -50,7 +50,7 @@ public class EthBlockParserTest {
         assertNotNull(block, "EthBlockEntity is null");
         assertAll(
             () -> assertEquals(0, block.getNumber(), "block num"),
-            () -> assertEquals(1587390414, block.getTimestamp(), "block timestamp")
+            () -> assertEquals(0, block.getTimestamp(), "block timestamp")
         );
         assertNotNull(ethBlockDbService.save(block), "persist result");
     }
