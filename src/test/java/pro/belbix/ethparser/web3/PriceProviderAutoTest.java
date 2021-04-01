@@ -59,7 +59,8 @@ public class PriceProviderAutoTest {
       "ZERO",
       "YCRV",
       "CRV_CMPND",
-      "CRV_BUSD"
+      "CRV_BUSD",
+      "BSG" // unstable price on coingecko
   );
 
   @TestFactory
