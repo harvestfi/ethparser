@@ -4,9 +4,9 @@ import static pro.belbix.ethparser.web3.contracts.Contract.createContracts;
 
 import java.util.List;
 
-class HarvestPoolAddresses {
+class EthPoolAddresses {
 
-  private HarvestPoolAddresses() {
+  private EthPoolAddresses() {
   }
 
   //todo collect info from deployer

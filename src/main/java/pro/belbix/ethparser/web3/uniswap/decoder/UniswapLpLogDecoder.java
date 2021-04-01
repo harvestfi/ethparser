@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.math.BigInteger;
 import java.util.Arrays;

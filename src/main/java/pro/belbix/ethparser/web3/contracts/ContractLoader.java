@@ -11,14 +11,14 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.KEY_BLOCKS_FOR_LOADING;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHI_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.HarvestPoolAddresses.POOLS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.KEY_BLOCKS_FOR_LOADING;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.MOONISWAP_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PAIR_TYPE_ONEINCHE;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PAIR_TYPE_SUSHI;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PAIR_TYPE_UNISWAP;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.SUSHI_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.UNISWAP_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.EthPoolAddresses.POOLS;
 
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
@@ -140,7 +140,7 @@ public class ContractLoader {
   }
 
   private void loadTokens() {
-    for (TokenContract contract : TokenAddresses.TOKENS) {
+    for (TokenContract contract : EthTokenAddresses.TOKENS) {
       if (contract.getCreatedOnBlock() > currentBlock) {
         log.info("Token not created yet, skip {}", contract.getName());
       }
@@ -168,7 +168,7 @@ public class ContractLoader {
 
   private void loadVaults() {
     log.info("Start load vaults on block {}", currentBlock);
-    for (Contract vault : HarvestVaultAddresses.VAULTS) {
+    for (Contract vault : EthVaultAddresses.VAULTS) {
       if (vault.getCreatedOnBlock() > currentBlock) {
         log.info("Vault {} not created yet, skip", vault.getName());
         continue;
@@ -224,7 +224,7 @@ public class ContractLoader {
 
   private void loadUniPairs() {
     log.info("Start load uni pairs on block {}", currentBlock);
-    for (LpContract uniPair : UniPairAddresses.UNI_PAIRS) {
+    for (LpContract uniPair : EthLpAddresses.LPS) {
       String name = uniPair.getName();
       String hash = uniPair.getAddress();
       log.debug("Load {}", name);
@@ -455,7 +455,7 @@ public class ContractLoader {
 
   private void fillKeyTokenForLps() {
     log.info("Start fill key tokens for LPs on block {}", currentBlock);
-    for (LpContract lpContract : UniPairAddresses.UNI_PAIRS) {
+    for (LpContract lpContract : EthLpAddresses.LPS) {
 
       String keyTokenName = lpContract.getKeyToken();
       if (keyTokenName.isBlank()) {
@@ -479,7 +479,7 @@ public class ContractLoader {
 
   private void linkUniPairsToTokens() {
     log.info("Start link UniPairs to Tokens on block {}", currentBlock);
-    for (TokenContract tokenContract : TokenAddresses.TOKENS) {
+    for (TokenContract tokenContract : EthTokenAddresses.TOKENS) {
       for (Entry<String, Integer> lp : tokenContract.getLps().entrySet()) {
         UniPairEntity uniPair = uniPairsCacheByName.get(lp.getKey());
         if (uniPair == null) {

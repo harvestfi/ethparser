@@ -11,7 +11,7 @@ import pro.belbix.ethparser.model.DeployerTx;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.EthContractConstants;
 
 @SuppressWarnings({"rawtypes"})
 @Component
@@ -66,7 +66,7 @@ public class DeployerDecoder extends MethodDecoder {
 
   private boolean isValidTransaction(Transaction tx) {
     // If deployer address ever changes -- supply a list and check here
-    return ContractConstants.DEPLOYER.equalsIgnoreCase(tx.getFrom());
+    return EthContractConstants.ETH_DEPLOYER.equalsIgnoreCase(tx.getFrom());
   }
 
   @Override

@@ -5,8 +5,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.D18;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -101,7 +101,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   public HardWorkDTO parseLog(Log ethLog) {
-    if (ethLog == null || !CONTROLLER.equals(ethLog.getAddress())) {
+    if (ethLog == null || !ETH_CONTROLLER.equals(ethLog.getAddress())) {
       return null;
     }
 

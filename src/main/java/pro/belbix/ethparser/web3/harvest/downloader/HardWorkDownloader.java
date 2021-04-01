@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ETH_CONTROLLER;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -49,7 +49,7 @@ public class HardWorkDownloader {
 
   private void parse(Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(CONTROLLER), start, end);
+        .fetchContractLogs(singletonList(ETH_CONTROLLER), start, end);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.erc20;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
 
 import java.util.Arrays;
 import java.util.HashSet;

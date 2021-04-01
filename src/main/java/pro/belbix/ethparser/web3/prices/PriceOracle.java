@@ -1,9 +1,9 @@
 package pro.belbix.ethparser.web3.prices;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ORACLE;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ORACLE_START_BLOCK;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;

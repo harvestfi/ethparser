@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ONE_DOLLAR_TOKENS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PS_ADDRESSES;
 
 import java.math.BigDecimal;
 import java.util.Collection;

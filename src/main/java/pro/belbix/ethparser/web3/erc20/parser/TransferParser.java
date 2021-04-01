@@ -24,7 +24,7 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.EthContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.TransferType;
@@ -95,7 +95,7 @@ public class TransferParser implements Web3Parser {
   }
 
   public TransferDTO parseLog(Log ethLog) {
-    if (ethLog == null || !ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())) {
+    if (ethLog == null || !EthContractConstants.FARM_TOKEN.equals(ethLog.getAddress())) {
       return null;
     }
 

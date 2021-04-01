@@ -5,8 +5,8 @@ import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ORACLE_START_BLOCK;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +22,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.EthContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -126,7 +126,7 @@ public class PriceProvider {
       coinName = ContractUtils.getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Wrong input"));
     }
-    String coinNameSimple = ContractConstants.simplifyName(coinName);
+    String coinNameSimple = EthContractConstants.simplifyName(coinName);
     updateUSDPrice(coinNameSimple, block);
     if (ContractUtils.isStableCoin(coinNameSimple) && !priceOracle.isAvailable(coinName, block)) {
       return 1.0;

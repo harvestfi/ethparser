@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.D18;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -28,7 +28,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.EthContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
@@ -134,10 +134,10 @@ public class RewardParser implements Web3Parser {
 
     double farmBalance = parseAmount(
         functionsUtils
-            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock)
+            .callIntByName(BALANCE_OF, poolAddress, EthContractConstants.FARM_TOKEN, nextBlock)
             .orElseThrow(() -> new IllegalStateException(
-                "Error get balance from " + ContractConstants.FARM_TOKEN)),
-        ContractConstants.FARM_TOKEN);
+                "Error get balance from " + EthContractConstants.FARM_TOKEN)),
+        EthContractConstants.FARM_TOKEN);
 
     RewardDTO dto = new RewardDTO();
     dto.setId(tx.getHash() + "_" + tx.getLogId());

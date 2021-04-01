@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;

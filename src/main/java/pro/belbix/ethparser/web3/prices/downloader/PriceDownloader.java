@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.prices.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.util.ArrayList;
 import java.util.List;

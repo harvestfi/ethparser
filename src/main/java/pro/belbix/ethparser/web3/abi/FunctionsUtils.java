@@ -7,8 +7,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PAIR_TYPE_ONEINCHE;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.math.BigDecimal;

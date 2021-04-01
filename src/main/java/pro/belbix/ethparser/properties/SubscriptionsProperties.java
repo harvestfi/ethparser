@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.properties;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,7 +11,7 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.EthContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Validated
@@ -32,10 +32,10 @@ public class SubscriptionsProperties {
         Set<String> contracts = new HashSet<>();
 
         // hard work parsing
-        contracts.add(CONTROLLER);
+        contracts.add(ETH_CONTROLLER);
 
         // FARM token Mint event parsing + transfers parsing
-        contracts.add(ContractConstants.FARM_TOKEN);
+        contracts.add(EthContractConstants.FARM_TOKEN);
 
         // harvest events
         contracts.addAll(ContractUtils.getAllVaultAddresses());

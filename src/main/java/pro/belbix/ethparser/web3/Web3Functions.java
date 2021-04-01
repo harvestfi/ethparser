@@ -5,7 +5,7 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.Web3Utils.callWithRetry;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
 import java.math.BigInteger;
