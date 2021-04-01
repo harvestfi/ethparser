@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 
@@ -18,7 +18,7 @@ import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 @Log4j2
 public class EthBlockDownloader {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final EthBlockDbService ethBlockDbService;
   private final EthBlockParser ethBlockParser;
 
@@ -30,10 +30,10 @@ public class EthBlockDownloader {
   AtomicInteger count = new AtomicInteger(0);
   AtomicBoolean run = new AtomicBoolean(true);
 
-  public EthBlockDownloader(Web3Service web3Service,
+  public EthBlockDownloader(Web3Functions web3Functions,
       EthBlockDbService ethBlockDbService,
       EthBlockParser ethBlockParser) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.ethBlockDbService = ethBlockDbService;
     this.ethBlockParser = ethBlockParser;
   }
@@ -56,7 +56,7 @@ public class EthBlockDownloader {
     private void parseBlockAndSave(long block) {
       Instant timer = Instant.now();
 
-      EthBlock ethBlock = web3Service.findBlockByNumber(block, true);
+      EthBlock ethBlock = web3Functions.findBlockByNumber(block, true);
       log.debug("Fetched via web3 {} {}", block,
           Duration.between(timer, Instant.now()).toMillis());
       timer = Instant.now();

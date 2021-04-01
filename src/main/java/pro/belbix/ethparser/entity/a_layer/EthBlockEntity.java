@@ -17,6 +17,7 @@ import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import pro.belbix.ethparser.dto.DtoI;
+import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 
 //@NamedEntityGraph(
 //    name = "block-graph.all",
@@ -81,5 +82,10 @@ public class EthBlockEntity implements DtoI {
         fetch = FetchType.EAGER, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<EthTxEntity> transactions;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "block",
+        fetch = FetchType.LAZY, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<ContractEventEntity> contractEvents;
 
 }

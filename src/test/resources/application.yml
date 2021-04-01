@@ -13,7 +13,9 @@ spring:
     platform: postgresql
     # DON'T change the file - setup JVM args
     #-Dethparser.web3Url=https://eth-mainnet.alchemyapi.io/v2/KEY
+    #-Dethparser.web3BscUrl=https://eth-mainnet.alchemyapi.io/v2/KEY
     #-Dethparser.etherscanApiKey=key
+    #-Dethparser.bscscanApiKey=key
     #-Dspring.datasource.url=jdbc:postgresql://url:5432/test
     #-Dspring.datasource.username=test
     #-Dspring.datasource.password=test

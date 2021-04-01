@@ -17,7 +17,7 @@ import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.c_layer.UniPriceViewEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
@@ -35,7 +35,7 @@ class UniPriceViewRepositoryTest {
   @Autowired
   private EthBlockParser ethBlockParser;
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private EthBlockDbService ethBlockDbService;
   @Autowired
@@ -126,7 +126,7 @@ class UniPriceViewRepositoryTest {
 
   private void loadBlock(long blockNumber) {
     EthBlockEntity ethBlockEntity =
-        ethBlockParser.parse(web3Service.findBlockByNumber(blockNumber, true));
+        ethBlockParser.parse(web3Functions.findBlockByNumber(blockNumber, true));
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
       ethBlockEntity = ethBlockRepository.findById(blockNumber).orElseThrow();

@@ -2,7 +2,6 @@ package pro.belbix.ethparser.utils.recalculation;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import pro.belbix.ethparser.codegen.ContractGenerator;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
@@ -38,7 +37,6 @@ public class UtilsStarter {
   private final HarvestProfitRecalculate harvestProfitRecalculate;
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
-  private final ContractGenerator contractGenerator;
   private final ContractLoader contractLoader;
 
   public UtilsStarter(AppProperties appProperties,
@@ -59,7 +57,6 @@ public class UtilsStarter {
       HarvestProfitRecalculate harvestProfitRecalculate,
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
-      ContractGenerator contractGenerator,
       EthBlockDownloader ethBlockDownloader,
       ContractLoader contractLoader) {
     this.appProperties = appProperties;
@@ -83,7 +80,6 @@ public class UtilsStarter {
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
     this.contractLoader = contractLoader;
-    this.contractGenerator = contractGenerator;
   }
 
   public void startUtils() {
@@ -127,8 +123,6 @@ public class UtilsStarter {
       deployerTransactionsDownloader.start();
     } else if ("block-download".equals(appProperties.getStartUtil())) {
       ethBlockDownloader.start();
-    } else if ("contract-generator".equals(appProperties.getStartUtil())) {
-      contractGenerator.start();
     }
     log.info("Utils completed");
     System.exit(0);

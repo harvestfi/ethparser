@@ -18,7 +18,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -31,7 +31,7 @@ public class DoHardWorkTest {
     @Autowired
     private HardWorkParser hardWorkParser;
     @Autowired
-    private Web3Service web3Service;
+    private Web3Functions web3Functions;
     @Autowired
     private PriceProvider priceProvider;
     @Autowired
@@ -198,7 +198,7 @@ public class DoHardWorkTest {
         String sharePriceChange = numberFormat(_sharePriceChange);
         String fullRewardUsd = numberFormat(_fullRewardUsd);
         String farmBuyback = numberFormat(_farmBuyback);
-        List<LogResult> logResults = web3Service
+        List<LogResult> logResults = web3Functions
             .fetchContractLogs(Collections.singletonList(CONTROLLER), onBlock, onBlock);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());

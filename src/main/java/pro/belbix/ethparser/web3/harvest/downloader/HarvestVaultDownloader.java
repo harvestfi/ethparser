@@ -11,7 +11,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
@@ -23,7 +23,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 public class HarvestVaultDownloader {
 
   private static final Logger logger = LoggerFactory.getLogger(HarvestVaultDownloader.class);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final HarvestDBService harvestDBService;
   private final HarvestVaultParserV2 harvestVaultParserV2;
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
@@ -35,11 +35,11 @@ public class HarvestVaultDownloader {
   @Value("${harvest-download.to:}")
   private Integer to;
 
-  public HarvestVaultDownloader(Web3Service web3Service,
+  public HarvestVaultDownloader(Web3Functions web3Functions,
       HarvestDBService harvestDBService,
       HarvestVaultParserV2 harvestVaultParserV2,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.harvestDBService = harvestDBService;
     this.harvestVaultParserV2 = harvestVaultParserV2;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
@@ -52,7 +52,7 @@ public class HarvestVaultDownloader {
   }
 
   private void parse(String vaultHash, Integer start, Integer end) {
-    List<LogResult> logResults = web3Service
+    List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList(vaultHash), start, end);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {} {}", start, end, vaultHash);

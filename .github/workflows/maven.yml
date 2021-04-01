@@ -52,8 +52,10 @@ jobs:
       - name: Build with Maven
         run: >
           mvn
-          -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/${{secrets.ALCHEMY_TOKEN}}"
+          -Dethparser.web3Url="${{secrets.ETH_WEB3}}"
           -Dethparser.etherscanApiKey=${{secrets.ETHERSCAN_TOKEN}}
+          -Dethparser.web3BscUrl="${{secrets.BSC_WEB3}}"
+          -Dethparser.bscscanApiKey=${{secrets.BSCSCAN_TOKEN}}
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest

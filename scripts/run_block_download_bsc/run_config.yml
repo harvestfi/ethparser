@@ -1,4 +1,5 @@
 ethparser:
+  network: bsc
   onlyParse: true
   stopOnParseError: true
 

@@ -17,7 +17,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -27,7 +27,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 public class TransferParserTest {
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private PriceProvider priceProvider;
   @Autowired
@@ -381,7 +381,8 @@ public class TransferParserTest {
         String methodName
     ) {
       value = numberFormat(value);
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contractHash), onBlock, onBlock);
+        List<LogResult> logResults = web3Functions
+            .fetchContractLogs(singletonList(contractHash), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         TransferDTO dto = transferParser.parseLog((Log) logResults.get(logId).get());
         assertDto(dto, name, owner, recipient, value, type, methodName);

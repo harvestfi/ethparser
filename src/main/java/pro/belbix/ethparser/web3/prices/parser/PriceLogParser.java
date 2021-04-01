@@ -20,10 +20,11 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
@@ -37,7 +38,8 @@ public class PriceLogParser implements Web3Parser {
   private final PriceDecoder priceDecoder = new PriceDecoder();
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
@@ -47,13 +49,14 @@ public class PriceLogParser implements Web3Parser {
   private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
-  public PriceLogParser(Web3Service web3Service,
-      EthBlockService ethBlockService,
+  public PriceLogParser(Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
       ParserInfo parserInfo,
       PriceDBService priceDBService,
       AppProperties appProperties,
       FunctionsUtils functionsUtils) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
@@ -65,7 +68,7 @@ public class PriceLogParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Price logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;

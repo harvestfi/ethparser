@@ -11,7 +11,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
@@ -22,7 +22,7 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 public class UniswapLpDownloader {
 
   private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final UniswapDbService saveHarvestDTO;
   private final UniswapLpLogParser uniswapLpLogParser;
 
@@ -33,10 +33,10 @@ public class UniswapLpDownloader {
   @Value("${uniswap-download.to:}")
   private Integer to;
 
-  public UniswapLpDownloader(Web3Service web3Service,
+  public UniswapLpDownloader(Web3Functions web3Functions,
       UniswapDbService saveHarvestDTO,
       UniswapLpLogParser uniswapLpLogParser) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.saveHarvestDTO = saveHarvestDTO;
     this.uniswapLpLogParser = uniswapLpLogParser;
   }
@@ -46,7 +46,7 @@ public class UniswapLpDownloader {
   }
 
   private void load(Integer from, Integer to) {
-    List<LogResult> logResults = web3Service.fetchContractLogs(
+    List<LogResult> logResults = web3Functions.fetchContractLogs(
         singletonList(
             ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
         from,

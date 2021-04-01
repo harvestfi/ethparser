@@ -17,7 +17,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -29,7 +29,7 @@ public class HarvestOwnerBalanceCalculatorTest {
   @Autowired
   private HarvestVaultParserV2 harvestVaultParser;
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private PriceProvider priceProvider;
   @Autowired
@@ -72,7 +72,7 @@ public class HarvestOwnerBalanceCalculatorTest {
     ) {
       String ownerBalance = numberFormat(_ownerBalance);
       String ownerBalanceUsd = numberFormat(_ownerBalanceUsd);
-      List<LogResult> logResults = web3Service
+      List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
       assertTrue("Log smaller then necessary", logId < logResults.size());
       HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());

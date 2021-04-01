@@ -17,7 +17,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -28,7 +28,7 @@ public class RewardParserTest {
     @Autowired
     private RewardParser rewardParser;
     @Autowired
-    private Web3Service web3Service;
+    private Web3Functions web3Functions;
     @Autowired
     private PriceProvider priceProvider;
 
@@ -130,7 +130,7 @@ public class RewardParserTest {
         int period
     ) {
         String reward = numberFormat(_reward);
-        List<LogResult> logResults = web3Service
+        List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         try {
