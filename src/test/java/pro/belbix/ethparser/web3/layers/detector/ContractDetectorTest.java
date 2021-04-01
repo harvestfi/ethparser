@@ -203,7 +203,8 @@ class ContractDetectorTest {
         () -> assertNotNull(contractEventsDbService.save(event),
             "save result"),
         () -> assertNull(contractEventsDbService.save(event),
-            "Duplicate should be null")
+            "Duplicate should be null"),
+        () -> ethBlockRepository.deleteById(event.getBlock().getNumber())
     );
   }
 
