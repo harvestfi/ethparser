@@ -9,11 +9,11 @@ import pro.belbix.ethparser.repositories.v0.BlockCacheRepository;
 @Service
 public class EthBlockService {
 
-  private final Web3Service web3;
+  private final Web3Functions web3;
   private final BlockCacheRepository blockCacheRepository;
   private long lastBlock = 0L;
 
-  public EthBlockService(Web3Service web3, BlockCacheRepository blockCacheRepository) {
+  public EthBlockService(Web3Functions web3, BlockCacheRepository blockCacheRepository) {
     this.web3 = web3;
     this.blockCacheRepository = blockCacheRepository;
   }

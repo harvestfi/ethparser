@@ -27,7 +27,7 @@ import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
@@ -46,7 +46,7 @@ public class HardWorkParser implements Web3Parser {
   private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
@@ -59,13 +59,13 @@ public class HardWorkParser implements Web3Parser {
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
-      Web3Service web3Service,
+      Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
       ParserInfo parserInfo,
       AppProperties appProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
@@ -144,7 +144,7 @@ public class HardWorkParser implements Web3Parser {
 
   // not in the root because it can be weekly reward
   private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
-    TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
+    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash);
     double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
     dto.setFarmPrice(farmPrice);
     boolean autoStake = isAutoStake(tr.getLogs());
@@ -222,7 +222,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
-    Transaction transaction = web3Service.findTransaction(txHash);
+    Transaction transaction = web3Functions.findTransaction(txHash);
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
     double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());

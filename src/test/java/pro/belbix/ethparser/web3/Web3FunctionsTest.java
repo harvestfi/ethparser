@@ -38,10 +38,10 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class Web3ServiceTest {
+public class Web3FunctionsTest {
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
 
@@ -52,7 +52,7 @@ public class Web3ServiceTest {
 
   @Test
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
-    TransactionReceipt transactionReceipt = web3Service
+    TransactionReceipt transactionReceipt = web3Functions
         .fetchTransactionReceipt(
             "0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
     assertNotNull(transactionReceipt);
@@ -82,7 +82,7 @@ public class Web3ServiceTest {
 
     @Test
     public void testFetchBlock() {
-      Block block = web3Service.findBlockByHash(
+      Block block = web3Functions.findBlockByHash(
           "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
           , false)
           .getBlock();
@@ -93,7 +93,7 @@ public class Web3ServiceTest {
 
   @Test
   void testFetchBlockByNumber() {
-    Block block = web3Service.findBlockByNumber(9000000, false)
+    Block block = web3Functions.findBlockByNumber(9000000, false)
         .getBlock();
     assertNotNull(block);
     assertEquals(BigInteger.valueOf(1574706444L), block.getTimestamp());
@@ -103,7 +103,7 @@ public class Web3ServiceTest {
   @Disabled
   public void checkLogsForAllVaults() {
     for (String hash : ContractUtils.getAllVaultAddresses()) {
-      List<LogResult> logs = web3Service
+      List<LogResult> logs = web3Functions
           .fetchContractLogs(singletonList(hash), null, null);
       assertNotNull(logs);
       System.out.println(hash + " " + logs.size());
@@ -113,13 +113,13 @@ public class Web3ServiceTest {
     @Test
     @Disabled
     public void getBalanceTest() {
-        double balance = web3Service.fetchBalance("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB");
+        double balance = web3Functions.fetchBalance("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB");
         assertTrue(balance > 0);
     }
 
     @Test
     public void ethCallGET_PRICE_PER_FULL_SHARE_WBTC() {
-        List<Type> types = web3Service.callFunction(new Function(
+        List<Type> types = web3Functions.callFunction(new Function(
             "getPricePerFullShare",
             Collections.emptyList(),
             Collections.singletonList(new TypeReference<Uint256>() {
@@ -131,7 +131,7 @@ public class Web3ServiceTest {
 
     @Test
     public void ethCallGET_RESERVESTestUNI_LP_ETH_DAI() {
-        List<Type> types = web3Service.callFunction(new Function(
+        List<Type> types = web3Functions.callFunction(new Function(
             "getReserves",
             Collections.emptyList(),
             Arrays.asList(new TypeReference<Uint112>() {
@@ -152,14 +152,14 @@ public class Web3ServiceTest {
 
   @Test
   public void getReceiptShouldWork() {
-    TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(
+    TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(
         "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
     assertNotNull(transactionReceipt);
   }
 
   @Test
   void testRequestWithTopics() {
-    List<EthLog.LogResult> results = web3Service.fetchContractLogs(
+    List<EthLog.LogResult> results = web3Functions.fetchContractLogs(
         List.of("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
         null,
         null,

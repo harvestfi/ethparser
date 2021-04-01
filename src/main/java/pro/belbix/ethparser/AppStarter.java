@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
@@ -42,7 +42,7 @@ import pro.belbix.ethparser.ws.WsService;
 @Log4j2
 public class AppStarter {
 
-    private final Web3Service web3Service;
+    private final Web3Functions web3Functions;
     private final Web3Subscriber web3Subscriber;
     private final HarvestTransactionsParser harvestTransactionsParser;
     private final UniswapLpLogParser uniswapLpLogParser;
@@ -65,7 +65,7 @@ public class AppStarter {
     private boolean web3LogsStarted = false;
     private boolean web3BlocksStarted = false;
 
-    public AppStarter(Web3Service web3Service,
+    public AppStarter(Web3Functions web3Functions,
         Web3Subscriber web3Subscriber,
         HarvestTransactionsParser harvestTransactionsParser,
         UniswapLpLogParser uniswapLpLogParser,
@@ -79,7 +79,7 @@ public class AppStarter {
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
         ContractDetector contractDetector) {
-        this.web3Service = web3Service;
+        this.web3Functions = web3Functions;
         this.web3Subscriber = web3Subscriber;
         this.harvestTransactionsParser = harvestTransactionsParser;
         this.uniswapLpLogParser = uniswapLpLogParser;
@@ -109,40 +109,40 @@ public class AppStarter {
             contractLoader.load();
 
             if (conf.isParseHarvest()) {
-                startParse(web3Service, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
+                startParse(web3Functions, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
             }
 
             if (conf.isParseUniswapLog()) {
-                startParse(web3Service, uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(web3Functions, uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHarvestLog()) {
-                startParse(web3Service, harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(web3Functions, harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHardWorkLog()) {
-                startParse(web3Service, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+                startParse(web3Functions, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
             }
 
             if (conf.isParseRewardsLog()) {
-                startParse(web3Service, rewardParser, ws, REWARDS_TOPIC_NAME, true);
+                startParse(web3Functions, rewardParser, ws, REWARDS_TOPIC_NAME, true);
             }
 
             if (conf.isParseImportantEvents()) {
-                startParse(web3Service, importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+                startParse(web3Functions, importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
             }
 
             if (conf.isConvertUniToHarvest()) {
-                startParse(web3Service, uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(web3Functions, uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
             if (conf.isParseTransfers()) {
-                startParse(web3Service, transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+                startParse(web3Functions, transferParser, ws, TRANSFERS_TOPIC_NAME, true);
             }
             if (conf.isParsePrices()) {
-                startParse(web3Service, priceLogParser, ws, PRICES_TOPIC_NAME, true);
+                startParse(web3Functions, priceLogParser, ws, PRICES_TOPIC_NAME, true);
             }
             if (conf.isParseDeployerTransactions()) {
-                startParse(web3Service, deployerTransactionsParser, ws,
+                startParse(web3Functions, deployerTransactionsParser, ws,
                     DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
             }
             if (conf.isParseBlocks()) {
@@ -170,12 +170,12 @@ public class AppStarter {
         }
     }
 
-    public void startParse(Web3Service web3Service, Web3Parser parser, WsService ws,
+    public void startParse(Web3Functions web3Functions, Web3Parser parser, WsService ws,
                            String topicName, boolean logs) {
         if (logs) {
-            startWeb3SubscribeLog(web3Service);
+            startWeb3SubscribeLog(web3Functions);
         } else {
-            startWeb3SubscribeTx(web3Service);
+            startWeb3SubscribeTx(web3Functions);
         }
         parser.startParse();
 
@@ -195,14 +195,14 @@ public class AppStarter {
 
     }
 
-    private void startWeb3SubscribeLog(Web3Service web3Service) {
+    private void startWeb3SubscribeLog(Web3Functions web3Functions) {
         if (!web3LogsStarted) {
             web3Subscriber.subscribeLogFlowable();
             web3LogsStarted = true;
         }
     }
 
-    private void startWeb3SubscribeTx(Web3Service web3Service) {
+    private void startWeb3SubscribeTx(Web3Functions web3Functions) {
         if (!web3TransactionsStarted) {
             web3Subscriber.subscribeTransactionFlowable();
             web3TransactionsStarted = true;

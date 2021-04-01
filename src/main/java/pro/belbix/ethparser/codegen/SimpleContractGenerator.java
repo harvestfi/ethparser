@@ -30,7 +30,7 @@ import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
 @Log4j2
@@ -51,15 +51,15 @@ public class SimpleContractGenerator {
   private final AbiProviderService abiProviderService;
   private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
 
   private final Map<String, TreeMap<Integer, GeneratedContract>> contracts = new HashMap<>();
 
   public SimpleContractGenerator(AppProperties appProperties, FunctionsUtils functionsUtils,
-      Web3Service web3Service) {
+      Web3Functions web3Functions) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.abiProviderService = new AbiProviderService(appProperties.getNetwork());
   }
 
@@ -216,7 +216,7 @@ public class SimpleContractGenerator {
   }
 
   private String findLastProxyUpgrade(String address, Integer block, Event event) {
-    List<LogResult> logResults = web3Service.fetchContractLogs(
+    List<LogResult> logResults = web3Functions.fetchContractLogs(
         List.of(address),
         null,
         block,

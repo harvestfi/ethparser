@@ -17,7 +17,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -29,7 +29,7 @@ public class HarvestTransactionsParser implements Web3Parser {
   public static final int LOG_LAST_PARSED_COUNT = 1_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -40,11 +40,11 @@ public class HarvestTransactionsParser implements Web3Parser {
   private long parsedTxCount = 0;
   private Instant lastTx = Instant.now();
 
-  public HarvestTransactionsParser(Web3Service web3Service,
+  public HarvestTransactionsParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
       EthBlockService ethBlockService, ParserInfo parserInfo,
       AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.harvestDBService = harvestDBService;
     this.ethBlockService = ethBlockService;
@@ -94,7 +94,7 @@ public class HarvestTransactionsParser implements Web3Parser {
     }
 
     HarvestDTO dto = harvestTx.toDto();
-    dto.setLastGas(web3Service.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice());
     dto.setBlockDate(ethBlockService
         .getTimestampSecForBlock(tx.getBlockNumber().longValue()));
     print(dto);
@@ -135,7 +135,7 @@ public class HarvestTransactionsParser implements Web3Parser {
       if (!harvestTx.isExistenceVault()) {
         return null;
       }
-      TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
+      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());
       if ("0x1".equals(transactionReceipt.getStatus())) {
         harvestTx.setSuccess(true);
       }

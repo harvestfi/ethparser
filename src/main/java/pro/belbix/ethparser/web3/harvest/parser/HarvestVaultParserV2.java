@@ -37,7 +37,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -55,7 +55,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private static final Set<String> allowedMethods = new HashSet<>(
       Collections.singletonList("transfer"));
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -69,7 +69,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private Instant lastTx = Instant.now();
   private long count = 0;
 
-  public HarvestVaultParserV2(Web3Service web3Service,
+  public HarvestVaultParserV2(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
@@ -77,7 +77,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       ParserInfo parserInfo,
       AppProperties appProperties,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.harvestDBService = harvestDBService;
     this.ethBlockService = ethBlockService;
@@ -207,7 +207,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     if ("Staked".equals(harvestTx.getMethodName())) {
       harvestTx.setMethodName("Deposit");
     } else if ("Staked#V2".equals(harvestTx.getMethodName())) {
-      TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+      TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(harvestTx.getHash());
       String vault = receipt.getTo();
       if (vault.equalsIgnoreCase(ContractUtils.getAddressByName("iPS", ContractType.VAULT).get())) {
         return false; //not count deposit from iPS
@@ -215,7 +215,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       harvestTx.setMethodName("Deposit");
       harvestTx.setAmount(harvestTx.getIntFromArgs()[0]);
     } else if ("withdrawn".equals(harvestTx.getMethodName().toLowerCase())) {
-      TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+      TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(harvestTx.getHash());
       String owner = receipt.getFrom();
       if (!owner.equals(harvestTx.getOwner())) {
         return false; //withdrawn for not owner is a garbage
@@ -228,7 +228,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
   }
 
   private boolean parseVaults(HarvestTx harvestTx, Log ethLog) {
-    TransactionReceipt receipt = web3Service.fetchTransactionReceipt(harvestTx.getHash());
+    TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(harvestTx.getHash());
     if (receipt == null) {
       throw new IllegalStateException("Receipt is null for " + harvestTx.getHash());
     }
@@ -264,7 +264,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
         .getContract().getAddress();
 
-    List<LogResult> logResults = web3Service
+    List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList(poolAddress), onBlock, onBlock);
     HarvestTx migrationTx = null;
     for (LogResult ethLog : logResults) {
@@ -333,7 +333,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
   public void enrichDto(HarvestDTO dto) {
     //set gas
-    dto.setLastGas(web3Service.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice());
   }
 
   private void fillUsdPrice(HarvestDTO dto) {

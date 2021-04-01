@@ -18,7 +18,7 @@ public class Web3LogFlowable implements Runnable {
 
   public static final int DEFAULT_BLOCK_TIME = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final List<String> addresses;
   private final List<BlockingQueue<Log>> logConsumers;
   private Integer from;
@@ -26,9 +26,9 @@ public class Web3LogFlowable implements Runnable {
 
   public Web3LogFlowable(
       EthFilter filter,
-      Web3Service web3Service,
+      Web3Functions web3Functions,
       List<BlockingQueue<Log>> logConsumers) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.addresses = filter.getAddress();
     this.from = ((DefaultBlockParameterNumber) filter.getFromBlock()).getBlockNumber().intValue();
     this.logConsumers = logConsumers;
@@ -45,7 +45,7 @@ public class Web3LogFlowable implements Runnable {
     BigInteger currentBlock;
     while (run.get()) {
       try {
-        currentBlock = web3Service.fetchCurrentBlock();
+        currentBlock = web3Functions.fetchCurrentBlock();
         if (lastBlock != null && lastBlock.intValue() >= currentBlock.intValue()) {
           Thread.sleep(DEFAULT_BLOCK_TIME);
           continue;
@@ -61,7 +61,7 @@ public class Web3LogFlowable implements Runnable {
           }
         }
         //noinspection rawtypes
-        List<EthLog.LogResult> logResults = web3Service.fetchContractLogs(addresses, from, to);
+        List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addresses, from, to);
         log.info("Parse log from {} to {} on block: {} - {}", from, to,
             currentBlock, logResults.size());
         //noinspection rawtypes

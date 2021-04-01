@@ -36,7 +36,7 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings("rawtypes")
@@ -52,10 +52,10 @@ public class FunctionsUtils {
 
   private final Map<String, Function> functionsCache = new HashMap<>();
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
 
-  public FunctionsUtils(Web3Service web3Service) {
-    this.web3Service = web3Service;
+  public FunctionsUtils(Web3Functions web3Functions) {
+    this.web3Functions = web3Functions;
   }
 
   // todo complex functions should be decomposed and use simple calls ************************
@@ -87,7 +87,7 @@ public class FunctionsUtils {
   }
 
   private Tuple2<Double, Double> callUniReserves(String lpAddress, Long block) {
-    List<Type> types = web3Service.callFunction(new Function(
+    List<Type> types = web3Functions.callFunction(new Function(
         GET_RESERVES,
         Collections.emptyList(),
         Arrays.asList(new TypeReference<Uint112>() {
@@ -154,7 +154,7 @@ public class FunctionsUtils {
   }
 
   public Optional<String> callViewFunction(Function function, String address, long block) {
-    List<Type> response = web3Service.callFunction(function, address,
+    List<Type> response = web3Functions.callFunction(function, address,
         DefaultBlockParameter.valueOf(BigInteger.valueOf(block)));
     if (response == null || response.isEmpty()) {
       return Optional.empty();
@@ -200,7 +200,7 @@ public class FunctionsUtils {
   }
 
   private Optional<String> callStringFunction(Function function, String hash, Long block) {
-    List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+    List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
       log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
@@ -209,7 +209,7 @@ public class FunctionsUtils {
   }
 
   private Optional<BigInteger> callUint256Function(Function function, String hash, Long block) {
-    List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+    List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
       log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();

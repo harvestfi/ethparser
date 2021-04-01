@@ -5,20 +5,15 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.AppConfig;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
@@ -27,7 +22,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 public class RewardVaultParseTest {
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
 
@@ -41,7 +36,7 @@ public class RewardVaultParseTest {
   @Test
   @Disabled
   public void ycrvTest() {
-    List<LogResult> logResults = web3Service
+    List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), null, null);
     for (LogResult logResult : logResults) {
       Log ethLog = (Log) logResult.get();
@@ -54,7 +49,7 @@ public class RewardVaultParseTest {
 
     @Test
     public void ycrvTest_RewardDenied() {
-        List<LogResult> logResults = web3Service
+        List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), 11413701, 11413701);
         for (LogResult logResult : logResults) {
             Log ethLog = (Log) logResult.get();

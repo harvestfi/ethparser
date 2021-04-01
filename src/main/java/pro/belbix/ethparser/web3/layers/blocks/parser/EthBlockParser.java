@@ -27,7 +27,7 @@ import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
@@ -38,17 +38,17 @@ public class EthBlockParser {
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
   private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final AppProperties appProperties;
   private final EthBlockDbService ethBlockDbService;
   private Instant lastTx = Instant.now();
   private long count = 0;
 
-  public EthBlockParser(Web3Service web3Service,
+  public EthBlockParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, AppProperties appProperties,
       EthBlockDbService ethBlockDbService) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.appProperties = appProperties;
     this.ethBlockDbService = ethBlockDbService;
@@ -157,7 +157,7 @@ public class EthBlockParser {
       return;
     }
     Stream<Optional<TransactionReceipt>> receipts =
-        web3Service.fetchTransactionReceiptBatch(txMap.keySet());
+        web3Functions.fetchTransactionReceiptBatch(txMap.keySet());
     receipts
         .filter(Optional::isPresent)
         .map(Optional::get)

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
@@ -21,7 +21,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class TransferDownloader {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final PriceProvider priceProvider;
   private final TransferDBService transferDBService;
   private final TransferParser transferParser;
@@ -33,11 +33,11 @@ public class TransferDownloader {
   @Value("${transfer-download.to:}")
   private Integer to;
 
-  public TransferDownloader(Web3Service web3Service,
+  public TransferDownloader(Web3Functions web3Functions,
       PriceProvider priceProvider,
       TransferDBService transferDBService,
       TransferParser transferParser) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.priceProvider = priceProvider;
     this.transferDBService = transferDBService;
     this.transferParser = transferParser;
@@ -54,7 +54,7 @@ public class TransferDownloader {
   }
 
   private void parse(Integer start, Integer end, String contract) {
-    List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), start, end);
+    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

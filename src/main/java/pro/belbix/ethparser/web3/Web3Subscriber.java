@@ -32,7 +32,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Log4j2
 public class Web3Subscriber {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final AppProperties appProperties;
   private final SubscriptionsProperties subscriptionsProperties;
   private final UniswapDbService uniswapDbService;
@@ -44,13 +44,13 @@ public class Web3Subscriber {
   private final List<BlockingQueue<EthBlock>> blockConsumers = new ArrayList<>();
   private final Map<String, Disposable> subscriptions = new HashMap<>();
 
-  public Web3Subscriber(Web3Service web3Service,
+  public Web3Subscriber(Web3Functions web3Functions,
       AppProperties appProperties,
       SubscriptionsProperties subscriptionsProperties,
       UniswapDbService uniswapDbService,
       HarvestDBService harvestDBService,
       EthBlockRepository ethBlockRepository) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.appProperties = appProperties;
     this.subscriptionsProperties = subscriptionsProperties;
     this.uniswapDbService = uniswapDbService;
@@ -62,7 +62,7 @@ public class Web3Subscriber {
     if (!appProperties.isParseLog()) {
       return;
     }
-    web3Service.waitInit();
+    web3Functions.waitInit();
     DefaultBlockParameter from;
     if (Strings.isBlank(appProperties.getStartLogBlock())) {
       from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
@@ -92,7 +92,7 @@ public class Web3Subscriber {
       return null;
     });
     subscriptions.put(name,
-        web3Service.transactionFlowable(appProperties.getStartTransactionBlock())
+        web3Functions.transactionFlowable(appProperties.getStartTransactionBlock())
             .subscribe(tx -> transactionConsumers.forEach(queue ->
                     writeInQueue(queue, tx)),
                 e -> {
@@ -120,7 +120,7 @@ public class Web3Subscriber {
       return null;
     });
     subscriptions.put(name,
-        web3Service.blockFlowable(appProperties.getParseBlocksFrom(), () ->
+        web3Functions.blockFlowable(appProperties.getParseBlocksFrom(), () ->
             Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
                 .map(EthBlockEntity::getNumber))
             .subscribe(tx -> blockConsumers.forEach(queue ->
@@ -146,7 +146,7 @@ public class Web3Subscriber {
       DefaultBlockParameter end) {
     log.info("Start flow for block range " + start.getValue() + " - " + end.getValue());
     Disposable subscription =
-        web3Service.transactionsFlowable(start, end).subscribe(
+        web3Functions.transactionsFlowable(start, end).subscribe(
             tx -> writeInQueue(transactionQueue, tx),
             e -> log.error("Transaction flowable error", e)
         );
@@ -173,7 +173,7 @@ public class Web3Subscriber {
   }
 
   public void startLogFlowableThread(EthFilter filter) {
-    Web3LogFlowable logFlowable = new Web3LogFlowable(filter, web3Service, logConsumers);
+    Web3LogFlowable logFlowable = new Web3LogFlowable(filter, web3Functions, logConsumers);
     new Thread(logFlowable).start();
   }
 

@@ -48,7 +48,7 @@ public class PriceProviderAutoTest {
   private EthBlockService ethBlockService;
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
 
   @BeforeEach
   void setUp() {
@@ -64,7 +64,7 @@ public class PriceProviderAutoTest {
 
   @TestFactory
   public Stream<DynamicTest> tokenPrices() throws Exception {
-    long block = web3Service.fetchCurrentBlock().longValue();
+    long block = web3Functions.fetchCurrentBlock().longValue();
     HashMap<String, Double> addressPriceMap = this.fetchPrices();
 
     return ContractUtils.getAllTokens().stream()

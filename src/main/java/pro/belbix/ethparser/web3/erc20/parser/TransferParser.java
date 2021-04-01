@@ -23,7 +23,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -40,7 +40,7 @@ public class TransferParser implements Web3Parser {
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ERC20Decoder erc20Decoder = new ERC20Decoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final ParserInfo parserInfo;
@@ -50,13 +50,13 @@ public class TransferParser implements Web3Parser {
   private final AppProperties appProperties;
   private Instant lastTx = Instant.now();
 
-  public TransferParser(Web3Service web3Service,
+  public TransferParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
       ParserInfo parserInfo,
       TransferDBService transferDBService,
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils, AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
@@ -130,7 +130,7 @@ public class TransferParser implements Web3Parser {
     String methodName = dto.getMethodName();
     if (methodName == null) {
       String hash = dto.getId().split("_")[0];
-      Transaction ethTx = web3Service.findTransaction(hash);
+      Transaction ethTx = web3Functions.findTransaction(hash);
       methodName = erc20Decoder.decodeMethodName(ethTx.getInput());
       if (methodName == null) {
         log.warn("Can't decode method for " + hash);

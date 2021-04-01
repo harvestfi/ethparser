@@ -14,16 +14,9 @@ public class AppProperties {
     private String network = "eth";
 
     private String web3Url = "";
-    private String web3User = "";
-    private String web3Password = "";
-    private String etherscanApiKey = "YourApiKeyToken";
-
     private String web3BscUrl = "";
-    private String web3BscUser = "";
-    private String web3BscPassword = "";
+    private String etherscanApiKey = "YourApiKeyToken";
     private String bscscanApiKey = "YourApiKeyToken";
-
-
 
     private boolean onlyApi = false;
     private boolean onlyParse = false;

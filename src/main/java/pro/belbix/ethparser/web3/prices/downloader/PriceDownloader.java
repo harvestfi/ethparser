@@ -14,7 +14,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.LoopUtils;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
@@ -24,7 +24,7 @@ import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 @SuppressWarnings("rawtypes")
 public class PriceDownloader {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final PriceRepository priceRepository;
   private final PriceLogParser priceLogParser;
 
@@ -35,10 +35,10 @@ public class PriceDownloader {
   @Value("${price-download.to:}")
   private Integer to;
 
-  public PriceDownloader(Web3Service web3Service,
+  public PriceDownloader(Web3Functions web3Functions,
       PriceRepository priceRepository,
       PriceLogParser priceLogParser) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.priceRepository = priceRepository;
     this.priceLogParser = priceLogParser;
   }
@@ -59,7 +59,7 @@ public class PriceDownloader {
   }
 
   private void parse(Integer start, Integer end, String contractName) {
-    List<LogResult> logResults = web3Service
+    List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList(contractName), start, end);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);

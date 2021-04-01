@@ -24,7 +24,6 @@ import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
-import pro.belbix.ethparser.web3.Web3Service;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration

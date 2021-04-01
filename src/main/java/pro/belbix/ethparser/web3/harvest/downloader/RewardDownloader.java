@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
@@ -23,7 +23,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 public class RewardDownloader {
 
   private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final RewardParser rewardParser;
   private final PriceProvider priceProvider;
   private final RewardsDBService rewardsDBService;
@@ -35,11 +35,11 @@ public class RewardDownloader {
   @Value("${reward-download.to:}")
   private Integer to;
 
-  public RewardDownloader(Web3Service web3Service,
+  public RewardDownloader(Web3Functions web3Functions,
       RewardParser rewardParser,
       PriceProvider priceProvider,
       RewardsDBService rewardsDBService) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.rewardParser = rewardParser;
     this.priceProvider = priceProvider;
     this.rewardsDBService = rewardsDBService;
@@ -61,7 +61,7 @@ public class RewardDownloader {
   }
 
   private void parse(Integer start, Integer end, String contract) {
-    List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), start, end);
+    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {}", start, end);
       return;

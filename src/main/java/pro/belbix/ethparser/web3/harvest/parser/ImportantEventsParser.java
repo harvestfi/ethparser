@@ -25,7 +25,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
@@ -40,7 +40,7 @@ public class ImportantEventsParser implements Web3Parser {
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
   private final ParserInfo parserInfo;
@@ -50,13 +50,13 @@ public class ImportantEventsParser implements Web3Parser {
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
-      Web3Service web3Service,
+      Web3Functions web3Functions,
       Web3Subscriber web3Subscriber,
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
       FunctionsUtils functionsUtils, AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
