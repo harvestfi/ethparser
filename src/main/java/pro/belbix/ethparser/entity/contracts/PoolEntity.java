@@ -52,10 +52,4 @@ public class PoolEntity {
     @Fetch(FetchMode.JOIN)
     private ContractEntity rewardToken;
 
-//    @JsonIgnore
-//    @OneToMany(fetch = FetchType.LAZY)
-//    @JoinColumn(name="pool_id")
-//    private List<VaultToPoolEntity> vaultToPoolEntries;
-
-
 }

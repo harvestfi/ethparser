@@ -32,7 +32,6 @@ import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.entity.contracts.VaultToPoolEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.ContractRepository;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
@@ -40,7 +39,6 @@ import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
-import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
@@ -59,7 +57,6 @@ public class ContractLoader {
   private final UniPairRepository uniPairRepository;
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
-  private final VaultToPoolRepository vaultToPoolRepository;
   private final SourceResolver sourceResolver;
 
   Set<String> loaded = new HashSet<>();
@@ -76,7 +73,6 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      VaultToPoolRepository vaultToPoolRepository,
       SourceResolver sourceResolver) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
@@ -87,7 +83,6 @@ public class ContractLoader {
     this.uniPairRepository = uniPairRepository;
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
-    this.vaultToPoolRepository = vaultToPoolRepository;
     this.sourceResolver = sourceResolver;
 
     //todo TEMPORALLY! remove with removing all static code
@@ -118,7 +113,6 @@ public class ContractLoader {
     loadPools(network, block);
     loadTokens(network, block);
     loadUniPairs(network, block);
-    linkVaultToPools(network, block);
     fillKeyTokenForLps(network, block);
     linkUniPairsToTokens(network, block);
   }
@@ -417,50 +411,6 @@ public class ContractLoader {
     return type;
   }
 
-  private void linkVaultToPools(String network, long block) {
-    log.info("Start link pools to vaults on block {}", block);
-    for (PoolEntity poolEntity : getCache(network).getPoolEntities()) {
-      if (poolEntity.getLpToken() == null) {
-        continue;
-      }
-      ContractEntity currentLpToken = poolEntity.getLpToken();
-      String lpAddress = currentLpToken.getAddress();
-      if (currentLpToken.getType() == ContractType.VAULT.getId()) {
-        VaultEntity vaultEntity = getCache(network).getVaultByAddress(lpAddress).orElse(null);
-        if (vaultEntity == null) {
-          log.warn("Not found vault for address {}", lpAddress);
-          continue;
-        }
-        VaultToPoolEntity vaultToPoolEntity =
-            findOrCreateVaultToPool(vaultEntity, poolEntity, block);
-        if (vaultToPoolEntity == null) {
-          log.warn("Not found vault to pool {}", lpAddress);
-          continue;
-        }
-        getCache(network).addVaultToPool(vaultToPoolEntity);
-      } else if (currentLpToken.getType() == ContractType.UNI_PAIR.getId()) {
-        //todo create another one link entity
-        log.info("Uni lp links temporally disabled");
-//                UniPairEntity uniPairEntity = uniPairsCacheByAddress.get(lpAddress);
-//                if (uniPairEntity == null) {
-//                    log.warn("Not found vault for address {}", lpAddress);
-//                    continue;
-//                }
-      } else {
-        String poolName = poolEntity.getContract().getName();
-        // PS pool link not used
-        if (currentLpToken.getType() == ContractType.TOKEN.getId()
-            && (poolName.equals("ST_PS")
-            || poolName.equals("PS_V0"))
-        ) {
-          continue;
-        }
-        log.error("Unknown lp token type {} in pool {}",
-            currentLpToken.getType(), poolName);
-      }
-    }
-  }
-
   private void fillKeyTokenForLps(String network, long block) {
     log.info("Start fill key tokens for LPs on block {}", block);
     for (LpContract lpContract : sourceResolver.getLps(network)) {
@@ -510,34 +460,6 @@ public class ContractLoader {
         getCache(network).addTokenToLp(link);
       }
     }
-  }
-
-  private VaultToPoolEntity findOrCreateVaultToPool(
-      VaultEntity vaultEntity,
-      PoolEntity poolEntity,
-      long block
-  ) {
-    VaultToPoolEntity vaultToPoolEntity =
-        vaultToPoolRepository.findFirstByVaultAndPool(vaultEntity, poolEntity);
-    if (appProperties.isOnlyApi()) {
-      return vaultToPoolEntity;
-    }
-    if (vaultToPoolEntity == null) {
-      if (vaultToPoolRepository.findFirstByVault(vaultEntity) != null) {
-        log.info("We already had linked vault " + vaultEntity.getContract().getName());
-      }
-      if (vaultToPoolRepository.findFirstByPool(poolEntity) != null) {
-        log.info("We already had linked pool " + poolEntity.getContract().getName());
-      }
-      vaultToPoolEntity = new VaultToPoolEntity();
-      vaultToPoolEntity.setPool(poolEntity);
-      vaultToPoolEntity.setVault(vaultEntity);
-      vaultToPoolEntity.setBlockStart(block);
-      vaultToPoolRepository.save(vaultToPoolEntity);
-      log.info("Create new {} to {} link",
-          vaultEntity.getContract().getName(), poolEntity.getContract().getName());
-    }
-    return vaultToPoolEntity;
   }
 
   private TokenToUniPairEntity findOrCreateTokenToUniPair(

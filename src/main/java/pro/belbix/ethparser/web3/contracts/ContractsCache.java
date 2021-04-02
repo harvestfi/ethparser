@@ -13,8 +13,8 @@ import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.entity.contracts.VaultToPoolEntity;
 
+@SuppressWarnings("unused")
 public class ContractsCache {
 
   private final Map<String, PoolEntity> poolsCacheByAddress = new LinkedHashMap<>();
@@ -25,7 +25,6 @@ public class ContractsCache {
   private final Map<String, VaultEntity> vaultsCacheByName = new LinkedHashMap<>();
   private final Map<String, UniPairEntity> uniPairsCacheByName = new LinkedHashMap<>();
   private final Map<String, TokenEntity> tokensCacheByName = new LinkedHashMap<>();
-  private final Map<Integer, VaultToPoolEntity> vaultToPoolsCache = new LinkedHashMap<>();
   private final Map<Integer, TokenToUniPairEntity> tokenToUniPairCache = new LinkedHashMap<>();
   private final Set<String> contracts = new LinkedHashSet<>();
 
@@ -166,10 +165,6 @@ public class ContractsCache {
   void addLp(UniPairEntity uniPairEntity) {
     uniPairsCacheByAddress.put(uniPairEntity.getContract().getAddress(), uniPairEntity);
     uniPairsCacheByName.put(uniPairEntity.getContract().getName(), uniPairEntity);
-  }
-
-  void addVaultToPool(VaultToPoolEntity vaultToPoolEntity) {
-    vaultToPoolsCache.put(vaultToPoolEntity.getId(), vaultToPoolEntity);
   }
 
   void addTokenToLp(TokenToUniPairEntity link) {
