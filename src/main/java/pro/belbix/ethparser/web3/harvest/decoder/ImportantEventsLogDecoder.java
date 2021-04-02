@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.decoder;
 
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -14,7 +14,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.contracts.EthContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ImportantEventsLogDecoder extends MethodDecoder {
@@ -40,7 +40,7 @@ public class ImportantEventsLogDecoder extends MethodDecoder {
     // Mint function emits only Transfer event from zero address
     // and we want only FARM token
     if ("Transfer".equals(methodName)) {
-      if (!EthContractConstants.FARM_TOKEN.equals(ethLog.getAddress()) || !types.get(0).getValue()
+      if (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress()) || !types.get(0).getValue()
           .equals(ZERO_ADDRESS)) {
         return null;
       }

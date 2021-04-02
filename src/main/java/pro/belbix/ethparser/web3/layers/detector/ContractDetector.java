@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.layers.detector;
 
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;

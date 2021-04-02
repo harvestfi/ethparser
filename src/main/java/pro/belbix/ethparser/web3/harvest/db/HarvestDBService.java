@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -80,7 +80,7 @@ public class HarvestDBService {
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        ContractUtils.getAllVaultNames().stream()
+        ContractUtils.vaultNames().stream()
             .filter(v -> !ContractUtils.isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
@@ -133,7 +133,7 @@ public class HarvestDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(ContractUtils.getAllVaultNames());
+    List<String> contracts = new ArrayList<>(ContractUtils.vaultNames());
     PARSABLE_UNI_PAIRS.stream()
         .map(c -> ContractUtils.getNameByAddress(c)
             .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))

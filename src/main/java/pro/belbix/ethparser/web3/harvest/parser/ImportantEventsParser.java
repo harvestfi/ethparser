@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY_TIME_LOCK;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.EthContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
@@ -95,7 +95,7 @@ public class ImportantEventsParser implements Web3Parser {
 
   public ImportantEventsDTO parseLog(Log ethLog) {
     if (ethLog == null ||
-        (!EthContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
+        (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
             && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
     ) {
       return null;

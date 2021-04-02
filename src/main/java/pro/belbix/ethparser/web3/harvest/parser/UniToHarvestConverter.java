@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;

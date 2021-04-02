@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.deployer.downloader;
 
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;

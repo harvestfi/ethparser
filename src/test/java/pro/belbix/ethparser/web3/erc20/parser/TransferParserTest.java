@@ -18,7 +18,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.EthContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -45,7 +45,7 @@ public class TransferParserTest {
   // it is a self destructed contract
   @Test
   public void testParseFARM_OneInch() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11631545,
             0,
             "FARM",
@@ -60,7 +60,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_firstMint() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             10776698,
             0,
             "FARM",
@@ -75,7 +75,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_LP_REM2() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11558046,
             0,
             "FARM",
@@ -90,7 +90,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_LP_REM() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             10931588,
             0,
             "FARM",
@@ -105,7 +105,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_LP_ADD() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             10997139,
             0,
             "FARM",
@@ -120,7 +120,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_LP_BUY() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11366155,
             0,
             "FARM",
@@ -135,7 +135,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_LP_SELL() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11373041,
             0,
             "FARM",
@@ -150,7 +150,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_exit1() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337723,
             0,
             "FARM",
@@ -165,7 +165,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_exit2() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337723,
             1,
             "FARM",
@@ -180,7 +180,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_exit3() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337723,
             2,
             "FARM",
@@ -195,7 +195,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_exit4() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337723,
             5,
             "FARM",
@@ -210,7 +210,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_stake1() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337691,
             0,
             "FARM",
@@ -225,7 +225,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_stake2() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337691,
             1,
             "FARM",
@@ -240,7 +240,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_stake3() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11337691,
             6,
             "FARM",
@@ -255,7 +255,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_balancer() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             10777054,
             1,
             "FARM",
@@ -270,7 +270,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_bot() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             10850197,
             1,
             "FARM",
@@ -285,7 +285,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_swap() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11055960,
             0,
             "FARM",
@@ -300,7 +300,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_addLiquidity() {
-        TransferDTO dto = parserTest(EthContractConstants.FARM_TOKEN,
+        TransferDTO dto = parserTest(ContractConstants.FARM_TOKEN,
             11362801,
             1,
             "FARM",
@@ -315,7 +315,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_transfer() {
-        parserTest(EthContractConstants.FARM_TOKEN,
+        parserTest(ContractConstants.FARM_TOKEN,
             11571359,
             0,
             "FARM",
@@ -329,7 +329,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_HARD_WORK() {
-        parserTest(EthContractConstants.FARM_TOKEN,
+        parserTest(ContractConstants.FARM_TOKEN,
             11045532,
             0,
             "FARM",
@@ -343,7 +343,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_HARD_WORK2() {
-        parserTest(EthContractConstants.FARM_TOKEN,
+        parserTest(ContractConstants.FARM_TOKEN,
             11045532,
             1,
             "FARM",
@@ -357,7 +357,7 @@ public class TransferParserTest {
 
     @Test
     public void testParseFARM_swapExactTokensForETH() {
-        parserTest(EthContractConstants.FARM_TOKEN,
+        parserTest(ContractConstants.FARM_TOKEN,
             10777107,
             0,
             "FARM",

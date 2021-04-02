@@ -7,8 +7,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.PAIR_TYPE_ONEINCHE;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.math.BigDecimal;
@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -42,6 +44,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @SuppressWarnings("rawtypes")
 @Service
 @Log4j2
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class FunctionsUtils {
 
   public final static double SECONDS_OF_YEAR = 31557600.0;
@@ -222,5 +225,9 @@ public class FunctionsUtils {
       return new DefaultBlockParameterNumber(block);
     }
     return LATEST;
+  }
+
+  public void setCurrentNetwork(String currentNetwork) {
+    web3Functions.setCurrentNetwork(currentNetwork);
   }
 }

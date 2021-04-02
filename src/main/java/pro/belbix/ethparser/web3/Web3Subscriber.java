@@ -23,8 +23,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.properties.SubscriptionsProperties;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
@@ -34,7 +34,6 @@ public class Web3Subscriber {
 
   private final Web3Functions web3Functions;
   private final AppProperties appProperties;
-  private final SubscriptionsProperties subscriptionsProperties;
   private final UniswapDbService uniswapDbService;
   private final HarvestDBService harvestDBService;
   private final EthBlockRepository ethBlockRepository;
@@ -46,13 +45,11 @@ public class Web3Subscriber {
 
   public Web3Subscriber(Web3Functions web3Functions,
       AppProperties appProperties,
-      SubscriptionsProperties subscriptionsProperties,
       UniswapDbService uniswapDbService,
       HarvestDBService harvestDBService,
       EthBlockRepository ethBlockRepository) {
     this.web3Functions = web3Functions;
     this.appProperties = appProperties;
-    this.subscriptionsProperties = subscriptionsProperties;
     this.uniswapDbService = uniswapDbService;
     this.harvestDBService = harvestDBService;
     this.ethBlockRepository = ethBlockRepository;
@@ -69,7 +66,7 @@ public class Web3Subscriber {
     } else {
       from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
     }
-    EthFilter filter = new EthFilter(from, LATEST, subscriptionsProperties.getLogSubscriptions());
+    EthFilter filter = new EthFilter(from, LATEST, ContractUtils.getSubscriptions());
     startLogFlowableThread(filter);
     //NPE https://github.com/web3j/web3j/issues/1264
     /*

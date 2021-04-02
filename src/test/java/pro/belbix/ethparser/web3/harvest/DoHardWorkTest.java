@@ -5,7 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.util.Collections;
 import java.util.List;

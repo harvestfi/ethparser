@@ -24,26 +24,6 @@ public class ContractsController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @GetMapping(value = "/contracts/vault/{vault}")
-    RestResponse vaultDetail(@PathVariable("vault") String vault) {
-        Optional<VaultEntity> vaultEntity;
-        try {
-            if (vault.startsWith("0x")) {
-                vaultEntity = ContractUtils.getVaultByAddress(vault);              
-            } else {
-                vaultEntity = ContractUtils.getVaultByName(vault);
-            }
-
-            if (vaultEntity.isEmpty()) {
-                return RestResponse.error("Vault " + vault + " not found");
-            }
-            return RestResponse.ok(objectMapper.writeValueAsString(vaultEntity.get()));
-        } catch (Exception e) {
-            log.error("Error vault request", e.fillInStackTrace());
-            return RestResponse.error("Server error");
-        }
-    }
-
     @GetMapping(value = "/contracts/vaults")
     RestResponse vaults() {
         try {
@@ -51,26 +31,6 @@ public class ContractsController {
             return RestResponse.ok(objectMapper.writeValueAsString(vaults));
         } catch (Exception e) {
             log.error("Error vaults request", e.fillInStackTrace());
-            return RestResponse.error("Server error");
-        }
-    }
- 
-    @GetMapping(value = "/contracts/pool/{pool}")
-    RestResponse poolDetail(@PathVariable("pool") String pool) {
-        Optional<PoolEntity> poolEntity;
-        try {
-            if (pool.startsWith("0x")) {
-                poolEntity = ContractUtils.getPoolByAddress(pool);              
-            } else {
-                poolEntity = ContractUtils.getPoolByName(pool);
-            }
-
-            if (poolEntity.isEmpty()) {
-                return RestResponse.error("Pool " + pool + " not found");
-            }
-            return RestResponse.ok(objectMapper.writeValueAsString(poolEntity.get()));
-        } catch (Exception e) {
-            log.error("Error pool request", e.fillInStackTrace());
             return RestResponse.error("Server error");
         }
     }
@@ -85,26 +45,6 @@ public class ContractsController {
             return RestResponse.error("Server error");
         }
     }
-   
-    @GetMapping(value = "/contracts/token/{token}")
-    RestResponse tokenDetail(@PathVariable("token") String token) {
-        Optional<TokenEntity> tokenEntity;
-        try {
-            if (token.startsWith("0x")) {
-                tokenEntity = ContractUtils.getTokenByAddress(token);              
-            } else {
-                tokenEntity = ContractUtils.getTokenByName(token);
-            }
-
-            if (tokenEntity.isEmpty()) {
-                return RestResponse.error("Token " + token + " not found");
-            }
-            return RestResponse.ok(objectMapper.writeValueAsString(tokenEntity.get()));
-        } catch (Exception e) {
-            log.error("Error token request", e.fillInStackTrace());
-            return RestResponse.error("Server error");
-        }
-    }
 
     @GetMapping(value = "/contracts/tokens")
     RestResponse tokens() {
@@ -113,26 +53,6 @@ public class ContractsController {
             return RestResponse.ok(objectMapper.writeValueAsString(tokens));
         } catch (Exception e) {
             log.error("Error tokens request", e.fillInStackTrace());
-            return RestResponse.error("Server error");
-        }
-    }
-
-    @GetMapping(value = "/contracts/unipair/{uniPair}")
-    RestResponse uniPairDetail(@PathVariable("uniPair") String uniPair) {
-        Optional<UniPairEntity> uniPairEntity;
-        try {
-            if (uniPair.startsWith("0x")) {
-                uniPairEntity = ContractUtils.getUniPairByAddress(uniPair);              
-            } else {
-                uniPairEntity = ContractUtils.getUniPairByName(uniPair);
-            }
-
-            if (uniPairEntity.isEmpty()) {
-                return RestResponse.error("UniPair " + uniPair + " not found");
-            }
-            return RestResponse.ok(objectMapper.writeValueAsString(uniPairEntity.get()));
-        } catch (Exception e) {
-            log.error("Error uniPair request", e.fillInStackTrace());
             return RestResponse.error("Server error");
         }
     }

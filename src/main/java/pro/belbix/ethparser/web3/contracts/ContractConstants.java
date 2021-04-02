@@ -6,11 +6,15 @@ import java.util.List;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;
 
-public class EthContractConstants {
+public class ContractConstants {
+
   public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
       .valueOf(new BigInteger("10765094"));
 
-  public static final String ETH_DEPLOYER = "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase();
+  public static final String ETH_DEPLOYER = "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f"
+      .toLowerCase();
+  public static final String BSC_DEPLOYER = "0xf00dd244228f51547f0563e60bca65a30fbf5f7f"
+      .toLowerCase();
   public static final String ETH_CONTROLLER = "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C"
       .toLowerCase();
   public static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"

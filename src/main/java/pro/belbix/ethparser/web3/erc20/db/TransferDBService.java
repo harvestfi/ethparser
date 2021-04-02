@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.erc20.db;
 
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.erc20.TransferType.KEEP_OWNERSHIP;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_BUY;
 import static pro.belbix.ethparser.web3.erc20.TransferType.LP_SELL;

@@ -5,7 +5,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SH
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.EthContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -38,7 +38,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.EthContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
@@ -197,9 +197,9 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
   private double farmTotalAmount(long block) {
     return parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, EthContractConstants.FARM_TOKEN, block)
+        functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, block)
             .orElse(BigInteger.ZERO),
-        EthContractConstants.FARM_TOKEN)
+        ContractConstants.FARM_TOKEN)
         - BURNED_FARM;
   }
 

@@ -88,28 +88,4 @@ public class ContractLoaderTest {
             System.out.println(objectMapper.writeValueAsString(tokenToUniPairEntity));
         }
     }
-
-    @Test
-    @Disabled
-    public void loadKeyBlocks() {
-        appProperties.setUpdateContracts(true);
-        contractLoader.loadKeyBlocks();
-    }
-
-    //    @Test
-//    public void containsAllVaults() {
-//        contractLoader.load();
-//        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
-//            boolean found = false;
-//            for (PoolEntity poolEntity : ContractLoader.poolsCacheByAddress.values()) {
-//                if (vaultAddress.equals(poolEntity.getLpToken().getAddress())) {
-//                    found = true;
-//                    break;
-//                }
-//            }
-//            if (!found) {
-//                System.out.println("not found " + vaultAddress);
-//            }
-//        }
-//    }
 }

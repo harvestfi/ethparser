@@ -47,17 +47,12 @@ public class RewardDownloader {
 
   public void start() {
     priceProvider.setUpdateBlockDifference(1);
-    for (String poolName : ContractUtils.getAllPoolNames()) {
-      if (contractName != null && !contractName.isBlank()
-          && !contractName.equals(poolName)) {
-        continue;
-      }
-      logger.info("Start parse rewards for " + poolName);
-      handleLoop(from, to, (from, end) -> parse(from, end,
-          ContractUtils.getAddressByName(poolName, ContractType.POOL)
-              .orElseThrow(() -> new IllegalStateException("Not found address by " + poolName))
-      ));
-    }
+    logger.info("Start parse rewards for " + contractName);
+    handleLoop(from, to, (from, end) -> parse(from, end,
+        ContractUtils.getAddressByName(contractName, ContractType.POOL)
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + contractName))
+    ));
+
   }
 
   private void parse(Integer start, Integer end, String contract) {

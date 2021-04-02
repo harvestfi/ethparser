@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -51,8 +52,8 @@ public class PriceProviderAutoTest {
   private Web3Functions web3Functions;
 
   @BeforeEach
-  void setUp() {
-    contractLoader.load();
+  void setUp() throws Exception {
+    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
   }
 
   private final Set<String> exclude = Set.of(
@@ -64,12 +65,23 @@ public class PriceProviderAutoTest {
   );
 
   @TestFactory
-  public Stream<DynamicTest> tokenPrices() throws Exception {
+  public Stream<DynamicTest> tokenPricesEth() throws Exception {
+    web3Functions.setCurrentNetwork(ETH_NETWORK);
     long block = web3Functions.fetchCurrentBlock().longValue();
-    HashMap<String, Double> addressPriceMap = this.fetchPrices();
+    return runTests(fetchPrices(ETH_NETWORK), block, ETH_NETWORK);
+  }
 
+  @TestFactory
+  public Stream<DynamicTest> tokenPricesBsc() throws Exception {
+    web3Functions.setCurrentNetwork(BSC_NETWORK);
+    long block = web3Functions.fetchCurrentBlock().longValue();
+    return runTests(fetchPrices(BSC_NETWORK), block, BSC_NETWORK);
+  }
+
+  private Stream<DynamicTest> runTests(HashMap<String, Double> cgPrices, long block, String network) {
     return ContractUtils.getAllTokens().stream()
         .filter(token -> !exclude.contains(token.getContract().getName()))
+        .filter(t -> network.equals(t.getContract().getNetwork()))
         .map(token -> {
           String name = token.getContract().getName() + "(" + token.getSymbol() + ")";
           return DynamicTest.dynamicTest(name, () -> {
@@ -82,43 +94,50 @@ public class PriceProviderAutoTest {
             String priceStr = response.getData();
             double price = Double.parseDouble(priceStr.replace(",", "."));
 
-            Double coingeckoPrice = addressPriceMap.get(tokenAddress);
+            Double coingeckoPrice = cgPrices.get(tokenAddress);
             if (coingeckoPrice == null) {
               System.out.println("No external price found, Skip token test: " + name);
               return;
             }
 
-            double priceToleranceDelta = coingeckoPrice * TOLERANCE_PCT;
-            Assertions.assertEquals(coingeckoPrice, price, priceToleranceDelta,
+            Assertions.assertEquals(coingeckoPrice, price, coingeckoPrice * TOLERANCE_PCT,
                 "Token price deviation: " + name);
           });
         });
   }
 
-  private HashMap<String, Double> fetchPrices() throws Exception {
+  private HashMap<String, Double> fetchPrices(String network) throws Exception {
     HashMap<String, Double> result = new HashMap<>();
 
     String coins = ContractUtils.getAllTokens().stream()
         .map(t -> t.getContract().getAddress())
         .collect(Collectors.joining(","));
-    JSONObject json = new JSONObject(this.callCoinGeckoAPI(getCoinPriceAPIUri(coins)).get());
+    JSONObject json = new JSONObject(this.callCoinGeckoAPI(
+        getCoinPriceAPIUri(network, coins)).get());
 
     ContractUtils.getAllTokens().forEach(t -> {
       String adr = t.getContract().getAddress();
       try {
         double price = json.getJSONObject(adr).getDouble("usd");
         result.put(adr, price);
-      } catch (JSONException e) {
-        e.printStackTrace();
+      } catch (JSONException ignored) {
       }
     });
     return result;
   }
 
-  private URI getCoinPriceAPIUri(String coins) {
+  private URI getCoinPriceAPIUri(String network, String coins) {
+    String net;
+    if(ETH_NETWORK.equals(network)) {
+      net = "ethereum";
+    } else if(BSC_NETWORK.equals(network)) {
+      net = "bsc"; // doesn't support, maybe cg will add it
+    } else {
+      throw new IllegalStateException();
+    }
     String coinHistoryTpl =
-        CG_URL + "simple/token_price/ethereum?vs_currencies=usd&contract_addresses=%s";
-    String coinHistoryUri = String.format(coinHistoryTpl, coins);
+        CG_URL + "simple/token_price/%s?vs_currencies=usd&contract_addresses=%s";
+    String coinHistoryUri = String.format(coinHistoryTpl, net, coins);
     return URI.create(coinHistoryUri);
   }
 
