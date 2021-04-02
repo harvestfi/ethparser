@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
@@ -16,7 +17,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HarvestOwnerBalanceCalculator {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
 
@@ -27,8 +28,8 @@ public class HarvestOwnerBalanceCalculator {
 
   public boolean fillBalance(HarvestDTO dto) {
     try {
-      if (ContractUtils.isVaultName(dto.getVault())) {
-        if (ContractUtils.isPsName(dto.getVault())) {
+      if (contractUtils.isVaultName(dto.getVault())) {
+        if (contractUtils.isPsName(dto.getVault())) {
           return balanceForPs(dto);
         }
         return balanceForVault(dto);
@@ -42,7 +43,7 @@ public class HarvestOwnerBalanceCalculator {
   }
 
   private boolean balanceForPs(HarvestDTO dto) {
-    String psHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
+    String psHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
     BigInteger balanceI = functionsUtils.callIntByName(
         BALANCE_OF, dto.getOwner(), psHash, dto.getBlock())
@@ -61,13 +62,13 @@ public class HarvestOwnerBalanceCalculator {
 
   private boolean balanceForVault(HarvestDTO dto) {
     long block = dto.getBlock();
-    String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
+    String vaultHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
     BigInteger balanceI;
     if (dto.isMigrated()) {
       //migration process broken UnderlyingBalance for vault
       //but we have shortcut - after migration we can check balanceOf
-      String stHash = ContractUtils.poolByVaultAddress(vaultHash)
+      String stHash = contractUtils.poolByVaultAddress(vaultHash)
           .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
           .getContract().getAddress();
       balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
@@ -100,7 +101,7 @@ public class HarvestOwnerBalanceCalculator {
     String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock())
         .orElseThrow(
             () -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
-    if (ContractUtils.isLp(underlyingToken)) {
+    if (contractUtils.isLp(underlyingToken)) {
       if (underlyingToken == null) {
         throw new IllegalStateException("Not found lp hash for " + vaultHash);
       }
@@ -115,7 +116,7 @@ public class HarvestOwnerBalanceCalculator {
   }
 
   private boolean balanceForNonVaultLp(HarvestDTO dto) {
-    String lpHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).orElse(null);
+    String lpHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).orElse(null);
     if (lpHash == null) {
       log.error("Not found vault/lp hash for " + dto.getVault());
       return false;

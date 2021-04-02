@@ -47,9 +47,4 @@ public class VaultEntity {
     private String symbol;
     private Long decimals;
     private Long underlyingUnit;
-
-//    @OneToMany(fetch = FetchType.EAGER)
-//    @JoinColumn(name="vault_id")
-//    private List<VaultToPoolEntity> vaultToPoolEntries;
-
 }

@@ -1,11 +1,12 @@
 package pro.belbix.ethparser.web3.contracts;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,14 +17,12 @@ import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.entity.contracts.VaultToPoolEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
 import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
-import pro.belbix.ethparser.repositories.eth.VaultToPoolRepository;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -42,15 +41,13 @@ public class ContractLoaderTest {
   @Autowired
   private TokenRepository tokenRepository;
   @Autowired
-  private VaultToPoolRepository vaultToPoolRepository;
-  @Autowired
   private TokenToUniPairRepository tokenToUniPairRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   public void setUp() throws Exception {
-    contractLoader.load();
+    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
   }
 
   @Test
@@ -77,39 +74,10 @@ public class ContractLoaderTest {
             assertNotNull(tokenEntity);
             System.out.println(objectMapper.writeValueAsString(tokenEntity));
         }
-        System.out.println("**************** VAULT TO POOLS ************************");
-        for (VaultToPoolEntity vaultToPoolEntity : vaultToPoolRepository.findAll()) {
-            assertNotNull(vaultToPoolEntity);
-            System.out.println(objectMapper.writeValueAsString(vaultToPoolEntity));
-        }
         System.out.println("**************** TOKEN TO UNI ************************");
         for (TokenToUniPairEntity tokenToUniPairEntity : tokenToUniPairRepository.findAll()) {
             assertNotNull(tokenToUniPairEntity);
             System.out.println(objectMapper.writeValueAsString(tokenToUniPairEntity));
         }
     }
-
-    @Test
-    @Disabled
-    public void loadKeyBlocks() {
-        appProperties.setUpdateContracts(true);
-        contractLoader.loadKeyBlocks();
-    }
-
-    //    @Test
-//    public void containsAllVaults() {
-//        contractLoader.load();
-//        for (String vaultAddress : ContractUtils.getAllVaultAddresses()) {
-//            boolean found = false;
-//            for (PoolEntity poolEntity : ContractLoader.poolsCacheByAddress.values()) {
-//                if (vaultAddress.equals(poolEntity.getLpToken().getAddress())) {
-//                    found = true;
-//                    break;
-//                }
-//            }
-//            if (!found) {
-//                System.out.println("not found " + vaultAddress);
-//            }
-//        }
-//    }
 }

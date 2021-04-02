@@ -1,8 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.time.Instant;
@@ -19,9 +21,9 @@ import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -31,6 +33,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class UniToHarvestConverter implements Web3Parser {
 
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -82,11 +85,11 @@ public class UniToHarvestConverter implements Web3Parser {
     if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
       return null;
     }
-    String lpHash = ContractUtils.findUniPairForTokens(
-        ContractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
+    String lpHash = contractUtils.findUniPairForTokens(
+        contractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
             .orElseThrow(
                 () -> new IllegalStateException("Not found address for " + uniswapDTO.getCoin())),
-        ContractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
+        contractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
             .orElseThrow(() -> new IllegalStateException(
                 "Not found address for " + uniswapDTO.getOtherCoin()))
     );
@@ -109,7 +112,7 @@ public class UniToHarvestConverter implements Web3Parser {
     harvestDTO.setConfirmed(1);
     harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
     harvestDTO.setOwner(uniswapDTO.getOwner());
-    harvestDTO.setVault(ContractUtils.getNameByAddress(lpHash)
+    harvestDTO.setVault(contractUtils.getNameByAddress(lpHash)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
     harvestDTO.setLastGas(uniswapDTO.getLastGas());
     harvestDTO.setSharePrice(1.0);
@@ -125,7 +128,7 @@ public class UniToHarvestConverter implements Web3Parser {
 
   public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
     long block = harvestDTO.getBlock();
-    ContractEntity poolContract = ContractUtils.poolByVaultAddress(lpHash)
+    ContractEntity poolContract = contractUtils.poolByVaultAddress(lpHash)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
         .getContract();
     if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
@@ -153,7 +156,8 @@ public class UniToHarvestConverter implements Web3Parser {
       stFraction = 0;
     }
 
-    Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(lpHash, block);
+    Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(
+        lpHash, block, contractUtils.getUniPairType(lpHash) == PAIR_TYPE_ONEINCHE);
     double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
     double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 

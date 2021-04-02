@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 @SuppressWarnings("rawtypes")
 @Service
 public class HarvestVaultDownloader {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HarvestVaultDownloader.class);
   private final Web3Functions web3Functions;
   private final HarvestDBService harvestDBService;
@@ -46,7 +47,7 @@ public class HarvestVaultDownloader {
   }
 
   public void start() {
-    String vaultAddress = ContractUtils.getAddressByName(vaultName, ContractType.VAULT)
+    String vaultAddress = contractUtils.getAddressByName(vaultName, ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + vaultName));
     LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultAddress, start, end));
   }

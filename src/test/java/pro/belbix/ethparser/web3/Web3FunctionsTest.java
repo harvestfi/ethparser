@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.web3;
 
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -15,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,12 +27,10 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthLog;
-import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -100,44 +96,27 @@ public class Web3FunctionsTest {
   }
 
   @Test
-  @Disabled
-  public void checkLogsForAllVaults() {
-    for (String hash : ContractUtils.getAllVaultAddresses()) {
-      List<LogResult> logs = web3Functions
-          .fetchContractLogs(singletonList(hash), null, null);
-      assertNotNull(logs);
-      System.out.println(hash + " " + logs.size());
-    }
+  public void ethCallGET_PRICE_PER_FULL_SHARE_WBTC() {
+    List<Type> types = web3Functions.callFunction(new Function(
+        "getPricePerFullShare",
+        Collections.emptyList(),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST);
+    assertNotNull(types);
+    assertFalse(types.isEmpty());
+    assertTrue(parseAmount((BigInteger) types.get(0).getValue(),
+        "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
   }
 
-    @Test
-    @Disabled
-    public void getBalanceTest() {
-        double balance = web3Functions.fetchBalance("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB");
-        assertTrue(balance > 0);
-    }
-
-    @Test
-    public void ethCallGET_PRICE_PER_FULL_SHARE_WBTC() {
-        List<Type> types = web3Functions.callFunction(new Function(
-            "getPricePerFullShare",
-            Collections.emptyList(),
-            Collections.singletonList(new TypeReference<Uint256>() {
-            })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST);
-        assertNotNull(types);
-        assertFalse(types.isEmpty());
-        assertTrue(parseAmount((BigInteger) types.get(0).getValue(), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
-    }
-
-    @Test
-    public void ethCallGET_RESERVESTestUNI_LP_ETH_DAI() {
-        List<Type> types = web3Functions.callFunction(new Function(
-            "getReserves",
-            Collections.emptyList(),
-            Arrays.asList(new TypeReference<Uint112>() {
-                          },
-                new TypeReference<Uint112>() {
-                },
+  @Test
+  public void ethCallGET_RESERVESTestUNI_LP_ETH_DAI() {
+    List<Type> types = web3Functions.callFunction(new Function(
+        "getReserves",
+        Collections.emptyList(),
+        Arrays.asList(new TypeReference<Uint112>() {
+                      },
+            new TypeReference<Uint112>() {
+            },
                 new TypeReference<Uint32>() {
                 }
             )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", BLOCK_NUMBER_30_AUGUST_2020);

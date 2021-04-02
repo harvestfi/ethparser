@@ -1,12 +1,15 @@
 package pro.belbix.ethparser;
 
 import static org.junit.Assert.assertEquals;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
 
 import org.junit.jupiter.api.Test;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public class CommonTests {
+
+    private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
 
     @Test
     public void testAprToApy() {
@@ -60,7 +63,7 @@ public class CommonTests {
         };
         for(String address : addresses) {
             System.out.println(address + " - " +
-                ContractUtils.getNameByAddress(address.toLowerCase()).orElse("not found"));
+                contractUtils.getNameByAddress(address.toLowerCase()).orElse("not found"));
         }
     }
 }

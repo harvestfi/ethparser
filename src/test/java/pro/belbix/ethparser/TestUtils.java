@@ -19,8 +19,8 @@ public class TestUtils {
     if (number == null) {
       return null;
     }
-    number = number.replace(".", FORMAT.getDecimalSeparator() + "");
-    return number.replace(",", FORMAT.getDecimalSeparator() + "");
+    return number.replace(".", FORMAT.getDecimalSeparator() + "")
+        .replace(",", FORMAT.getDecimalSeparator() + "");
   }
 
   public static void assertTwoArrays(List<String> actual, List<String> _expected) {

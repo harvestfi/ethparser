@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
@@ -36,7 +37,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Service
 @Log4j2
 public class RewardParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
@@ -95,7 +96,7 @@ public class RewardParser implements Web3Parser {
   }
 
   public RewardDTO parseLog(Log ethLog) throws InterruptedException {
-    if (ethLog == null || !ContractUtils.isPoolAddress(ethLog.getAddress())) {
+    if (ethLog == null || !contractUtils.isPoolAddress(ethLog.getAddress())) {
       return null;
     }
 
@@ -143,7 +144,7 @@ public class RewardParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);
-    dto.setVault(ContractUtils.getNameByAddress(poolAddress)
+    dto.setVault(contractUtils.getNameByAddress(poolAddress)
         .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
         .replaceFirst("ST__", "")
         .replaceFirst("ST_", ""));

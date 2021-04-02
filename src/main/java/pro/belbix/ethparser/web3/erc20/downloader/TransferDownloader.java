@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.erc20.downloader;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
@@ -20,7 +21,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class TransferDownloader {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final Web3Functions web3Functions;
   private final PriceProvider priceProvider;
   private final TransferDBService transferDBService;
@@ -48,7 +49,7 @@ public class TransferDownloader {
       throw new IllegalStateException("Empty contract");
     }
     handleLoop(from, to, (from, end) -> parse(from, end,
-        ContractUtils.getAddressByName(contractName, ContractType.TOKEN)
+        contractUtils.getAddressByName(contractName, ContractType.TOKEN)
             .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
     ));
   }

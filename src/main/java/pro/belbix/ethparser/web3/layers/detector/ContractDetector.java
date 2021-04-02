@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.layers.detector;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,7 +47,7 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 @Service
 @Log4j2
 public class ContractDetector {
-
+    private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<EthBlockEntity> input = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -122,7 +123,7 @@ public class ContractDetector {
         List<ContractEventEntity> eventEntities = new ArrayList<>();
         for (EthAddressEntity address : addresses) {
             ContractEventEntity eventEntity = new ContractEventEntity();
-            ContractEntity contract = ContractUtils
+            ContractEntity contract = contractUtils
                 .getContractByAddress(address.getAddress())
                 .orElse(null);
             if (contract == null) {
@@ -366,7 +367,7 @@ public class ContractDetector {
         if (address == null || ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
             return false;
         }
-        return ContractUtils.getAllContractAddresses()
+        return contractUtils.getAllContractAddresses()
             .contains(address.getAddress().toLowerCase());
     }
 }

@@ -40,7 +40,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, tx.getHash());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(
         DeployerActivityEnum.SET_FEE_REWARD_FORWARDER.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.SET_FEE_REWARD_FORWARDER.name(), dto.getType());
@@ -53,7 +53,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, tx.getHash());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.SET_REWARD_DISTRIBUTION.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.SET_REWARD_DISTRIBUTION.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -65,7 +65,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, tx.getHash());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.DO_HARD_WORK.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.DO_HARD_WORK.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -77,7 +77,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, tx.getHash());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.SET_PATH.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.SET_PATH.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -89,7 +89,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, tx.getHash());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.DO_HARD_WORK.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.DO_HARD_WORK.name(), dto.getType());
     assertEquals(0, dto.getConfirmed());
@@ -101,7 +101,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, dto.getId());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals("0xe33a87c7", dto.getMethodName());
     assertEquals(DeployerActivityEnum.UNKNOWN.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -113,7 +113,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, dto.getId());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.CONTRACT_CREATION.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.CONTRACT_CREATION.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -125,7 +125,7 @@ public class DeployerTransactionsParserTest {
     Transaction tx = web3Functions.findTransaction(hash);
     DeployerDTO dto = parser.parseDeployerTransaction(tx);
     assertEquals(hash, dto.getId());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.NO_INPUT_DATA.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.NO_INPUT_DATA.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
@@ -145,7 +145,7 @@ public class DeployerTransactionsParserTest {
     assertEquals(BigInteger.valueOf(21000), dto.getGasLimit());
     assertEquals(BigInteger.valueOf(21000), dto.getGasUsed());
     assertEquals(BigInteger.valueOf(220), dto.getGasPrice());
-    assertEquals(ContractConstants.DEPLOYER, dto.getFromAddress());
+    assertEquals(ContractConstants.ETH_DEPLOYER, dto.getFromAddress());
     assertEquals(DeployerActivityEnum.NO_INPUT_DATA.getMethodName(), dto.getMethodName());
     assertEquals(DeployerActivityEnum.NO_INPUT_DATA.name(), dto.getType());
     assertEquals(1, dto.getConfirmed());
