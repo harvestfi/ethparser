@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,8 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -25,9 +29,12 @@ public class ContractsController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping(value = "/contracts/vaults")
-    RestResponse vaults() {
+    RestResponse vaults(@RequestParam(value = "network", required = false) String network) {
         try {
-            Collection<VaultEntity> vaults = ContractUtils.getAllVaults();
+            if (network == null || Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
+            Collection<VaultEntity> vaults = new ContractUtils(network).getAllVaults();
             return RestResponse.ok(objectMapper.writeValueAsString(vaults));
         } catch (Exception e) {
             log.error("Error vaults request", e.fillInStackTrace());
@@ -36,9 +43,12 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/pools")
-    RestResponse pools() {
+    RestResponse pools(@RequestParam(value = "network", required = false) String network) {
         try {
-            Collection<PoolEntity> pools = ContractUtils.getAllPools();
+            if (network == null || Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
+            Collection<PoolEntity> pools = new ContractUtils(network).getAllPools();
             return RestResponse.ok(objectMapper.writeValueAsString(pools));
         } catch (Exception e) {
             log.error("Error pools request", e.fillInStackTrace());
@@ -47,9 +57,12 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/tokens")
-    RestResponse tokens() {
+    RestResponse tokens(@RequestParam(value = "network", required = false) String network) {
         try {
-            Collection<TokenEntity> tokens = ContractUtils.getAllTokens();
+            if (network == null || Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
+            Collection<TokenEntity> tokens = new ContractUtils(network).getAllTokens();
             return RestResponse.ok(objectMapper.writeValueAsString(tokens));
         } catch (Exception e) {
             log.error("Error tokens request", e.fillInStackTrace());
@@ -57,10 +70,13 @@ public class ContractsController {
         }
     }
 
-    @GetMapping(value = "/contracts/unipairs")
-    RestResponse uniPairs() {
+    @GetMapping(value = "/contracts/lps")
+    RestResponse lps(@RequestParam(value = "network", required = false) String network) {
         try {
-            Collection<UniPairEntity> uniPairs = ContractUtils.getAllUniPairs();
+            if (network == null || Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
+            Collection<UniPairEntity> uniPairs = new ContractUtils(network).getAllUniPairs();
             return RestResponse.ok(objectMapper.writeValueAsString(uniPairs));
         } catch (Exception e) {
             log.error("Error uniPairs request", e.fillInStackTrace());

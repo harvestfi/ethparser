@@ -24,30 +24,13 @@ import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public class ContractUtils {
-
-  private ContractUtils() {
+  private final String network;
+  
+  public ContractUtils(String network) {
+    this.network = network;
   }
 
-  // todo !!! TEMPORALLY SOLUTION FOR TEST PURPOSES !!!
-  private static String network;
-  private static String generalNetwork;
-
-  public static void setGeneralNetwork(String newNetwork) {
-    network = newNetwork;
-    generalNetwork = newNetwork;
-  }
-
-  public static void setNetwork(String newNetwork) {
-    network = newNetwork;
-  }
-
-  public static void resetNetwork() {
-    network = generalNetwork;
-  }
-
-  // ------------------------------------------------------
-
-  public static Optional<String> getNameByAddress(String address) {
+  public Optional<String> getNameByAddress(String address) {
     Optional<String> name = getCache().getVaultByAddress(address)
         .map(VaultEntity::getContract)
         .map(ContractEntity::getName);
@@ -70,7 +53,7 @@ public class ContractUtils {
     return name;
   }
 
-  public static Optional<String> getAddressByName(String name, ContractType type) {
+  public Optional<String> getAddressByName(String name, ContractType type) {
     if (type == ContractType.VAULT) {
       return getCache().getVaultByName(name)
           .map(VaultEntity::getContract)
@@ -94,11 +77,11 @@ public class ContractUtils {
     throw new IllegalStateException("unknown type" + type);
   }
 
-  public static boolean isLp(String address) {
+  public boolean isLp(String address) {
     return getCache().getUniPairByAddress(address).isPresent();
   }
 
-  public static Optional<PoolEntity> poolByVaultName(String name) {
+  public Optional<PoolEntity> poolByVaultName(String name) {
     if (name.endsWith("_V0")) {
       name = name.replace("_V0", "");
     }
@@ -110,7 +93,7 @@ public class ContractUtils {
             .findFirst());
   }
 
-  public static Optional<PoolEntity> poolByVaultAddress(String address) {
+  public Optional<PoolEntity> poolByVaultAddress(String address) {
     // PS_V0 doesn't have pool
     if ("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equals(address)) {
       return getCache()
@@ -130,62 +113,62 @@ public class ContractUtils {
     return getCache().getPoolByName("ST_" + vaultName);
   }
 
-  public static Optional<VaultEntity> vaultByPoolAddress(String address) {
+  public Optional<VaultEntity> vaultByPoolAddress(String address) {
     return getCache().getPoolByAddress(address.toLowerCase())
         .map(PoolEntity::getLpToken)
         .flatMap(c -> getCache().getVaultByAddress(c.getAddress()));
   }
 
-  public static boolean isVaultName(String name) {
+  public boolean isVaultName(String name) {
     return getCache().getVaultByName(name).isPresent();
   }
 
-  public static boolean isPoolName(String name) {
+  public boolean isPoolName(String name) {
     return getCache().getPoolByName(name).isPresent();
   }
 
-  public static boolean isUniPairName(String name) {
+  public boolean isUniPairName(String name) {
     return getCache().getUniPairByName(name).isPresent();
   }
 
-  public static boolean isTokenName(String name) {
+  public boolean isTokenName(String name) {
     return getCache().getTokenByName(name).isPresent();
   }
 
-  public static boolean isVaultAddress(String address) {
+  public boolean isVaultAddress(String address) {
     return getCache()
         .getVaultByAddress(address.toLowerCase()).isPresent();
   }
 
-  public static boolean isPoolAddress(String address) {
+  public boolean isPoolAddress(String address) {
     return getCache()
         .getPoolByAddress(address.toLowerCase()).isPresent();
   }
 
-  public static boolean isUniPairAddress(String address) {
+  public boolean isUniPairAddress(String address) {
     return getCache()
         .getUniPairByAddress(address.toLowerCase()).isPresent();
   }
 
-  public static boolean isTokenAddress(String address) {
+  public boolean isTokenAddress(String address) {
     return getCache()
         .getTokenByAddress(address.toLowerCase()).isPresent();
   }
 
-  public static boolean isPsName(String name) {
+  public boolean isPsName(String name) {
     return isPsAddress(getAddressByName(name, ContractType.POOL).orElse(""))
         || isPsAddress(getAddressByName(name, ContractType.VAULT).orElse(""));
   }
 
-  public static boolean isPsAddress(String address) {
+  public boolean isPsAddress(String address) {
     return PS_ADDRESSES.contains(address);
   }
 
-  public static boolean isStableCoin(String name) {
+  public boolean isStableCoin(String name) {
     return ONE_DOLLAR_TOKENS.contains(name);
   }
 
-  public static boolean isTokenCreated(String tokenName, long block) {
+  public boolean isTokenCreated(String tokenName, long block) {
     return getCache().getTokenByName(tokenName)
         .map(TokenEntity::getContract)
         .map(ContractEntity::getCreated)
@@ -193,7 +176,7 @@ public class ContractUtils {
         .isPresent();
   }
 
-  public static boolean isUniPairCreated(String uniPairName, long block) {
+  public boolean isUniPairCreated(String uniPairName, long block) {
     return getCache().getUniPairByName(uniPairName)
         .map(UniPairEntity::getContract)
         .map(ContractEntity::getCreated)
@@ -202,7 +185,7 @@ public class ContractUtils {
 
   }
 
-  public static Tuple2<String, String> tokenAddressesByUniPairAddress(String address) {
+  public Tuple2<String, String> tokenAddressesByUniPairAddress(String address) {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
     return new Tuple2<>(
@@ -211,7 +194,7 @@ public class ContractUtils {
     );
   }
 
-  public static String findUniPairForTokens(String token0, String token1) {
+  public String findUniPairForTokens(String token0, String token1) {
     for (UniPairEntity uniPair : getCache().getLpEntities()) {
       String t0 = uniPair.getToken0().getAddress();
       String t1 = uniPair.getToken1().getAddress();
@@ -229,7 +212,7 @@ public class ContractUtils {
     throw new IllegalStateException("Not found LP for " + token0 + " and " + token1);
   }
 
-  public static BigDecimal getDividerByAddress(String address) {
+  public BigDecimal getDividerByAddress(String address) {
     address = address.toLowerCase();
     long decimals;
     // unique addresses
@@ -260,7 +243,7 @@ public class ContractUtils {
     return new BigDecimal(10L).pow((int) decimals);
   }
 
-  public static Tuple2<TokenEntity, TokenEntity> getUniPairTokens(String address) {
+  public Tuple2<TokenEntity, TokenEntity> getUniPairTokens(String address) {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uniPair by " + address));
     return new Tuple2<>(
@@ -273,7 +256,7 @@ public class ContractUtils {
     );
   }
 
-  public static boolean isDivisionSequenceSecondDividesFirst(String uniPairAddress,
+  public boolean isDivisionSequenceSecondDividesFirst(String uniPairAddress,
       String tokenAddress) {
     Tuple2<TokenEntity, TokenEntity> tokens = getUniPairTokens(uniPairAddress);
     if (tokens.component1().getContract().getAddress().equalsIgnoreCase(tokenAddress)) {
@@ -285,20 +268,20 @@ public class ContractUtils {
     }
   }
 
-  public static Optional<String> findKeyTokenForUniPair(String address) {
+  public Optional<String> findKeyTokenForUniPair(String address) {
     return getCache().getUniPairByAddress(address)
         .map(UniPairEntity::getKeyToken)
         .map(TokenEntity::getContract)
         .map(ContractEntity::getAddress);
   }
 
-  public static int getUniPairType(String address) {
+  public int getUniPairType(String address) {
     return getCache().getUniPairByAddress(address)
         .map(UniPairEntity::getType)
         .orElse(0);
   }
 
-  public static Optional<String> findUniPairNameForTokenName(String tokenName, long block) {
+  public Optional<String> findUniPairNameForTokenName(String tokenName, long block) {
     TokenToUniPairEntity freshest = null;
     for (TokenToUniPairEntity tokenToUniPairEntity : getCache()
         .getTokenToLpEntities()) {
@@ -319,7 +302,7 @@ public class ContractUtils {
         .map(ContractEntity::getName);
   }
 
-  public static Optional<ContractEntity> getContractByAddress(String address) {
+  public Optional<ContractEntity> getContractByAddress(String address) {
     address = address.toLowerCase();
     Optional<ContractEntity> contract = getCache().getVaultByAddress(address)
         .map(VaultEntity::getContract);
@@ -339,11 +322,11 @@ public class ContractUtils {
     return contract;
   }
 
-  public static Collection<String> vaultNames() {
+  public Collection<String> vaultNames() {
     return getCache().getAllVaultNames();
   }
 
-  public static List<String> getSubscriptions() {
+  public List<String> getSubscriptions() {
     if (ETH_NETWORK.equals(network)) {
       return getEthSubscriptions();
     } else if (BSC_NETWORK.equals(network)) {
@@ -353,7 +336,7 @@ public class ContractUtils {
     }
   }
 
-  private static List<String> getEthSubscriptions() {
+  private List<String> getEthSubscriptions() {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
@@ -381,27 +364,27 @@ public class ContractUtils {
     return new ArrayList<>(contracts);
   }
 
-  public static Collection<VaultEntity> getAllVaults() {
+  public Collection<VaultEntity> getAllVaults() {
     return getCache().getAllVaults();
   }
 
-  public static Collection<PoolEntity> getAllPools() {
+  public Collection<PoolEntity> getAllPools() {
     return getCache().getAllPools();
   }
 
-  public static Collection<TokenEntity> getAllTokens() {
+  public Collection<TokenEntity> getAllTokens() {
     return getCache().getAllTokens();
   }
 
-  public static Collection<UniPairEntity> getAllUniPairs() {
+  public Collection<UniPairEntity> getAllUniPairs() {
     return getCache().getAllUniPairs();
   }
 
-  public static Set<String> getAllContractAddresses() {
+  public Set<String> getAllContractAddresses() {
     return getCache().getAllContractAddresses();
   }
 
-  private static ContractsCache getCache() {
+  private ContractsCache getCache() {
     return ContractLoader.getCache(network);
   }
 }

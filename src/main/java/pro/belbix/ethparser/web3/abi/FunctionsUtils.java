@@ -2,12 +2,12 @@ package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,8 +62,8 @@ public class FunctionsUtils {
   }
 
   // todo complex functions should be decomposed and use simple calls ************************
-  public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
-    if (ContractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
+  public Tuple2<Double, Double> callReserves(String lpAddress, Long block, boolean oneInch) {
+    if (oneInch) {
       return callOneInchReserves(lpAddress, block);
     } else {
       return callUniReserves(lpAddress, block);
@@ -105,7 +105,8 @@ public class FunctionsUtils {
       return null;
     }
 
-    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getUniPairTokens(lpAddress);
+    Tuple2<TokenEntity, TokenEntity> tokens = new ContractUtils(ETH_NETWORK)
+        .getUniPairTokens(lpAddress);
     BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
     BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());
     return new Tuple2<>(

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
@@ -39,7 +40,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HardWorkParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -117,11 +118,11 @@ public class HardWorkParser implements Web3Parser {
       throw new IllegalStateException("Unknown method " + tx.getMethodName());
     }
 
-    if (ContractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
+    if (contractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
       log.warn("Unknown vault " + tx.getVault());
       return null;
     }
-    String vaultName = ContractUtils.getNameByAddress(tx.getVault())
+    String vaultName = contractUtils.getNameByAddress(tx.getVault())
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
     if (vaultName.endsWith("_V0")) {
       // skip old strategies
@@ -218,7 +219,7 @@ public class HardWorkParser implements Web3Parser {
 
   private boolean isAllowedLog(Log ethLog) {
     return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
-        || ContractUtils.isPoolAddress(ethLog.getAddress().toLowerCase());
+        || contractUtils.isPoolAddress(ethLog.getAddress().toLowerCase());
   }
 
   private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
@@ -234,7 +235,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void parseVaultInvestedFunds(HardWorkDTO dto) {
-    String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
+    String vaultHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
     double underlyingBalanceInVault = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_IN_VAULT,
         vaultHash,

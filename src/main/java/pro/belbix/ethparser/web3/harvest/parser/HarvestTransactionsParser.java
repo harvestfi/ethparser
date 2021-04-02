@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -16,8 +18,8 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
@@ -26,6 +28,8 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 @Service
 @Log4j2
 public class HarvestTransactionsParser implements Web3Parser {
+
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   public static final int LOG_LAST_PARSED_COUNT = 1_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
@@ -117,7 +121,7 @@ public class HarvestTransactionsParser implements Web3Parser {
       //it is contract deploy
       return false;
     }
-    return ContractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
+    return contractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
   }
 
   private HarvestTx decodeTransaction(Transaction tx) {
@@ -132,7 +136,7 @@ public class HarvestTransactionsParser implements Web3Parser {
         return null;
       }
 
-      if (!harvestTx.isExistenceVault()) {
+      if (contractUtils.getNameByAddress(harvestTx.getVault().getValue()).isEmpty()) {
         return null;
       }
       TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());

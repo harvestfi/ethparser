@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
 
@@ -18,7 +19,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class RewardsDBService {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final RewardsRepository rewardsRepository;
   private final HarvestRepository harvestRepository;
   private final PriceProvider priceProvider;
@@ -52,7 +53,7 @@ public class RewardsDBService {
     }
     Double tvl;
     double reward;
-    if (ContractUtils.isPsName(dto.getVault())) {
+    if (contractUtils.isPsName(dto.getVault())) {
       tvl = harvest.getLastTvl();
       reward = dto.getReward();
     } else {

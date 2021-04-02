@@ -84,9 +84,6 @@ public class ContractLoader {
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
     this.sourceResolver = sourceResolver;
-
-    //todo TEMPORALLY! remove with removing all static code
-    ContractUtils.setGeneralNetwork(appProperties.getNetwork());
   }
 
   public synchronized void load(String... networks) {

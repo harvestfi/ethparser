@@ -2,6 +2,7 @@ package pro.belbix.ethparser.utils;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -16,6 +17,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 public class MockUtils {
+    private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
     private static final List<String> harvestMethods =
         new ArrayList<>(new HarvestVaultLogDecoder().getMethodNamesByMethodId().values());
 
@@ -43,8 +45,8 @@ public class MockUtils {
         HarvestDTO harvestDTO = new HarvestDTO();
         harvestDTO.setAmount(currentCount * 10000);
         harvestDTO.setUsdAmount((long) currentCount * 100);
-        harvestDTO.setVault(new ArrayList<>(ContractUtils.vaultNames())
-            .get(new Random().nextInt(ContractUtils.vaultNames().size() - 1)));
+        harvestDTO.setVault(new ArrayList<>(contractUtils.vaultNames())
+            .get(new Random().nextInt(contractUtils.vaultNames().size() - 1)));
         harvestDTO.setId("0x" + (seed * 1000000));
         harvestDTO.setHash("0x" + seed);
         harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
@@ -59,8 +61,8 @@ public class MockUtils {
     public static HardWorkDTO createHardWorkDTO(long seed) {
         HardWorkDTO hardWorkDTO = new HardWorkDTO();
         hardWorkDTO.setId("0x" + (seed * 1000000));
-        hardWorkDTO.setVault(new ArrayList<>(ContractUtils.vaultNames())
-            .get(new Random().nextInt(ContractUtils.vaultNames().size() - 1)));
+        hardWorkDTO.setVault(new ArrayList<>(contractUtils.vaultNames())
+            .get(new Random().nextInt(contractUtils.vaultNames().size() - 1)));
         hardWorkDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
         hardWorkDTO.setShareChange(seed / 1000.0);
         hardWorkDTO.setFullRewardUsd(seed / 69.0);

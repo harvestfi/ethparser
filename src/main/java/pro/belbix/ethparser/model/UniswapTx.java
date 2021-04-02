@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.model;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -60,14 +61,15 @@ public class UniswapTx implements EthTransactionI {
   }
 
   public UniswapDTO toDto() {
+    ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
     UniswapDTO uniswapDTO = new UniswapDTO();
     uniswapDTO.setId(hash + "_" + logId);
     uniswapDTO.setHash(hash);
     uniswapDTO.setOwner(owner);
     uniswapDTO.setBlock(block);
-    uniswapDTO.setCoin(ContractUtils.getNameByAddress(coinAddress).orElseThrow());
+    uniswapDTO.setCoin(contractUtils.getNameByAddress(coinAddress).orElseThrow());
     uniswapDTO.setConfirmed(success);
-    uniswapDTO.setLp(ContractUtils.getNameByAddress(lpAddress)
+    uniswapDTO.setLp(contractUtils.getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + lpAddress)));
     uniswapDTO.setMethodName(methodName);
 
@@ -112,7 +114,7 @@ public class UniswapTx implements EthTransactionI {
   }
 
   private static String addrToStr(Address adr) {
-    return ContractUtils.getNameByAddress(adr.getValue())
+    return new ContractUtils(ETH_NETWORK).getNameByAddress(adr.getValue())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
   }
 }

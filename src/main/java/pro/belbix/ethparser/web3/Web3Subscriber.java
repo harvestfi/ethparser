@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
@@ -66,7 +67,8 @@ public class Web3Subscriber {
     } else {
       from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
     }
-    EthFilter filter = new EthFilter(from, LATEST, ContractUtils.getSubscriptions());
+    EthFilter filter = new EthFilter(
+        from, LATEST, new ContractUtils(ETH_NETWORK).getSubscriptions());
     startLogFlowableThread(filter);
     //NPE https://github.com/web3j/web3j/issues/1264
     /*

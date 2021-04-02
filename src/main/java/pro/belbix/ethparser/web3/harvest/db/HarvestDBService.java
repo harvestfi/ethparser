@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Service
 @Log4j2
 public class HarvestDBService {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final static ObjectMapper objectMapper = new ObjectMapper();
 
   private final HarvestRepository harvestRepository;
@@ -80,8 +81,8 @@ public class HarvestDBService {
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        ContractUtils.vaultNames().stream()
-            .filter(v -> !ContractUtils.isPsName(v))
+        contractUtils.vaultNames().stream()
+            .filter(v -> !contractUtils.isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
         dto.getBlockDate());
@@ -133,9 +134,9 @@ public class HarvestDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(ContractUtils.vaultNames());
+    List<String> contracts = new ArrayList<>(contractUtils.vaultNames());
     PARSABLE_UNI_PAIRS.stream()
-        .map(c -> ContractUtils.getNameByAddress(c)
+        .map(c -> contractUtils.getNameByAddress(c)
             .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
         .forEach(contracts::add);
 

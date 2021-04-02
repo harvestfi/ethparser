@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY_TIME_LOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -34,7 +35,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 @Service
 @Log4j2
 public class ImportantEventsParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
@@ -96,7 +97,7 @@ public class ImportantEventsParser implements Web3Parser {
   public ImportantEventsDTO parseLog(Log ethLog) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-            && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
+            && contractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
     ) {
       return null;
     }
@@ -137,7 +138,7 @@ public class ImportantEventsParser implements Web3Parser {
 
   private void parseVault(ImportantEventsDTO dto, String vault) {
     dto.setVault(
-        ContractUtils.getNameByAddress(vault)
+        contractUtils.getNameByAddress(vault)
             .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
     );
   }

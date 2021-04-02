@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.model;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
@@ -31,16 +32,12 @@ public class HarvestTx implements EthTransactionI {
   private boolean enriched;
   private boolean migration = false;
 
-  public boolean isExistenceVault() {
-    return ContractUtils.getNameByAddress(vault.getValue()).isPresent();
-  }
-
   public HarvestDTO toDto() {
     HarvestDTO dto = new HarvestDTO();
     dto.setId(hash + "_" + logId);
     dto.setHash(hash);
     dto.setBlock(block.longValue());
-    dto.setVault(ContractUtils.getNameByAddress(vault.getValue())
+    dto.setVault(new ContractUtils(ETH_NETWORK).getNameByAddress(vault.getValue())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
     );
     dto.setConfirmed(1);

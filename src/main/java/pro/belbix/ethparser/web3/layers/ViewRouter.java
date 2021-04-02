@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.layers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.ws.WsService.UNI_PRICES_TOPIC_NAME;
 
 import java.util.List;
@@ -23,7 +24,7 @@ import pro.belbix.ethparser.ws.WsService;
 @Service
 @Log4j2
 public class ViewRouter {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final WsService wsService;
   private final UniPriceViewRepository uniPriceViewRepository;
 
@@ -38,7 +39,7 @@ public class ViewRouter {
     if (isUniPrice(event)) {
       sendToWs(
           uniPriceViewRepository.findByAddressesAndLogNames(
-              ContractUtils.getAllUniPairs().stream()
+              contractUtils.getAllUniPairs().stream()
                   .map(UniPairEntity::getContract)
                   .map(ContractEntity::getAddress)
                   .collect(Collectors.toList()),
@@ -64,7 +65,7 @@ public class ViewRouter {
         .map(ContractTxEntity::getTx)
         .map(EthTxEntity::getToAddress)
         .map(EthAddressEntity::getAddress)
-        .anyMatch(ContractUtils::isUniPairAddress)
+        .anyMatch(contractUtils::isUniPairAddress)
         &&
         event.getTxs().stream()
             .anyMatch(tx -> tx.getLogs().stream()

@@ -19,7 +19,8 @@ public class EthBlockService {
   private final BlockCacheRepository blockCacheRepository;
   private final EthBlockRepository ethBlockRepository;
   private final AppProperties appProperties;
-  private long lastBlock = 0L;
+  private long lastBlockEth = 0L;
+  private long lastBlockBsc = 0L;
 
   public EthBlockService(Web3Functions web3, BlockCacheRepository blockCacheRepository,
       EthBlockRepository ethBlockRepository,
@@ -45,8 +46,8 @@ public class EthBlockService {
     cachedBlock.setBlock(blockId);
     cachedBlock.setBlockDate(extractDateFromBlock(block));
     blockCacheRepository.save(cachedBlock);
-    if (lastBlock < blockId) {
-      lastBlock = blockId;
+    if (lastBlockEth < blockId) {
+      lastBlockEth = blockId;
     }
     return extractDateFromBlock(block);
   }
@@ -61,25 +62,30 @@ public class EthBlockService {
 
   public Long getLastBlock(String network) {
     if (BSC_NETWORK.equals(network)) {
-      return Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
-          .map(EthBlockEntity::getNumber)
-          .orElseGet(() -> {
-            web3.setCurrentNetwork(BSC_NETWORK);
-            return web3.fetchCurrentBlock().longValue();
-          });
+      if (lastBlockBsc == 0) {
+        lastBlockBsc = Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
+            .map(EthBlockEntity::getNumber)
+            .orElseGet(() -> {
+              web3.setCurrentNetwork(BSC_NETWORK);
+              return web3.fetchCurrentBlock().longValue();
+            });
+      }
+      return lastBlockBsc;
     } else if (ETH_NETWORK.equals(network)) {
-      if (lastBlock == 0) {
-        lastBlock = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
+      if (lastBlockEth == 0) {
+        lastBlockEth = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
             .map(BlockCacheEntity::getBlock)
             .orElseGet(() -> {
               web3.setCurrentNetwork(ETH_NETWORK);
               return web3.fetchCurrentBlock().longValue();
             });
       }
+      return lastBlockEth;
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }
-    return lastBlock;
+
+
   }
 
 

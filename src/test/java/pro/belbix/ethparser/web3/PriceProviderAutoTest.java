@@ -76,17 +76,18 @@ public class PriceProviderAutoTest {
     web3Functions.setCurrentNetwork(BSC_NETWORK);
     long block = web3Functions.fetchCurrentBlock().longValue();
     return runTests(fetchPrices(BSC_NETWORK), block, BSC_NETWORK);
+
   }
 
   private Stream<DynamicTest> runTests(HashMap<String, Double> cgPrices, long block, String network) {
-    return ContractUtils.getAllTokens().stream()
+    return new ContractUtils(network).getAllTokens().stream()
         .filter(token -> !exclude.contains(token.getContract().getName()))
         .filter(t -> network.equals(t.getContract().getNetwork()))
         .map(token -> {
           String name = token.getContract().getName() + "(" + token.getSymbol() + ")";
           return DynamicTest.dynamicTest(name, () -> {
             String tokenAddress = token.getContract().getAddress();
-            RestResponse response = priceController.token(tokenAddress, block);
+            RestResponse response = priceController.token(tokenAddress, block, network);
             if (!response.getCode().equals("200")) {
               Assertions.fail("Failed to calculate price for token: " + token.getSymbol());
             }
@@ -108,14 +109,14 @@ public class PriceProviderAutoTest {
 
   private HashMap<String, Double> fetchPrices(String network) throws Exception {
     HashMap<String, Double> result = new HashMap<>();
-
-    String coins = ContractUtils.getAllTokens().stream()
+    ContractUtils contractUtils = new ContractUtils(network);
+    String coins = contractUtils.getAllTokens().stream()
         .map(t -> t.getContract().getAddress())
         .collect(Collectors.joining(","));
     JSONObject json = new JSONObject(this.callCoinGeckoAPI(
         getCoinPriceAPIUri(network, coins)).get());
 
-    ContractUtils.getAllTokens().forEach(t -> {
+    contractUtils.getAllTokens().forEach(t -> {
       String adr = t.getContract().getAddress();
       try {
         double price = json.getJSONObject(adr).getDouble("usd");

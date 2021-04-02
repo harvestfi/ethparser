@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.web3.contracts;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +47,7 @@ public class ContractLoaderTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    contractLoader.load();
+    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
   }
 
   @Test

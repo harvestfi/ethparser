@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.prices.decoder;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,7 +18,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class PriceDecoder extends MethodDecoder {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Swap"));
 
   public PriceTx decode(Log ethLog) {
@@ -52,7 +54,7 @@ public class PriceDecoder extends MethodDecoder {
     if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return ContractUtils.isUniPairAddress(log.getAddress());
+    return contractUtils.isUniPairAddress(log.getAddress());
   }
 
   private void enrich(List<Type> types, PriceTx tx) {
