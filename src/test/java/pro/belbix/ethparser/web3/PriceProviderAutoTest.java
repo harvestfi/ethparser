@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,7 @@ public class PriceProviderAutoTest {
   }
 
   @TestFactory
+  @Disabled("CG doesn't provide bsc data via api yet")
   public Stream<DynamicTest> tokenPricesBsc() throws Exception {
     web3Functions.setCurrentNetwork(BSC_NETWORK);
     long block = web3Functions.fetchCurrentBlock().longValue();
