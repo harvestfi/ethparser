@@ -171,8 +171,32 @@ public class DoHardWorkTest {
             "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
             "UNI_ETH_DAI",
             "0,000000",
-            "1669,580492",
+            "10017,482955",
             "2,804286"
+        );
+    }
+
+    @Test
+    public void parseDUDES20_buybackratio() {
+        assertOnBlock(
+            12149939,
+            "0xfdcaaf8e5aeac3a97d4fdda8c5779ab6fa6ad178c2d5350f5c85ec7886b8be4f_94",
+            "DUDES20_ETH",
+            "0,010783",
+            "7698,248019",
+            "16,798303"
+        );
+    }
+
+    @Test
+    public void parseMNFLX_UST_buybackratio() {
+        assertOnBlock(
+            12130332,
+            "0x2462bc51b117c3b50e9e051e35a885e582737567e899c84ce6af98b16b51f217_44",
+            "MNFLX_UST",
+            "0,000000",
+            "4552.389815",
+            "17.223407"
         );
     }
 

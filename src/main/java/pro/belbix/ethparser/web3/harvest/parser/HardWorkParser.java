@@ -180,25 +180,36 @@ public class HardWorkParser implements Web3Parser {
 
 
     double buybackRate = 0;
-    double buyBackRatio = functionsUtils.callIntByName("buybackRatio", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
-    if (buyBackRatio>0){
-      buybackRate = buyBackRatio / 10000;
-    }
-    else{
-      String universalLiquidator = functionsUtils.callStrByName("universalLiquidator", strategyHash, dto.getBlock()).orElse("");
-      if (universalLiquidator != null && universalLiquidator!=""){
-        buybackRate = 1;
+    boolean buybackRateSet = false;
+
+      Double buyBackRatio = functionsUtils.callIntByName("buybackRatio", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+      if (buyBackRatio>0){
+        buybackRate = buyBackRatio / 10000;
+        buybackRateSet= true;
       }
-      else {
-        String liquidateRewardToWethInSushi = functionsUtils.callStrByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse("");
-        if (liquidateRewardToWethInSushi != null && liquidateRewardToWethInSushi=="True"){
+
+
+    if (!buybackRateSet){
+        String universalLiquidator = functionsUtils.callAddressByName("universalLiquidator", strategyHash, dto.getBlock()).orElse("");
+        if (universalLiquidator!=""){
           buybackRate = 1;
+          buybackRateSet = true;
         }
-        else {
-          buybackRate = 0;
-        }
-      }
+
     }
+
+    if (!buybackRateSet){
+        String liquidateRewardToWethInSushi = functionsUtils.callStrByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse("");
+        if (liquidateRewardToWethInSushi=="True"){
+          buybackRate = 1;
+          buybackRateSet = true;
+        }
+        else if (liquidateRewardToWethInSushi=="False") {
+          buybackRate = 0;
+          buybackRateSet = true;
+        }
+    }
+
     dto.setBuyBackRate(buybackRate);
   }
 
@@ -223,7 +234,7 @@ public class HardWorkParser implements Web3Parser {
     if (tx == null) {
       return;
     }
-
+    
     if ("RewardAdded".equals(tx.getMethodName())) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
@@ -233,11 +244,13 @@ public class HardWorkParser implements Web3Parser {
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
-        double fullReward = (reward * dto.getFarmPrice()) / (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.7)); // full reward
+        double fullReward = (reward * dto.getFarmPrice()) / (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
         dto.setFullRewardUsd(fullReward);
       } else {
+        double farmBuybackMultiplier = (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)) / Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3) * dto.getBuyBackRate();
+
         // PS pool reward
-        dto.setFarmBuyback(reward);
+        dto.setFarmBuyback(reward + (reward * farmBuybackMultiplier));
 
         // for non AutoStake strategy we will not have accurate data for strategy reward
         // just calculate aprox value based on PS reward
