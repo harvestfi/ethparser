@@ -4,9 +4,9 @@ import static pro.belbix.ethparser.web3.contracts.TokenContract.createTokenContr
 
 import java.util.List;
 
-class TokenAddresses {
+class EthTokenAddresses {
 
-  private TokenAddresses() {
+  private EthTokenAddresses() {
   }
 
   static final List<TokenContract> TOKENS = createTokenContracts(

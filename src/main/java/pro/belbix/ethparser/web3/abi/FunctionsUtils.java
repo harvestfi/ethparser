@@ -2,12 +2,12 @@ package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -42,6 +44,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @SuppressWarnings("rawtypes")
 @Service
 @Log4j2
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class FunctionsUtils {
 
   public final static double SECONDS_OF_YEAR = 31557600.0;
@@ -59,8 +62,8 @@ public class FunctionsUtils {
   }
 
   // todo complex functions should be decomposed and use simple calls ************************
-  public Tuple2<Double, Double> callReserves(String lpAddress, Long block) {
-    if (ContractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
+  public Tuple2<Double, Double> callReserves(String lpAddress, Long block, boolean oneInch) {
+    if (oneInch) {
       return callOneInchReserves(lpAddress, block);
     } else {
       return callUniReserves(lpAddress, block);
@@ -102,7 +105,8 @@ public class FunctionsUtils {
       return null;
     }
 
-    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getUniPairTokens(lpAddress);
+    Tuple2<TokenEntity, TokenEntity> tokens = new ContractUtils(ETH_NETWORK)
+        .getUniPairTokens(lpAddress);
     BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
     BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());
     return new Tuple2<>(
@@ -222,5 +226,9 @@ public class FunctionsUtils {
       return new DefaultBlockParameterNumber(block);
     }
     return LATEST;
+  }
+
+  public void setCurrentNetwork(String currentNetwork) {
+    web3Functions.setCurrentNetwork(currentNetwork);
   }
 }

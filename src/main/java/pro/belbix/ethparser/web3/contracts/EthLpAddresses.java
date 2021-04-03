@@ -4,12 +4,12 @@ import static pro.belbix.ethparser.web3.contracts.LpContract.createLpContracts;
 
 import java.util.List;
 
-class UniPairAddresses {
+class EthLpAddresses {
 
-  private UniPairAddresses() {
+  private EthLpAddresses() {
   }
 
-  static final List<LpContract> UNI_PAIRS = createLpContracts(
+  static final List<LpContract> LPS = createLpContracts(
       new LpContract(10042267, "UNI_LP_ETH_DAI", "DAI",
           "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"),
       new LpContract(10008355, "UNI_LP_USDC_ETH", "ETH",

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @SuppressWarnings("rawtypes")
 public class RewardDownloader {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
   private final Web3Functions web3Functions;
   private final RewardParser rewardParser;
@@ -47,17 +48,12 @@ public class RewardDownloader {
 
   public void start() {
     priceProvider.setUpdateBlockDifference(1);
-    for (String poolName : ContractUtils.getAllPoolNames()) {
-      if (contractName != null && !contractName.isBlank()
-          && !contractName.equals(poolName)) {
-        continue;
-      }
-      logger.info("Start parse rewards for " + poolName);
-      handleLoop(from, to, (from, end) -> parse(from, end,
-          ContractUtils.getAddressByName(poolName, ContractType.POOL)
-              .orElseThrow(() -> new IllegalStateException("Not found address by " + poolName))
-      ));
-    }
+    logger.info("Start parse rewards for " + contractName);
+    handleLoop(from, to, (from, end) -> parse(from, end,
+        contractUtils.getAddressByName(contractName, ContractType.POOL)
+            .orElseThrow(() -> new IllegalStateException("Not found address by " + contractName))
+    ));
+
   }
 
   private void parse(Integer start, Integer end, String contract) {

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.prices.downloader;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 @Log4j2
 @SuppressWarnings("rawtypes")
 public class PriceDownloader {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final Web3Functions web3Functions;
   private final PriceRepository priceRepository;
   private final PriceLogParser priceLogParser;
@@ -46,13 +47,13 @@ public class PriceDownloader {
   public void start() {
     if (contractNames.length == 0) {
       contractNames = PARSABLE_UNI_PAIRS.stream()
-          .map(c -> ContractUtils.getNameByAddress(c)
+          .map(c -> contractUtils.getNameByAddress(c)
               .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
           .collect(Collectors.toSet())
           .toArray(contractNames);
     }
     for (String contractName : contractNames) {
-      String contractHash = ContractUtils.getAddressByName(contractName, ContractType.UNI_PAIR)
+      String contractHash = contractUtils.getAddressByName(contractName, ContractType.UNI_PAIR)
           .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
       LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
     }

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.erc20.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
@@ -35,7 +36,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class TransferParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -112,7 +113,7 @@ public class TransferParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);
-    dto.setName(ContractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
+    dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
     dto.setValue(parseAmount(tx.getValue(), tx.getTokenAddress()));
@@ -157,7 +158,7 @@ public class TransferParser implements Web3Parser {
   }
 
   public void fillBalance(TransferDTO dto) {
-    String tokenAddress = ContractUtils.getAddressByName(dto.getName(), ContractType.TOKEN)
+    String tokenAddress = contractUtils.getAddressByName(dto.getName(), ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found adr for " + dto.getName()));
     dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
     dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
