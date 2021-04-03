@@ -5,7 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -31,7 +31,7 @@ public class DoHardWorkTest {
     @Autowired
     private HardWorkParser hardWorkParser;
     @Autowired
-    private Web3Service web3Service;
+    private Web3Functions web3Functions;
     @Autowired
     private PriceProvider priceProvider;
     @Autowired
@@ -43,6 +43,18 @@ public class DoHardWorkTest {
     public void setUp() throws Exception {
         contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
+    }
+
+    @Test
+    public void parseSUSHI_MIC_USDT() {
+        assertOnBlock(
+            12138001,
+            "0x4a8b9b49edda75fc2ce1d8e119ae952c92707c1b4cc04ccfacd066c0164ab35e_166",
+            "SUSHI_MIC_USDT",
+            "0.000000",
+            "9189.958992",
+            "10.425585"
+        );
     }
 
     @Test
@@ -210,8 +222,8 @@ public class DoHardWorkTest {
         String sharePriceChange = numberFormat(_sharePriceChange);
         String fullRewardUsd = numberFormat(_fullRewardUsd);
         String farmBuyback = numberFormat(_farmBuyback);
-        List<LogResult> logResults = web3Service
-            .fetchContractLogs(Collections.singletonList(CONTROLLER), onBlock, onBlock);
+        List<LogResult> logResults = web3Functions
+            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
         HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0));

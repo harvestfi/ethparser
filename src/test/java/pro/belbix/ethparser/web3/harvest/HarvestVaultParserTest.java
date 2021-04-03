@@ -19,7 +19,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
@@ -34,7 +34,7 @@ public class HarvestVaultParserTest {
     @Autowired
     private HarvestVaultParserV2 harvestVaultParser;
     @Autowired
-    private Web3Service web3Service;
+    private Web3Functions web3Functions;
     @Autowired
     private PriceProvider priceProvider;
     @Autowired
@@ -48,6 +48,37 @@ public class HarvestVaultParserTest {
     public void setUp() throws Exception {
         contractLoader.load();
         priceProvider.setUpdateBlockDifference(1);
+    }
+
+    @Test
+    public void shouldParseWithdraw_iPS() {
+        HarvestDTO dto = harvestVaultParseTest(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            12090189,
+            LOG_ID,
+            "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
+            "Withdraw",
+            "iPS",
+            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_202",
+            "96,67835046",
+            "",
+            "",
+            27630L,
+            37436685L,
+            true
+        );
+        assertNotNull(dto);
+        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        assertNotNull(tvl);
+    }
+
+    @Test
+    public void shouldNotParseDeposit_iPS() {
+        harvestVaultParseTestNull(
+            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            12090189,
+            2
+        );
     }
 
     @Test
@@ -1806,7 +1837,8 @@ public class HarvestVaultParserTest {
     }
 
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+        List<LogResult> logResults = web3Functions
+            .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
         assertNull(dto);
@@ -1829,7 +1861,7 @@ public class HarvestVaultParserTest {
     ) {
         String amount = numberFormat(_amount);
         String amountIn = numberFormat(_amountIn);
-        List<LogResult> logResults = web3Service
+        List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
@@ -1846,6 +1878,18 @@ public class HarvestVaultParserTest {
             confirmed
         );
         return dto;
+    }
+
+    private void harvestVaultParseTestNull(
+        String fromVault,
+        int onBlock,
+        int logId
+    ) {
+        List<LogResult> logResults = web3Functions
+            .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+        assertTrue("Log smaller then necessary", logId < logResults.size());
+        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
+        assertNull(dto);
     }
 
     private void assertDto(HarvestDTO dto,

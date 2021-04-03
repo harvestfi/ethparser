@@ -19,7 +19,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -34,7 +34,7 @@ public class UniswapParserTest {
   @Autowired
   private UniswapLpLogParser uniswapLpLogParser;
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private PriceProvider priceProvider;
   @Autowired
@@ -256,7 +256,8 @@ public class UniswapParserTest {
     }
 
     private void shouldNotParse(String contract, int onBlock, int logId) {
-        List<LogResult> logResults = web3Service.fetchContractLogs(singletonList(contract), onBlock, onBlock);
+        List<LogResult> logResults = web3Functions
+            .fetchContractLogs(singletonList(contract), onBlock, onBlock);
         assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
         UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
         assertNull(dto);
@@ -277,7 +278,7 @@ public class UniswapParserTest {
       amount = numberFormat(amount);
       otherAmount = numberFormat(otherAmount);
       lastPrice = numberFormat(lastPrice);
-      List<LogResult> logResults = web3Service
+      List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(contract), onBlock, onBlock);
       assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
       UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());

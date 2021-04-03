@@ -5,28 +5,7 @@ ALTER SEQUENCE eth_pools_id_seq RESTART WITH 999999;
 ALTER SEQUENCE eth_token_to_uni_pair_id_seq RESTART WITH 999999;
 ALTER SEQUENCE eth_tokens_id_seq RESTART WITH 999999;
 ALTER SEQUENCE eth_uni_pairs_id_seq RESTART WITH 999999;
-ALTER SEQUENCE eth_vault_to_pool_id_seq RESTART WITH 999999;
 ALTER SEQUENCE eth_vaults_id_seq RESTART WITH 999999;
-
-create or replace function substring_index(str text, delim text, count integer DEFAULT 1, OUT substring_index text) returns text
-              immutable
-              cost 5
-              language plpgsql
-              as
-              '
-              BEGIN
-                  IF count > 0 THEN
-                      substring_index = array_to_string((string_to_array(str, delim))[:count], delim);
-                  ELSE
-                      DECLARE
-                          _array TEXT[];
-                      BEGIN
-                          _array = string_to_array(str, delim);
-                          substring_index = array_to_string(_array[array_length(_array, 1) + count + 1:], delim);
-                      END;
-                  END IF;
-              END;
-              ';
 
 
 INSERT INTO public.block_cache (block, block_date) VALUES (10770491, 1598900533);
@@ -40,9 +19,6 @@ INSERT INTO public.deployer_tx (id, block, block_date, confirmed, from_address, 
 INSERT INTO public.events_tx (id, block, block_date, event, hash, info, mint_amount, new_strategy, old_strategy, vault) VALUES ('0x03075b3216fabd8846491c45e60d981fac920bc17f4a22a63bdf2b470b4cee3a_54', 11808045, 1612684105, 'StrategyChanged', '0x03075b3216fabd8846491c45e60d981fac920bc17f4a22a63bdf2b470b4cee3a', '{"vaultAddress":"0x859222dd0b249d0ea960f5102dab79b294d6874a","strategyTimeLock":null}', null, '0xce2fa27ad136c6035f60e8cf2ad605d805745972', '0x15ada3630227a33751e986f3e77b0a073f77d17d', 'ONEINCH_ETH_WBTC');
 
 INSERT INTO public.harvest_tvl (calculate_hash, calculate_time, last_all_owners_count, last_owners_count, last_price, last_tvl) VALUES ('0x00018f953339fbb7c708698f4a69c030ff4464114beeda7bfc83c0c548747add_338', 1603472475, 10094, 1853, 202.5659866011, 1090496226.6724818);
-
-
-INSERT INTO public.income (id, amount, amount_sum, amount_sum_usd, amount_usd, perc, ps_tvl, ps_tvl_usd, timestamp, week_perc) VALUES ('0x006243bad9ae1f6a6264da0c1dcf3249d3001b567faa9fdec1d2e63ad724c0aa_280', 5.4943178091, 5433.8931391715, 656315.3479700004, 885.349948, 0.0052103424, 105450.2264377116, 16408582.965265011, 1602771011, 0.7976684758);
 
 INSERT INTO public.prices (id, block, block_date, buy, lp_token0pooled, lp_token1pooled, lp_total_supply, other_token, other_token_amount, price, source, token, token_amount) VALUES ('0x00011fb0780aa16e7f8ce785f2a038b31c25b344bbab3def44fb3f99766b790b_312', 11918804, 1614156184, 0, 13424385.204148998, 124121.509756646, 1126412.0303373176, 'ETH', 11.4869787796, 0.0092190913, 'SUSHI_LP_SUSHI_ETH', 'SUSHI', 1245.9990323311);
 

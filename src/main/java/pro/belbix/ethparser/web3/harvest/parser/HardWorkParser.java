@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
@@ -8,11 +10,13 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERAT
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -27,13 +31,13 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -41,28 +45,34 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HardWorkParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
-  private final ERC20Decoder erc20Decoder = new ERC20Decoder();
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
   private Instant lastTx = Instant.now();
 
+  private final static Set<String> allowedRewardAddedContracts = Set.of(
+    "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase()
+  );
+
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
-      Web3Service web3Service,
-      HardWorkDbService hardWorkDbService, ParserInfo parserInfo,
+      Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
+      ParserInfo parserInfo,
       AppProperties appProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
@@ -71,7 +81,7 @@ public class HardWorkParser implements Web3Parser {
   @Override
   public void startParse() {
     log.info("Start parse Hard work logs");
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {
@@ -97,7 +107,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   public HardWorkDTO parseLog(Log ethLog) {
-    if (ethLog == null || !CONTROLLER.equals(ethLog.getAddress())) {
+    if (ethLog == null || !ETH_CONTROLLER.equals(ethLog.getAddress())) {
       return null;
     }
 
@@ -113,11 +123,11 @@ public class HardWorkParser implements Web3Parser {
       throw new IllegalStateException("Unknown method " + tx.getMethodName());
     }
 
-    if (ContractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
+    if (contractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
       log.warn("Unknown vault " + tx.getVault());
       return null;
     }
-    String vaultName = ContractUtils.getNameByAddress(tx.getVault())
+    String vaultName = contractUtils.getNameByAddress(tx.getVault())
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
     if (vaultName.endsWith("_V0")) {
       // skip old strategies
@@ -141,7 +151,7 @@ public class HardWorkParser implements Web3Parser {
 
   // not in the root because it can be weekly reward
   private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
-    TransactionReceipt tr = web3Service.fetchTransactionReceipt(txHash);
+    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash);
     double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
     dto.setFarmPrice(farmPrice);
     boolean autoStake = isAutoStake(tr.getLogs());
@@ -234,8 +244,7 @@ public class HardWorkParser implements Web3Parser {
     if (tx == null) {
       return;
     }
-    
-    if ("RewardAdded".equals(tx.getMethodName())) {
+    if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog)) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
       }
@@ -263,8 +272,13 @@ public class HardWorkParser implements Web3Parser {
     }
   }
 
+  private boolean isAllowedLog(Log ethLog) {
+    return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
+        || contractUtils.isPoolAddress(ethLog.getAddress().toLowerCase());
+  }
+
   private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
-    Transaction transaction = web3Service.findTransaction(txHash);
+    Transaction transaction = web3Functions.findTransaction(txHash);
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
     double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
@@ -276,7 +290,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void parseVaultInvestedFunds(HardWorkDTO dto) {
-    String vaultHash = ContractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
+    String vaultHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
     double underlyingBalanceInVault = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_IN_VAULT,
         vaultHash,

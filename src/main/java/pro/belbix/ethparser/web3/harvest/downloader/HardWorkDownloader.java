@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -11,7 +11,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.utils.LoopUtils;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -21,7 +21,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Log4j2
 public class HardWorkDownloader {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
   private final HardWorkDbService hardWorkDbService;
   private final HardWorkParser hardWorkParser;
   private final PriceProvider priceProvider;
@@ -31,10 +31,10 @@ public class HardWorkDownloader {
   @Value("${hardwork-download.to:}")
   private Integer to;
 
-  public HardWorkDownloader(Web3Service web3Service,
+  public HardWorkDownloader(Web3Functions web3Functions,
       HardWorkDbService hardWorkDbService,
       HardWorkParser hardWorkParser, PriceProvider priceProvider) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
     this.hardWorkDbService = hardWorkDbService;
     this.hardWorkParser = hardWorkParser;
     this.priceProvider = priceProvider;
@@ -48,8 +48,8 @@ public class HardWorkDownloader {
   }
 
   private void parse(Integer start, Integer end) {
-    List<LogResult> logResults = web3Service
-        .fetchContractLogs(singletonList(CONTROLLER), start, end);
+    List<LogResult> logResults = web3Functions
+        .fetchContractLogs(singletonList(ETH_CONTROLLER), start, end);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

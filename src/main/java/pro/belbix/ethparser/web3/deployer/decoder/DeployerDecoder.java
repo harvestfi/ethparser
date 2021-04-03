@@ -10,7 +10,7 @@ import org.web3j.utils.Convert;
 import pro.belbix.ethparser.model.DeployerTx;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 
 @SuppressWarnings({"rawtypes"})
@@ -18,10 +18,10 @@ import pro.belbix.ethparser.web3.contracts.ContractConstants;
 @Log4j2
 public class DeployerDecoder extends MethodDecoder {
 
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
 
-  public DeployerDecoder(Web3Service web3Service) {
-    this.web3Service = web3Service;
+  public DeployerDecoder(Web3Functions web3Functions) {
+    this.web3Functions = web3Functions;
   }
 
   public DeployerTx decodeTransaction(Transaction tx) {
@@ -54,7 +54,7 @@ public class DeployerDecoder extends MethodDecoder {
                   + deployerTx.getHash());
         }
       }
-      TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
+      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());
       deployerTx.setGasUsed(transactionReceipt.getGasUsed());
       deployerTx.setSuccess("0x1".equalsIgnoreCase(transactionReceipt.getStatus()));
 
@@ -66,7 +66,7 @@ public class DeployerDecoder extends MethodDecoder {
 
   private boolean isValidTransaction(Transaction tx) {
     // If deployer address ever changes -- supply a list and check here
-    return ContractConstants.DEPLOYER.equalsIgnoreCase(tx.getFrom());
+    return ContractConstants.ETH_DEPLOYER.equalsIgnoreCase(tx.getFrom());
   }
 
   @Override

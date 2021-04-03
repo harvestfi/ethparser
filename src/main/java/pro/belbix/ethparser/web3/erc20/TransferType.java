@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.erc20;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.Arrays;
@@ -48,6 +49,7 @@ public enum TransferType {
   REWARD,
   HARD_WORK;
 
+  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   public static final Set<String> NOT_TRADE = new HashSet<>(Arrays.stream(TransferType.values())
       .filter(t -> t != LP_BUY && t != LP_SELL)
       .map(Enum::name)
@@ -90,35 +92,35 @@ public enum TransferType {
       return HARD_WORK;
     }
 
-    if (ContractUtils.isPsAddress(recipient)) {
-      if (ContractUtils.isPsAddress(owner)) {
+    if (contractUtils.isPsAddress(recipient)) {
+      if (contractUtils.isPsAddress(owner)) {
         return PS_INTERNAL;
       } else {
         return PS_STAKE;
       }
     }
 
-    if (ContractUtils.isPsAddress(owner)) {
+    if (contractUtils.isPsAddress(owner)) {
       // V0 reward
       if ("getReward".equalsIgnoreCase(methodName)) {
         return REWARD;
       }
-      if (ContractUtils.isPsAddress(recipient)) {
+      if (contractUtils.isPsAddress(recipient)) {
         return PS_INTERNAL;
       } else {
         return PS_EXIT;
       }
     }
 
-    if (ContractUtils.isPoolAddress(recipient)) {
+    if (contractUtils.isPoolAddress(recipient)) {
       return NOTIFY;
     }
 
-    if (ContractUtils.isPoolAddress(owner) || MethodMapper.isReward(methodName)) {
+    if (contractUtils.isPoolAddress(owner) || MethodMapper.isReward(methodName)) {
       return REWARD;
     }
 
-    if (ContractUtils.isUniPairAddress(owner)) {
+    if (contractUtils.isUniPairAddress(owner)) {
       if (MethodMapper.isLpTrade(methodName)) {
         return LP_BUY;
       } else if (MethodMapper.isLpLiq(methodName)) {
@@ -128,7 +130,7 @@ public enum TransferType {
       }
     }
 
-    if (ContractUtils.isUniPairAddress(recipient)) {
+    if (contractUtils.isUniPairAddress(recipient)) {
       if (MethodMapper.isLpTrade(methodName)) {
         return LP_SELL;
       } else if (MethodMapper.isLpLiq(methodName)) {

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.lang.reflect.ParameterizedType;
@@ -36,7 +37,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
-
+  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();
   protected Map<String, String> methodNamesByMethodId = new HashMap<>();
   protected Map<String, String> methodIdByFullHex = new HashMap<>();
@@ -79,7 +80,7 @@ public abstract class MethodDecoder {
       return 0.0;
     }
     return new BigDecimal(amount)
-        .divide(ContractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
+        .divide(contractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
         .doubleValue();
   }
 

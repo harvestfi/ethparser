@@ -1,7 +1,9 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -20,10 +22,11 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
-import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
@@ -33,11 +36,13 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 @Log4j2
 public class PriceLogParser implements Web3Parser {
 
+  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
@@ -47,13 +52,14 @@ public class PriceLogParser implements Web3Parser {
   private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
-  public PriceLogParser(Web3Service web3Service,
-      EthBlockService ethBlockService,
+  public PriceLogParser(Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
       ParserInfo parserInfo,
       PriceDBService priceDBService,
       AppProperties appProperties,
       FunctionsUtils functionsUtils) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
@@ -65,7 +71,7 @@ public class PriceLogParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Price logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;
@@ -100,7 +106,7 @@ public class PriceLogParser implements Web3Parser {
     if (tx == null) {
       return null;
     }
-    String sourceName = ContractUtils.getNameByAddress(tx.getSource())
+    String sourceName = contractUtils.getNameByAddress(tx.getSource())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
     PriceDTO dto = new PriceDTO();
 
@@ -131,10 +137,11 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private void fillLpStats(PriceDTO dto) {
-    String lpAddress = ContractUtils.getAddressByName(dto.getSource(), ContractType.UNI_PAIR)
+    String lpAddress = contractUtils.getAddressByName(dto.getSource(), ContractType.UNI_PAIR)
         .orElseThrow(
             () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
-    Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(lpAddress, dto.getBlock());
+    Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
+        lpAddress, dto.getBlock(), contractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE);
     double lpBalance = parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
@@ -154,8 +161,8 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private boolean isValidSource(PriceDTO dto) {
-    String currentLpName = ContractUtils
-        .findUniPairNameForTokenName(dto.getToken(), dto.getBlock()).orElse(null);
+    String currentLpName = contractUtils.findUniPairNameForTokenName(
+        dto.getToken(), dto.getBlock()).orElse(null);
     if (currentLpName == null) {
       return false;
     }
@@ -171,16 +178,16 @@ public class PriceLogParser implements Web3Parser {
   private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto) {
     String lp = tx.getSource().toLowerCase();
 
-    String keyCoinHash = ContractUtils.findKeyTokenForUniPair(lp)
+    String keyCoinHash = contractUtils.findKeyTokenForUniPair(lp)
         .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-    String keyCoinName = ContractUtils.getNameByAddress(keyCoinHash)
+    String keyCoinName = contractUtils.getNameByAddress(keyCoinHash)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
-    Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(lp);
+    Tuple2<String, String> tokensAdr = contractUtils.tokenAddressesByUniPairAddress(lp);
     Tuple2<String, String> tokensNames = new Tuple2<>(
-        ContractUtils.getNameByAddress(tokensAdr.component1())
+        contractUtils.getNameByAddress(tokensAdr.component1())
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component1())),
-        ContractUtils.getNameByAddress(tokensAdr.component2())
+        contractUtils.getNameByAddress(tokensAdr.component2())
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component2()))
     );
@@ -200,17 +207,17 @@ public class PriceLogParser implements Web3Parser {
 
   private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
     if (keyCoinFirst) {
-      if (isZero(tx, 3)) {
+      if (isZero(tx, 3)) { // amount1Out
         return true;
-      } else if (isZero(tx, 2)) {
+      } else if (isZero(tx, 2)) { // amount0Out
         return false;
       } else {
         throw new IllegalStateException("Swap doesn't contains zero value " + tx);
       }
     } else {
-      if (isZero(tx, 2)) {
+      if (isZero(tx, 2)) { // amount0Out
         return true;
-      } else if (isZero(tx, 3)) {
+      } else if (isZero(tx, 3)) { // amount1Out
         return false;
       } else {
         throw new IllegalStateException("Swap doesn't contains zero value " + tx);
@@ -243,7 +250,7 @@ public class PriceLogParser implements Web3Parser {
 
   private static double parseAmountFromTx(PriceTx tx, int i, String name) {
     return parseAmount(tx.getIntegers()[i],
-        ContractUtils.getAddressByName(name, ContractType.TOKEN)
+        contractUtils.getAddressByName(name, ContractType.TOKEN)
             .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
     );
   }

@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.decoder;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.math.BigInteger;
 import java.util.List;
 import org.web3j.abi.TypeReference;
@@ -14,7 +16,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   public HarvestTx decode(Log ethLog) {
     if (!isValidLog(ethLog)) {
       return null;
@@ -42,8 +44,8 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
     if (log == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return ContractUtils.isVaultAddress(log.getAddress())
-        || ContractUtils.isPoolAddress(log.getAddress());
+    return contractUtils.isVaultAddress(log.getAddress())
+        || contractUtils.isPoolAddress(log.getAddress());
   }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

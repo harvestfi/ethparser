@@ -4,30 +4,23 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
+import static pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockAssertions.assertBlock;
+import static pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockAssertions.assertContracts;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import lombok.Builder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
-import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
-import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 
 @SpringBootTest(classes = Application.class)
@@ -35,7 +28,7 @@ import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 public class EthBlockParserTest {
 
     @Autowired
-    private Web3Service web3Service;
+    private Web3Functions web3Functions;
     @Autowired
     private EthBlockParser ethBlockParser;
     @Autowired
@@ -43,14 +36,29 @@ public class EthBlockParserTest {
     @Autowired
     private EthBlockRepository ethBlockRepository;
 
+    @BeforeEach
+    void setUp() {
+        ethBlockRepository.deleteAll();
+    }
+
+    @Test
+    void testBlockParsing_0() {
+        EthBlockEntity block = ethBlockParser.parse(
+            web3Functions.findBlockByNumber(0, true));
+        assertNotNull(block, "EthBlockEntity is null");
+        assertAll(
+            () -> assertEquals(0, block.getNumber(), "block num"),
+            () -> assertEquals(0, block.getTimestamp(), "block timestamp")
+        );
+        assertNotNull(ethBlockDbService.save(block), "persist result");
+    }
+
     @Test
     void testBlockParsing_12055816() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0xd9f8b787073cae9e09162a156e5b93731a2c46bd93a50a93a1feb684ddfd16ba",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Functions.findBlockByNumber(12055816, true));
         assertContracts(ethBlockEntity, "data/12055816_contracts.txt");
-        assertBlock(ethBlockEntity, AssertData.builder()
+        assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(12055816)
             .blockTimestamp(1615979134)
             .txSize(195)
@@ -82,12 +90,10 @@ public class EthBlockParserTest {
 
     @Test
     void testBlockParsing_10800000() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Functions.findBlockByNumber(10800000, true));
         assertContracts(ethBlockEntity, "data/10800000_contracts.txt");
-        assertBlock(ethBlockEntity, AssertData.builder()
+        assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(10800000)
             .blockTimestamp(1599290487)
             .txSize(167)
@@ -117,12 +123,10 @@ public class EthBlockParserTest {
 
     @Test
     void testBlockParsing__SUSHI_HODL_12030868() throws IOException, URISyntaxException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
-            "0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1",
-            true
-        ));
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Functions.findBlockByNumber(12030868, true));
         assertContracts(ethBlockEntity, "data/12030868_contracts.txt");
-        assertBlock(ethBlockEntity, AssertData.builder()
+        assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(12030868)
             .blockTimestamp(1615647154)
             .txSize(160)
@@ -153,7 +157,7 @@ public class EthBlockParserTest {
     @Test
     public void smokeTest()
         throws JsonProcessingException, ExecutionException, InterruptedException {
-        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Service.findBlockByHash(
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Functions.findBlockByHash(
             "0xaa20f7bde5be60603f11a45fc4923aab7552be775403fc00c2e6b805e6297dbe",
             true
         ));
@@ -175,92 +179,5 @@ public class EthBlockParserTest {
         ethBlockRepository.delete(saved);
     }
 
-    private void assertContracts(EthBlockEntity block, String contractsPath)
-        throws IOException, URISyntaxException {
-        Set<String> expected = new HashSet<>(
-            Files.readAllLines(
-                Paths.get(this.getClass().getClassLoader().getResource(contractsPath).toURI()),
-                Charset.defaultCharset())
-        );
-        Set<String> contracts = new HashSet<>();
-        block.getTransactions().forEach(tx -> {
-            contracts.add(tx.getFromAddress().getAddress().toLowerCase());
-            if (tx.getToAddress() != null) {
-                contracts.add(tx.getToAddress().getAddress().toLowerCase());
-            }
-            if (tx.getContractAddress() != null) {
-                contracts.add(tx.getContractAddress().getAddress().toLowerCase());
-            }
-            tx.getLogs().forEach(l -> contracts.add(l.getAddress().getAddress()));
-        });
-        assertTwoArrays(new ArrayList<>(contracts), new ArrayList<>(expected));
-    }
 
-    private void assertBlock(EthBlockEntity block, AssertData data) {
-        assertNotNull(block, "EthBlockEntity is null");
-        assertAll(
-            () -> assertEquals(data.blockNum, block.getNumber(), "block num"),
-            () -> assertEquals(data.blockTimestamp, block.getTimestamp(), "block timestamp"),
-            () -> assertEquals(data.txSize, block.getTransactions().size(), "tx size"),
-            () -> assertTx(new ArrayList<>(block.getTransactions()).get(data.txNum), data)
-        );
-    }
-
-    private void assertTx(EthTxEntity tx, AssertData data) {
-        assertAll(
-            () -> assertEquals(data.txIdx, tx.getTransactionIndex(), "tx index"),
-            () -> assertEquals(data.txValue, tx.getValue(), "tx value"),
-            () -> assertEquals(data.txInput, tx.getInput(), "tx input"),
-            () -> assertEquals(data.txStatus, tx.getStatus(), "tx status"),
-            () -> assertEquals(data.txHash, tx.getHash().getHash(), "tx hash"),
-            () -> assertEquals(data.txFrom, tx.getFromAddress().getAddress(), "tx from adr"),
-            () -> assertEquals(data.txTo, tx.getToAddress().getAddress(), "tx to adr"),
-            () -> {
-                if (tx.getContractAddress() != null) {
-                    assertEquals(data.txContractAdr, tx.getContractAddress().getAddress(),
-                        "tx contr adr");
-                }
-            },
-            () -> assertEquals(data.logSize, tx.getLogs().size(), "tx log size"),
-            () -> assertLogs(new ArrayList<>(tx.getLogs()).get(data.logNum), data)
-        );
-    }
-
-    private void assertLogs(EthLogEntity ethLog, AssertData data) {
-        assertAll(
-            () -> assertEquals(data.logIdx, ethLog.getLogId(), "log id"),
-            () -> assertEquals(data.logTxIdx, ethLog.getTransactionIndex(), "log tx idx"),
-            () -> assertEquals(data.logData, ethLog.getData(), "log data"),
-            () -> assertEquals(data.logType, ethLog.getType(), "log type"),
-            () -> assertEquals(data.logAdr, ethLog.getAddress().getAddress(), "log adr"),
-            () -> assertEquals(data.logTopic, ethLog.getFirstTopic().getHash(), "log topic"),
-            () -> assertEquals(data.logTopics, ethLog.getTopics(), "log topics")
-        );
-    }
-
-    @Builder
-    private static class AssertData {
-
-        long blockNum;
-        long blockTimestamp;
-        int txSize;
-        int txNum;
-        long txIdx;
-        String txValue;
-        String txInput;
-        String txStatus;
-        String txHash;
-        String txFrom;
-        String txTo;
-        String txContractAdr;
-        int logSize;
-        int logNum;
-        long logIdx;
-        long logTxIdx;
-        String logData;
-        String logType;
-        String logAdr;
-        String logTopic;
-        String logTopics;
-    }
 }

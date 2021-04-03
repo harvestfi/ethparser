@@ -13,7 +13,9 @@ spring:
     platform: postgresql
     # DON'T change the file - setup JVM args
     #-Dethparser.web3Url=https://eth-mainnet.alchemyapi.io/v2/KEY
+    #-Dethparser.web3BscUrl=https://eth-mainnet.alchemyapi.io/v2/KEY
     #-Dethparser.etherscanApiKey=key
+    #-Dethparser.bscscanApiKey=key
     #-Dspring.datasource.url=jdbc:postgresql://url:5432/test
     #-Dspring.datasource.username=test
     #-Dspring.datasource.password=test
@@ -24,16 +26,12 @@ spring:
     hikari:
       maximum-pool-size: 1
     data: >
+      classpath:sql/functions.sql,
+      classpath:sql/views.sql,
       classpath:sql/common.sql,
       classpath:sql/hardwork.sql,
       classpath:sql/harvest.sql,
-      classpath:sql/hv_public_eth_contracts.sql,
-      classpath:sql/hv_public_eth_pools.sql,
-      classpath:sql/hv_public_eth_tokens.sql,
-      classpath:sql/hv_public_eth_uni_pairs.sql,
-      classpath:sql/hv_public_eth_vaults.sql,
-      classpath:sql/hv_public_eth_token_to_uni_pair.sql,
-      classpath:sql/hv_public_eth_vault_to_pool.sql
+      classpath:sql/contracts.sql
 
     initialization-mode: always
     generate-unique-name: true

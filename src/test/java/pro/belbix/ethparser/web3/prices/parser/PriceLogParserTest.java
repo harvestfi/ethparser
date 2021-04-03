@@ -16,7 +16,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @SpringBootTest(classes = Application.class)
@@ -26,7 +26,7 @@ public class PriceLogParserTest {
   @Autowired
   private PriceLogParser priceLogParser;
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
 
@@ -98,7 +98,7 @@ public class PriceLogParserTest {
                                    double otherTokenAmount,
                                    double price
     ) {
-        List<LogResult> logResults = web3Service
+        List<LogResult> logResults = web3Functions
             .fetchContractLogs(Collections.singletonList(contract), onBlock, onBlock);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());

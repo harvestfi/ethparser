@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.model;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -24,11 +26,12 @@ public class LpStat {
       double firstCoinPrice,
       double secondCoinPrice
   ) {
+    ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
     try {
-      Tuple2<String, String> lpTokens = ContractUtils.tokenAddressesByUniPairAddress(lpHash);
+      Tuple2<String, String> lpTokens = contractUtils.tokenAddressesByUniPairAddress(lpHash);
       LpStat lpStat = new LpStat();
-      lpStat.setCoin1(ContractUtils.getNameByAddress(lpTokens.component1()).orElse("unknown"));
-      lpStat.setCoin2(ContractUtils.getNameByAddress(lpTokens.component2()).orElse("unknown"));
+      lpStat.setCoin1(contractUtils.getNameByAddress(lpTokens.component1()).orElse("unknown"));
+      lpStat.setCoin2(contractUtils.getNameByAddress(lpTokens.component2()).orElse("unknown"));
       lpStat.setAmount1(firstCoinAmount);
       lpStat.setAmount2(secondCoinAmount);
       lpStat.setPrice1(firstCoinPrice);

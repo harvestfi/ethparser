@@ -17,14 +17,10 @@ public class UniswapDbService {
 
   private final UniswapRepository uniswapRepository;
   private final AppProperties appProperties;
-  private final IncomeDBService incomeDBService;
 
-  public UniswapDbService(UniswapRepository uniswapRepository,
-      AppProperties appProperties,
-      IncomeDBService incomeDBService) {
+  public UniswapDbService(UniswapRepository uniswapRepository, AppProperties appProperties) {
     this.uniswapRepository = uniswapRepository;
     this.appProperties = appProperties;
-    this.incomeDBService = incomeDBService;
   }
 
   public boolean saveUniswapDto(UniswapDTO dto) {
@@ -32,16 +28,9 @@ public class UniswapDbService {
       log.warn("Duplicate tx " + dto.getId());
       return false;
     }
-    uniswapRepository.save(dto);
-    uniswapRepository.flush();
-
+    uniswapRepository.saveAndFlush(dto);
     fillOwnersCount(dto);
-    uniswapRepository.save(dto);
-    uniswapRepository.flush();
-
-    if (incomeDBService.saveIncome(dto)) {
-      uniswapRepository.save(dto);
-    }
+    uniswapRepository.saveAndFlush(dto);
     return true;
   }
 

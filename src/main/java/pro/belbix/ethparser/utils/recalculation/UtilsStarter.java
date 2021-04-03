@@ -3,16 +3,14 @@ package pro.belbix.ethparser.utils.recalculation;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.codegen.ContractGenerator;
-import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
+import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.prices.downloader.PriceDownloader;
-import pro.belbix.ethparser.web3.uniswap.downloader.DownloadIncome;
 import pro.belbix.ethparser.web3.uniswap.downloader.UniswapLpDownloader;
 
 @Service
@@ -23,7 +21,6 @@ public class UtilsStarter {
   private final UniswapLpDownloader uniswapLpDownloader;
   private final HarvestVaultDownloader harvestVaultDownloader;
   private final TvlRecalculate tvlRecalculate;
-  private final DownloadIncome downloadIncome;
   private final HardWorkDownloader hardWorkDownloader;
   private final HardWorkRecalculate hardWorkRecalculate;
   private final RewardDownloader rewardDownloader;
@@ -40,14 +37,12 @@ public class UtilsStarter {
   private final HarvestProfitRecalculate harvestProfitRecalculate;
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
-  private final ContractGenerator contractGenerator;
   private final ContractLoader contractLoader;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
       HarvestVaultDownloader harvestVaultDownloader,
       TvlRecalculate tvlRecalculate,
-      DownloadIncome downloadIncome,
       HardWorkDownloader hardWorkDownloader,
       HardWorkRecalculate hardWorkRecalculate,
       RewardDownloader rewardDownloader, BlockCacher blockCacher,
@@ -62,14 +57,12 @@ public class UtilsStarter {
       HarvestProfitRecalculate harvestProfitRecalculate,
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
-      ContractGenerator contractGenerator,
       EthBlockDownloader ethBlockDownloader,
       ContractLoader contractLoader) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.harvestVaultDownloader = harvestVaultDownloader;
     this.tvlRecalculate = tvlRecalculate;
-    this.downloadIncome = downloadIncome;
     this.hardWorkDownloader = hardWorkDownloader;
     this.hardWorkRecalculate = hardWorkRecalculate;
     this.rewardDownloader = rewardDownloader;
@@ -87,7 +80,6 @@ public class UtilsStarter {
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
     this.contractLoader = contractLoader;
-    this.contractGenerator = contractGenerator;
   }
 
   public void startUtils() {
@@ -101,8 +93,6 @@ public class UtilsStarter {
       harvestVaultDownloader.start();
     } else if ("tvl-recalculate".equals(appProperties.getStartUtil())) {
       tvlRecalculate.start();
-    } else if ("income-download".equals(appProperties.getStartUtil())) {
-      downloadIncome.start();
     } else if ("hardwork-download".equals(appProperties.getStartUtil())) {
       hardWorkDownloader.start();
     } else if ("hardwork-recalculate".equals(appProperties.getStartUtil())) {
@@ -133,8 +123,6 @@ public class UtilsStarter {
       deployerTransactionsDownloader.start();
     } else if ("block-download".equals(appProperties.getStartUtil())) {
       ethBlockDownloader.start();
-    } else if ("contract-generator".equals(appProperties.getStartUtil())) {
-      contractGenerator.start();
     }
     log.info("Utils completed");
     System.exit(0);
