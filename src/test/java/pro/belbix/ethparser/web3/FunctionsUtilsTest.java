@@ -44,4 +44,11 @@ public class FunctionsUtilsTest {
     assertEquals(result, 30.0);
     System.out.println("profitSharingDenominator " + result);
   }
+
+  @Test
+  public void testBoolByName() {
+    Boolean result = functionsUtils.callBoolByName("liquidateRewardToWethInSushi", "0x636A37802dA562F7d562c1915cC2A948A1D3E5A0", 11694023L).orElse(null);
+    assertEquals(result, true);
+    System.out.println("liquidateRewardToWethInSushi " + result);
+  }
 }

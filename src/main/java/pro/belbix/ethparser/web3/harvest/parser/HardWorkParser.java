@@ -199,12 +199,12 @@ public class HardWorkParser implements Web3Parser {
     }
 
     if (!buybackRateSet){
-        String liquidateRewardToWethInSushi = functionsUtils.callStrByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse("");
-        if (liquidateRewardToWethInSushi=="True"){
+        Boolean liquidateRewardToWethInSushi = functionsUtils.callBoolByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse(false);
+        if (liquidateRewardToWethInSushi){
           buybackRate = 1;
           buybackRateSet = true;
         }
-        else if (liquidateRewardToWethInSushi=="False") {
+        else {
           buybackRate = 0;
           buybackRateSet = true;
         }

@@ -31,6 +31,7 @@ import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
@@ -49,6 +50,7 @@ public class FunctionsUtils {
   public final static String TYPE_ADR = "adr";
   public final static String TYPE_STR = "str";
   public final static String TYPE_INT = "int";
+  public final static String TYPE_BOOL = "bool";
 
   private final Map<String, Function> functionsCache = new HashMap<>();
 
@@ -140,6 +142,10 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block);
   }
 
+  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block) {
+    return callBoolFunction(findSimpleFunction(functionName, TYPE_BOOL), hash, block);
+  }
+
   public Optional<BigInteger> callIntByName(
       String functionName,
       String arg,
@@ -150,6 +156,19 @@ public class FunctionsUtils {
         functionName,
         Collections.singletonList(new Address(arg)),
         Collections.singletonList(new TypeReference<Uint256>() {
+        })), hash, block);
+  }
+
+  public Optional<Boolean> callBoolByName(
+      String functionName,
+      String arg,
+      String hash,
+      Long block) {
+    // you should create function for every new argument
+    return callBoolFunction(new Function(
+        functionName,
+        Collections.singletonList(new Address(arg)),
+        Collections.singletonList(new TypeReference<Bool>() {
         })), hash, block);
   }
 
@@ -190,7 +209,12 @@ public class FunctionsUtils {
             Collections.emptyList(),
             Collections.singletonList(new TypeReference<Uint256>() {
             }));
-
+      } else if (TYPE_BOOL.equals(returnType)) {
+        function = new Function(
+            name,
+            Collections.emptyList(),
+            Collections.singletonList(new TypeReference<Bool>() {
+            }));
       } else {
         throw new IllegalStateException("Unknown function type " + returnType);
       }
@@ -215,6 +239,15 @@ public class FunctionsUtils {
       return Optional.empty();
     }
     return Optional.ofNullable((BigInteger) types.get(0).getValue());
+  }
+
+  private Optional<Boolean> callBoolFunction(Function function, String hash, Long block) {
+    List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+    if (types == null || types.isEmpty()) {
+      log.warn(function.getName() + " Wrong callback for hash: " + hash);
+      return Optional.empty();
+    }
+    return Optional.ofNullable((Boolean) types.get(0).getValue());
   }
 
   private static DefaultBlockParameter resolveBlock(Long block) {

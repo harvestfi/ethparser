@@ -71,7 +71,7 @@ public class DoHardWorkTest {
             "SUSHI_MIC_USDT",
             "0,000000",
             "17800.133375",
-            "24,508470"
+            "81,694899"
         );
     }
 
