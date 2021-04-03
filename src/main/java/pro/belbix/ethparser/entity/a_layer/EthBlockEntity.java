@@ -47,7 +47,8 @@ import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 //)
 @Entity
 @Table(name = "a_eth_block", indexes = {
-    @Index(name = "idx_eth_block_hash", columnList = "hash")
+    @Index(name = "idx_eth_block_hash", columnList = "hash"),
+    @Index(name = "idx_eth_block_timestamp", columnList = "timestamp")
 })
 @Data
 @JsonInclude(Include.NON_NULL)

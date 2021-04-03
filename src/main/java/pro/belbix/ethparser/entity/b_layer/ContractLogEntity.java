@@ -10,6 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -24,10 +25,12 @@ import org.hibernate.annotations.TypeDef;
 import pro.belbix.ethparser.entity.a_layer.EthAddressEntity;
 
 @Entity
-@Table(name = "b_contract_logs",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"contract_tx_id", "logIdx"})
-    })
+@Table(name = "b_contract_logs", indexes = {
+    @Index(name = "b_contract_logs_contract_tx_id_log_idx",
+        columnList = "contract_tx_id, logIdx", unique = true),
+    @Index(name = "b_contract_logs_address", columnList = "address"),
+    @Index(name = "b_contract_logs_topic", columnList = "topic")
+})
 @Data
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractTx"})
