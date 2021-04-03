@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY_TIME_LOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -21,10 +22,11 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
@@ -33,13 +35,14 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 @Service
 @Log4j2
 public class ImportantEventsParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
   private final ParserInfo parserInfo;
   private final EthBlockService ethBlockService;
@@ -48,12 +51,14 @@ public class ImportantEventsParser implements Web3Parser {
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
-      Web3Service web3Service,
+      Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber,
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
       FunctionsUtils functionsUtils, AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
     this.ethBlockService = ethBlockService;
@@ -64,7 +69,7 @@ public class ImportantEventsParser implements Web3Parser {
   @Override
   public void startParse() {
     log.info("Start parse Important Events logs");
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {
@@ -92,7 +97,7 @@ public class ImportantEventsParser implements Web3Parser {
   public ImportantEventsDTO parseLog(Log ethLog) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-            && ContractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
+            && contractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
     ) {
       return null;
     }
@@ -133,7 +138,7 @@ public class ImportantEventsParser implements Web3Parser {
 
   private void parseVault(ImportantEventsDTO dto, String vault) {
     dto.setVault(
-        ContractUtils.getNameByAddress(vault)
+        contractUtils.getNameByAddress(vault)
             .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
     );
   }

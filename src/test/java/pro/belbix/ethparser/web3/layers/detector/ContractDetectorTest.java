@@ -26,7 +26,7 @@ import pro.belbix.ethparser.entity.b_layer.ContractLogEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
@@ -41,7 +41,7 @@ class ContractDetectorTest {
   @Autowired
   private EthBlockParser ethBlockParser;
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
   @Autowired
@@ -99,6 +99,7 @@ class ContractDetectorTest {
         .stateValue("[\"WETH\"]")
         .logSize(5)
         .logIdx(5)
+        .logAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
         .logName("Withdrawal")
         .logValues("[\"0x7a250d5630b4cf539739df2c5dacb4c659f2488d\",\"13134584198476690558\"]")
         .logMethodId("0x7fcf532c")
@@ -145,6 +146,7 @@ class ContractDetectorTest {
         .stateValue("[\"43200\"]")
         .logIdx(239)
         .logSize(3)
+        .logAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .logName("Withdraw")
         .logMethodId("0x884edad9")
         .logValues("[\"0x1e7e3925012ac4fc2e35fe23415c877979eb6b04\",\"954273586164387783198\"]")
@@ -180,7 +182,7 @@ class ContractDetectorTest {
 
   private EthBlockEntity loadBlock(String hash) {
     EthBlockEntity ethBlockEntity =
-        ethBlockParser.parse(web3Service.findBlockByHash(hash, true));
+        ethBlockParser.parse(web3Functions.findBlockByHash(hash, true));
     long blockNumber = ethBlockEntity.getNumber();
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
@@ -201,7 +203,8 @@ class ContractDetectorTest {
         () -> assertNotNull(contractEventsDbService.save(event),
             "save result"),
         () -> assertNull(contractEventsDbService.save(event),
-            "Duplicate should be null")
+            "Duplicate should be null"),
+        () -> ethBlockRepository.deleteById(event.getBlock().getNumber())
     );
   }
 
@@ -245,6 +248,7 @@ class ContractDetectorTest {
 
   private void assertLog(ContractLogEntity ethLog, AssertData data) {
     assertAll(
+        () -> assertEquals(data.logAddress, ethLog.getAddress().getAddress(), "log address"),
         () -> assertEquals(data.logName, ethLog.getTopic().getMethodName(), "log name"),
         () -> assertEquals(data.logMethodId, ethLog.getTopic().getMethodId(), "logMethodId"),
         () -> assertEquals(data.logValues, ethLog.getLogs(), "log values")

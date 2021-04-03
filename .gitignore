@@ -49,6 +49,7 @@ testem.log
 .DS_Store
 Thumbs.db
 scripts/application.yml
+scripts/application-bsc.yml
 scripts/run_*/ethparser.jar
 scripts/run_*/lib
 scripts/run_*/logs

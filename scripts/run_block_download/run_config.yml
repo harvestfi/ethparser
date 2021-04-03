@@ -16,4 +16,5 @@ ethparser:
   parseDeployerTransactions: false
 
   parseBlocks: true
-  parseBlocksFrom: 12080691
+#  parseBlocksFrom: 12080691
+  parseBlocksFrom: 9000000

@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.utils.recalculation;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,7 @@ import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
 @Service
 @Log4j2
 public class NewStrategyDownloader {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final HarvestVaultDownloader harvestVaultDownloader;
   private final RewardDownloader rewardDownloader;
   private final HardWorkDownloader hardWorkDownloader;
@@ -49,7 +51,7 @@ public class NewStrategyDownloader {
       if (harvest.getBlock().intValue() < minBlock) {
         minBlock = harvest.getBlock().intValue();
       }
-      String stContract = ContractUtils.poolByVaultName(vaultName)
+      String stContract = contractUtils.poolByVaultName(vaultName)
           .map(PoolEntity::getContract)
           .map(ContractEntity::getAddress)
           .orElseThrow(() -> new IllegalStateException("Not found pool by vault name " + vaultName));

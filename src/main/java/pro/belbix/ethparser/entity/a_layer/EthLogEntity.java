@@ -9,22 +9,21 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Entity
 @Table(name = "a_eth_log", indexes = {
-//    @Index(name = "idx_eth_log_block", columnList = "blockNumber"),
-//    @Index(name = "idx_eth_log_hash_log_id", columnList = "hash, logId")
-},
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"tx_id", "logId"})
-    })
+    @Index(name = "idx_eth_log_tx_id_log_id", columnList = "tx_id, logId", unique = true),
+    @Index(name = "idx_eth_log_address", columnList = "address"),
+    @Index(name = "idx_eth_log_first_topic", columnList = "first_topic"),
+    @Index(name = "idx_eth_log_block_number", columnList = "block_number")
+})
 @Data
 @EqualsAndHashCode(exclude = {"tx", "blockNumber"})
 @JsonInclude(Include.NON_NULL)

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
@@ -23,10 +24,11 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
@@ -35,14 +37,15 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Service
 @Log4j2
 public class RewardParser implements Web3Parser {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
   private final FunctionsUtils functionsUtils;
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final RewardsDBService rewardsDBService;
   private final AppProperties appProperties;
@@ -51,12 +54,13 @@ public class RewardParser implements Web3Parser {
   private boolean waitNewBlock = true;
 
   public RewardParser(FunctionsUtils functionsUtils,
-      Web3Service web3Service,
-      EthBlockService ethBlockService,
+      Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
       RewardsDBService rewardsDBService, AppProperties appProperties,
       ParserInfo parserInfo) {
     this.functionsUtils = functionsUtils;
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.rewardsDBService = rewardsDBService;
     this.appProperties = appProperties;
@@ -67,7 +71,7 @@ public class RewardParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Rewards logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;
@@ -92,7 +96,7 @@ public class RewardParser implements Web3Parser {
   }
 
   public RewardDTO parseLog(Log ethLog) throws InterruptedException {
-    if (ethLog == null || !ContractUtils.isPoolAddress(ethLog.getAddress())) {
+    if (ethLog == null || !contractUtils.isPoolAddress(ethLog.getAddress())) {
       return null;
     }
 
@@ -140,7 +144,7 @@ public class RewardParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);
-    dto.setVault(ContractUtils.getNameByAddress(poolAddress)
+    dto.setVault(contractUtils.getNameByAddress(poolAddress)
         .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
         .replaceFirst("ST__", "")
         .replaceFirst("ST_", ""));

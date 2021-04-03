@@ -17,7 +17,8 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
@@ -30,7 +31,8 @@ public class UniswapLpLogParser implements Web3Parser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final UniswapDbService uniswapDbService;
@@ -43,15 +45,16 @@ public class UniswapLpLogParser implements Web3Parser {
   private Instant lastTx = Instant.now();
   private long count = 0;
 
-  public UniswapLpLogParser(Web3Service web3Service,
-      UniswapDbService uniswapDbService,
+  public UniswapLpLogParser(Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, UniswapDbService uniswapDbService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
       UniToHarvestConverter uniToHarvestConverter,
       ParserInfo parserInfo,
       UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
       AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
@@ -65,7 +68,7 @@ public class UniswapLpLogParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Uniswap logs");
     parserInfo.addParser(this);
-    web3Service.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
         Log ethLog = null;
@@ -106,7 +109,7 @@ public class UniswapLpLogParser implements Web3Parser {
     UniswapDTO dto = tx.toDto();
 
     //enrich owner
-    TransactionReceipt receipt = web3Service.fetchTransactionReceipt(dto.getHash());
+    TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(dto.getHash());
     dto.setOwner(receipt.getFrom());
 
     //enrich date
@@ -130,7 +133,7 @@ public class UniswapLpLogParser implements Web3Parser {
   }
 
   private void enrichDto(UniswapDTO dto) {
-    dto.setLastGas(web3Service.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice());
   }
 
   @Override

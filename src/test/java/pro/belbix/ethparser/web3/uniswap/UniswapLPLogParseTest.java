@@ -18,7 +18,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.model.UniswapTx;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
@@ -27,7 +27,7 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 public class UniswapLPLogParseTest {
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
@@ -57,7 +57,7 @@ public class UniswapLPLogParseTest {
 
   private void parseLp(String contract, Integer start, Integer end) {
     Map<String, Integer> topics = new HashMap<>();
-    List<LogResult> logResults = web3Service
+    List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList(contract), start, end);
     assertFalse(logResults.isEmpty());
     for (LogResult logResult : logResults) {

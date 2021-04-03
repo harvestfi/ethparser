@@ -12,6 +12,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
@@ -28,7 +29,10 @@ import org.hibernate.annotations.TypeDef;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 
 @Entity
-@Table(name = "b_contract_txs")
+@Table(name = "b_contract_txs", indexes = {
+    @Index(name = "b_contract_txs_func_hash", columnList = "func_hash"),
+    @Index(name = "b_contract_txs_tx", columnList = "tx_id", unique = true)
+})
 @Data
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(exclude = {"contractEvents"})
@@ -48,7 +52,6 @@ public class ContractTxEntity {
   private FunctionHashEntity funcHash;
 
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(unique = true)
   private EthTxEntity tx;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractTx",

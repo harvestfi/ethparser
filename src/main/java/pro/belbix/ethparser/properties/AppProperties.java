@@ -11,10 +11,12 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class AppProperties {
 
+    private String network = "eth";
+
     private String web3Url = "";
-    private String web3User = "";
-    private String web3Password = "";
+    private String web3BscUrl = "";
     private String etherscanApiKey = "YourApiKeyToken";
+    private String bscscanApiKey = "YourApiKeyToken";
 
     private boolean onlyApi = false;
     private boolean onlyParse = false;
@@ -49,5 +51,6 @@ public class AppProperties {
 
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
+    private boolean reconnectOnWeb3Errors = true;
     private boolean skipSimilarPrices = true;
 }

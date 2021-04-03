@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.layers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.ws.WsService.UNI_PRICES_TOPIC_NAME;
 
 import java.util.List;
@@ -16,14 +17,14 @@ import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.repositories.c_layer.UniPriceViewRepository;
-import pro.belbix.ethparser.views.ViewI;
+import pro.belbix.ethparser.repositories.c_layer.ViewI;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.ws.WsService;
 
 @Service
 @Log4j2
 public class ViewRouter {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final WsService wsService;
   private final UniPriceViewRepository uniPriceViewRepository;
 
@@ -38,11 +39,10 @@ public class ViewRouter {
     if (isUniPrice(event)) {
       sendToWs(
           uniPriceViewRepository.findByAddressesAndLogNames(
-              ContractUtils.getAllUniPairs().stream()
+              contractUtils.getAllUniPairs().stream()
                   .map(UniPairEntity::getContract)
                   .map(ContractEntity::getAddress)
                   .collect(Collectors.toList()),
-              List.of("Swap"),
               event.getBlock().getNumber(),
               event.getBlock().getNumber(),
               PageRequest.of(0, Integer.MAX_VALUE)
@@ -65,7 +65,7 @@ public class ViewRouter {
         .map(ContractTxEntity::getTx)
         .map(EthTxEntity::getToAddress)
         .map(EthAddressEntity::getAddress)
-        .anyMatch(ContractUtils::isUniPairAddress)
+        .anyMatch(contractUtils::isUniPairAddress)
         &&
         event.getTxs().stream()
             .anyMatch(tx -> tx.getLogs().stream()

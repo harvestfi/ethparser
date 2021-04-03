@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
@@ -17,7 +18,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class UniOwnerBalanceCalculator {
-
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
   private final UniswapRepository uniswapRepository;
@@ -46,16 +47,16 @@ public class UniOwnerBalanceCalculator {
   private boolean balanceForLp(UniswapDTO dto) {
     String lpHash;
     if (dto.getLp() == null) {
-      lpHash = ContractUtils.findUniPairForTokens(
-          ContractUtils.getAddressByName(dto.getCoin(), ContractType.TOKEN)
+      lpHash = contractUtils.findUniPairForTokens(
+          contractUtils.getAddressByName(dto.getCoin(), ContractType.TOKEN)
               .orElseThrow(
                   () -> new IllegalStateException("Not found address for " + dto.getCoin())),
-          ContractUtils.getAddressByName(dto.getOtherCoin(), ContractType.TOKEN)
+          contractUtils.getAddressByName(dto.getOtherCoin(), ContractType.TOKEN)
               .orElseThrow(
                   () -> new IllegalStateException("Not found address for " + dto.getOtherCoin()))
       );
     } else {
-      lpHash = ContractUtils.getAddressByName(dto.getLp(), ContractType.UNI_PAIR).orElse(null);
+      lpHash = contractUtils.getAddressByName(dto.getLp(), ContractType.UNI_PAIR).orElse(null);
     }
     if (lpHash == null) {
       log.error("Not found vault/lp hash for " + dto.getLp());

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.math.BigInteger;
@@ -20,7 +21,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class UniswapLpLogDecoder extends MethodDecoder {
-
+  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(
       Arrays.asList("Mint", "Burn", "Swap"));
 
@@ -51,7 +52,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     tx.setLogId(ethLog.getLogIndex().longValue());
     tx.setBlock(ethLog.getBlockNumber());
     tx.setSuccess(true);
-    tx.setCoinAddress(ContractUtils.findKeyTokenForUniPair(ethLog.getAddress())
+    tx.setCoinAddress(contractUtils.findKeyTokenForUniPair(ethLog.getAddress())
         .orElseThrow(
             () -> new IllegalStateException("Not found key token for " + ethLog.getAddress())));
     tx.setLpAddress(ethLog.getAddress());
@@ -142,8 +143,8 @@ public class UniswapLpLogDecoder extends MethodDecoder {
   }
 
   public static boolean firstTokenIsKey(String lpAddress) {
-    Tuple2<String, String> tokens = ContractUtils.tokenAddressesByUniPairAddress(lpAddress);
-    String keyCoin = ContractUtils.findKeyTokenForUniPair(lpAddress)
+    Tuple2<String, String> tokens = contractUtils.tokenAddressesByUniPairAddress(lpAddress);
+    String keyCoin = contractUtils.findKeyTokenForUniPair(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
     if (tokens.component1().equalsIgnoreCase(keyCoin)) {
       return true;
@@ -163,9 +164,9 @@ public class UniswapLpLogDecoder extends MethodDecoder {
   }
 
   private static String mapLpAddress(String address, boolean isKeyCoin) {
-    String keyCoinAdr = ContractUtils.findKeyTokenForUniPair(address)
+    String keyCoinAdr = contractUtils.findKeyTokenForUniPair(address)
         .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
-    Tuple2<String, String> tokensAdr = ContractUtils.tokenAddressesByUniPairAddress(address);
+    Tuple2<String, String> tokensAdr = contractUtils.tokenAddressesByUniPairAddress(address);
 
     int i;
     if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {

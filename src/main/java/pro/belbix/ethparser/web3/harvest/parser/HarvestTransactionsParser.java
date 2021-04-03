@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.web3.Web3Service.LOG_LAST_PARSED_COUNT;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -18,8 +18,9 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
@@ -28,9 +29,12 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 @Log4j2
 public class HarvestTransactionsParser implements Web3Parser {
 
+  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  public static final int LOG_LAST_PARSED_COUNT = 1_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
-  private final Web3Service web3Service;
+  private final Web3Functions web3Functions;
+  private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HarvestDBService harvestDBService;
@@ -40,11 +44,12 @@ public class HarvestTransactionsParser implements Web3Parser {
   private long parsedTxCount = 0;
   private Instant lastTx = Instant.now();
 
-  public HarvestTransactionsParser(Web3Service web3Service,
-      HarvestDBService harvestDBService,
+  public HarvestTransactionsParser(Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
       EthBlockService ethBlockService, ParserInfo parserInfo,
       AppProperties appProperties) {
-    this.web3Service = web3Service;
+    this.web3Functions = web3Functions;
+    this.web3Subscriber = web3Subscriber;
     this.harvestDBService = harvestDBService;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
@@ -54,7 +59,7 @@ public class HarvestTransactionsParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Harvest");
     parserInfo.addParser(this);
-    web3Service.subscribeOnTransactions(transactions);
+    web3Subscriber.subscribeOnTransactions(transactions);
     new Thread(() -> {
       while (run.get()) {
         Transaction transaction = null;
@@ -93,7 +98,7 @@ public class HarvestTransactionsParser implements Web3Parser {
     }
 
     HarvestDTO dto = harvestTx.toDto();
-    dto.setLastGas(web3Service.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice());
     dto.setBlockDate(ethBlockService
         .getTimestampSecForBlock(tx.getBlockNumber().longValue()));
     print(dto);
@@ -116,7 +121,7 @@ public class HarvestTransactionsParser implements Web3Parser {
       //it is contract deploy
       return false;
     }
-    return ContractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
+    return contractUtils.getNameByAddress(tx.getTo().toLowerCase()).isPresent();
   }
 
   private HarvestTx decodeTransaction(Transaction tx) {
@@ -131,10 +136,10 @@ public class HarvestTransactionsParser implements Web3Parser {
         return null;
       }
 
-      if (!harvestTx.isExistenceVault()) {
+      if (contractUtils.getNameByAddress(harvestTx.getVault().getValue()).isEmpty()) {
         return null;
       }
-      TransactionReceipt transactionReceipt = web3Service.fetchTransactionReceipt(tx.getHash());
+      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());
       if ("0x1".equals(transactionReceipt.getStatus())) {
         harvestTx.setSuccess(true);
       }

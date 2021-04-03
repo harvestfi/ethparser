@@ -20,7 +20,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
-import pro.belbix.ethparser.web3.Web3Service;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultDecoder;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
@@ -33,7 +33,7 @@ public class HarvestVaultDecoderTest {
   private ContractLoader contractLoader;
 
   @Autowired
-  private Web3Service web3Service;
+  private Web3Functions web3Functions;
   private final HarvestVaultDecoder harvestVaultDecoder = new HarvestVaultDecoder();
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
 
@@ -46,7 +46,7 @@ public class HarvestVaultDecoderTest {
   @Disabled
   public void parseVault_WBTC() {
     Map<String, Integer> topics = new HashMap<>();
-    List<LogResult> logResults = web3Service.fetchContractLogs(
+    List<LogResult> logResults = web3Functions.fetchContractLogs(
         singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null);
     assertFalse(logResults.isEmpty());
     for (LogResult logResult : logResults) {
@@ -74,7 +74,7 @@ public class HarvestVaultDecoderTest {
 
     @Test
     public void parseTxFromVault_WBTC() throws IOException {
-        Transaction transaction = web3Service
+        Transaction transaction = web3Functions
             .findTransaction("0x2c832ad9081512251dd172fc9de36bed1035649d51278b2a3bff501039885376");
         assertNotNull(transaction);
         HarvestTx harvestTx = (HarvestTx) harvestVaultDecoder.decodeInputData(transaction);
@@ -83,7 +83,7 @@ public class HarvestVaultDecoderTest {
 
     @Test
     public void fetchLogTransaction() {
-        TransactionReceipt receipt = web3Service.fetchTransactionReceipt(
+        TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(
             "0xc33899ec1de810b99071a2883e7f65300f1f1db5ca0987cc517f5e3a2551500d");
         assertNotNull(receipt);
     }

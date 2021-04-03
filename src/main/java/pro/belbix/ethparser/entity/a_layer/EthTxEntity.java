@@ -11,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -21,19 +22,14 @@ import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-//@NamedEntityGraph(
-//    name = "tx-graph.all",
-//    attributeNodes = {
-//        @NamedAttributeNode("hash"),
-//        @NamedAttributeNode("blockHash"),
-//        @NamedAttributeNode("fromAddress"),
-//        @NamedAttributeNode("toAddress"),
-//        @NamedAttributeNode("r"),
-//        @NamedAttributeNode("s"),
-//    }
-//)
 @Entity
-@Table(name = "a_eth_tx")
+@Table(name = "a_eth_tx", indexes = {
+    @Index(name = "idx_eth_txs_block_number", columnList = "block_number"),
+    @Index(name = "idx_eth_txs_hash", columnList = "hash", unique = true),
+    @Index(name = "idx_eth_txs_from_address", columnList = "from_address"),
+    @Index(name = "idx_eth_txs_to_address", columnList = "to_address"),
+    @Index(name = "idx_eth_txs_contract_address", columnList = "contract_address"),
+})
 @Data
 @EqualsAndHashCode(exclude = {"logs", "blockNumber"})
 @ToString(exclude = {"blockNumber"})
@@ -62,7 +58,7 @@ public class EthTxEntity {
     private String revertReason;
 
     @ManyToOne
-    @JoinColumn(name = "hash", referencedColumnName = "idx", unique = true)
+    @JoinColumn(name = "hash", referencedColumnName = "idx")
     private EthHashEntity hash;
 
     @ManyToOne
