@@ -8,8 +8,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INV
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 

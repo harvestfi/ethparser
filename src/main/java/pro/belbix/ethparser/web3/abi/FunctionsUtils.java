@@ -246,7 +246,7 @@ public class FunctionsUtils {
   }
 
   private Optional<Boolean> callBoolFunction(Function function, String hash, Long block) {
-    List<Type> types = web3Service.callFunction(function, hash, resolveBlock(block));
+    List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block));
     if (types == null || types.isEmpty()) {
       log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
