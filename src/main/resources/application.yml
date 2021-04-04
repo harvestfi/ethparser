@@ -44,4 +44,17 @@ ethparser:
   web3Url:
   stubPrice: true
 
+management:
+  server:
+    port: 8080 # on heroku use same port as tomcat server port
+  endpoints:
+    enabled-by-default: false  
+    web:
+      exposure.include: prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+      cache.time-to-live: 10s
+
+  
 
