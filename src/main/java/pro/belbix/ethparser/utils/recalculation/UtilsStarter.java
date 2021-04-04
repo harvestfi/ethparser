@@ -84,7 +84,7 @@ public class UtilsStarter {
 
   public void startUtils() {
     log.info("Start utils {}", appProperties.getStartUtil());
-    contractLoader.load();
+    contractLoader.load(appProperties.getNetwork());
     if ("cache-blocks".equals(appProperties.getStartUtil())) {
       blockCacher.cacheBlocks();
     } else if ("uniswap-download".equals(appProperties.getStartUtil())) {

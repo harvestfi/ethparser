@@ -106,7 +106,7 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            contractLoader.load();
+            contractLoader.load(conf.getNetwork());
 
             if (conf.isParseHarvest()) {
                 startParse(web3Functions, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
@@ -152,7 +152,7 @@ public class AppStarter {
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
-        contractLoader.load();
+        contractLoader.load(conf.getNetwork());
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
