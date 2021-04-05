@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,9 +74,9 @@ public class HarvestOwnerBalanceCalculatorTest {
       String ownerBalance = numberFormat(_ownerBalance);
       String ownerBalanceUsd = numberFormat(_ownerBalanceUsd);
       List<LogResult> logResults = web3Functions
-          .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+          .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary", logId < logResults.size());
-      HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
+      HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertNotNull(dto, "Dto is null");
       boolean result = harvestOwnerBalanceCalculator.fillBalance(dto);
       assertTrue(result);

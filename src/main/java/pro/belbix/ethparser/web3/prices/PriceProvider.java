@@ -89,12 +89,12 @@ public class PriceProvider {
     }
 
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
-        lpAddress, block, contractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE);
+        lpAddress, block, ETH_NETWORK);
     if (lpPooled == null) {
       throw new IllegalStateException("Can't reach reserves for " + lpAddress);
     }
     double lpBalance = parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block)
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress);
     double usdValue = calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block);
@@ -139,7 +139,7 @@ public class PriceProvider {
   }
 
   public Tuple2<Double, Double> getPairPriceForStrategyHash(String strategyHash, Long block) {
-    return getPairPriceForLpHash(functionsUtils.callAddressByName(UNDERLYING, strategyHash, block)
+    return getPairPriceForLpHash(functionsUtils.callAddressByName(UNDERLYING, strategyHash, block, ETH_NETWORK)
             .orElseThrow(
                 () -> new IllegalStateException("Can't fetch underlying token for " + strategyHash)),
         block);
@@ -219,7 +219,7 @@ public class PriceProvider {
         .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
 
     Tuple2<Double, Double> reserves = functionsUtils.callReserves(
-        lpHash, block, contractUtils.getUniPairType(lpHash) == PAIR_TYPE_ONEINCHE);
+        lpHash, block, ETH_NETWORK);
     if (reserves == null) {
       throw new IllegalStateException("Can't reach reserves for " + lpName);
     }

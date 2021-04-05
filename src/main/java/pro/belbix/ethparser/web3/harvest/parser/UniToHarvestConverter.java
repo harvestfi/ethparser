@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.time.Instant;
@@ -143,11 +142,11 @@ public class UniToHarvestConverter implements Web3Parser {
     String poolAddress = poolContract.getAddress();
 
     double lpBalance = parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block)
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
         lpHash);
     double stBalance = parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block)
+        functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
         lpHash);
     harvestDTO.setLastTvl(stBalance);
@@ -157,7 +156,7 @@ public class UniToHarvestConverter implements Web3Parser {
     }
 
     Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(
-        lpHash, block, contractUtils.getUniPairType(lpHash) == PAIR_TYPE_ONEINCHE);
+        lpHash, block, ETH_NETWORK);
     double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
     double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 

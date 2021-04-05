@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.prices.parser;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -131,7 +130,7 @@ public class PriceLogParser implements Web3Parser {
     fillLpStats(dto);
 
     dto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue()));
+        ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue(), ETH_NETWORK));
     log.info(dto.print());
     return dto;
   }
@@ -141,9 +140,9 @@ public class PriceLogParser implements Web3Parser {
         .orElseThrow(
             () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
-        lpAddress, dto.getBlock(), contractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE);
+        lpAddress, dto.getBlock(), ETH_NETWORK);
     double lpBalance = parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock(), ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress);
     dto.setLpTotalSupply(lpBalance);

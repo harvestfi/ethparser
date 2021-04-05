@@ -98,9 +98,9 @@ public class HarvestTransactionsParser implements Web3Parser {
     }
 
     HarvestDTO dto = harvestTx.toDto();
-    dto.setLastGas(web3Functions.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice(ETH_NETWORK));
     dto.setBlockDate(ethBlockService
-        .getTimestampSecForBlock(tx.getBlockNumber().longValue()));
+        .getTimestampSecForBlock(tx.getBlockNumber().longValue(), ETH_NETWORK));
     print(dto);
     return dto;
   }
@@ -139,7 +139,7 @@ public class HarvestTransactionsParser implements Web3Parser {
       if (contractUtils.getNameByAddress(harvestTx.getVault().getValue()).isEmpty()) {
         return null;
       }
-      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());
+      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash(), ETH_NETWORK);
       if ("0x1".equals(transactionReceipt.getStatus())) {
         harvestTx.setSuccess(true);
       }

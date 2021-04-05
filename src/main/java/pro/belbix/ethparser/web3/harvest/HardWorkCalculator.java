@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,7 +31,7 @@ public class HardWorkCalculator {
 
   public double calculateTotalHardWorksFeeByOwner(String ownerAddress) {
     long lastBlock = ethBlockService.getLastBlock();
-    long lastBlockDate = ethBlockService.getTimestampSecForBlock(lastBlock);
+    long lastBlockDate = ethBlockService.getTimestampSecForBlock(lastBlock, ETH_NETWORK);
 
     HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
     List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ public class HardWorksCalculatorTest {
   @BeforeEach
     public void setup() {
       when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
-        when(ethBlockService.getTimestampSecForBlock(fakeBlock2)).thenReturn(fakeEndBlockDate2);
+        when(ethBlockService.getTimestampSecForBlock(fakeBlock2, ETH_NETWORK)).thenReturn(fakeEndBlockDate2);
     }
 
     private HarvestDTO mockHarvest(String ethAddr, String vault, double balance, long blockDate) {

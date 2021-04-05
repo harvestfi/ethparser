@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.utils.recalculation;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
@@ -30,10 +32,10 @@ public class MigrationRecalculate {
   public void start() {
     for (HarvestDTO dto : harvestRepository.fetchAllMigration()) {
 
-      harvestVaultParserV2.parseMigration(dto);
+      harvestVaultParserV2.parseMigration(dto, ETH_NETWORK);
       HarvestDTO migration = dto.getMigration();
       assert migration != null;
-      harvestVaultParserV2.enrichDto(migration);
+      harvestVaultParserV2.enrichDto(migration, ETH_NETWORK);
       harvestOwnerBalanceCalculator.fillBalance(migration);
       boolean success = harvestDBService.saveHarvestDTO(migration);
       log.info("Parse migration " + success + " " + migration.print());

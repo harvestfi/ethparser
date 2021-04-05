@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.controllers;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +42,7 @@ public class HardWorkControllerTest {
     public void shouldTotalCalculateHardWorksFeeByPeriodsAndVault() {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
-            .getTimestampSecForBlock(fakeBlock);
+            .getTimestampSecForBlock(fakeBlock, ETH_NETWORK);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String data = response.getData();
         Assertions.assertEquals("161.97026179", data);

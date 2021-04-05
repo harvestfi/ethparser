@@ -54,14 +54,14 @@ public class HarvestVaultDownloader {
 
   private void parse(String vaultHash, Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(vaultHash), start, end);
+        .fetchContractLogs(singletonList(vaultHash), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {} {}", start, end, vaultHash);
       return;
     }
     for (LogResult logResult : logResults) {
       try {
-        HarvestDTO dto = harvestVaultParserV2.parseVaultLog((Log) logResult.get());
+        HarvestDTO dto = harvestVaultParserV2.parseVaultLog((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
           harvestOwnerBalanceCalculator.fillBalance(dto);
           harvestDBService.saveHarvestDTO(dto);

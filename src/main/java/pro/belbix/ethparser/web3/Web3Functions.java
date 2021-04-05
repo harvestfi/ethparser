@@ -51,8 +51,6 @@ public class Web3Functions {
   private final Web3EthService web3EthService;
   private final Web3BscService web3BscService;
 
-  private String currentNetwork;
-
   public Web3Functions(AppProperties appProperties,
       Web3EthService web3EthService, Web3BscService web3BscService) {
     this.appProperties = appProperties;
@@ -60,34 +58,31 @@ public class Web3Functions {
     this.web3BscService = web3BscService;
   }
 
-  private Web3Service getWeb3Service() {
-    if (currentNetwork == null) {
-      currentNetwork = appProperties.getNetwork();
-    }
-    if (ETH_NETWORK.equals(currentNetwork)) {
+  private Web3Service getWeb3Service(String network) {
+    if (ETH_NETWORK.equals(network)) {
       return web3EthService;
-    } else if (BSC_NETWORK.equals(currentNetwork)) {
+    } else if (BSC_NETWORK.equals(network)) {
       return web3BscService;
     } else {
-      throw new IllegalStateException("Unknown network " + appProperties.getNetwork());
+      throw new IllegalStateException("Unknown network " + network);
     }
   }
 
-  private Web3j getWeb3() {
-    return getWeb3Service().getWeb3();
+  private Web3j getWeb3(String network) {
+    return getWeb3Service(network).getWeb3();
   }
 
-  void waitInit() {
-    getWeb3Service().waitInit();
+  void waitInit(String network) {
+    getWeb3Service(network).waitInit();
   }
 
-  public TransactionReceipt fetchTransactionReceipt(String hash) {
-    waitInit();
+  public TransactionReceipt fetchTransactionReceipt(String hash, String network) {
+    waitInit(network);
 
     EthGetTransactionReceipt result =
         callWithRetry(() -> {
           EthGetTransactionReceipt ethGetTransactionReceipt
-              = getWeb3().ethGetTransactionReceipt(hash).send();
+              = getWeb3(network).ethGetTransactionReceipt(hash).send();
           if (ethGetTransactionReceipt == null) {
             log.error("Null receipt for hash: " + hash);
             return null;
@@ -115,12 +110,12 @@ public class Web3Functions {
   }
 
   public Stream<Optional<TransactionReceipt>> fetchTransactionReceiptBatch(
-      Collection<String> hashes) {
-    waitInit();
+      Collection<String> hashes, String network) {
+    waitInit(network);
     BatchResponse batchResponse = callWithRetry(() -> {
-      BatchRequest batchRequest = getWeb3().newBatch();
+      BatchRequest batchRequest = getWeb3(network).newBatch();
       hashes.forEach(h ->
-          batchRequest.add(getWeb3().ethGetTransactionReceipt(h))
+          batchRequest.add(getWeb3(network).ethGetTransactionReceipt(h))
       );
       return batchRequest.send();
     });
@@ -133,16 +128,20 @@ public class Web3Functions {
         .map(r -> ((EthGetTransactionReceipt) r).getTransactionReceipt());
   }
 
-  public Transaction findTransaction(String hash) {
-    waitInit();
+  public Transaction findTransaction(String hash, String network) {
+    waitInit(network);
     return callWithRetry(
-        () -> getWeb3().ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
+        () -> getWeb3(network).ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
   }
 
-  public EthBlock findBlockByHash(String blockHash, boolean returnFullTransactionObjects) {
-    waitInit();
+  public EthBlock findBlockByHash(
+      String blockHash,
+      boolean returnFullTransactionObjects,
+      String network) {
+    waitInit(network);
     return callWithRetry(() -> {
-      EthBlock ethBlock = getWeb3().ethGetBlockByHash(blockHash, returnFullTransactionObjects)
+      EthBlock ethBlock = getWeb3(network)
+          .ethGetBlockByHash(blockHash, returnFullTransactionObjects)
           .send();
       if (ethBlock == null) {
         log.error("Error fetching block with hash " + blockHash);
@@ -156,10 +155,13 @@ public class Web3Functions {
     });
   }
 
-  public EthBlock findBlockByNumber(long number, boolean returnFullTransactionObjects) {
-    waitInit();
+  public EthBlock findBlockByNumber(
+      long number,
+      boolean returnFullTransactionObjects,
+      String network) {
+    waitInit(network);
     return callWithRetry(() -> {
-      EthBlock ethBlock = getWeb3().ethGetBlockByNumber(
+      EthBlock ethBlock = getWeb3(network).ethGetBlockByNumber(
           DefaultBlockParameter.valueOf(BigInteger.valueOf(number)),
           returnFullTransactionObjects).send();
       if (ethBlock == null) {
@@ -174,10 +176,10 @@ public class Web3Functions {
     });
   }
 
-  public double fetchAverageGasPrice() {
-    waitInit();
+  public double fetchAverageGasPrice(String network) {
+    waitInit(network);
     EthGasPrice result = callWithRetry(() -> {
-      EthGasPrice gasPrice = getWeb3().ethGasPrice().send();
+      EthGasPrice gasPrice = getWeb3(network).ethGasPrice().send();
       if (gasPrice == null) {
         log.error("Null gas fetching result");
         return null;
@@ -199,8 +201,9 @@ public class Web3Functions {
       List<String> addresses,
       Integer start,
       Integer end,
+      String network,
       String... topics) {
-    waitInit();
+    waitInit(network);
     DefaultBlockParameter fromBlock;
     DefaultBlockParameter toBlock;
     if (start == null) {
@@ -217,7 +220,7 @@ public class Web3Functions {
         toBlock, addresses);
     filter.addOptionalTopics(topics);
     EthLog result = callWithRetry(() -> {
-      EthLog ethLog = getWeb3().ethGetLogs(filter).send();
+      EthLog ethLog = getWeb3(network).ethGetLogs(filter).send();
       if (ethLog == null) {
         log.error("get logs null result");
         return null;
@@ -234,10 +237,10 @@ public class Web3Functions {
     return result.getLogs();
   }
 
-  public double fetchBalance(String hash) {
-    waitInit();
+  public double fetchBalance(String hash, String network) {
+    waitInit(network);
     EthGetBalance result = callWithRetry(() -> {
-      EthGetBalance ethGetBalance = getWeb3().ethGetBalance(hash, LATEST).send();
+      EthGetBalance ethGetBalance = getWeb3(network).ethGetBalance(hash, LATEST).send();
       if (ethGetBalance == null) {
         log.error("Get balance response is null");
         return null;
@@ -254,10 +257,10 @@ public class Web3Functions {
     return result.getBalance().doubleValue();
   }
 
-  public BigInteger fetchCurrentBlock() {
-    waitInit();
+  public BigInteger fetchCurrentBlock(String network) {
+    waitInit(network);
     EthBlockNumber result = callWithRetry(() -> {
-      EthBlockNumber ethBlockNumber = getWeb3().ethBlockNumber().send();
+      EthBlockNumber ethBlockNumber = getWeb3(network).ethBlockNumber().send();
       if (ethBlockNumber == null) {
         log.error("Null callback last block");
         return null;
@@ -276,14 +279,14 @@ public class Web3Functions {
 
   @SuppressWarnings("rawtypes")
   public List<Type> callFunction(Function function, String contractAddress,
-      DefaultBlockParameter block) {
-    waitInit();
+      DefaultBlockParameter block, String network) {
+    waitInit(network);
     org.web3j.protocol.core.methods.request.Transaction transaction =
         org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
             ZERO_ADDRESS, contractAddress, FunctionEncoder.encode(function));
 
     EthCall result = callWithRetry(() -> {
-      EthCall ethCall = getWeb3().ethCall(transaction, block).send();
+      EthCall ethCall = getWeb3(network).ethCall(transaction, block).send();
       if (ethCall == null) {
         log.warn("callFunction is null {}", function.getName());
         return null;
@@ -306,14 +309,14 @@ public class Web3Functions {
     return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
   }
 
-  Flowable<Transaction> transactionFlowable(String startBlock) {
-    waitInit();
+  Flowable<Transaction> transactionFlowable(String startBlock, String network) {
+    waitInit(network);
     Flowable<Transaction> flowable;
     if (Strings.isBlank(startBlock)) {
-      flowable = callWithRetry(() -> getWeb3().transactionFlowable());
+      flowable = callWithRetry(() -> getWeb3(network).transactionFlowable());
     } else {
       log.info("Start flow from block " + startBlock);
-      flowable = callWithRetry(() -> getWeb3().replayPastAndFutureTransactionsFlowable(
+      flowable = callWithRetry(() -> getWeb3(network).replayPastAndFutureTransactionsFlowable(
           DefaultBlockParameter.valueOf(new BigInteger(startBlock))));
     }
     if (flowable == null) {
@@ -324,19 +327,23 @@ public class Web3Functions {
 
   Flowable<Transaction> transactionsFlowable(
       DefaultBlockParameter start,
-      DefaultBlockParameter end
+      DefaultBlockParameter end,
+      String network
   ) {
-    waitInit();
+    waitInit(network);
     Flowable<Transaction> flowable =
-        callWithRetry(() -> getWeb3().replayPastTransactionsFlowable(start, end));
+        callWithRetry(() -> getWeb3(network).replayPastTransactionsFlowable(start, end));
     if (flowable == null) {
       return Flowable.empty();
     }
     return flowable;
   }
 
-  Flowable<EthBlock> blockFlowable(String startBlock, Supplier<Optional<Long>> lastBlockSupplier) {
-    waitInit();
+  Flowable<EthBlock> blockFlowable(
+      String startBlock,
+      Supplier<Optional<Long>> lastBlockSupplier,
+      String network) {
+    waitInit(network);
     DefaultBlockParameter startBlockP;
     if (Strings.isBlank(startBlock)) {
       startBlockP = DefaultBlockParameter.valueOf(
@@ -348,14 +355,10 @@ public class Web3Functions {
     }
     Flowable<EthBlock> flowable =
         callWithRetry(() ->
-            getWeb3().replayPastAndFutureBlocksFlowable(startBlockP, true));
+            getWeb3(network).replayPastAndFutureBlocksFlowable(startBlockP, true));
     if (flowable == null) {
       return Flowable.empty();
     }
     return flowable;
-  }
-
-  public void setCurrentNetwork(String currentNetwork) {
-    this.currentNetwork = currentNetwork;
   }
 }

@@ -61,7 +61,7 @@ public class PriceDownloader {
 
   private void parse(Integer start, Integer end, String contractName) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(contractName), start, end);
+        .fetchContractLogs(singletonList(contractName), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

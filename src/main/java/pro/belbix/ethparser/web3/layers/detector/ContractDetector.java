@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.web3.layers.detector;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
@@ -46,8 +47,9 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 
 @Service
 @Log4j2
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ContractDetector {
-    private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+
     private static final AtomicBoolean run = new AtomicBoolean(true);
     private final BlockingQueue<EthBlockEntity> input = new ArrayBlockingQueue<>(100);
     private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -80,7 +82,8 @@ public class ContractDetector {
                 EthBlockEntity block = null;
                 try {
                     block = input.poll(1, TimeUnit.SECONDS);
-                    List<ContractEventEntity> events = handleBlock(block);
+                    List<ContractEventEntity> events = handleBlock(block,
+                        appProperties.getNetwork());
                     for (ContractEventEntity event : events) {
                         ContractEventEntity eventPersisted =
                             contractEventsDbService.save(event);
@@ -98,19 +101,19 @@ public class ContractDetector {
         }).start();
     }
 
-    public List<ContractEventEntity> handleBlock(EthBlockEntity block) {
+    public List<ContractEventEntity> handleBlock(EthBlockEntity block, String network) {
         if (block == null) {
             return List.of();
         }
 
-        Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> eligible = collectEligible(block);
+        Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> eligible = collectEligible(block, network);
         if (eligible.component1().isEmpty()) {
             return List.of();
         }
         List<ContractEventEntity> eventEntities =
-            handleEligibleAddresses(eligible.component1(), block);
+            handleEligibleAddresses(eligible.component1(), block, network);
 
-        handleEligibleTxs(eligible.component2(), eventEntities);
+        handleEligibleTxs(eligible.component2(), eventEntities, network);
         log.info("Block {} handled and generated {} events",
             block.getNumber(), eventEntities.size());
         return eventEntities;
@@ -118,12 +121,13 @@ public class ContractDetector {
 
     private List<ContractEventEntity> handleEligibleAddresses(
         Set<EthAddressEntity> addresses,
-        EthBlockEntity block
+        EthBlockEntity block,
+        String network
     ) {
         List<ContractEventEntity> eventEntities = new ArrayList<>();
         for (EthAddressEntity address : addresses) {
             ContractEventEntity eventEntity = new ContractEventEntity();
-            ContractEntity contract = contractUtils
+            ContractEntity contract = new ContractUtils(network)
                 .getContractByAddress(address.getAddress())
                 .orElse(null);
             if (contract == null) {
@@ -132,7 +136,7 @@ public class ContractDetector {
             }
             eventEntity.setContract(address);
             eventEntity.setBlock(block);
-            collectStates(eventEntity);
+            collectStates(eventEntity, network);
             eventEntities.add(eventEntity);
         }
         return eventEntities;
@@ -140,11 +144,12 @@ public class ContractDetector {
 
     private void handleEligibleTxs(
         Set<EthTxEntity> txs,
-        List<ContractEventEntity> eventEntities
+        List<ContractEventEntity> eventEntities,
+        String network
     ) {
         for (EthTxEntity tx : txs) {
 
-            Set<String> eligibleAddresses = collectEligibleAddresses(tx).stream()
+            Set<String> eligibleAddresses = collectEligibleAddresses(tx, network).stream()
                 .map(EthAddressEntity::getAddress)
                 .collect(Collectors.toSet());
 
@@ -154,8 +159,8 @@ public class ContractDetector {
 
             ContractTxEntity contractTxEntity = new ContractTxEntity();
             contractTxEntity.setTx(tx);
-            fillFuncData(tx, contractTxEntity);
-            collectLogs(tx, contractTxEntity);
+            fillFuncData(tx, contractTxEntity, network);
+            collectLogs(tx, contractTxEntity, network);
 
             eligibleEvents.forEach(e -> {
                 if (e.getTxs() == null) {
@@ -167,7 +172,7 @@ public class ContractDetector {
         }
     }
 
-    private void fillFuncData(EthTxEntity tx, ContractTxEntity contractTx) {
+    private void fillFuncData(EthTxEntity tx, ContractTxEntity contractTx, String network) {
         String input = tx.getInput();
         if (input == null || input.isBlank()) {
             return;
@@ -181,7 +186,8 @@ public class ContractDetector {
             simpleContractGenerator.getContract(
                 address,
                 (int) tx.getBlockNumber().getNumber(),
-                methodId
+                methodId,
+                network
             );
         if (contract == null) {
             log.warn("Can't generate contract for {}", address);
@@ -216,7 +222,7 @@ public class ContractDetector {
         }
     }
 
-    private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity) {
+    private void collectLogs(EthTxEntity tx, ContractTxEntity contractTxEntity, String network) {
         int block = (int) tx.getBlockNumber().getNumber();
 
         Set<ContractLogEntity> logEntities = new LinkedHashSet<>();
@@ -228,7 +234,7 @@ public class ContractDetector {
             Event event = findEvent(
                 logAddress,
                 ethLog.getFirstTopic().getHash(),
-                block);
+                block, network);
             if (event == null) {
                 log.warn("Not found event for hash: {} from tx: {} contract: {}",
                     ethLog.getFirstTopic().getHash(), tx.getHash().getHash(),
@@ -255,8 +261,8 @@ public class ContractDetector {
         contractTxEntity.setLogs(logEntities);
     }
 
-    private Event findEvent(String address, String hash, int block) {
-        GeneratedContract contract = simpleContractGenerator.getContract(address, block);
+    private Event findEvent(String address, String hash, int block, String network) {
+        GeneratedContract contract = simpleContractGenerator.getContract(address, block, null,network);
         if (contract == null) {
             return null;
         }
@@ -283,12 +289,12 @@ public class ContractDetector {
         }
     }
 
-    private void collectStates(ContractEventEntity eventEntity) {
+    private void collectStates(ContractEventEntity eventEntity, String network) {
         int block = (int) eventEntity.getBlock().getNumber();
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
 
         GeneratedContract contract =
-            simpleContractGenerator.getContract(contractAddress, block);
+            simpleContractGenerator.getContract(contractAddress, block,null, network);
         if (contract == null) {
             log.error("Can't generate contract for {} at {}", contractAddress, block);
             return;
@@ -301,7 +307,8 @@ public class ContractDetector {
             }
             Function function = functionW.getFunction();
             try {
-                String value = functionsUtils.callViewFunction(function, contractAddress, block)
+                String value = functionsUtils
+                    .callViewFunction(function, contractAddress, block, network)
                     .orElse(null);
                 if (value == null) {
                     log.info("Null value for {} {}", function.getName(), contractAddress);
@@ -319,55 +326,57 @@ public class ContractDetector {
         eventEntity.setStates(states);
     }
 
-    static Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> collectEligible(EthBlockEntity block) {
+    Tuple2<Set<EthAddressEntity>, Set<EthTxEntity>> collectEligible(EthBlockEntity block,
+        String network) {
         if (block == null) {
             return new Tuple2<>(Set.of(), Set.of());
         }
         Set<EthAddressEntity> addresses = new LinkedHashSet<>();
         Set<EthTxEntity> txs = new LinkedHashSet<>();
         for (EthTxEntity tx : block.getTransactions()) {
-            collectEligibleAddresses(tx)
-                .forEach(a -> addToSets(addresses, txs, tx, a));
+            collectEligibleAddresses(tx, network)
+                .forEach(a -> addToSets(addresses, txs, tx, a, network));
         }
         return new Tuple2<>(addresses, txs);
     }
 
-    private static List<EthAddressEntity> collectEligibleAddresses(EthTxEntity tx) {
+    private List<EthAddressEntity> collectEligibleAddresses(EthTxEntity tx, String network) {
         List<EthAddressEntity> addresses = new ArrayList<>();
-        if (isEligibleContract(tx.getToAddress())) {
+        if (isEligibleContract(tx.getToAddress(), network)) {
             addresses.add(tx.getToAddress());
         }
-        if (isEligibleContract(tx.getContractAddress())) {
+        if (isEligibleContract(tx.getContractAddress(), network)) {
             addresses.add(tx.getToAddress());
         }
-        if (isEligibleContract(tx.getFromAddress())) {
+        if (isEligibleContract(tx.getFromAddress(), network)) {
             addresses.add(tx.getToAddress());
         }
         for (EthLogEntity ethLog : tx.getLogs()) {
-            if (isEligibleContract(ethLog.getAddress())) {
+            if (isEligibleContract(ethLog.getAddress(), network)) {
                 addresses.add(ethLog.getAddress());
             }
         }
         return addresses;
     }
 
-    private static void addToSets(
+    private void addToSets(
         Set<EthAddressEntity> addresses,
         Set<EthTxEntity> txs,
         EthTxEntity tx,
-        EthAddressEntity address
+        EthAddressEntity address,
+        String network
     ) {
-        if (isEligibleContract(address)) {
+        if (isEligibleContract(address, network)) {
             addresses.add(address);
             txs.add(tx);
         }
     }
 
-    private static boolean isEligibleContract(EthAddressEntity address) {
+    private boolean isEligibleContract(EthAddressEntity address, String network) {
         if (address == null || ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
             return false;
         }
-        return contractUtils.getAllContractAddresses()
+        return new ContractUtils(network).getAllContractAddresses()
             .contains(address.getAddress().toLowerCase());
     }
 }

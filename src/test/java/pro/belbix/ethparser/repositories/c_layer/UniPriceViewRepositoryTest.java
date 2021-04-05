@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,12 +127,13 @@ class UniPriceViewRepositoryTest {
 
   private void loadBlock(long blockNumber) {
     EthBlockEntity ethBlockEntity =
-        ethBlockParser.parse(web3Functions.findBlockByNumber(blockNumber, true));
+        ethBlockParser.parse(web3Functions.findBlockByNumber(
+            blockNumber, true, ETH_NETWORK), ETH_NETWORK);
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
       ethBlockEntity = ethBlockRepository.findById(blockNumber).orElseThrow();
     }
-    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, ETH_NETWORK);
     assertFalse(events.isEmpty(), "Not found eligible blocks");
     events.forEach(e -> contractEventsDbService.save(e));
   }

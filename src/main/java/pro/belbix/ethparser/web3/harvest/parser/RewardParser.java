@@ -114,16 +114,16 @@ public class RewardParser implements Web3Parser {
     //todo if it is the last block it will be not safe, create another logic
     long nextBlock = tx.getBlock().longValue() + 1;
     String poolAddress = tx.getVault().getValue();
-    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
+    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
         .longValue();
-    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
+    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
     if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
       log.error("Wrong values for " + ethLog);
       return null;
     }
-    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock);
+    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock, ETH_NETWORK);
 
     double farmRewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {
@@ -135,7 +135,7 @@ public class RewardParser implements Web3Parser {
 
     double farmBalance = parseAmount(
         functionsUtils
-            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock)
+            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get balance from " + ContractConstants.FARM_TOKEN)),
         ContractConstants.FARM_TOKEN);

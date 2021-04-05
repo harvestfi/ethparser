@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
@@ -21,6 +22,7 @@ public class EthBlockDownloader {
   private final Web3Functions web3Functions;
   private final EthBlockDbService ethBlockDbService;
   private final EthBlockParser ethBlockParser;
+  private final AppProperties appProperties;
 
   @Value("${block-download.from:}")
   private Integer from;
@@ -32,10 +34,11 @@ public class EthBlockDownloader {
 
   public EthBlockDownloader(Web3Functions web3Functions,
       EthBlockDbService ethBlockDbService,
-      EthBlockParser ethBlockParser) {
+      EthBlockParser ethBlockParser, AppProperties appProperties) {
     this.web3Functions = web3Functions;
     this.ethBlockDbService = ethBlockDbService;
     this.ethBlockParser = ethBlockParser;
+    this.appProperties = appProperties;
   }
 
     public void start() {
@@ -56,11 +59,11 @@ public class EthBlockDownloader {
     private void parseBlockAndSave(long block) {
       Instant timer = Instant.now();
 
-      EthBlock ethBlock = web3Functions.findBlockByNumber(block, true);
+      EthBlock ethBlock = web3Functions.findBlockByNumber(block, true, appProperties.getNetwork());
       log.debug("Fetched via web3 {} {}", block,
           Duration.between(timer, Instant.now()).toMillis());
       timer = Instant.now();
-      EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock);
+      EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock, appProperties.getNetwork());
       if (ethBlockEntity == null) {
         return;
       }

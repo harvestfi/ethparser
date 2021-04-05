@@ -70,16 +70,14 @@ public class PriceProviderAutoTest {
 
   @TestFactory
   public Stream<DynamicTest> tokenPricesEth() throws Exception {
-    web3Functions.setCurrentNetwork(ETH_NETWORK);
-    long block = web3Functions.fetchCurrentBlock().longValue();
+    long block = web3Functions.fetchCurrentBlock(ETH_NETWORK).longValue();
     return runTests(fetchPrices(ETH_NETWORK), block, ETH_NETWORK);
   }
 
   @TestFactory
   @Disabled("CG doesn't provide bsc data via api yet")
   public Stream<DynamicTest> tokenPricesBsc() throws Exception {
-    web3Functions.setCurrentNetwork(BSC_NETWORK);
-    long block = web3Functions.fetchCurrentBlock().longValue();
+    long block = web3Functions.fetchCurrentBlock(BSC_NETWORK).longValue();
     return runTests(fetchPrices(BSC_NETWORK), block, BSC_NETWORK);
 
   }
@@ -156,7 +154,7 @@ public class PriceProviderAutoTest {
   }
 
   private String getDateByBlockNumber(long block) {
-    long ts = ethBlockService.getTimestampSecForBlock(block);
+    long ts = ethBlockService.getTimestampSecForBlock(block, ETH_NETWORK);
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     return dateFormat.format(new Date(ts * 1000));

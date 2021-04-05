@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +38,7 @@ public class RewardVaultParseTest {
   @Disabled
   public void ycrvTest() {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), null, null);
+        .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), null, null, ETH_NETWORK);
     for (LogResult logResult : logResults) {
       Log ethLog = (Log) logResult.get();
       HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
@@ -50,7 +51,7 @@ public class RewardVaultParseTest {
     @Test
     public void ycrvTest_RewardDenied() {
         List<LogResult> logResults = web3Functions
-            .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), 11413701, 11413701);
+            .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), 11413701, 11413701, ETH_NETWORK);
         for (LogResult logResult : logResults) {
             Log ethLog = (Log) logResult.get();
             harvestVaultLogDecoder.decode(ethLog);

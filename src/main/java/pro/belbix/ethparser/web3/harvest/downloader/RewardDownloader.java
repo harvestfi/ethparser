@@ -57,7 +57,7 @@ public class RewardDownloader {
   }
 
   private void parse(Integer start, Integer end, String contract) {
-    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end);
+    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {}", start, end);
       return;

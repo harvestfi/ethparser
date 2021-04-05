@@ -46,7 +46,7 @@ public class HarvestOwnerBalanceCalculator {
     String psHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
     BigInteger balanceI = functionsUtils.callIntByName(
-        BALANCE_OF, dto.getOwner(), psHash, dto.getBlock())
+        BALANCE_OF, dto.getOwner(), psHash, dto.getBlock(), ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + psHash));
     if (balanceI == null) {
       log.warn("Can reach ps balance for " + dto.print());
@@ -71,17 +71,17 @@ public class HarvestOwnerBalanceCalculator {
       String stHash = contractUtils.poolByVaultAddress(vaultHash)
           .orElseThrow(() -> new IllegalStateException("Not found st for " + dto.getVault()))
           .getContract().getAddress();
-      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block)
+      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block, ETH_NETWORK)
           .orElse(null);
     } else {
       balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
-          dto.getOwner(), vaultHash, block)
+          dto.getOwner(), vaultHash, block, ETH_NETWORK)
           .orElse(null);
     }
     if (balanceI == null) {
       log.warn("Can reach vault balance for " + dto.print());
       //maybe strategy disabled? try balanceOf
-      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), vaultHash, block)
+      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), vaultHash, block, ETH_NETWORK)
           .orElseThrow(() -> new IllegalStateException("Error get balance from " + vaultHash));
       if (balanceI == null) {
         return false;
@@ -98,7 +98,7 @@ public class HarvestOwnerBalanceCalculator {
     dto.setOwnerBalance(balance);
 
     //fill USD value
-    String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock())
+    String underlyingToken = functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock(), ETH_NETWORK)
         .orElseThrow(
             () -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
     if (contractUtils.isLp(underlyingToken)) {
@@ -122,7 +122,7 @@ public class HarvestOwnerBalanceCalculator {
       return false;
     }
     BigInteger balanceI = functionsUtils.callIntByName(
-        BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock())
+        BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock(), ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
     if (balanceI == null) {
       log.warn("Can reach lp balance for " + dto.print());

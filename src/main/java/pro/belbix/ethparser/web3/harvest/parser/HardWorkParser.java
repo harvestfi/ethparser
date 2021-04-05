@@ -6,8 +6,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -27,8 +27,8 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
@@ -145,7 +145,7 @@ public class HardWorkParser implements Web3Parser {
 
   // not in the root because it can be weekly reward
   private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
-    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash);
+    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash, ETH_NETWORK);
     double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
     dto.setFarmPrice(farmPrice);
     boolean autoStake = isAutoStake(tr.getLogs());
@@ -223,7 +223,7 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
-    Transaction transaction = web3Functions.findTransaction(txHash);
+    Transaction transaction = web3Functions.findTransaction(txHash, ETH_NETWORK);
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
     double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
@@ -239,19 +239,19 @@ public class HardWorkParser implements Web3Parser {
     double underlyingBalanceInVault = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_IN_VAULT,
         vaultHash,
-        dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
     double underlyingBalanceWithInvestment = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_WITH_INVESTMENT,
         vaultHash,
-        dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestNumerator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_NUMERATOR,
         vaultHash,
-        dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestDenominator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_DENOMINATOR,
         vaultHash,
-        dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
 
     double invested =
         100.0 * (underlyingBalanceWithInvestment - underlyingBalanceInVault)

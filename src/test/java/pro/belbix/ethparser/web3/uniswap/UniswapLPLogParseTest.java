@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class UniswapLPLogParseTest {
   private void parseLp(String contract, Integer start, Integer end) {
     Map<String, Integer> topics = new HashMap<>();
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(contract), start, end);
+        .fetchContractLogs(singletonList(contract), start, end, ETH_NETWORK);
     assertFalse(logResults.isEmpty());
     for (LogResult logResult : logResults) {
             Log log = (Log) logResult.get();

@@ -22,11 +22,11 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
@@ -117,7 +117,7 @@ public class ImportantEventsParser implements Web3Parser {
     //enrich date
     dto.setBlockDate(
         ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
+            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), ETH_NETWORK));
 
     parseEvent(dto, tx.getMethodName());
     parseVault(dto, tx.getVault());
@@ -155,10 +155,12 @@ public class ImportantEventsParser implements Web3Parser {
 
     if ("StrategyAnnounced".equals(dto.getEvent())) {
       info.setStrategyTimeLock(
-          functionsUtils.callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock())
+          functionsUtils
+              .callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock(), ETH_NETWORK)
               .orElse(BigInteger.ZERO).longValue());
       dto.setOldStrategy(
-          functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock()).orElse(""));
+          functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock(), ETH_NETWORK)
+              .orElse(""));
     }
     ObjectMapper mapper = new ObjectMapper();
     try {

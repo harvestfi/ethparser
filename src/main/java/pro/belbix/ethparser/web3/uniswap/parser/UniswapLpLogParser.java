@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.uniswap.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -16,8 +18,8 @@ import pro.belbix.ethparser.model.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -109,13 +111,13 @@ public class UniswapLpLogParser implements Web3Parser {
     UniswapDTO dto = tx.toDto();
 
     //enrich owner
-    TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(dto.getHash());
+    TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(dto.getHash(), ETH_NETWORK);
     dto.setOwner(receipt.getFrom());
 
     //enrich date
     dto.setBlockDate(
         ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue()));
+            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), ETH_NETWORK));
 
     if (dto.getLastPrice() == null) {
       Double otherCoinPrice = priceProvider
@@ -133,7 +135,7 @@ public class UniswapLpLogParser implements Web3Parser {
   }
 
   private void enrichDto(UniswapDTO dto) {
-    dto.setLastGas(web3Functions.fetchAverageGasPrice());
+    dto.setLastGas(web3Functions.fetchAverageGasPrice(ETH_NETWORK));
   }
 
   @Override

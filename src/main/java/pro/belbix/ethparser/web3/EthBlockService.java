@@ -18,26 +18,23 @@ public class EthBlockService {
   private final Web3Functions web3;
   private final BlockCacheRepository blockCacheRepository;
   private final EthBlockRepository ethBlockRepository;
-  private final AppProperties appProperties;
   private long lastBlockEth = 0L;
   private long lastBlockBsc = 0L;
 
-  public EthBlockService(Web3Functions web3, BlockCacheRepository blockCacheRepository,
-      EthBlockRepository ethBlockRepository,
-      AppProperties appProperties) {
+  public EthBlockService(Web3Functions web3,
+      BlockCacheRepository blockCacheRepository,
+      EthBlockRepository ethBlockRepository) {
     this.web3 = web3;
     this.blockCacheRepository = blockCacheRepository;
     this.ethBlockRepository = ethBlockRepository;
-    this.appProperties = appProperties;
   }
 
-  public synchronized long getTimestampSecForBlock(long blockId) {
+  public synchronized long getTimestampSecForBlock(long blockId, String network) {
     BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
     if (cachedBlock != null) {
       return cachedBlock.getBlockDate();
     }
-    web3.setCurrentNetwork(appProperties.getNetwork());
-    Block block = web3.findBlockByNumber(blockId, false).getBlock();
+    Block block = web3.findBlockByNumber(blockId, false, network).getBlock();
     if (block == null) {
       return 0;
     }
@@ -66,8 +63,7 @@ public class EthBlockService {
         lastBlockBsc = Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
             .map(EthBlockEntity::getNumber)
             .orElseGet(() -> {
-              web3.setCurrentNetwork(BSC_NETWORK);
-              return web3.fetchCurrentBlock().longValue();
+              return web3.fetchCurrentBlock(network).longValue();
             });
       }
       return lastBlockBsc;
@@ -76,8 +72,7 @@ public class EthBlockService {
         lastBlockEth = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
             .map(BlockCacheEntity::getBlock)
             .orElseGet(() -> {
-              web3.setCurrentNetwork(ETH_NETWORK);
-              return web3.fetchCurrentBlock().longValue();
+              return web3.fetchCurrentBlock(network).longValue();
             });
       }
       return lastBlockEth;

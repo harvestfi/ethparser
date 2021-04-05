@@ -51,7 +51,7 @@ public class UniswapLpDownloader {
         singletonList(
             contractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
         from,
-        to
+        to, ETH_NETWORK
     );
     if (logResults == null) {
       logger.error("Log results is null");

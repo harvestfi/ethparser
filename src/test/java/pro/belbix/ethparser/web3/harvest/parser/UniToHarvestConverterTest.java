@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +93,7 @@ public class UniToHarvestConverterTest {
       otherAmount = numberFormat(otherAmount);
       lastPrice = numberFormat(lastPrice);
       List<LogResult> logResults = web3Functions
-          .fetchContractLogs(singletonList(contract), onBlock, onBlock);
+          .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
       UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
       assertDto(dto,

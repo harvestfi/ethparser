@@ -107,7 +107,7 @@ public class TransferParser implements Web3Parser {
       return null;
     }
 
-    long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlock());
+    long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlock(), ETH_NETWORK);
 
     TransferDTO dto = new TransferDTO();
     dto.setId(tx.getHash() + "_" + tx.getLogId());
@@ -131,7 +131,7 @@ public class TransferParser implements Web3Parser {
     String methodName = dto.getMethodName();
     if (methodName == null) {
       String hash = dto.getId().split("_")[0];
-      Transaction ethTx = web3Functions.findTransaction(hash);
+      Transaction ethTx = web3Functions.findTransaction(hash, ETH_NETWORK);
       methodName = erc20Decoder.decodeMethodName(ethTx.getInput());
       if (methodName == null) {
         log.warn("Can't decode method for " + hash);
@@ -170,7 +170,7 @@ public class TransferParser implements Web3Parser {
 
   private double getBalance(String holder, String tokenAddress, long block) {
     BigInteger balanceI = functionsUtils.callIntByName(
-        BALANCE_OF, holder, tokenAddress, block)
+        BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
     return MethodDecoder.parseAmount(balanceI, tokenAddress);
   }
