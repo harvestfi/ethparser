@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -58,5 +60,14 @@ public class HardWorkControllerTest {
         Assertions.assertEquals("500", code);
         String expectedMsg = "Error get total saved gas fee for address: " + owner;
         Assertions.assertEquals(expectedMsg, message);
+    }
+
+    @Test
+    void testPagination() {
+        RestResponse response =
+            hardWorksController.hardworkPages("2", "0", null);
+        assertNotNull(response, "null response");
+        assertEquals("200", response.getCode(), "code 200");
+        assertNotNull(response.getData(), "null data");
     }
 }

@@ -97,7 +97,7 @@ public class HardWorkController {
         try {
             int start = Integer.parseInt(page);
             int size = Integer.parseInt(pageSize);
-            Sort sorting = Sort.by("block_date");
+            Sort sorting = Sort.by("blockDate");
             if (Strings.isBlank(ordering) || "asc".equals(ordering)) {
                 sorting.ascending();
             } else {
@@ -113,10 +113,13 @@ public class HardWorkController {
                 ObjectMapperFactory.getObjectMapper().writeValueAsString(
                     PaginatedResponse.builder()
                         .currentPage(start)
-                        .previousPage(pages.hasPrevious() ? start - 1 : 0)
-                        .nextPage(pages.hasNext() ? start + 1 : 0)
+                        .previousPage(pages.hasPrevious() ? start - 1 : -1)
+                        .nextPage(pages.hasNext() ? start + 1 : -1)
                         .totalPages(pages.getTotalPages())
-                        .data(pages.getContent())));
+                        .data(pages.getContent())
+                        .build()
+                )
+            );
 
         } catch (Exception e) {
             String msg = "Error get hardwork pages";
