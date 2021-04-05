@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +38,8 @@ public class FunctionsUtilsTest {
 
   @Test
   public void testprofitSharingDenominator() {
-    double result = functionsUtils.callIntByName(PROFITSHARING_DENOMINATOR, "0x9e315822a18f8d332782d1c3f3f24bb10d2161ad", 12086139L).orElse(BigInteger.ZERO).doubleValue();
-    assertEquals(30.0, result, "profitSharingDenominator");
+    double result = functionsUtils.callIntByName(PROFITSHARING_NUMERATOR, "0x9e315822a18f8d332782d1c3f3f24bb10d2161ad", 12086139L).orElse(BigInteger.ZERO).doubleValue();
+    assertEquals(30.0, result, "PROFITSHARING_NUMERATOR");
   }
 
   @Test
