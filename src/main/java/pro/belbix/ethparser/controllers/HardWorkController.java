@@ -98,10 +98,8 @@ public class HardWorkController {
             int start = Integer.parseInt(page);
             int size = Integer.parseInt(pageSize);
             Sort sorting = Sort.by("blockDate");
-            if (Strings.isBlank(ordering) || "asc".equals(ordering)) {
-                sorting.ascending();
-            } else {
-                sorting.descending();
+            if (!Strings.isBlank(ordering) && "desc".equals(ordering)) {
+                sorting = sorting.descending();
             }
             Page<HardWorkDTO> pages = hardWorkRepository
                 .findAll(PageRequest.of(start, size, sorting));
