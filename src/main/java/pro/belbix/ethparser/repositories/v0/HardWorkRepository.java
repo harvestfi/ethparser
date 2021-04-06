@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 
 public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
+
+//    Page<HardWorkDTO> fetchPages(Pageable pageable)
 
     HardWorkDTO findFirstByOrderByBlockDateDesc();
 
