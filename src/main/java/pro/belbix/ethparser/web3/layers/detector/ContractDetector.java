@@ -88,7 +88,7 @@ public class ContractDetector {
                         ContractEventEntity eventPersisted =
                             contractEventsDbService.save(event);
                         if (eventPersisted != null) {
-                            viewRouter.route(eventPersisted);
+                            viewRouter.route(eventPersisted, appProperties.getNetwork());
                         }
                     }
                 } catch (Exception e) {
@@ -127,7 +127,7 @@ public class ContractDetector {
         List<ContractEventEntity> eventEntities = new ArrayList<>();
         for (EthAddressEntity address : addresses) {
             ContractEventEntity eventEntity = new ContractEventEntity();
-            ContractEntity contract = new ContractUtils(network)
+            ContractEntity contract = ContractUtils.getInstance(network)
                 .getContractByAddress(address.getAddress())
                 .orElse(null);
             if (contract == null) {
@@ -376,7 +376,7 @@ public class ContractDetector {
         if (address == null || ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
             return false;
         }
-        return new ContractUtils(network).getAllContractAddresses()
+        return ContractUtils.getInstance(network).getAllContractAddresses()
             .contains(address.getAddress().toLowerCase());
     }
 }

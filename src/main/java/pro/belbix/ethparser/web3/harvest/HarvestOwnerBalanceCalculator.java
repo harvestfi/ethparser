@@ -17,7 +17,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HarvestOwnerBalanceCalculator {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
 

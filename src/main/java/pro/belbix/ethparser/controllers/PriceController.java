@@ -48,7 +48,7 @@ public class PriceController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            ContractUtils contractUtils = new ContractUtils(network);
+            ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
                 if (!contractUtils.isUniPairName(lp)) {
@@ -85,7 +85,7 @@ public class PriceController {
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
             }
-            ContractUtils contractUtils = new ContractUtils(network);
+            ContractUtils contractUtils = ContractUtils.getInstance(network);
             if (token.startsWith("0x")) {
                 //shortcut for LP tokens from the dashboard
                 if (contractUtils.isUniPairAddress(token)) {

@@ -22,7 +22,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 @SuppressWarnings("rawtypes")
 @Service
 public class HarvestVaultDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HarvestVaultDownloader.class);
   private final Web3Functions web3Functions;
   private final HarvestDBService harvestDBService;

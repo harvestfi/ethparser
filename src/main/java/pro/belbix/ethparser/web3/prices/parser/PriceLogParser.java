@@ -35,7 +35,7 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 @Log4j2
 public class PriceLogParser implements Web3Parser {
 
-  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);

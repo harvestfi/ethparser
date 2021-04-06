@@ -83,7 +83,7 @@ public class PriceProviderAutoTest {
   }
 
   private Stream<DynamicTest> runTests(HashMap<String, Double> cgPrices, long block, String network) {
-    return new ContractUtils(network).getAllTokens().stream()
+    return ContractUtils.getInstance(network).getAllTokens().stream()
         .filter(token -> !exclude.contains(token.getContract().getName()))
         .filter(t -> network.equals(t.getContract().getNetwork()))
         .map(token -> {
@@ -112,7 +112,7 @@ public class PriceProviderAutoTest {
 
   private HashMap<String, Double> fetchPrices(String network) throws Exception {
     HashMap<String, Double> result = new HashMap<>();
-    ContractUtils contractUtils = new ContractUtils(network);
+    ContractUtils contractUtils = ContractUtils.getInstance(network);
     String coins = contractUtils.getAllTokens().stream()
         .map(t -> t.getContract().getAddress())
         .collect(Collectors.joining(","));

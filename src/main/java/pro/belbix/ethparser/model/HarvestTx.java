@@ -37,7 +37,7 @@ public class HarvestTx implements EthTransactionI {
     dto.setId(hash + "_" + logId);
     dto.setHash(hash);
     dto.setBlock(block.longValue());
-    dto.setVault(new ContractUtils(ETH_NETWORK).getNameByAddress(vault.getValue())
+    dto.setVault(ContractUtils.getInstance(ETH_NETWORK).getNameByAddress(vault.getValue())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
     );
     dto.setConfirmed(1);

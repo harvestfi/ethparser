@@ -17,6 +17,7 @@ public class WsService {
 
   // ABC layers
   public final static String UNI_PRICES_TOPIC_NAME = "/topic/uni_prices";
+  public final static String VAULT_ACTIONS_TOPIC_NAME = "/topic/vault_actions";
 
   private final SimpMessagingTemplate messagingTemplate;
 

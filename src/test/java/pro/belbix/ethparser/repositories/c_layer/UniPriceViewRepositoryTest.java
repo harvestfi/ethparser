@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
@@ -55,11 +56,11 @@ class UniPriceViewRepositoryTest {
   void testUniPriceView_UNI_LP_ETH_USDT() {
     loadBlock(12080691);
     List<UniPriceViewEntity> uniPrices =
-        uniPriceViewRepository.findByAddressesAndLogNames(
+        uniPriceViewRepository.findByAddresses(
             List.of("0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase()),
             0,
             999999999,
-            PageRequest.of(0, 1)
+            PageRequest.of(0, 1, Sort.by("blockNumber"))
         );
     assertNotNull(uniPrices);
     assertEquals(uniPrices.size(), 1);

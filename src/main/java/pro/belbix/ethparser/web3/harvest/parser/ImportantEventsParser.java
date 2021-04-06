@@ -35,7 +35,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 @Service
 @Log4j2
 public class ImportantEventsParser implements Web3Parser {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);

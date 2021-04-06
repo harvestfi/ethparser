@@ -17,7 +17,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 
 public class MockUtils {
-    private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+    private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
     private static final List<String> harvestMethods =
         new ArrayList<>(new HarvestVaultLogDecoder().getMethodNamesByMethodId().values());
 

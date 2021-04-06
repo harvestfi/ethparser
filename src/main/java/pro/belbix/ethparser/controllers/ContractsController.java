@@ -34,7 +34,7 @@ public class ContractsController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            Collection<VaultEntity> vaults = new ContractUtils(network).getAllVaults();
+            Collection<VaultEntity> vaults = ContractUtils.getInstance(network).getAllVaults();
             return RestResponse.ok(objectMapper.writeValueAsString(vaults));
         } catch (Exception e) {
             log.error("Error vaults request", e.fillInStackTrace());
@@ -48,7 +48,7 @@ public class ContractsController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            Collection<PoolEntity> pools = new ContractUtils(network).getAllPools();
+            Collection<PoolEntity> pools = ContractUtils.getInstance(network).getAllPools();
             return RestResponse.ok(objectMapper.writeValueAsString(pools));
         } catch (Exception e) {
             log.error("Error pools request", e.fillInStackTrace());
@@ -62,7 +62,7 @@ public class ContractsController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            Collection<TokenEntity> tokens = new ContractUtils(network).getAllTokens();
+            Collection<TokenEntity> tokens = ContractUtils.getInstance(network).getAllTokens();
             return RestResponse.ok(objectMapper.writeValueAsString(tokens));
         } catch (Exception e) {
             log.error("Error tokens request", e.fillInStackTrace());
@@ -76,7 +76,7 @@ public class ContractsController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            Collection<UniPairEntity> uniPairs = new ContractUtils(network).getAllUniPairs();
+            Collection<UniPairEntity> uniPairs = ContractUtils.getInstance(network).getAllUniPairs();
             return RestResponse.ok(objectMapper.writeValueAsString(uniPairs));
         } catch (Exception e) {
             log.error("Error uniPairs request", e.fillInStackTrace());

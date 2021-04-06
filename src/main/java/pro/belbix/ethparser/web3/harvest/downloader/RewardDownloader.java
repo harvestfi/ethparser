@@ -22,7 +22,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @SuppressWarnings("rawtypes")
 public class RewardDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
   private final Web3Functions web3Functions;
   private final RewardParser rewardParser;

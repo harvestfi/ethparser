@@ -24,10 +24,24 @@ import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public class ContractUtils {
+
   private final String network;
-  
-  public ContractUtils(String network) {
+
+  private ContractUtils(String network) {
     this.network = network;
+  }
+
+  private static final ContractUtils ETH_INSTANCE = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils BSC_INSTANCE = new ContractUtils(BSC_NETWORK);
+
+  public static ContractUtils getInstance(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return ETH_INSTANCE;
+    } else if (BSC_NETWORK.equals(network)) {
+      return BSC_INSTANCE;
+    } else {
+      throw new IllegalStateException("Unknown network " + network);
+    }
   }
 
   public Optional<String> getNameByAddress(String address) {

@@ -32,7 +32,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Log4j2
 public class PriceProvider {
 
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
   private long updateBlockDifference = 0;
   private final Pageable limitOne = PageRequest.of(0, 1);

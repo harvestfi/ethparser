@@ -67,7 +67,7 @@ public class FunctionsUtils {
       String lpAddress,
       Long block,
       String network) {
-    if (new ContractUtils(network).getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
+    if (ContractUtils.getInstance(network).getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
       return callUniReserves(lpAddress, block, network);
@@ -109,7 +109,7 @@ public class FunctionsUtils {
       return null;
     }
 
-    Tuple2<TokenEntity, TokenEntity> tokens = new ContractUtils(ETH_NETWORK)
+    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getInstance(ETH_NETWORK)
         .getUniPairTokens(lpAddress);
     BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
     BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());

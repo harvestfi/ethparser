@@ -18,7 +18,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class PriceDecoder extends MethodDecoder {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Swap"));
 
   public PriceTx decode(Log ethLog) {

@@ -37,7 +37,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
-  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();
   protected Map<String, String> methodNamesByMethodId = new HashMap<>();
   protected Map<String, String> methodIdByFullHex = new HashMap<>();

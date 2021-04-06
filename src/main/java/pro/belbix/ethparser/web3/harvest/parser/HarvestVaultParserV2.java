@@ -50,7 +50,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HarvestVaultParserV2 implements Web3Parser {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   public static final double BURNED_FARM = 14850.0;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private static final Set<String> allowedMethods = new HashSet<>(

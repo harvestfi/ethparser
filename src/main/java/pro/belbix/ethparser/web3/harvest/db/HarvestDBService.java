@@ -25,7 +25,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Service
 @Log4j2
 public class HarvestDBService {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final static ObjectMapper objectMapper = new ObjectMapper();
 
   private final HarvestRepository harvestRepository;

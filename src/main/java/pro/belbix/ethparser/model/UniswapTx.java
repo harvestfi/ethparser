@@ -61,7 +61,7 @@ public class UniswapTx implements EthTransactionI {
   }
 
   public UniswapDTO toDto() {
-    ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+    ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
     UniswapDTO uniswapDTO = new UniswapDTO();
     uniswapDTO.setId(hash + "_" + logId);
     uniswapDTO.setHash(hash);
@@ -114,7 +114,7 @@ public class UniswapTx implements EthTransactionI {
   }
 
   private static String addrToStr(Address adr) {
-    return new ContractUtils(ETH_NETWORK).getNameByAddress(adr.getValue())
+    return ContractUtils.getInstance(ETH_NETWORK).getNameByAddress(adr.getValue())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
   }
 }

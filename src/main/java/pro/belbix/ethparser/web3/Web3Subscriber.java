@@ -68,7 +68,7 @@ public class Web3Subscriber {
       from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
     }
     EthFilter filter = new EthFilter(
-        from, LATEST, new ContractUtils(ETH_NETWORK).getSubscriptions());
+        from, LATEST, ContractUtils.getInstance(ETH_NETWORK).getSubscriptions());
     startLogFlowableThread(filter, network);
     //NPE https://github.com/web3j/web3j/issues/1264
     /*

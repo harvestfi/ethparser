@@ -49,7 +49,7 @@ public enum TransferType {
   REWARD,
   HARD_WORK;
 
-  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   public static final Set<String> NOT_TRADE = new HashSet<>(Arrays.stream(TransferType.values())
       .filter(t -> t != LP_BUY && t != LP_SELL)
       .map(Enum::name)
