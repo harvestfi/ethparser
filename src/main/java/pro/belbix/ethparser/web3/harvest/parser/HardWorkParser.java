@@ -6,6 +6,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
@@ -17,6 +19,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
@@ -136,6 +139,7 @@ public class HardWorkParser implements Web3Parser {
     dto.setShareChange(
         parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
+    parseRates(dto, tx.getStrategy());
     parseRewards(dto, tx.getHash(), tx.getStrategy());
     parseVaultInvestedFunds(dto);
 
@@ -169,6 +173,54 @@ public class HardWorkParser implements Web3Parser {
     fillFeeInfo(dto, txHash, tr);
   }
 
+  private void parseRates(HardWorkDTO dto, String strategyHash) {
+    double profitSharingDenominator =  functionsUtils.callIntByName(PROFITSHARING_DENOMINATOR, strategyHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get profitSharingDenominator from " + strategyHash))
+            .doubleValue();
+    double profitSharingNumerator =  functionsUtils.callIntByName(PROFITSHARING_NUMERATOR, strategyHash, dto.getBlock())
+            .orElseThrow(() -> new IllegalStateException("Error get profitSharingNumerator from " + strategyHash))
+            .doubleValue();
+    double profitSharingRate = 0.0;
+    if (profitSharingDenominator>0) {
+      profitSharingRate = profitSharingNumerator/profitSharingDenominator;
+    }
+    dto.setProfitSharingRate(profitSharingRate);
+
+
+    double buybackRate = 0;
+    boolean buybackRateSet = false;
+
+      Double buyBackRatio = functionsUtils.callIntByName("buybackRatio", strategyHash, dto.getBlock()).orElse(BigInteger.ZERO).doubleValue();
+      if (buyBackRatio>0){
+        buybackRate = buyBackRatio / 10000;
+        buybackRateSet= true;
+      }
+
+
+    if (!buybackRateSet){
+        String universalLiquidator = functionsUtils.callAddressByName("universalLiquidator", strategyHash, dto.getBlock()).orElse("");
+        if (universalLiquidator!=""){
+          buybackRate = 1;
+          buybackRateSet = true;
+        }
+
+    }
+
+    if (!buybackRateSet){
+        Boolean liquidateRewardToWethInSushi = functionsUtils.callBoolByName("liquidateRewardToWethInSushi", strategyHash, dto.getBlock()).orElse(false);
+        if (liquidateRewardToWethInSushi){
+          buybackRate = 1;
+          buybackRateSet = true;
+        }
+        else {
+          buybackRate = 0;
+          buybackRateSet = true;
+        }
+    }
+
+    dto.setBuyBackRate(buybackRate);
+  }
+
   private boolean isAutoStake(List<Log> logs) {
     return logs.stream()
         .filter(l -> {
@@ -190,7 +242,6 @@ public class HardWorkParser implements Web3Parser {
     if (tx == null) {
       return;
     }
-
     if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog)) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
@@ -200,16 +251,18 @@ public class HardWorkParser implements Web3Parser {
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
-        double fullReward = (reward * dto.getFarmPrice()) / 0.7; // full reward
+        double fullReward = (reward * dto.getFarmPrice()) / (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
         dto.setFullRewardUsd(fullReward);
       } else {
+        double farmBuybackMultiplier = (1-Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)) / Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3) * dto.getBuyBackRate();
+
         // PS pool reward
-        dto.setFarmBuyback(reward);
+        dto.setFarmBuyback(reward + (reward * farmBuybackMultiplier));
 
         // for non AutoStake strategy we will not have accurate data for strategy reward
         // just calculate aprox value based on PS reward
         if (!autoStake) {
-          double fullReward = ((reward * dto.getFarmPrice()) / 0.3); // full reward
+          double fullReward = ((reward * dto.getFarmPrice()) / Objects.requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
           dto.setFullRewardUsd(fullReward);
         }
       }
