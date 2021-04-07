@@ -10,6 +10,7 @@ reward-download:
   #  contract: ST_TUSD
   from: 11870000
 #  to: 11733132
+  exclude: ST_PS, PS_V0
 hardwork-download:
   from: 12037500
 #  to: 11445244
