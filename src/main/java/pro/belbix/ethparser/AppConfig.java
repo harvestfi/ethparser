@@ -33,7 +33,8 @@ public class AppConfig {
         @Override
         public void registerStompEndpoints(StompEndpointRegistry registry) {
             registry.addEndpoint("/stomp")
-                .withSockJS();
+                .setAllowedOrigins("*")
+                .withSockJS().setSupressCors(true);
         }
     }
 
