@@ -5,6 +5,8 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,12 +49,18 @@ public class RewardDownloader {
   }
 
   public void start() {
-    logger.info("Start parse rewards for " + contractName);
-    handleLoop(from, to, (from, end) -> parse(from, end,
-        contractUtils.getAddressByName(contractName, ContractType.POOL)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + contractName))
-    ));
-
+    if (!Strings.isBlank(contractName)) {
+      String adr = contractUtils.getAddressByName(contractName, ContractType.POOL)
+          .orElseThrow();
+      handleLoop(from, to, (from, end) -> parse(from, end, adr));
+    } else {
+      for (String contractAddress : contractUtils.getAllPools().stream()
+          .map(v -> v.getContract().getAddress())
+          .collect(Collectors.toList())) {
+        logger.info("Start parse rewards for " + contractName);
+        handleLoop(from, to, (from, end) -> parse(from, end, contractAddress));
+      }
+    }
   }
 
   private void parse(Integer start, Integer end, String contract) {

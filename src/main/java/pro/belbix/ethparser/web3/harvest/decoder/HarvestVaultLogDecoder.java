@@ -1,9 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.decoder;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
 import java.math.BigInteger;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -12,21 +11,27 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Log4j2
 public class HarvestVaultLogDecoder extends MethodDecoder {
 
   public HarvestTx decode(Log ethLog) {
     if (!isValidLog(ethLog)) {
       return null;
     }
-    String methodId = parseMethodId(ethLog)
-        .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
-    String methodName = methodNamesByMethodId.get(methodId);
-    List<TypeReference<Type>> parameters = findParameters(methodId)
-        .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
-
+    String methodName;
+    List<TypeReference<Type>> parameters;
+    try {
+      String methodId = parseMethodId(ethLog)
+          .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
+      methodName = methodNamesByMethodId.get(methodId);
+      parameters = findParameters(methodId)
+          .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
+    } catch (IllegalStateException e) {
+      log.warn("Wrong method for " + ethLog);
+      return null;
+    }
     List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     HarvestTx tx = new HarvestTx();
     tx.setVault(new Address(ethLog.getAddress()));

@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: harvest-download
+  startUtil: reward-download
   overrideDuplicates: true
 
 uniswap-download:
@@ -8,7 +8,7 @@ uniswap-download:
 #  to: null
 reward-download:
   #  contract: ST_TUSD
-  from: 11861229
+  from: 11870000
 #  to: 11733132
 hardwork-download:
   from: 12037500

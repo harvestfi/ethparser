@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -20,6 +21,7 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Log4j2
 public class UniswapLpLogDecoder extends MethodDecoder {
   private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(
@@ -33,7 +35,8 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     String methodId = methodIdByFullHex.get(topic0);
 
     if (methodId == null) {
-      throw new IllegalStateException("Unknown topic " + topic0);
+      log.warn("Unknown topic " + topic0);
+      return;
     }
     String methodName = methodNamesByMethodId.get(methodId);
 

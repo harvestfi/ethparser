@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
@@ -17,6 +18,7 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Log4j2
 public class PriceDecoder extends MethodDecoder {
   private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Swap"));
@@ -31,9 +33,14 @@ public class PriceDecoder extends MethodDecoder {
       return null;
     }
     String methodName = methodNamesByMethodId.get(methodId);
-    List<TypeReference<Type>> parameters = findParameters(methodId)
-        .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
-
+    List<TypeReference<Type>> parameters;
+    try {
+      parameters = findParameters(methodId)
+          .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
+    } catch (IllegalStateException e) {
+      log.warn("Can't parse parameters {}", ethLog);
+      return null;
+    }
     if (!allowedMethods.contains(methodName)) {
       return null;
     }
