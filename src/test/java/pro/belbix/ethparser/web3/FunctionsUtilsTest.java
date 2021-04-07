@@ -39,13 +39,18 @@ public class FunctionsUtilsTest {
 
   @Test
   public void testprofitSharingDenominator() {
-    double result = functionsUtils.callIntByName(PROFITSHARING_NUMERATOR, "0x9e315822a18f8d332782d1c3f3f24bb10d2161ad", 12086139L).orElse(BigInteger.ZERO).doubleValue();
+    double result = functionsUtils.callIntByName(
+        PROFITSHARING_NUMERATOR, "0x9e315822a18f8d332782d1c3f3f24bb10d2161ad", 12086139L, ETH_NETWORK)
+        .orElse(BigInteger.ZERO).doubleValue();
     assertEquals(30.0, result, "PROFITSHARING_NUMERATOR");
   }
 
   @Test
   public void testBoolByName() {
-    Boolean result = functionsUtils.callBoolByName("liquidateRewardToWethInSushi", "0x636A37802dA562F7d562c1915cC2A948A1D3E5A0", 11694023L).orElse(null);
+    Boolean result =
+        functionsUtils.callBoolByName(
+            "liquidateRewardToWethInSushi", "0x636A37802dA562F7d562c1915cC2A948A1D3E5A0", 11694023L, ETH_NETWORK)
+            .orElse(null);
     assertEquals(true, result, "liquidateRewardToWethInSushi");
   }
 }

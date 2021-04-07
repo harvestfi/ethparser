@@ -154,8 +154,8 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block, network);
   }
 
-  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block) {
-    return callBoolFunction(findSimpleFunction(functionName, TYPE_BOOL), hash, block);
+  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block, String network) {
+    return callBoolFunction(findSimpleFunction(functionName, TYPE_BOOL), hash, block, network);
   }
 
   public Optional<BigInteger> callIntByName(
@@ -176,13 +176,14 @@ public class FunctionsUtils {
       String functionName,
       String arg,
       String hash,
-      Long block) {
+      Long block,
+      String network) {
     // you should create function for every new argument
     return callBoolFunction(new Function(
         functionName,
         Collections.singletonList(new Address(arg)),
         Collections.singletonList(new TypeReference<Bool>() {
-        })), hash, block);
+        })), hash, block, network);
   }
 
   public Optional<String> callViewFunction(Function function, String address, long block,
@@ -257,8 +258,8 @@ public class FunctionsUtils {
     return Optional.ofNullable((BigInteger) types.get(0).getValue());
   }
 
-  private Optional<Boolean> callBoolFunction(Function function, String hash, Long block) {
-    List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block));
+  private Optional<Boolean> callBoolFunction(Function function, String hash, Long block, String network) {
+    List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block), network);
     if (types == null || types.isEmpty()) {
       log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
