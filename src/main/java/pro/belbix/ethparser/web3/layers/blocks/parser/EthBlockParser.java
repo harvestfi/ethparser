@@ -156,8 +156,8 @@ public class EthBlockParser {
   }
 
   private void transactionReceipts(Map<String, EthTxEntity> txMap, int retryCount, String network) {
-    if (retryCount > 10) {
-      return;
+    if (retryCount > 1000) {
+      throw new IllegalStateException("Can't fetch all receipts");
     }
     Stream<Optional<TransactionReceipt>> receipts =
         web3Functions.fetchTransactionReceiptBatch(txMap.keySet(), network);
