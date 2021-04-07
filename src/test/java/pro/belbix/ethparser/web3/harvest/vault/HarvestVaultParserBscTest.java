@@ -61,7 +61,7 @@ public class HarvestVaultParserBscTest {
         .owner("0x7f4ac7a8b18d7dc76c5962aa1aacf968eac3ac67")
         .amount(0.2662041892498321)
         .vault("PC_BUSD_BNB")
-        .lastGas(10.)
+        .lastGas(5.)
         .lastUsdTvl(10.)
         .sharePrice(1.)
         .usdAmount(10L)

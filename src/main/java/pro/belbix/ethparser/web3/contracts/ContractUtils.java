@@ -346,7 +346,7 @@ public class ContractUtils {
     if (ETH_NETWORK.equals(network)) {
       return getEthSubscriptions();
     } else if (BSC_NETWORK.equals(network)) {
-      return List.of();
+      return getBscSubscriptions();
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }
@@ -376,6 +376,29 @@ public class ContractUtils {
         .collect(Collectors.toList()));
     // uni events
     contracts.addAll(PARSABLE_UNI_PAIRS);
+
+    return new ArrayList<>(contracts);
+  }
+
+  private List<String> getBscSubscriptions() {
+    Set<String> contracts = new HashSet<>();
+
+    // hard work parsing
+//    contracts.add(BSC_CONTROLLER);
+
+    // harvest events
+    contracts.addAll(getCache().getAllVaults().stream()
+        .map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList()));
+//    contracts.addAll(getCache().getAllPools().stream()
+//        .map(v -> v.getContract().getAddress())
+//        .collect(Collectors.toList()));
+    // price parsing
+//    contracts.addAll(getCache().getLpEntities().stream()
+//        .filter(u -> u.getKeyToken() != null)
+//        .map(UniPairEntity::getContract)
+//        .map(ContractEntity::getAddress)
+//        .collect(Collectors.toList()));
 
     return new ArrayList<>(contracts);
   }

@@ -96,10 +96,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
         Log ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          count++;
-          if (count % 100 == 0) {
-            log.info(this.getClass().getSimpleName() + " handled " + count);
-          }
           HarvestDTO dto = parseVaultLog(ethLog, appProperties.getNetwork());
           handleDto(dto, appProperties.getNetwork());
         } catch (Exception e) {
@@ -131,6 +127,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
   public HarvestDTO parseVaultLog(Log ethLog, String network) {
     if (!isValidLog(ethLog, network)) {
       return null;
+    }
+    count++;
+    if (count % 100 == 0) {
+      log.info(this.getClass().getSimpleName() + " handled " + count);
     }
     HarvestTx harvestTx = harvestVaultLogDecoder.decode(ethLog);
     if (harvestTx == null) {

@@ -15,9 +15,12 @@ public class CorsFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(
       @NotNull final HttpServletRequest request,
-      final HttpServletResponse response,
-      final FilterChain filterChain) throws ServletException, IOException {
-    response.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+      @NotNull final HttpServletResponse response,
+      @NotNull final FilterChain filterChain) throws ServletException, IOException {
+    String origin = request.getHeader("Origin");
+    if (origin != null) {
+      response.addHeader("Access-Control-Allow-Origin", origin);
+    }
     response.addHeader("Access-Control-Allow-Methods",
         "GET, POST, DELETE, PUT, PATCH, HEAD");
     response.addHeader("Access-Control-Allow-Headers",

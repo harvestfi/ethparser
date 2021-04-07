@@ -3,6 +3,8 @@ package pro.belbix.ethparser.web3;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.util.Strings;
@@ -43,9 +45,16 @@ abstract class Web3Service {
     }
 
     web3 = Web3j.build(
-        new HttpService(web3Url, new OkHttpClient.Builder().build(), false)
+        new HttpService(
+            web3Url,
+            new OkHttpClient.Builder()
+                .readTimeout(Duration.of(60, ChronoUnit.SECONDS))
+                .callTimeout(Duration.of(60, ChronoUnit.SECONDS))
+                .writeTimeout(Duration.of(60, ChronoUnit.SECONDS))
+                .connectTimeout(Duration.of(60, ChronoUnit.SECONDS))
+                .build(),
+            false)
     );
-
     log.info("{} web3 service successfully connected", network);
     init = true;
   }
