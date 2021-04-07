@@ -68,7 +68,7 @@ public class RewardDownloader {
           .map(v -> v.getContract().getAddress())
           .collect(Collectors.toList())) {
         if (excludeSet.contains(contractUtils.getNameByAddress(contractAddress)
-            .orElseThrow().toLowerCase())) {
+            .orElseThrow())) {
           continue;
         }
         logger.info("Start parse rewards for " + contractName);
