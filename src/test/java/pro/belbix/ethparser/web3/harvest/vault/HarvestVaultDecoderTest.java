@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.vault;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;

@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.vault;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +18,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;

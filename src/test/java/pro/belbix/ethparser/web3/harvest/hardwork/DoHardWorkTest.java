@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.hardwork;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

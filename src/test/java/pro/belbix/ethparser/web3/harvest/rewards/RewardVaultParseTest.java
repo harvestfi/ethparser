@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.rewards;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
