@@ -13,10 +13,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class CorsFilter extends OncePerRequestFilter {
 
   @Override
-  protected void doFilterInternal(@NotNull final HttpServletRequest request,
+  protected void doFilterInternal(
+      @NotNull final HttpServletRequest request,
       final HttpServletResponse response,
       final FilterChain filterChain) throws ServletException, IOException {
-    response.addHeader("Access-Control-Allow-Origin", response.getHeader("Origin"));
+    response.addHeader("Access-Control-Allow-Origin", "*");
     response.addHeader("Access-Control-Allow-Methods",
         "GET, POST, DELETE, PUT, PATCH, HEAD");
     response.addHeader("Access-Control-Allow-Headers",
