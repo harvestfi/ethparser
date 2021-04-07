@@ -43,6 +43,7 @@ public class AppConfig {
         @Override
         public void registerStompEndpoints(StompEndpointRegistry registry) {
             registry.addEndpoint("/stomp")
+                .setAllowedOrigins("*")
                 .withSockJS();
         }
     }
