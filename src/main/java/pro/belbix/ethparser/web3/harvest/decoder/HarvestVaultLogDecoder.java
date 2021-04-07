@@ -16,7 +16,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HarvestVaultLogDecoder extends MethodDecoder {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
+
   public HarvestTx decode(Log ethLog) {
     if (!isValidLog(ethLog)) {
       return null;
@@ -41,11 +41,7 @@ public class HarvestVaultLogDecoder extends MethodDecoder {
   }
 
   private boolean isValidLog(Log log) {
-    if (log == null || log.getTopics().isEmpty()) {
-      return false;
-    }
-    return contractUtils.isVaultAddress(log.getAddress())
-        || contractUtils.isPoolAddress(log.getAddress());
+    return log != null && !log.getTopics().isEmpty();
   }
 
     private void enrich(List<Type> types, String methodName, HarvestTx tx) {

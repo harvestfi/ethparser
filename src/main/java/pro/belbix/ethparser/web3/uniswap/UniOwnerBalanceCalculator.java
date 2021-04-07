@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -69,12 +68,12 @@ public class UniOwnerBalanceCalculator {
       log.warn("Can reach lp balance for " + dto.print());
       return false;
     }
-    double balance = parseAmount(balanceI, lpHash);
+    double balance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, lpHash);
     dto.setOwnerBalance(balance);
 
     //fill USD value
     double amountUsd = priceProvider
-        .getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue());
+        .getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue(), ETH_NETWORK);
     dto.setOwnerBalanceUsd(amountUsd);
     return true;
   }

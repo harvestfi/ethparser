@@ -47,7 +47,6 @@ public class RewardDownloader {
   }
 
   public void start() {
-    priceProvider.setUpdateBlockDifference(1);
     logger.info("Start parse rewards for " + contractName);
     handleLoop(from, to, (from, end) -> parse(from, end,
         contractUtils.getAddressByName(contractName, ContractType.POOL)

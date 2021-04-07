@@ -8,6 +8,8 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -376,6 +378,15 @@ public class ContractUtils {
     contracts.addAll(PARSABLE_UNI_PAIRS);
 
     return new ArrayList<>(contracts);
+  }
+
+  public double parseAmount(BigInteger amount, String address) {
+    if (amount == null) {
+      return 0.0;
+    }
+    return new BigDecimal(amount)
+        .divide(getDividerByAddress(address), 99, RoundingMode.HALF_UP)
+        .doubleValue();
   }
 
   public Collection<VaultEntity> getAllVaults() {

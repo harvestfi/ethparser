@@ -2,8 +2,6 @@ package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
@@ -83,12 +81,14 @@ public class FunctionsUtils {
     double coin0Balance = 0;
     double coin1Balance = 0;
     if (!ZERO_ADDRESS.equals(coin0)) {
-      coin0Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
-          .orElse(ZERO), coin0);
+      coin0Balance = ContractUtils.getInstance(network).parseAmount(
+          callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
+              .orElse(ZERO), coin0);
     }
     if (!ZERO_ADDRESS.equals(coin1)) {
-      coin1Balance = parseAmount(callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
-          .orElse(ZERO), coin1);
+      coin1Balance = ContractUtils.getInstance(network).parseAmount(
+          callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
+              .orElse(ZERO), coin1);
     }
     return new Tuple2<>(coin0Balance, coin1Balance);
   }
@@ -109,7 +109,7 @@ public class FunctionsUtils {
       return null;
     }
 
-    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getInstance(ETH_NETWORK)
+    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getInstance(network)
         .getUniPairTokens(lpAddress);
     BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
     BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());

@@ -43,7 +43,6 @@ public class HardWorkDownloader {
 
   public void start() {
     log.info("HardWorkDownloader start");
-    priceProvider.setUpdateBlockDifference(1);
     LoopUtils.handleLoop(from, to, this::parse);
 
   }

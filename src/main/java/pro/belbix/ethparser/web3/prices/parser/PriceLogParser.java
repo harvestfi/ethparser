@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 
 import java.math.BigInteger;
@@ -141,7 +140,7 @@ public class PriceLogParser implements Web3Parser {
             () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         lpAddress, dto.getBlock(), ETH_NETWORK);
-    double lpBalance = parseAmount(
+    double lpBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock(), ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress);
@@ -248,7 +247,7 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private static double parseAmountFromTx(PriceTx tx, int i, String name) {
-    return parseAmount(tx.getIntegers()[i],
+    return ContractUtils.getInstance(ETH_NETWORK).parseAmount(tx.getIntegers()[i],
         contractUtils.getAddressByName(name, ContractType.TOKEN)
             .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
     );

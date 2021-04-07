@@ -40,7 +40,6 @@ public class TransferParserTest {
    @BeforeEach
   public void setUp() {
     contractLoader.load();
-    priceProvider.setUpdateBlockDifference(1);
   }
 
   // it is a self destructed contract

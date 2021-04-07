@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
 
 import java.math.BigInteger;
@@ -32,6 +31,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -105,7 +105,7 @@ public class Web3FunctionsTest {
         })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST, ETH_NETWORK);
     assertNotNull(types);
     assertFalse(types.isEmpty());
-    assertTrue(parseAmount((BigInteger) types.get(0).getValue(),
+    assertTrue(ContractUtils.getInstance(ETH_NETWORK).parseAmount((BigInteger) types.get(0).getValue(),
         "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
   }
 

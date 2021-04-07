@@ -121,7 +121,7 @@ public class UniswapLpLogParser implements Web3Parser {
 
     if (dto.getLastPrice() == null) {
       Double otherCoinPrice = priceProvider
-          .getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue());
+          .getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue(), ETH_NETWORK);
       if (otherCoinPrice != null) {
         dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
       } else {

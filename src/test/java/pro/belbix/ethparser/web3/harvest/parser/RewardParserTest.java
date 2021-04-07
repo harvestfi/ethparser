@@ -39,7 +39,6 @@ public class RewardParserTest {
     @BeforeEach
     public void setUp() {
         contractLoader.load();
-        priceProvider.setUpdateBlockDifference(1);
         rewardParser.setWaitNewBlock(false);
     }
 

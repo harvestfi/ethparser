@@ -37,7 +37,6 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
-  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();
   protected Map<String, String> methodNamesByMethodId = new HashMap<>();
   protected Map<String, String> methodIdByFullHex = new HashMap<>();
@@ -72,16 +71,6 @@ public abstract class MethodDecoder {
     final byte[] input = methodSignature.getBytes();
     final byte[] hash = Hash.sha3(input);
     return Numeric.toHexString(hash);
-  }
-
-  // todo move to ContractUtils
-  public static double parseAmount(BigInteger amount, String address) {
-    if (amount == null) {
-      return 0.0;
-    }
-    return new BigDecimal(amount)
-        .divide(contractUtils.getDividerByAddress(address), 99, RoundingMode.HALF_UP)
-        .doubleValue();
   }
 
   public static List<Type> extractLogIndexedValues(

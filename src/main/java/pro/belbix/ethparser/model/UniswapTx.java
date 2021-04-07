@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.model;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import lombok.Data;
@@ -75,9 +74,9 @@ public class UniswapTx implements EthTransactionI {
 
     if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
       assertBuy(false);
-      uniswapDTO.setAmount(parseAmount(amountIn, coinIn.getValue()));
+      uniswapDTO.setAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountIn, coinIn.getValue()));
       uniswapDTO.setOtherCoin(addrToStr(coinOut));
-      uniswapDTO.setOtherAmount(parseAmount(amountOut, coinOut.getValue()));
+      uniswapDTO.setOtherAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountOut, coinOut.getValue()));
       if (type.equals(SWAP)) {
         uniswapDTO.setType("SELL");
       } else {
@@ -85,9 +84,9 @@ public class UniswapTx implements EthTransactionI {
       }
     } else if (coinAddress.equals(coinOut.getValue().toLowerCase())) {
       assertBuy(true);
-      uniswapDTO.setAmount(parseAmount(amountOut, coinOut.getValue()));
+      uniswapDTO.setAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountOut, coinOut.getValue()));
       uniswapDTO.setOtherCoin(addrToStr(coinIn));
-      uniswapDTO.setOtherAmount(parseAmount(amountIn, coinIn.getValue()));
+      uniswapDTO.setOtherAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountIn, coinIn.getValue()));
       if (type.equals(SWAP)) {
         uniswapDTO.setType("BUY");
       } else {

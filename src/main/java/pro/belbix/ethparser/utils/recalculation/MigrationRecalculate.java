@@ -36,7 +36,7 @@ public class MigrationRecalculate {
       HarvestDTO migration = dto.getMigration();
       assert migration != null;
       harvestVaultParserV2.enrichDto(migration, ETH_NETWORK);
-      harvestOwnerBalanceCalculator.fillBalance(migration);
+      harvestOwnerBalanceCalculator.fillBalance(migration, ETH_NETWORK);
       boolean success = harvestDBService.saveHarvestDTO(migration);
       log.info("Parse migration " + success + " " + migration.print());
     }

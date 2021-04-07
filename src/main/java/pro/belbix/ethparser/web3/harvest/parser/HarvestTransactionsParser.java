@@ -97,7 +97,7 @@ public class HarvestTransactionsParser implements Web3Parser {
       return null;
     }
 
-    HarvestDTO dto = harvestTx.toDto();
+    HarvestDTO dto = harvestTx.toDto(ETH_NETWORK);
     dto.setLastGas(web3Functions.fetchAverageGasPrice(ETH_NETWORK));
     dto.setBlockDate(ethBlockService
         .getTimestampSecForBlock(tx.getBlockNumber().longValue(), ETH_NETWORK));

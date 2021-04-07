@@ -36,7 +36,6 @@ public class RewardRecalculate {
     if (to == null) {
       to = Integer.MAX_VALUE;
     }
-    priceProvider.setUpdateBlockDifference(1);
     List<RewardDTO> rewards = rewardsRepository.fetchAllByRange(from, to);
     int count = 0;
     for (RewardDTO dto : rewards) {

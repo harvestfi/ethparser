@@ -54,7 +54,6 @@ public class MockUtils {
         harvestDTO.setConfirmed(1);
         harvestDTO.setLastGas(currentCount / 6);
         harvestDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
-        harvestDTO.setLastAllUsdTvl(seed * 5.1);
         return harvestDTO;
     }
 

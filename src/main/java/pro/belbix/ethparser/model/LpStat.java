@@ -24,9 +24,10 @@ public class LpStat {
       double firstCoinAmount,
       double secondCoinAmount,
       double firstCoinPrice,
-      double secondCoinPrice
+      double secondCoinPrice,
+      String network
   ) {
-    ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
+    ContractUtils contractUtils = ContractUtils.getInstance(network);
     try {
       Tuple2<String, String> lpTokens = contractUtils.tokenAddressesByUniPairAddress(lpHash);
       LpStat lpStat = new LpStat();

@@ -43,7 +43,6 @@ public class UniToHarvestConverterTest {
   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
-    priceProvider.setUpdateBlockDifference(1);
   }
 
 

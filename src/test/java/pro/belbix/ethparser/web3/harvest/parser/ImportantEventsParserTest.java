@@ -41,7 +41,6 @@ public class ImportantEventsParserTest {
    @BeforeEach
   public void setUp() {
     contractLoader.load();
-    priceProvider.setUpdateBlockDifference(1);
   }
 
   @Test

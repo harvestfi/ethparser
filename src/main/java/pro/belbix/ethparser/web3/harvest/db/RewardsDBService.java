@@ -58,7 +58,7 @@ public class RewardsDBService {
       reward = dto.getReward();
     } else {
       tvl = harvest.getLastUsdTvl();
-      double price = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+      double price = priceProvider.getPriceForCoin("FARM", dto.getBlock(), ETH_NETWORK);
       reward = dto.getReward() * price;
     }
 

@@ -25,7 +25,6 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Service
 @Log4j2
 public class HarvestDBService {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final static ObjectMapper objectMapper = new ObjectMapper();
 
   private final HarvestRepository harvestRepository;
@@ -81,8 +80,8 @@ public class HarvestDBService {
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        contractUtils.vaultNames().stream()
-            .filter(v -> !contractUtils.isPsName(v))
+        ContractUtils.getInstance(dto.getNetwork()).vaultNames().stream()
+            .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
         dto.getBlockDate());
@@ -134,12 +133,14 @@ public class HarvestDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(contractUtils.vaultNames());
-    PARSABLE_UNI_PAIRS.stream()
-        .map(c -> contractUtils.getNameByAddress(c)
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-        .forEach(contracts::add);
-
+    List<String> contracts = new ArrayList<>(
+        ContractUtils.getInstance(dto.getNetwork()).vaultNames());
+    if (ETH_NETWORK.equals(dto.getNetwork())) {
+      PARSABLE_UNI_PAIRS.stream()
+          .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
+              .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
+          .forEach(contracts::add);
+    }
     for (String vaultName : contracts) {
       HarvestDTO lastHarvest = harvestRepository
           .fetchLastByVaultAndDate(vaultName, dto.getBlockDate());

@@ -63,7 +63,7 @@ public class HarvestVaultDownloader {
       try {
         HarvestDTO dto = harvestVaultParserV2.parseVaultLog((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
-          harvestOwnerBalanceCalculator.fillBalance(dto);
+          harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
           harvestDBService.saveHarvestDTO(dto);
         }
       } catch (Exception e) {

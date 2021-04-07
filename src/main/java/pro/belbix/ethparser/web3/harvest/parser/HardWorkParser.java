@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
@@ -134,7 +133,8 @@ public class HardWorkParser implements Web3Parser {
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);
     dto.setShareChange(
-        parseAmount(tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
+        ContractUtils.getInstance(ETH_NETWORK).parseAmount(
+            tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
     parseRewards(dto, tx.getHash(), tx.getStrategy());
     parseVaultInvestedFunds(dto);
@@ -146,14 +146,14 @@ public class HardWorkParser implements Web3Parser {
   // not in the root because it can be weekly reward
   private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
     TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash, ETH_NETWORK);
-    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock(), ETH_NETWORK);
     dto.setFarmPrice(farmPrice);
     boolean autoStake = isAutoStake(tr.getLogs());
     for (Log ethLog : tr.getLogs()) {
       parseRewardAddedEvents(ethLog, dto, autoStake);
     }
 
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), ETH_NETWORK);
     dto.setEthPrice(ethPrice);
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);
@@ -226,7 +226,7 @@ public class HardWorkParser implements Web3Parser {
     Transaction transaction = web3Functions.findTransaction(txHash, ETH_NETWORK);
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), ETH_NETWORK);
     double feeUsd = gas * gasPrice * ethPrice;
     dto.setFee(feeUsd);
     double feeEth = gas * gasPrice;

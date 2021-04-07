@@ -78,7 +78,7 @@ public class HarvestOwnerBalanceCalculatorTest {
       assertTrue("Log smaller then necessary", logId < logResults.size());
       HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertNotNull(dto, "Dto is null");
-      boolean result = harvestOwnerBalanceCalculator.fillBalance(dto);
+      boolean result = harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
       assertTrue(result);
       assertAll(
           () -> assertEquals("owner balance", ownerBalance,

@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.erc20.parser;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -19,12 +18,11 @@ import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.model.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -116,7 +114,8 @@ public class TransferParser implements Web3Parser {
     dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
-    dto.setValue(parseAmount(tx.getValue(), tx.getTokenAddress()));
+    dto.setValue(
+        ContractUtils.getInstance(ETH_NETWORK).parseAmount(tx.getValue(), tx.getTokenAddress()));
 
     fillMethodName(dto);
     fillTransferType(dto);
@@ -165,14 +164,14 @@ public class TransferParser implements Web3Parser {
   }
 
   public void fillPrice(TransferDTO dto) {
-    dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock()));
+    dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock(), ETH_NETWORK));
   }
 
   private double getBalance(String holder, String tokenAddress, long block) {
     BigInteger balanceI = functionsUtils.callIntByName(
         BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
-    return MethodDecoder.parseAmount(balanceI, tokenAddress);
+    return ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, tokenAddress);
   }
 
   @Override

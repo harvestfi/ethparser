@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.harvest.parser;
 
 import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
@@ -108,6 +107,7 @@ public class UniToHarvestConverter implements Web3Parser {
     harvestDTO.setId(uniswapDTO.getId());
     harvestDTO.setHash(uniswapDTO.getHash());
     harvestDTO.setBlock(uniswapDTO.getBlock().longValue());
+    harvestDTO.setNetwork(ETH_NETWORK);
     harvestDTO.setConfirmed(1);
     harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
     harvestDTO.setOwner(uniswapDTO.getOwner());
@@ -141,11 +141,11 @@ public class UniToHarvestConverter implements Web3Parser {
     }
     String poolAddress = poolContract.getAddress();
 
-    double lpBalance = parseAmount(
+    double lpBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
         lpHash);
-    double stBalance = parseAmount(
+    double stBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
         lpHash);
@@ -160,13 +160,15 @@ public class UniToHarvestConverter implements Web3Parser {
     double firstCoinBalance = lpUnderlyingBalances.component1() * stFraction;
     double secondCoinBalance = lpUnderlyingBalances.component2() * stFraction;
 
-    Tuple2<Double, Double> uniPrices = priceProvider.getPairPriceForLpHash(lpHash, block);
+    Tuple2<Double, Double> uniPrices = priceProvider
+        .getPairPriceForLpHash(lpHash, block, ETH_NETWORK);
     harvestDTO.setLpStat(LpStat.createJson(
         lpHash,
         firstCoinBalance,
         secondCoinBalance,
         uniPrices.component1(),
-        uniPrices.component2()
+        uniPrices.component2(),
+        ETH_NETWORK
     ));
     double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
     double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();
@@ -174,7 +176,9 @@ public class UniToHarvestConverter implements Web3Parser {
     harvestDTO.setLastUsdTvl(vaultUsdAmount);
 
     double usdAmount =
-        uniswapDTO.getAmount() * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block) * 2;
+        uniswapDTO.getAmount()
+            * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block, ETH_NETWORK)
+            * 2;
     harvestDTO.setUsdAmount(Math.round(usdAmount));
 
     double fraction = usdAmount / (vaultUsdAmount / stFraction);
