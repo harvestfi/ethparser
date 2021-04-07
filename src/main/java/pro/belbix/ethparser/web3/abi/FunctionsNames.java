@@ -33,5 +33,6 @@ public class FunctionsNames {
   public static final String VAULT_FRACTION_TO_INVEST_NUMERATOR = "vaultFractionToInvestNumerator";
   public static final String VAULT_FRACTION_TO_INVEST_DENOMINATOR = "vaultFractionToInvestDenominator";
   public static final String GET_PRICE = "getPrice";
-    
+  public static final String PROFITSHARING_DENOMINATOR = "profitSharingDenominator";
+  public static final String PROFITSHARING_NUMERATOR = "profitSharingNumerator";
 }

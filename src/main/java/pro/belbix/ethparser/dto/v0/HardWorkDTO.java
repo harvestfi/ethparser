@@ -51,6 +51,8 @@ public class HardWorkDTO implements DtoI {
   private double investmentTarget;
   private double farmPrice;
   private double ethPrice;
+  private Double profitSharingRate;
+  private Double buyBackRate;
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "

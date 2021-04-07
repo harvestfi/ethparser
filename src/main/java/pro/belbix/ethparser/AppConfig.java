@@ -1,5 +1,6 @@
 package pro.belbix.ethparser;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,16 +20,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 @EnableScheduling
 public class AppConfig {
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("*");
-            }
-        };
-    }
-
     @Configuration
     @EnableWebSocketMessageBroker
     public static class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -43,7 +34,7 @@ public class AppConfig {
         public void registerStompEndpoints(StompEndpointRegistry registry) {
             registry.addEndpoint("/stomp")
                 .setAllowedOrigins("*")
-                .withSockJS();
+                .withSockJS().setSupressCors(true);
         }
     }
 
