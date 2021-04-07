@@ -20,16 +20,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 @EnableScheduling
 public class AppConfig {
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NotNull CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("*");
-            }
-        };
-    }
-
     @Configuration
     @EnableWebSocketMessageBroker
     public static class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
