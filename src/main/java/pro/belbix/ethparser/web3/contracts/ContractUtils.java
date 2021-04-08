@@ -412,6 +412,12 @@ public class ContractUtils {
         .doubleValue();
   }
 
+  public Optional<String> getVaultUnderlying(String vaultAddress) {
+    return getCache().getVaultByAddress(vaultAddress)
+        .map(VaultEntity::getUnderlying)
+        .map(ContractEntity::getAddress);
+  }
+
   public Collection<VaultEntity> getAllVaults() {
     return getCache().getAllVaults();
   }

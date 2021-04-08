@@ -359,7 +359,10 @@ public class HarvestVaultParserV2 implements Web3Parser {
   }
 
   private void fillUsdValues(HarvestDTO dto, String vaultHash, String network) {
-    Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock(), network);
+    String underlyingAddress =
+        ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
+            .orElse(dto.getVault());
+    Double price = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
     if (price == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }
@@ -369,11 +372,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         vaultHash);
     double sharedPrice = dto.getSharePrice();
-//        double vaultUnderlyingUnit = parseAmount(functions.callUnderlyingUnit(vaultHash, dto.getBlock().longValue()),
-//            vaultHash);
-    double vaultUnderlyingUnit = 1.0; // currently always 1
 
-    double vault = (vaultBalance * sharedPrice) / vaultUnderlyingUnit;
+    double vault = (vaultBalance * sharedPrice);
     dto.setLastTvl(vault);
     dto.setLastUsdTvl((double) Math.round(vault * price));
     dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));

@@ -48,6 +48,39 @@ public class HarvestVaultParserBscTest {
   }
 
   @Test
+  void test_VENUS_XVS() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0xCf5F83F8FE0AB0f9E9C1db07E6606dD598b2bbf5", 6343242);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0x8a3ed912f608f2d8dfafc0406082d52df2b79fc3ae57febc0bdfc98b75d833c8")
+        .block(6343242L)
+        .blockDate(1617750554L)
+        .confirmed(1)
+        .methodName("Deposit")
+        .owner("0x67e82669107250b8562e5bc7df4e347abf1fb66f")
+        .amount(389.8465842113253)
+        .vault("VENUS_XVS")
+        .lastGas(5.)
+        .lastUsdTvl(90119.0)
+        .sharePrice(1.0014240802660224)
+        .usdAmount(22531L)
+        .lpStat(null)
+        .ownerBalance(390.4017570386769)
+        .ownerBalanceUsd(22531.514889208454)
+        .allOwnersCount(6)
+        .migrated(false)
+        .underlyingPrice(null)
+        .allPoolsOwnersCount(0)
+        .ownerCount(1)
+        .lastTvl(1561.4865941715939)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+  }
+
+  @Test
   void test_PC_BUSD_BNB() throws Exception {
     HarvestDTO harvestDTO = loadHarvestDto(
         "0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34", 6101208);

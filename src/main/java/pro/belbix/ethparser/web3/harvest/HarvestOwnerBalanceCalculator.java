@@ -95,19 +95,19 @@ public class HarvestOwnerBalanceCalculator {
     dto.setOwnerBalance(balance);
 
     //fill USD value
-    String underlyingToken =
+    String underlyingAddress =
         functionsUtils.callAddressByName(UNDERLYING, vaultHash, dto.getBlock(), network)
         .orElseThrow(
             () -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
-    if (ContractUtils.getInstance(network).isLp(underlyingToken)) {
-      if (underlyingToken == null) {
+    if (ContractUtils.getInstance(network).isLp(underlyingAddress)) {
+      if (underlyingAddress == null) {
         throw new IllegalStateException("Not found lp hash for " + vaultHash);
       }
       double amountUsd = priceProvider
-          .getLpTokenUsdPrice(underlyingToken, balance, block, network);
+          .getLpTokenUsdPrice(underlyingAddress, balance, block, network);
       dto.setOwnerBalanceUsd(amountUsd);
     } else {
-      double price = priceProvider.getPriceForCoin(dto.getVault(), block, network);
+      double price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
       dto.setOwnerBalanceUsd(balance * price);
     }
     return true;
