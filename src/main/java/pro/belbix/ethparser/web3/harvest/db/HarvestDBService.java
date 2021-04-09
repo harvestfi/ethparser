@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
@@ -157,10 +158,9 @@ public class HarvestDBService {
   }
 
   private double calculateActualTvl(HarvestDTO dto, Double farmPrice) {
-    String lpStatStr = dto.getLpStat();
     double tvl = 0.0;
     try {
-      if (lpStatStr == null) {
+      if (Strings.isBlank(dto.getLpStat())) {
         double coinPrice = 0.0;
         if (("PS".equals(dto.getVault()) || "PS_V0".equals(dto.getVault())) && farmPrice != null) {
           coinPrice = farmPrice;
@@ -169,7 +169,7 @@ public class HarvestDBService {
         }
         tvl = dto.getLastTvl() * coinPrice;
       } else {
-        LpStat lpStat = objectMapper.readValue(lpStatStr, LpStat.class);
+        LpStat lpStat = objectMapper.readValue(dto.getLpStat(), LpStat.class);
 
         double coin1Price;
         if ("FARM".equalsIgnoreCase(lpStat.getCoin1())) {

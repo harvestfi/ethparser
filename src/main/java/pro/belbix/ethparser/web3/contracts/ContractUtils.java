@@ -445,6 +445,53 @@ public class ContractUtils {
     return null;
   }
 
+  public String getSimilarActiveForPrice(String name) {
+    if(ETH_NETWORK.equals(network)) {
+      return getSimilarActiveForPriceEth(name);
+    } else if(BSC_NETWORK.equals(network)) {
+      return getSimilarActiveForPriceBsc(name);
+    }
+    return name;
+  }
+
+  public String getSimilarActiveForPriceEth(String name) {
+    name = name.replaceFirst("_V0", "");
+    switch (name) {
+      case "CRV_STETH":
+      case "WETH":
+        return "ETH";
+      case "PS":
+      case "iPS":
+        return "FARM";
+      case "RENBTC":
+      case "CRVRENWBTC":
+      case "TBTC":
+      case "BTC":
+      case "CRV_OBTC":
+      case "CRV_TBTC":
+      case "HBTC":
+      case "CRV_HBTC":
+      case "CRV_RENBTC":
+        return "WBTC";
+      case "CRV_EURS":
+        return "EURS";
+      case "CRV_LINK":
+        return "LINK";
+      case "SUSHI_HODL":
+        return "SUSHI";
+    }
+    return name;
+  }
+
+  public String getSimilarActiveForPriceBsc(String name) {
+    //noinspection SwitchStatementWithTooFewBranches
+    switch (name) {
+      case "RENBTC":
+        return "BTCB";
+    }
+    return name;
+  }
+
   public Collection<VaultEntity> getAllVaults() {
     return getCache().getAllVaults();
   }

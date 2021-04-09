@@ -79,36 +79,6 @@ public class ContractConstants {
       "CRV_AAVE"
   );
 
-  // todo replace to underlying tokens and refactoring other
-  public static String simplifyName(String name) {
-    name = name.replaceFirst("_V0", "");
-    switch (name) {
-      case "CRV_STETH":
-      case "WETH":
-        return "ETH";
-      case "PS":
-      case "iPS":
-        return "FARM";
-      case "RENBTC":
-      case "CRVRENWBTC":
-      case "TBTC":
-      case "BTC":
-      case "CRV_OBTC":
-      case "CRV_TBTC":
-      case "HBTC":
-      case "CRV_HBTC":
-      case "CRV_RENBTC":
-        return "WBTC";
-      case "CRV_EURS":
-        return "EURS";
-      case "CRV_LINK":
-        return "LINK";
-      case "SUSHI_HODL":
-        return "SUSHI";
-    }
-    return name;
-  }
-
   public static final List<Integer> KEY_BLOCKS_FOR_LOADING = List.of(
       10777209, // Sep-01-2020
       10800000, // Sep-05-2020

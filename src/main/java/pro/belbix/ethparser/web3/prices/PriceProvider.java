@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -21,7 +20,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -46,7 +44,7 @@ public class PriceProvider {
   }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
-    String lpName = ContractUtils.getInstance(network).getNameByAddress(lpAddress)
+    String lpName = cu(network).getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
@@ -85,7 +83,7 @@ public class PriceProvider {
     if (lpPooled == null) {
       throw new IllegalStateException("Can't reach reserves for " + lpAddress);
     }
-    double lpBalance = ContractUtils.getInstance(network).parseAmount(
+    double lpBalance = cu(network).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress);
@@ -102,7 +100,7 @@ public class PriceProvider {
       long block,
       String network
   ) {
-    Tuple2<String, String> tokensAdr = ContractUtils.getInstance(network)
+    Tuple2<String, String> tokensAdr = cu(network)
         .tokenAddressesByUniPairAddress(lpAddress);
 
     double positionFraction = amount / lpBalance;
@@ -124,12 +122,12 @@ public class PriceProvider {
     }
     String nameOrAddress = coinName;
     if (coinName.startsWith("0x")) {
-      nameOrAddress = ContractUtils.getInstance(network).getNameByAddress(coinName)
+      nameOrAddress = cu(network).getNameByAddress(coinName)
           .orElseThrow(() -> new IllegalStateException("Not found name for " + coinName));
     }
-    String coinNameSimple = ContractConstants.simplifyName(nameOrAddress);
+    String coinNameSimple = cu(network).getSimilarActiveForPrice(nameOrAddress);
     updateUSDPrice(coinNameSimple, block, network);
-    if (ContractUtils.getInstance(network).isStableCoin(coinNameSimple) && !priceOracle
+    if (cu(network).isStableCoin(coinNameSimple) && !priceOracle
         .isAvailable(nameOrAddress, block)) {
       return 1.0;
     }
@@ -137,27 +135,26 @@ public class PriceProvider {
   }
 
   public Tuple2<Double, Double> getPairPriceForStrategyHash(
-      String strategyHash, Long block, String network) {
+      String vaultAddress, Long block, String network) {
     return getPairPriceForLpHash(
-        functionsUtils.callAddressByName(UNDERLYING, strategyHash, block, network)
-            .orElseThrow(
-                () -> new IllegalStateException(
-                    "Can't fetch underlying token for " + strategyHash)),
+        cu(network).getVaultUnderlying(vaultAddress)
+            .orElseThrow(() -> new IllegalStateException(
+                "Can't fetch underlying token for " + vaultAddress)),
         block, network);
   }
 
   public Tuple2<Double, Double> getPairPriceForLpHash(
       String lpHash, Long block, String network) {
-    Tuple2<String, String> tokensAdr = ContractUtils.getInstance(network)
+    Tuple2<String, String> tokensAdr = cu(network)
         .tokenAddressesByUniPairAddress(lpHash);
     String token0 = tokensAdr.component1();
     String token1 = tokensAdr.component2();
     // zero address in 1inch should be replaced with ETH
     if (ZERO_ADDRESS.equalsIgnoreCase(token0)) {
-      token0 = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
+      token0 = cu(network).getBaseNetworkWrappedTokenAddress();
     }
     if (ZERO_ADDRESS.equalsIgnoreCase(token1)) {
-      token1 = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
+      token1 = cu(network).getBaseNetworkWrappedTokenAddress();
     }
     return new Tuple2<>(
         getPriceForCoin(token0, block, network),
@@ -166,11 +163,11 @@ public class PriceProvider {
   }
 
   private void updateUSDPrice(String coinName, long block, String network) {
-    if (!ContractUtils.getInstance(network).isTokenCreated(coinName, block)) {
+    if (!cu(network).isTokenCreated(coinName, block)) {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (ContractUtils.getInstance(network).isStableCoin(coinName) && !priceOracle
+    if (cu(network).isStableCoin(coinName) && !priceOracle
         .isAvailable(coinName, block)) {
       return;
     }
@@ -184,7 +181,7 @@ public class PriceProvider {
   }
 
   private double getPriceForCoinWithoutCache(String name, Long block, String network) {
-    String lpName = ContractUtils.getInstance(network).findUniPairNameForTokenName(name, block)
+    String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
         .filter(Caller::isFilledList)
@@ -211,17 +208,17 @@ public class PriceProvider {
     if (appProperties.isOnlyApi()) {
       return 0.0;
     }
-    String tokenAdr = ContractUtils.getInstance(network).getAddressByName(name, ContractType.TOKEN)
+    String tokenAdr = cu(network).getAddressByName(name, ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
     if (block > ORACLE_START_BLOCK) {
       return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
     }
-    String lpName = ContractUtils.getInstance(network).findUniPairNameForTokenName(name, block)
+    String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
-    if (!ContractUtils.getInstance(network).isUniPairCreated(lpName, block)) {
+    if (!cu(network).isUniPairCreated(lpName, block)) {
       return 0.0;
     }
-    String lpHash = ContractUtils.getInstance(network)
+    String lpHash = cu(network)
         .getAddressByName(lpName, ContractType.UNI_PAIR)
         .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
 
@@ -231,21 +228,21 @@ public class PriceProvider {
       throw new IllegalStateException("Can't reach reserves for " + lpName);
     }
     double price;
-    if (ContractUtils.getInstance(network).isDivisionSequenceSecondDividesFirst(lpHash, tokenAdr)) {
+    if (cu(network).isDivisionSequenceSecondDividesFirst(lpHash, tokenAdr)) {
       price = reserves.component2() / reserves.component1();
     } else {
       price = reserves.component1() / reserves.component2();
     }
 
-    Tuple2<String, String> lpTokenAdr = ContractUtils.getInstance(network)
+    Tuple2<String, String> lpTokenAdr = cu(network)
         .tokenAddressesByUniPairAddress(lpHash);
     String otherTokenName;
     if (lpTokenAdr.component1().equalsIgnoreCase(tokenAdr)) {
-      otherTokenName = ContractUtils.getInstance(network).getNameByAddress(lpTokenAdr.component2())
+      otherTokenName = cu(network).getNameByAddress(lpTokenAdr.component2())
           .orElseThrow(
               () -> new IllegalStateException("Not found name for " + lpTokenAdr.component2()));
     } else if (lpTokenAdr.component2().equalsIgnoreCase(tokenAdr)) {
-      otherTokenName = ContractUtils.getInstance(network).getNameByAddress(lpTokenAdr.component1())
+      otherTokenName = cu(network).getNameByAddress(lpTokenAdr.component1())
           .orElseThrow(
               () -> new IllegalStateException("Not found name for " + lpTokenAdr.component1()));
     } else {
@@ -284,6 +281,10 @@ public class PriceProvider {
       return entry.getValue();
     }
     return 0.0;
+  }
+  
+  private ContractUtils cu(String _network) {
+    return ContractUtils.getInstance(_network);
   }
 
 }

@@ -412,16 +412,21 @@ public class HarvestVaultParserV2 implements Web3Parser {
     double vaultSharedBalance = (vaultBalance * sharedPrice);
     dto.setLastTvl(vaultSharedBalance);
     double vaultFraction = vaultSharedBalance / lpTotalSupply;
-
+    String underlyingLpAddress =
+        ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
+            .orElseThrow(() -> new IllegalStateException(
+                "Can't fetch underlying token for " + vaultHash));
     Tuple2<Double, Double> uniPrices = priceProvider
-        .getPairPriceForStrategyHash(vaultHash, dtoBlock, network);
+        .getPairPriceForLpHash(underlyingLpAddress, dtoBlock, network);
 
+    double coin1Usd = uniPrices.component1();
+    double coin2Usd = uniPrices.component2();
     //suppose it's ONE_INCH ETH pair
     if (lpUnderlyingBalance1 == 0) {
-      double coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
+      coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
       lpUnderlyingBalance1 = (coin2Usd / uniPrices.component1());
     } else if (lpUnderlyingBalance2 == 0) {
-      double coin1Usd = lpUnderlyingBalance1 * uniPrices.component1();
+      coin1Usd = lpUnderlyingBalance1 * uniPrices.component1();
       lpUnderlyingBalance2 = (coin1Usd / uniPrices.component2());
     }
 
