@@ -44,7 +44,6 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @SuppressWarnings("rawtypes")
 @Service
 @Log4j2
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class FunctionsUtils {
 
   public final static double SECONDS_OF_YEAR = 31557600.0;

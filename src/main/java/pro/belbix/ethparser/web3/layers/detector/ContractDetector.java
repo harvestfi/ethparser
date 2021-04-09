@@ -47,7 +47,6 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 
 @Service
 @Log4j2
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ContractDetector {
 
     private static final AtomicBoolean run = new AtomicBoolean(true);

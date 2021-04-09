@@ -44,7 +44,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 
 @Service
 @Log4j2
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Web3Functions {
 
   private final AppProperties appProperties;
