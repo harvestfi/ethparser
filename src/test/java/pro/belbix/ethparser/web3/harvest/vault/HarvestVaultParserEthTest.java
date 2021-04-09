@@ -142,7 +142,7 @@ public class HarvestVaultParserEthTest {
         assertAll(
             () -> assertEquals("owner balance", numberFormat("0,07288828"),
                 String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", numberFormat("0.22055181"),
+            () -> assertEquals("owner balance usd", numberFormat("0.44313253"),
                 String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
@@ -679,8 +679,8 @@ public class HarvestVaultParserEthTest {
             "1313,48394098",
             "",
             "",
-            2605L,
-            196916L,
+            2607L,
+            197106L,
             true
         );
         assertNotNull(dto);
@@ -701,8 +701,8 @@ public class HarvestVaultParserEthTest {
             "7,70258211",
             "",
             "",
-            18749L,
-            160570L,
+            18726L,
+            160370L,
             true
         );
         assertNotNull(dto);
@@ -723,8 +723,8 @@ public class HarvestVaultParserEthTest {
             "14,32730677",
             "",
             "",
-            34950L,
-            47028L,
+            34994L,
+            47087L,
             true
         );
         assertNotNull(dto);
@@ -745,8 +745,8 @@ public class HarvestVaultParserEthTest {
             "11749,43295860",
             "",
             "",
-            27519431L,
-            27528776L,
+            27513629L,
+            27522972L,
             true
         );
         assertNotNull(dto);

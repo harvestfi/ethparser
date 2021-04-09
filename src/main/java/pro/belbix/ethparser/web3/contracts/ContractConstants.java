@@ -17,11 +17,13 @@ public class ContractConstants {
       .toLowerCase();
   public static final String ETH_CONTROLLER = "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C"
       .toLowerCase();
-  public static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"
+  static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"
       .toLowerCase();
-  public static final String SUSHI_FACTORY = "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac"
+  static final String SUSHI_FACTORY = "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac"
       .toLowerCase();
-  public static final String MOONISWAP_FACTORY = "0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643"
+  static final String MOONISWAP_FACTORY = "0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643"
+      .toLowerCase();
+  static final String MOONISWAP_FACTORY_BSC = "0xD41B24bbA51fAc0E4827b6F94C0D6DDeB183cD64"
       .toLowerCase();
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
@@ -95,6 +97,7 @@ public class ContractConstants {
       case "CRV_TBTC":
       case "HBTC":
       case "CRV_HBTC":
+      case "CRV_RENBTC":
         return "WBTC";
       case "CRV_EURS":
         return "EURS";

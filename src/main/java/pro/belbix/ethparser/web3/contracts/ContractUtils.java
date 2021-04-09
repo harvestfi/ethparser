@@ -3,9 +3,12 @@ package pro.belbix.ethparser.web3.contracts;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -205,8 +208,8 @@ public class ContractUtils {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
     return new Tuple2<>(
-        uniPair.getToken0().getAddress(),
-        uniPair.getToken1().getAddress()
+        getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress()),
+        getBaseAddressInsteadOfZero(uniPair.getToken1().getAddress())
     );
   }
 
@@ -262,14 +265,20 @@ public class ContractUtils {
   public Tuple2<TokenEntity, TokenEntity> getUniPairTokens(String address) {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uniPair by " + address));
+    String token0Adr = getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress());
+    String token1Adr = getBaseAddressInsteadOfZero(uniPair.getToken1().getAddress());
     return new Tuple2<>(
-        getCache().getTokenByAddress(uniPair.getToken0().getAddress())
-            .orElseThrow(() -> new IllegalStateException(
-                "Not found token by " + uniPair.getToken0().getAddress())),
-        getCache().getTokenByAddress(uniPair.getToken1().getAddress())
-            .orElseThrow(() -> new IllegalStateException(
-                "Not found token by " + uniPair.getToken1().getAddress()))
+        getCache().getTokenByAddress(token0Adr)
+            .orElseThrow(() -> new IllegalStateException("Not found token by " + token0Adr)),
+        getCache().getTokenByAddress(token1Adr)
+            .orElseThrow(() -> new IllegalStateException("Not found token by " + token1Adr))
     );
+  }
+
+  public String getBaseAddressInsteadOfZero(String address) {
+    return ZERO_ADDRESS.equalsIgnoreCase(address) ?
+        getBaseNetworkWrappedTokenAddress() :
+        address;
   }
 
   public boolean isDivisionSequenceSecondDividesFirst(String uniPairAddress,
@@ -416,6 +425,24 @@ public class ContractUtils {
     return getCache().getVaultByAddress(vaultAddress)
         .map(VaultEntity::getUnderlying)
         .map(ContractEntity::getAddress);
+  }
+
+  public boolean isOneInch(String factoryAdr) {
+    if (ETH_NETWORK.equals(network)) {
+      return MOONISWAP_FACTORY.equalsIgnoreCase(factoryAdr);
+    } else if (BSC_NETWORK.equals(network)) {
+      return MOONISWAP_FACTORY_BSC.equalsIgnoreCase(factoryAdr);
+    }
+    return false;
+  }
+
+  public String getBaseNetworkWrappedTokenAddress() {
+    if (ETH_NETWORK.equals(network)) {
+      return "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+    } else if (BSC_NETWORK.equals(network)) {
+      return "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+    }
+    return null;
   }
 
   public Collection<VaultEntity> getAllVaults() {

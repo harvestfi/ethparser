@@ -17,7 +17,14 @@ public class BscLpAddresses {
       new LpContract(695058, "PC_CAKE_WBNB", "CAKE", "0xa527a61703d82139f8a06bc30097cc9caa2df5a6"),
       new LpContract(2530996, "PC_VAI_BUSD", "VAI", "0xff17ff314925dff772b71abdff2782bc913b3575"),
       new LpContract(3906347, "PC_ETH_BETH", "BETH", "0x99d865ed50d2c32c1493896810fa386c1ce81d91"),
-      new LpContract(1066604, "PC_BTCB_WBNB", "BTCB", "0x7561eee90e24f3b348e1087a005f78b4c8453524")
+      new LpContract(1066604, "PC_BTCB_WBNB", "BTCB", "0x7561eee90e24f3b348e1087a005f78b4c8453524"),
+      new LpContract(4739606, "PC_BUSD_EGG", "EGG", "0x19e7cbecdd23a16dfa5573df54d98f7caae03019"),
+      new LpContract(1296446, "PC_DAI_BUSD", "DAI", "0x3ab77e40340ab084c3e23be8e5a6f7afed9d41dc"),
+      new LpContract(2261748, "PC_USDC_BUSD", "USDC", "0x680dd100e4b394bda26a59dd5c119a391e747d18"),
+      new LpContract(3442599, "PC_BDO_BUSD", "BDO", "0xc5b0d73a7c0e4eaf66babf7ee16a2096447f7ad6"),
+      new LpContract(3493154, "PC_SBDO_BUSD", "SBDO", "0xa0718093baa3e7aae054eed71f303a4ebc1c076f"),
+      new LpContract(5099757, "ONEINCH_BNB_ONEINCH", "ONEINCH", "0xdaF66c0B7e8E2FC76B15B07AD25eE58E04a66796"),
+      new LpContract(5908100, "ONEINCH_ONEINCH_RENBTC", "RENBTC", "0xe3f6509818ccf031370bB4cb398EB37C21622ac4")
   );
 
 }

@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
@@ -32,7 +33,6 @@ import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
-import org.web3j.abi.datatypes.Bool;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
@@ -82,15 +82,19 @@ public class FunctionsUtils {
 
     double coin0Balance = 0;
     double coin1Balance = 0;
+    String baseAdr = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
+    double baseBalance = ContractUtils.getInstance(network).parseAmount(
+        web3Functions.fetchBalance(lpAddress, block, network), baseAdr);
     if (!ZERO_ADDRESS.equals(coin0)) {
       coin0Balance = ContractUtils.getInstance(network).parseAmount(
           callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
               .orElse(ZERO), coin0);
-    }
-    if (!ZERO_ADDRESS.equals(coin1)) {
+      coin1Balance = baseBalance;
+    } else if (!ZERO_ADDRESS.equals(coin1)) {
       coin1Balance = ContractUtils.getInstance(network).parseAmount(
           callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
               .orElse(ZERO), coin1);
+      coin0Balance = baseBalance;
     }
     return new Tuple2<>(coin0Balance, coin1Balance);
   }

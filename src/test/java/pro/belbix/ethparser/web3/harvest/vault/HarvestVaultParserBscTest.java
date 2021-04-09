@@ -48,6 +48,36 @@ public class HarvestVaultParserBscTest {
   }
 
   @Test
+  void test_ONEINCH_BNB() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0x9090BCcD472b9D11DE302572167DED6632e185AB", 6400546);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0x7f32e4faab8187908eebbae504c44374854a9d9f6f8303180f6fcab977bcc888")
+        .block(6400546L)
+        .blockDate(1617928698L)
+        .confirmed(1)
+        .methodName("Deposit")
+        .owner("0xa12f7352ee48481f5c5896d47d74eff6a7a267e7")
+        .vault("ONEINCH_BNB")
+        .amount(142.55437636286547)
+        .usdAmount(1990L)
+        .lastTvl(76006.17496369126)
+        .lastUsdTvl(1056488.0)
+        .ownerBalance(143.18501961766782)
+        .ownerBalanceUsd(1990.275158037569)
+        .sharePrice(1.0044238785991184)
+        .lpStat(null)
+        .ownerCount(1)
+        .migrated(false)
+        .underlyingPrice(null)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+  }
+
+  @Test
   void test_VENUS_XVS() throws Exception {
     HarvestDTO harvestDTO = loadHarvestDto(
         "0xCf5F83F8FE0AB0f9E9C1db07E6606dD598b2bbf5", 6343242);
@@ -61,17 +91,14 @@ public class HarvestVaultParserBscTest {
         .owner("0x67e82669107250b8562e5bc7df4e347abf1fb66f")
         .amount(389.8465842113253)
         .vault("VENUS_XVS")
-        .lastGas(5.)
         .lastUsdTvl(90119.0)
         .sharePrice(1.0014240802660224)
         .usdAmount(22531L)
         .lpStat(null)
         .ownerBalance(390.4017570386769)
         .ownerBalanceUsd(22531.514889208454)
-        .allOwnersCount(6)
         .migrated(false)
         .underlyingPrice(null)
-        .allPoolsOwnersCount(0)
         .ownerCount(1)
         .lastTvl(1561.4865941715939)
         .profit(null)
@@ -94,7 +121,6 @@ public class HarvestVaultParserBscTest {
         .owner("0x7f4ac7a8b18d7dc76c5962aa1aacf968eac3ac67")
         .amount(0.2662041892498321)
         .vault("PC_BUSD_BNB")
-        .lastGas(5.)
         .lastUsdTvl(10.)
         .sharePrice(1.)
         .usdAmount(10L)
@@ -102,10 +128,8 @@ public class HarvestVaultParserBscTest {
             "{\"coin1\":\"WBNB\",\"coin2\":\"BUSD\",\"amount1\":0.01830295070448038,\"amount2\":4.999430824411079,\"price1\":273.1488985099692,\"price2\":1.0}")
         .ownerBalance(0.2662041892498321)
         .ownerBalanceUsd(9.99886164882216)
-        .allOwnersCount(6)
         .migrated(false)
         .underlyingPrice(null)
-        .allPoolsOwnersCount(0)
         .ownerCount(0)
         .lastTvl(0.2662041892498321)
         .profit(null)

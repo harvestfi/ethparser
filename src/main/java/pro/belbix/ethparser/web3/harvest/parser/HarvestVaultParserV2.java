@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
@@ -359,9 +360,13 @@ public class HarvestVaultParserV2 implements Web3Parser {
   }
 
   private void fillUsdValues(HarvestDTO dto, String vaultHash, String network) {
-    String underlyingAddress =
-        ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
-            .orElse(dto.getVault());
+    String underlyingAddress;
+    if (ETH_NETWORK.equals(network)) {
+      underlyingAddress = dto.getVault();
+    } else {
+      underlyingAddress = ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
+          .orElse(dto.getVault());
+    }
     Double price = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
     if (price == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
@@ -412,7 +417,6 @@ public class HarvestVaultParserV2 implements Web3Parser {
         .getPairPriceForStrategyHash(vaultHash, dtoBlock, network);
 
     //suppose it's ONE_INCH ETH pair
-    // todo investigate how to calculate it (Mooniswap contract)
     if (lpUnderlyingBalance1 == 0) {
       double coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
       lpUnderlyingBalance1 = (coin2Usd / uniPrices.component1());

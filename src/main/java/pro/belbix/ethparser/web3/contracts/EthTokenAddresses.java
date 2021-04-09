@@ -106,7 +106,8 @@ class EthTokenAddresses {
       new TokenContract(11869798, "ROPE20", "0xb3cdc594d8c8e8152d99f162cf8f9edfdc0a80a2")
           .addLp(0, "UNI_LP_ROPE20_ETH"),
       new TokenContract(4281611, "LINK", "0x514910771af9ca656af840dff83e8264ecf986ca")
-          .addLp(0, "UNI_LP_LINK_ETH")
+          .addLp(0, "UNI_LP_LINK_ETH"),
+      new TokenContract(10151366, "CRV_RENWBTC", "0x49849C98ae39Fff122806C06791Fa73784FB3675")
   );
 
 }

@@ -237,10 +237,16 @@ public class Web3Functions {
     return result.getLogs();
   }
 
-  public double fetchBalance(String hash, String network) {
+  public BigInteger fetchBalance(String hash, Long block, String network) {
     waitInit(network);
+    DefaultBlockParameter blockP;
+    if(block != null) {
+      blockP = new DefaultBlockParameterNumber(BigInteger.valueOf(block));
+    } else {
+      blockP = LATEST;
+    }
     EthGetBalance result = callWithRetry(() -> {
-      EthGetBalance ethGetBalance = getWeb3(network).ethGetBalance(hash, LATEST).send();
+      EthGetBalance ethGetBalance = getWeb3(network).ethGetBalance(hash, blockP).send();
       if (ethGetBalance == null) {
         log.error("Get balance response is null");
         return null;
@@ -252,9 +258,9 @@ public class Web3Functions {
       return ethGetBalance;
     });
     if (result == null) {
-      return 0.0;
+      return BigInteger.ZERO;
     }
-    return result.getBalance().doubleValue();
+    return result.getBalance();
   }
 
   public BigInteger fetchCurrentBlock(String network) {

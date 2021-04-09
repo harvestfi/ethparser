@@ -13,7 +13,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
@@ -401,7 +400,7 @@ public class ContractLoader {
       } catch (Exception ignored) {
       }
 
-      if (MOONISWAP_FACTORY.equalsIgnoreCase(factoryAdr)) {
+      if (ContractUtils.getInstance(network).isOneInch(factoryAdr)) {
         type = PAIR_TYPE_ONEINCHE;
       }
     }

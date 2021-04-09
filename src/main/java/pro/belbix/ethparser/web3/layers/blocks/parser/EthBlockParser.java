@@ -39,7 +39,7 @@ import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 public class EthBlockParser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
+  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(1);
   private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
@@ -80,14 +80,14 @@ public class EthBlockParser {
             }
           }
         } catch (Exception e) {
-                    log.error("Error block parser loop " + ethBlock, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
-            }
-        }).start();
-    }
+          log.error("Error block parser loop " + ethBlock, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
+        }
+      }
+    }).start();
+  }
 
   public EthBlockEntity parse(EthBlock ethBlock, String network) {
     if (ethBlock == null) {

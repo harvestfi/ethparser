@@ -75,11 +75,13 @@ class BscContractDetectorTest {
             "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
             "0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34",
             "0x41182c32f854dd97ba0e0b1816022e0acb2fc0bb",
-            "0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63"
+            "0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63",
+            "0x3ab77e40340ab084c3e23be8e5a6f7afed9d41dc",
+            "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"
         )));
 
     assertEvents(events, ContractEventAssertion.builder()
-        .eventSize(13)
+        .eventSize(15)
         .eventContractAddress("0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34")
         .txSize(1)
         .txAddress("0x2beda2c174968f2f7170d1a1722d29f0a15d29104cb1ff3ae8a63247a9656af2")

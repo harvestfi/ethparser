@@ -189,13 +189,19 @@ public class Web3Subscriber {
   }
 
   private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
-    try {
-      while (!queue.offer(o, 60, SECONDS)) {
-        log.warn("The queue is full for {}", o.getClass().getSimpleName());
+    int count = 0;
+    while (true) {
+      try {
+        boolean result = queue.offer(o, 60, SECONDS);
+        if (result) {
+          return;
+        }
+        count++;
+        log.warn("The queue is full for {}, retry {}",
+            o.getClass().getSimpleName(), count);
+      } catch (Exception e) {
+        log.error("Error write in queue", e);
       }
-
-    } catch (Exception e) {
-      log.error("Error write in queue", e);
     }
   }
 

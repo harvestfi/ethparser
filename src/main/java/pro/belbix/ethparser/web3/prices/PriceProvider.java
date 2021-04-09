@@ -118,18 +118,19 @@ public class PriceProvider {
   }
 
   // you can use Vault name instead of coinName if it is not a LP
-  public Double getPriceForCoin(String coinName, long block, String network) {
+  public Double getPriceForCoin(final String coinName, long block, String network) {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
       return 0.0;
     }
+    String nameOrAddress = coinName;
     if (coinName.startsWith("0x")) {
-      coinName = ContractUtils.getInstance(network).getNameByAddress(coinName)
-          .orElseThrow(() -> new IllegalStateException("Wrong input"));
+      nameOrAddress = ContractUtils.getInstance(network).getNameByAddress(coinName)
+          .orElseThrow(() -> new IllegalStateException("Not found name for " + coinName));
     }
-    String coinNameSimple = ContractConstants.simplifyName(coinName);
+    String coinNameSimple = ContractConstants.simplifyName(nameOrAddress);
     updateUSDPrice(coinNameSimple, block, network);
     if (ContractUtils.getInstance(network).isStableCoin(coinNameSimple) && !priceOracle
-        .isAvailable(coinName, block)) {
+        .isAvailable(nameOrAddress, block)) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -153,10 +154,10 @@ public class PriceProvider {
     String token1 = tokensAdr.component2();
     // zero address in 1inch should be replaced with ETH
     if (ZERO_ADDRESS.equalsIgnoreCase(token0)) {
-      token0 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+      token0 = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
     }
     if (ZERO_ADDRESS.equalsIgnoreCase(token1)) {
-      token1 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+      token1 = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
     }
     return new Tuple2<>(
         getPriceForCoin(token0, block, network),
@@ -190,7 +191,7 @@ public class PriceProvider {
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
-      log.warn("Saved price not found for " + name + " at block " + block);
+      log.info("Saved price not found for " + name + " at block " + block);
       return getPriceForCoinFromEth(name, block, network);
     }
     if (block - priceDTO.getBlock() > 1000) {
@@ -241,10 +242,12 @@ public class PriceProvider {
     String otherTokenName;
     if (lpTokenAdr.component1().equalsIgnoreCase(tokenAdr)) {
       otherTokenName = ContractUtils.getInstance(network).getNameByAddress(lpTokenAdr.component2())
-          .orElseThrow();
+          .orElseThrow(
+              () -> new IllegalStateException("Not found name for " + lpTokenAdr.component2()));
     } else if (lpTokenAdr.component2().equalsIgnoreCase(tokenAdr)) {
       otherTokenName = ContractUtils.getInstance(network).getNameByAddress(lpTokenAdr.component1())
-          .orElseThrow();
+          .orElseThrow(
+              () -> new IllegalStateException("Not found name for " + lpTokenAdr.component1()));
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }

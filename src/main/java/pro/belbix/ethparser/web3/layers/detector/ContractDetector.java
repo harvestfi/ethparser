@@ -174,7 +174,7 @@ public class ContractDetector {
 
     private void fillFuncData(EthTxEntity tx, ContractTxEntity contractTx, String network) {
         String input = tx.getInput();
-        if (input == null || input.isBlank()) {
+        if (input == null || input.isBlank() || input.length() < 10) {
             return;
         }
 

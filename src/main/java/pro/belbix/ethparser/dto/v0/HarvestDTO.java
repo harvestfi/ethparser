@@ -38,7 +38,7 @@ public class HarvestDTO implements DtoI {
   private Double amount;
   private Double amountIn;
   private String vault;
-  private Double lastGas;
+  private Double lastGas; // not historical data!
   private Double lastTvl;
   private Double lastUsdTvl;
   private Integer ownerCount;
