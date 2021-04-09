@@ -134,15 +134,6 @@ public class PriceProvider {
     return getLastPrice(coinNameSimple, block);
   }
 
-  public Tuple2<Double, Double> getPairPriceForStrategyHash(
-      String vaultAddress, Long block, String network) {
-    return getPairPriceForLpHash(
-        cu(network).getVaultUnderlying(vaultAddress)
-            .orElseThrow(() -> new IllegalStateException(
-                "Can't fetch underlying token for " + vaultAddress)),
-        block, network);
-  }
-
   public Tuple2<Double, Double> getPairPriceForLpHash(
       String lpHash, Long block, String network) {
     Tuple2<String, String> tokensAdr = cu(network)

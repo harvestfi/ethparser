@@ -364,8 +364,11 @@ public class HarvestVaultParserV2 implements Web3Parser {
     if (ETH_NETWORK.equals(network)) {
       underlyingAddress = dto.getVault();
     } else {
-      underlyingAddress = ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
-          .orElse(dto.getVault());
+      underlyingAddress = functionsUtils.callAddressByName(
+          UNDERLYING, vaultHash, dto.getBlock(), network)
+          .orElseThrow(
+              () -> new IllegalStateException(
+                  "Can't fetch underlying token for " + vaultHash));
     }
     Double price = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
     if (price == null) {
@@ -412,22 +415,21 @@ public class HarvestVaultParserV2 implements Web3Parser {
     double vaultSharedBalance = (vaultBalance * sharedPrice);
     dto.setLastTvl(vaultSharedBalance);
     double vaultFraction = vaultSharedBalance / lpTotalSupply;
-    String underlyingLpAddress =
-        ContractUtils.getInstance(network).getVaultUnderlying(vaultHash)
-            .orElseThrow(() -> new IllegalStateException(
+    String underlyingLpAddress = functionsUtils.callAddressByName(
+        UNDERLYING, vaultHash, dto.getBlock(), network)
+        .orElseThrow(
+            () -> new IllegalStateException(
                 "Can't fetch underlying token for " + vaultHash));
     Tuple2<Double, Double> uniPrices = priceProvider
         .getPairPriceForLpHash(underlyingLpAddress, dtoBlock, network);
 
-    double coin1Usd = uniPrices.component1();
-    double coin2Usd = uniPrices.component2();
     //suppose it's ONE_INCH ETH pair
     if (lpUnderlyingBalance1 == 0) {
-      coin2Usd = lpUnderlyingBalance2 * uniPrices.component2();
-      lpUnderlyingBalance1 = (coin2Usd / uniPrices.component1());
+      double coin2AmountUsd = lpUnderlyingBalance2 * uniPrices.component2();
+      lpUnderlyingBalance1 = (coin2AmountUsd / uniPrices.component1());
     } else if (lpUnderlyingBalance2 == 0) {
-      coin1Usd = lpUnderlyingBalance1 * uniPrices.component1();
-      lpUnderlyingBalance2 = (coin1Usd / uniPrices.component2());
+      double coin1AmountUsd = lpUnderlyingBalance1 * uniPrices.component1();
+      lpUnderlyingBalance2 = (coin1AmountUsd / uniPrices.component2());
     }
 
     double firstVault = vaultFraction * lpUnderlyingBalance1;

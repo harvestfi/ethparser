@@ -421,12 +421,6 @@ public class ContractUtils {
         .doubleValue();
   }
 
-  public Optional<String> getVaultUnderlying(String vaultAddress) {
-    return getCache().getVaultByAddress(vaultAddress)
-        .map(VaultEntity::getUnderlying)
-        .map(ContractEntity::getAddress);
-  }
-
   public boolean isOneInch(String factoryAdr) {
     if (ETH_NETWORK.equals(network)) {
       return MOONISWAP_FACTORY.equalsIgnoreCase(factoryAdr);
