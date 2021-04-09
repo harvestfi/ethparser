@@ -77,7 +77,7 @@ public class Web3Subscriber {
                 e -> log.error("Log flowable error", e));
         subscriptions.add(subscription);
      */
-    log.info("Subscribe to Log Flowable from {}", from);
+    log.info("Subscribe to Log Flowable from {}", from.getValue());
   }
 
   public void subscribeTransactionFlowable(String network) {

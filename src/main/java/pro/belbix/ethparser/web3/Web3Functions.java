@@ -208,11 +208,17 @@ public class Web3Functions {
     if (start == null) {
       fromBlock = EARLIEST;
     } else {
+      if(start < 0) {
+        return List.of();
+      }
       fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
     }
     if (end == null) {
       toBlock = LATEST;
     } else {
+      if(end<0) {
+        return List.of();
+      }
       toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
     }
     EthFilter filter = new EthFilter(fromBlock,
