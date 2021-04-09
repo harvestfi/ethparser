@@ -48,6 +48,36 @@ public class HarvestVaultParserBscTest {
   }
 
   @Test
+  void test_EGG_BNB() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0xe3f309F151746b3C0953e4C0E455bFf3dc2176AA", 6231367);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0xa37fb128db5433af348b7798468e885e9471c23ed7ed117684602a998b98cbac")
+        .block(6231367L)
+        .blockDate(1617409428L)
+        .confirmed(1)
+        .methodName("Deposit")
+        .owner("0x7bcab1384ab339d5b0e92e93709c2a869785b4a3")
+        .vault("EGG_BNB")
+        .amount(2.1605310506235966)
+        .usdAmount(345L)
+        .lastTvl(22.42643322642496)
+        .lastUsdTvl(3579.0)
+        .ownerBalance(2.1605310506235966)
+        .ownerBalanceUsd(344.7824953160484)
+        .sharePrice(1.)
+        .lpStat(null)
+        .ownerCount(1)
+        .migrated(false)
+        .underlyingPrice(null)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+  }
+
+  @Test
   void test_ONEINCH_RENBTC() throws Exception {
     HarvestDTO harvestDTO = loadHarvestDto(
         "0xbF2989575dE9850F0A4b534740A88F5D2b460A4f", 6231363);
