@@ -116,6 +116,8 @@ class EthLpAddresses {
       new LpContract(11878846, "UNI_LP_ROPE20_ETH", "ROPE20",
           "0x95ACF4ba2c53E31Db1459172332D52bAaC433bB3"),
       new LpContract(10091428, "UNI_LP_LINK_ETH", "LINK",
-          "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974")
+          "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974"),
+      new LpContract(12030599, "UNI_LP_MCAT20_ETH", "MCAT20",
+          "0x31C507636a4cAB752A8A069B865099924BD5F1a9")
   );
 }
