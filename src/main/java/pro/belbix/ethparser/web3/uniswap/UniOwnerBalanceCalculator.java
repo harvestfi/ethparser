@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -18,7 +17,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class UniOwnerBalanceCalculator {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
   private final UniswapRepository uniswapRepository;
@@ -63,18 +62,18 @@ public class UniOwnerBalanceCalculator {
       return false;
     }
     BigInteger balanceI = functionsUtils.callIntByName(
-        BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue())
+        BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue(), ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
     if (balanceI == null) {
       log.warn("Can reach lp balance for " + dto.print());
       return false;
     }
-    double balance = parseAmount(balanceI, lpHash);
+    double balance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, lpHash);
     dto.setOwnerBalance(balance);
 
     //fill USD value
     double amountUsd = priceProvider
-        .getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue());
+        .getLpTokenUsdPrice(lpHash, balance, dto.getBlock().longValue(), ETH_NETWORK);
     dto.setOwnerBalanceUsd(amountUsd);
     return true;
   }

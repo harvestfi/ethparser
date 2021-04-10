@@ -47,7 +47,7 @@ public class ContractLoaderTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
+    contractLoader.load(BSC_NETWORK, ETH_NETWORK);
   }
 
   @Test

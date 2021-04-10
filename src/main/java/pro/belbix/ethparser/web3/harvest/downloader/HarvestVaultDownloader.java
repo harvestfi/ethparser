@@ -22,7 +22,7 @@ import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 @SuppressWarnings("rawtypes")
 @Service
 public class HarvestVaultDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HarvestVaultDownloader.class);
   private final Web3Functions web3Functions;
   private final HarvestDBService harvestDBService;
@@ -54,16 +54,16 @@ public class HarvestVaultDownloader {
 
   private void parse(String vaultHash, Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(vaultHash), start, end);
+        .fetchContractLogs(singletonList(vaultHash), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {} {}", start, end, vaultHash);
       return;
     }
     for (LogResult logResult : logResults) {
       try {
-        HarvestDTO dto = harvestVaultParserV2.parseVaultLog((Log) logResult.get());
+        HarvestDTO dto = harvestVaultParserV2.parseVaultLog((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
-          harvestOwnerBalanceCalculator.fillBalance(dto);
+          harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
           harvestDBService.saveHarvestDTO(dto);
         }
       } catch (Exception e) {

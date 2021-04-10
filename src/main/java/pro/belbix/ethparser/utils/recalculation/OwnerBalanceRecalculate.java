@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.utils.recalculation;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
@@ -28,7 +30,7 @@ public class OwnerBalanceRecalculate {
 
   public void start() {
     harvestRepository.fetchAllWithoutOwnerBalance().forEach(dto -> {
-      boolean success = harvestOwnerBalanceCalculator.fillBalance(dto);
+      boolean success = harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
       if (success) {
         harvestRepository.save(dto);
         log.info("HARVEST Balance recalculated for  " + dto.print());

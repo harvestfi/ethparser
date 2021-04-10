@@ -4,7 +4,12 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +27,8 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @SuppressWarnings("rawtypes")
 public class RewardDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
   private final Web3Functions web3Functions;
   private final RewardParser rewardParser;
@@ -31,6 +37,8 @@ public class RewardDownloader {
 
   @Value("${reward-download.contract:}")
   private String contractName;
+  @Value("${reward-download.exclude:}")
+  private String[] exclude;
   @Value("${reward-download.from:}")
   private Integer from;
   @Value("${reward-download.to:}")
@@ -47,17 +55,30 @@ public class RewardDownloader {
   }
 
   public void start() {
-    priceProvider.setUpdateBlockDifference(1);
-    logger.info("Start parse rewards for " + contractName);
-    handleLoop(from, to, (from, end) -> parse(from, end,
-        contractUtils.getAddressByName(contractName, ContractType.POOL)
-            .orElseThrow(() -> new IllegalStateException("Not found address by " + contractName))
-    ));
-
+    if (!Strings.isBlank(contractName)) {
+      String adr = contractUtils.getAddressByName(contractName, ContractType.POOL)
+          .orElseThrow();
+      handleLoop(from, to, (from, end) -> parse(from, end, adr));
+    } else {
+      Set<String> excludeSet = new HashSet<>();
+      if (exclude != null && exclude.length != 0) {
+        excludeSet = new HashSet<>(Arrays.asList(exclude));
+      }
+      for (String contractAddress : contractUtils.getAllPools().stream()
+          .map(v -> v.getContract().getAddress())
+          .collect(Collectors.toList())) {
+        if (excludeSet.contains(contractUtils.getNameByAddress(contractAddress)
+            .orElseThrow())) {
+          continue;
+        }
+        logger.info("Start parse rewards for " + contractName);
+        handleLoop(from, to, (from, end) -> parse(from, end, contractAddress));
+      }
+    }
   }
 
   private void parse(Integer start, Integer end, String contract) {
-    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end);
+    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       logger.info("Empty log {} {}", start, end);
       return;

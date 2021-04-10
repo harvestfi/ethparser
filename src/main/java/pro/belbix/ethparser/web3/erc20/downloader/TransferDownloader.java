@@ -21,7 +21,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class TransferDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final Web3Functions web3Functions;
   private final PriceProvider priceProvider;
   private final TransferDBService transferDBService;
@@ -55,7 +55,7 @@ public class TransferDownloader {
   }
 
   private void parse(Integer start, Integer end, String contract) {
-    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end);
+    List<LogResult> logResults = web3Functions.fetchContractLogs(singletonList(contract), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

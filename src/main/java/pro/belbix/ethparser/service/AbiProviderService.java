@@ -25,16 +25,8 @@ public class AbiProviderService {
   private final static String BSC_URL = "https://api.bscscan.com/api";
   private final static String PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
-  private final String url;
 
-  public AbiProviderService(String network) {
-    if (ETH_NETWORK.equals(network)) {
-      this.url = ETHERSCAN_URL;
-    } else if (BSC_NETWORK.equals(network)) {
-      this.url = BSC_URL;
-    } else {
-      throw new IllegalStateException("Unknown network " + network);
-    }
+  public AbiProviderService() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     MappingJackson2HttpMessageConverter convertor = new MappingJackson2HttpMessageConverter();
@@ -42,7 +34,7 @@ public class AbiProviderService {
     restTemplate.setMessageConverters(Collections.singletonList(convertor));
   }
 
-  public SourceCodeResult contractSourceCode(String address, String apiKey) {
+  public SourceCodeResult contractSourceCode(String address, String apiKey, String network) {
     Map<String, ?> uriVariables = Map.of(
         "module", "contract",
         "action", "getsourcecode",
@@ -51,7 +43,7 @@ public class AbiProviderService {
     );
     ResponseEntity<ResponseSourceCode> response;
     try {
-      response = sendRequest(uriVariables);
+      response = sendRequest(uriVariables, network);
     } catch (Exception e) {
       log.error("Error fetch contract info for {}", address, e);
       return null;
@@ -88,12 +80,12 @@ public class AbiProviderService {
     return result;
   }
 
-  private ResponseEntity<ResponseSourceCode> sendRequest(Map<String, ?> vars) {
+  private ResponseEntity<ResponseSourceCode> sendRequest(Map<String, ?> vars, String network) {
     int count = 0;
     while (true) {
       try {
         return restTemplate.getForEntity(
-            url + PARAMS,
+            getUrl(network) + PARAMS,
             ResponseSourceCode.class,
             vars
         );
@@ -109,6 +101,16 @@ public class AbiProviderService {
         } catch (InterruptedException ignored) {
         }
       }
+    }
+  }
+
+  private String getUrl(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return ETHERSCAN_URL;
+    } else if (BSC_NETWORK.equals(network)) {
+      return BSC_URL;
+    } else {
+      throw new IllegalStateException("Unknown network " + network);
     }
   }
 

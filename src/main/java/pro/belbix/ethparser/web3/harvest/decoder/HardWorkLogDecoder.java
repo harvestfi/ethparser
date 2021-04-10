@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.decoder;
 
 import java.math.BigInteger;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
@@ -11,17 +12,25 @@ import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Log4j2
 public class HardWorkLogDecoder extends MethodDecoder {
 
   public HardWorkTx decode(Log ethLog) {
     if (!isValidLog(ethLog)) {
       return null;
     }
-    String methodId = parseMethodId(ethLog)
-        .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
-    String methodName = methodNamesByMethodId.get(methodId);
-    List<TypeReference<Type>> parameters = findParameters(methodId)
-        .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
+    List<TypeReference<Type>> parameters;
+    String methodName;
+    try {
+      String methodId = parseMethodId(ethLog)
+          .orElseThrow(() -> new IllegalStateException("Unknown topic " + ethLog));
+      methodName = methodNamesByMethodId.get(methodId);
+      parameters = findParameters(methodId)
+          .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
+    } catch (IllegalStateException e) {
+      log.warn("Can't parse method {}", ethLog);
+      return null;
+    }
 
     List<Type> types = extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters);
     HardWorkTx tx = new HardWorkTx();

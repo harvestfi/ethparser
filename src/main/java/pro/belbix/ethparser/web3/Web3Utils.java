@@ -9,7 +9,7 @@ public class Web3Utils {
   private Web3Utils() {
   }
 
-  public final static int RETRY_COUNT = 5;
+  public final static int RETRY_COUNT = 5000;
 
   public static <T> T callWithRetry(Callable<T> callable) {
     int count = 0;
@@ -23,7 +23,7 @@ public class Web3Utils {
           return null;
         }
       } catch (Exception e) { //by default all errors, but can be filtered by type
-        log.warn("Retryable error: " + e.getMessage());
+        log.warn("Retryable error", e);
         lastError = e;
       }
 

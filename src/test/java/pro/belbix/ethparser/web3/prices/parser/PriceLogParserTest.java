@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.Collections;
 import java.util.List;
@@ -99,7 +100,7 @@ public class PriceLogParserTest {
                                    double price
     ) {
         List<LogResult> logResults = web3Functions
-            .fetchContractLogs(Collections.singletonList(contract), onBlock, onBlock);
+            .fetchContractLogs(Collections.singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
         PriceDTO dto = priceLogParser.parse((Log) logResults.get(logId));

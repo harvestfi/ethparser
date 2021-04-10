@@ -13,7 +13,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
@@ -95,8 +94,8 @@ public class ContractLoader {
         log.info("Contracts for {} already loaded", network);
         continue;
       }
-      loaded.add(network); // on the first line for avoiding hundreds attempts to load broken config
-      functionsUtils.setCurrentNetwork(network);
+      loaded.add(
+          network); // on the first line for avoiding hundreds attempts to loading broken config
       long block = ethBlockService.getLastBlock(network);
       log.info("Start load contracts for {} on block {}", network, block);
       loadNetwork(network, block);
@@ -131,10 +130,10 @@ public class ContractLoader {
       if (tokenEntity == null) {
         tokenEntity = new TokenEntity();
         tokenEntity.setContract(tokenContract);
-        enrichToken(tokenEntity, block);
+        enrichToken(tokenEntity, block, network);
         tokenRepository.save(tokenEntity);
       } else if (appProperties.isUpdateContracts()) {
-        enrichToken(tokenEntity, block);
+        enrichToken(tokenEntity, block, network);
         tokenRepository.save(tokenEntity);
       }
 
@@ -232,17 +231,17 @@ public class ContractLoader {
     }
   }
 
-  private void enrichToken(TokenEntity tokenEntity, long block) {
+  private void enrichToken(TokenEntity tokenEntity, long block, String network) {
     if (appProperties.isOnlyApi()) {
       return;
     }
     String address = tokenEntity.getContract().getAddress();
     tokenEntity.setName(
-        functionsUtils.callStrByName(FunctionsNames.NAME, address, block).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.NAME, address, block, network).orElse(""));
     tokenEntity.setSymbol(
-        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block, network).orElse(""));
     tokenEntity.setDecimals(
-        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block)
+        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
     tokenEntity.setUpdatedBlock(block);
   }
@@ -254,7 +253,7 @@ public class ContractLoader {
     vaultEntity.setUpdatedBlock(block);
     String address = vaultEntity.getContract().getAddress();
     vaultEntity.setController(findOrCreateContract(
-        functionsUtils.callAddressByName(CONTROLLER, address, block).orElse(""),
+        functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -262,7 +261,7 @@ public class ContractLoader {
         network
     ));
     vaultEntity.setGovernance(findOrCreateContract(
-        functionsUtils.callAddressByName(GOVERNANCE, address, block).orElse(""),
+        functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -277,7 +276,7 @@ public class ContractLoader {
       return;
     }
     vaultEntity.setStrategy(findOrCreateContract(
-        functionsUtils.callAddressByName(STRATEGY, address, block).orElse(""),
+        functionsUtils.callAddressByName(STRATEGY, address, block, network).orElse(""),
         AddressType.UNKNOWN_STRATEGY.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -285,7 +284,7 @@ public class ContractLoader {
         network
     ));
     vaultEntity.setUnderlying(findOrCreateContract(
-        functionsUtils.callAddressByName(UNDERLYING, address, block).orElse(""),
+        functionsUtils.callAddressByName(UNDERLYING, address, block, network).orElse(""),
         AddressType.UNKNOWN_UNDERLYING.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -293,14 +292,14 @@ public class ContractLoader {
         network
     ));
     vaultEntity.setName(
-        functionsUtils.callStrByName(FunctionsNames.NAME, address, block).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.NAME, address, block, network).orElse(""));
     vaultEntity.setSymbol(
-        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block, network).orElse(""));
     vaultEntity.setDecimals(
-        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block)
+        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
     vaultEntity.setUnderlyingUnit(
-        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, block)
+        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
   }
 
@@ -310,7 +309,7 @@ public class ContractLoader {
     }
     String address = poolEntity.getContract().getAddress();
     poolEntity.setController(findOrCreateContract(
-        functionsUtils.callAddressByName(CONTROLLER, address, block).orElse(""),
+        functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -318,7 +317,7 @@ public class ContractLoader {
         network
     ));
     poolEntity.setGovernance(findOrCreateContract(
-        functionsUtils.callAddressByName(GOVERNANCE, address, block).orElse(""),
+        functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -326,7 +325,7 @@ public class ContractLoader {
         network
     ));
     poolEntity.setOwner(findOrCreateContract(
-        functionsUtils.callAddressByName(OWNER, address, block).orElse(""),
+        functionsUtils.callAddressByName(OWNER, address, block, network).orElse(""),
         AddressType.OWNER.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -334,7 +333,7 @@ public class ContractLoader {
         network
     ));
     poolEntity.setLpToken(findOrCreateContract(
-        functionsUtils.callAddressByName(LP_TOKEN, address, block).orElse(""),
+        functionsUtils.callAddressByName(LP_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_VAULT.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -342,7 +341,7 @@ public class ContractLoader {
         network
     ));
     poolEntity.setRewardToken(findOrCreateContract(
-        functionsUtils.callAddressByName(REWARD_TOKEN, address, block).orElse(""),
+        functionsUtils.callAddressByName(REWARD_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_REWARD_TOKEN.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
@@ -358,10 +357,10 @@ public class ContractLoader {
     }
     String address = uniPairEntity.getContract().getAddress();
     uniPairEntity.setDecimals(
-        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block)
+        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
     uniPairEntity.setToken0(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN0, address, block).orElse(""),
+        functionsUtils.callAddressByName(TOKEN0, address, block, network).orElse(""),
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -369,7 +368,7 @@ public class ContractLoader {
         network
     ));
     uniPairEntity.setToken1(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN1, address, block).orElse(""),
+        functionsUtils.callAddressByName(TOKEN1, address, block, network).orElse(""),
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -377,15 +376,15 @@ public class ContractLoader {
         network
     ));
 
-    uniPairEntity.setType(defineUniPairType(address, block));
+    uniPairEntity.setType(defineUniPairType(address, block, network));
     uniPairEntity.setUpdatedBlock(block);
   }
 
-  private int defineUniPairType(String address, long block) {
+  private int defineUniPairType(String address, long block, String network) {
     int type = 0;
     String factoryAdr = null;
     try {
-      factoryAdr = functionsUtils.callAddressByName(FACTORY, address, block)
+      factoryAdr = functionsUtils.callAddressByName(FACTORY, address, block, network)
           .orElse("");
     } catch (Exception ignored) {
     }
@@ -396,12 +395,12 @@ public class ContractLoader {
     } else {
       try {
         factoryAdr = functionsUtils
-            .callAddressByName(MOONISWAP_FACTORY_GOVERNANCE, address, block)
+            .callAddressByName(MOONISWAP_FACTORY_GOVERNANCE, address, block, network)
             .orElse("");
       } catch (Exception ignored) {
       }
 
-      if (MOONISWAP_FACTORY.equalsIgnoreCase(factoryAdr)) {
+      if (ContractUtils.getInstance(network).isOneInch(factoryAdr)) {
         type = PAIR_TYPE_ONEINCHE;
       }
     }
@@ -437,7 +436,14 @@ public class ContractLoader {
     log.info("Start link UniPairs to Tokens on block {}", block);
     for (TokenContract tokenContract : sourceResolver.getTokens(network)) {
       for (Entry<String, Integer> lp : tokenContract.getLps().entrySet()) {
-        UniPairEntity uniPair = getCache(network).getUniPairByName(lp.getKey()).orElse(null);
+        String lpNameOrAddress = lp.getKey();
+        UniPairEntity uniPair;
+        if (lpNameOrAddress.startsWith("0x")) {
+          uniPair = getCache(network).getUniPairByAddress(lpNameOrAddress).orElse(null);
+        } else {
+          uniPair = getCache(network).getUniPairByName(lpNameOrAddress).orElse(null);
+        }
+
         if (uniPair == null) {
           log.error("Not found lp for {} on {}", lp.getKey(), network);
           continue;

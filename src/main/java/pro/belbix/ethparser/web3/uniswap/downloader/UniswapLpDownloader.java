@@ -21,7 +21,7 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 @SuppressWarnings("rawtypes")
 @Service
 public class UniswapLpDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
   private final Web3Functions web3Functions;
   private final UniswapDbService saveHarvestDTO;
@@ -51,7 +51,7 @@ public class UniswapLpDownloader {
         singletonList(
             contractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
         from,
-        to
+        to, ETH_NETWORK
     );
     if (logResults == null) {
       logger.error("Log results is null");

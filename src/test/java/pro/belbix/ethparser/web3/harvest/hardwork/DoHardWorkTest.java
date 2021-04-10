@@ -1,10 +1,11 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.hardwork;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.util.Collections;
@@ -42,7 +43,6 @@ public class DoHardWorkTest {
     @BeforeEach
     public void setUp() throws Exception {
         contractLoader.load();
-        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test
@@ -223,7 +223,7 @@ public class DoHardWorkTest {
         String fullRewardUsd = numberFormat(_fullRewardUsd);
         String farmBuyback = numberFormat(_farmBuyback);
         List<LogResult> logResults = web3Functions
-            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock);
+            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
         HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0));

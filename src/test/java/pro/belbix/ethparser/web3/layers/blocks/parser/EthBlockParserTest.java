@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockAssertions.assertBlock;
 import static pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockAssertions.assertContracts;
 
@@ -44,7 +45,7 @@ public class EthBlockParserTest {
     @Test
     void testBlockParsing_0() {
         EthBlockEntity block = ethBlockParser.parse(
-            web3Functions.findBlockByNumber(0, true));
+            web3Functions.findBlockByNumber(0, true, ETH_NETWORK), ETH_NETWORK);
         assertNotNull(block, "EthBlockEntity is null");
         assertAll(
             () -> assertEquals(0, block.getNumber(), "block num"),
@@ -56,8 +57,8 @@ public class EthBlockParserTest {
     @Test
     void testBlockParsing_12055816() throws IOException, URISyntaxException {
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(
-            web3Functions.findBlockByNumber(12055816, true));
-        assertContracts(ethBlockEntity, "data/12055816_contracts.txt");
+            web3Functions.findBlockByNumber(12055816, true, ETH_NETWORK), ETH_NETWORK);
+        assertContracts(ethBlockEntity, "data/12055816_eth_contracts.txt");
         assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(12055816)
             .blockTimestamp(1615979134)
@@ -84,15 +85,15 @@ public class EthBlockParserTest {
             .build());
         EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity);
         assertNotNull(persisted);
-        assertContracts(persisted, "data/12055816_contracts.txt");
+        assertContracts(persisted, "data/12055816_eth_contracts.txt");
         assertNull(ethBlockDbService.save(ethBlockEntity));
     }
 
     @Test
     void testBlockParsing_10800000() throws IOException, URISyntaxException {
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(
-            web3Functions.findBlockByNumber(10800000, true));
-        assertContracts(ethBlockEntity, "data/10800000_contracts.txt");
+            web3Functions.findBlockByNumber(10800000, true, ETH_NETWORK), ETH_NETWORK);
+        assertContracts(ethBlockEntity, "data/10800000_eth_contracts.txt");
         assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(10800000)
             .blockTimestamp(1599290487)
@@ -118,14 +119,14 @@ public class EthBlockParserTest {
             .logTopics(
                 "0x000000000000000000000000d2d865c9d2960b53127c3bfca8a237bc7c803adc,0x0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d")
             .build());
-        assertContracts(ethBlockEntity, "data/10800000_contracts.txt");
+        assertContracts(ethBlockEntity, "data/10800000_eth_contracts.txt");
     }
 
     @Test
     void testBlockParsing__SUSHI_HODL_12030868() throws IOException, URISyntaxException {
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(
-            web3Functions.findBlockByNumber(12030868, true));
-        assertContracts(ethBlockEntity, "data/12030868_contracts.txt");
+            web3Functions.findBlockByNumber(12030868, true, ETH_NETWORK), ETH_NETWORK);
+        assertContracts(ethBlockEntity, "data/12030868_eth_contracts.txt");
         assertBlock(ethBlockEntity, EthBlockTestData.builder()
             .blockNum(12030868)
             .blockTimestamp(1615647154)
@@ -151,7 +152,7 @@ public class EthBlockParserTest {
             .logTopics(
                 "0x000000000000000000000000acc865b581314595eb7d68afa109678797cbf0a1,0x000000000000000000000000f050227be1a7ce587aa83d5013f900dbc3be0611")
             .build());
-        assertContracts(ethBlockEntity, "data/12030868_contracts.txt");
+        assertContracts(ethBlockEntity, "data/12030868_eth_contracts.txt");
     }
 
     @Test
@@ -159,8 +160,8 @@ public class EthBlockParserTest {
         throws JsonProcessingException, ExecutionException, InterruptedException {
         EthBlockEntity ethBlockEntity = ethBlockParser.parse(web3Functions.findBlockByHash(
             "0xaa20f7bde5be60603f11a45fc4923aab7552be775403fc00c2e6b805e6297dbe",
-            true
-        ));
+            true, ETH_NETWORK
+        ), ETH_NETWORK);
         assertNotNull(ethBlockEntity);
         String entityStr = new ObjectMapper().writeValueAsString(ethBlockEntity);
         assertNotNull(entityStr);

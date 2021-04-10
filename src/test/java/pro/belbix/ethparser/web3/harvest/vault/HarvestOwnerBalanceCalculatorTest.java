@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.vault;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -73,11 +75,11 @@ public class HarvestOwnerBalanceCalculatorTest {
       String ownerBalance = numberFormat(_ownerBalance);
       String ownerBalanceUsd = numberFormat(_ownerBalanceUsd);
       List<LogResult> logResults = web3Functions
-          .fetchContractLogs(singletonList(fromVault), onBlock, onBlock);
+          .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary", logId < logResults.size());
-      HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get());
+      HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertNotNull(dto, "Dto is null");
-      boolean result = harvestOwnerBalanceCalculator.fillBalance(dto);
+      boolean result = harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
       assertTrue(result);
       assertAll(
           () -> assertEquals("owner balance", ownerBalance,

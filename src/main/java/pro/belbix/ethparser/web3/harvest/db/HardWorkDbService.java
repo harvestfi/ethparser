@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
@@ -191,7 +192,7 @@ public class HardWorkDbService {
         dto.getBlockDate());
     dto.setPoolUsers(owners);
 
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock());
+    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), ETH_NETWORK);
 
     dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
 

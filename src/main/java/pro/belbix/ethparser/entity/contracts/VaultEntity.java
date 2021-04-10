@@ -42,6 +42,7 @@ public class VaultEntity {
     private ContractEntity strategy;
     @ManyToOne(fetch = FetchType.EAGER)
     @Fetch(FetchMode.JOIN)
+    @Deprecated // it is changing with time - only for real data!
     private ContractEntity underlying;
     private String name;
     private String symbol;

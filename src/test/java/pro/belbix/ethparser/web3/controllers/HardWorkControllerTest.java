@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,7 +49,7 @@ public class HardWorkControllerTest {
     public void shouldTotalCalculateHardWorksFeeByPeriodsAndVault() {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
-            .getTimestampSecForBlock(fakeBlock);
+            .getTimestampSecForBlock(fakeBlock, ETH_NETWORK);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String data = response.getData();
         Assertions.assertEquals("161.97026179", data);

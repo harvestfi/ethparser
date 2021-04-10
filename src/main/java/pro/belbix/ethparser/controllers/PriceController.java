@@ -48,7 +48,7 @@ public class PriceController {
             if (network == null || Strings.isBlank(network)) {
                 network = ETH_NETWORK;
             }
-            ContractUtils contractUtils = new ContractUtils(network);
+            ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
                 if (!contractUtils.isUniPairName(lp)) {
@@ -63,7 +63,7 @@ public class PriceController {
                 block = ethBlockService.getLastBlock();
             }
             double amountUsd = priceProvider.getLpTokenUsdPrice(
-                lpAddress.toLowerCase(), amount, block);
+                lpAddress.toLowerCase(), amount, block, network);
             return RestResponse.ok(String.format("%.8f", amountUsd)).addBlock(block);
         } catch (Exception e) {
             log.warn("Error lp request", e);
@@ -85,13 +85,13 @@ public class PriceController {
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
             }
-            ContractUtils contractUtils = new ContractUtils(network);
+            ContractUtils contractUtils = ContractUtils.getInstance(network);
             if (token.startsWith("0x")) {
                 //shortcut for LP tokens from the dashboard
                 if (contractUtils.isUniPairAddress(token)) {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getLpTokenUsdPrice(
-                            token.toLowerCase(), 1, block)
+                            token.toLowerCase(), 1, block, network)
                         )
                     ).addBlock(block);
                 }
@@ -105,7 +105,7 @@ public class PriceController {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getPriceForCoin(
                             vaultO.get().getContract().getName(),
-                            block)
+                            block, ETH_NETWORK)
                         )
                     ).addBlock(block);
                 }
@@ -115,7 +115,7 @@ public class PriceController {
                     return RestResponse.error("Token " + token + " not supported");
                 }
             }
-            double usdPrice = priceProvider.getPriceForCoin(tokenName, block);
+            double usdPrice = priceProvider.getPriceForCoin(tokenName, block, ETH_NETWORK);
             return RestResponse.ok(String.format("%.8f", usdPrice)).addBlock(block);
         } catch (Exception e) {
             log.warn("Error token request", e);

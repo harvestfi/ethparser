@@ -17,7 +17,7 @@ import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
 @Service
 @Log4j2
 public class NewStrategyDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final HarvestVaultDownloader harvestVaultDownloader;
   private final RewardDownloader rewardDownloader;
   private final HardWorkDownloader hardWorkDownloader;

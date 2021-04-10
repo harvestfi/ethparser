@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
@@ -56,11 +55,11 @@ public class Web3Subscriber {
     this.ethBlockRepository = ethBlockRepository;
   }
 
-  public void subscribeLogFlowable() {
+  public void subscribeLogFlowable(String network) {
     if (!appProperties.isParseLog()) {
       return;
     }
-    web3Functions.waitInit();
+    web3Functions.waitInit(network);
     DefaultBlockParameter from;
     if (Strings.isBlank(appProperties.getStartLogBlock())) {
       from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
@@ -68,8 +67,8 @@ public class Web3Subscriber {
       from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
     }
     EthFilter filter = new EthFilter(
-        from, LATEST, new ContractUtils(ETH_NETWORK).getSubscriptions());
-    startLogFlowableThread(filter);
+        from, LATEST, ContractUtils.getInstance(network).getSubscriptions());
+    startLogFlowableThread(filter, network);
     //NPE https://github.com/web3j/web3j/issues/1264
     /*
         Disposable subscription = web3.ethLogFlowable(filter)
@@ -78,10 +77,10 @@ public class Web3Subscriber {
                 e -> log.error("Log flowable error", e));
         subscriptions.add(subscription);
      */
-    log.info("Subscribe to Log Flowable from {}", from);
+    log.info("Subscribe to Log Flowable from {}", from.getValue());
   }
 
-  public void subscribeTransactionFlowable() {
+  public void subscribeTransactionFlowable(String network) {
     if (!appProperties.isParseTransactions()) {
       return;
     }
@@ -91,14 +90,14 @@ public class Web3Subscriber {
       return null;
     });
     subscriptions.put(name,
-        web3Functions.transactionFlowable(appProperties.getStartTransactionBlock())
+        web3Functions.transactionFlowable(appProperties.getStartTransactionBlock(), network)
             .subscribe(tx -> transactionConsumers.forEach(queue ->
                     writeInQueue(queue, tx)),
                 e -> {
                   log.error("Transaction flowable error", e);
                   if (appProperties.isReconnectOnWeb3Errors()) {
                     Thread.sleep(10000);
-                    subscribeTransactionFlowable();
+                    subscribeTransactionFlowable(network);
                   } else {
                     if (appProperties.isStopOnParseError()) {
                       System.exit(-1);
@@ -109,7 +108,7 @@ public class Web3Subscriber {
     log.info("Subscribe to Transaction Flowable");
   }
 
-  public void subscribeOnBlocks() {
+  public void subscribeOnBlocks(String network) {
     if (!appProperties.isParseBlocks()) {
       return;
     }
@@ -121,14 +120,14 @@ public class Web3Subscriber {
     subscriptions.put(name,
         web3Functions.blockFlowable(appProperties.getParseBlocksFrom(), () ->
             Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
-                .map(EthBlockEntity::getNumber))
+                .map(EthBlockEntity::getNumber), network)
             .subscribe(tx -> blockConsumers.forEach(queue ->
                     writeInQueue(queue, tx)),
                 e -> {
                   log.error("Block flowable error", e);
                   if (appProperties.isReconnectOnWeb3Errors()) {
                     Thread.sleep(10000);
-                    subscribeOnBlocks();
+                    subscribeOnBlocks(network);
                   } else {
                     if (appProperties.isStopOnParseError()) {
                       System.exit(-1);
@@ -142,10 +141,11 @@ public class Web3Subscriber {
   public Disposable getTransactionFlowableRangeSubscription(
       BlockingQueue<Transaction> transactionQueue,
       DefaultBlockParameter start,
-      DefaultBlockParameter end) {
+      DefaultBlockParameter end,
+      String network) {
     log.info("Start flow for block range " + start.getValue() + " - " + end.getValue());
     Disposable subscription =
-        web3Functions.transactionsFlowable(start, end).subscribe(
+        web3Functions.transactionsFlowable(start, end, network).subscribe(
             tx -> writeInQueue(transactionQueue, tx),
             e -> log.error("Transaction flowable error", e)
         );
@@ -171,8 +171,8 @@ public class Web3Subscriber {
     }
   }
 
-  public void startLogFlowableThread(EthFilter filter) {
-    Web3LogFlowable logFlowable = new Web3LogFlowable(filter, web3Functions, logConsumers);
+  public void startLogFlowableThread(EthFilter filter, String network) {
+    Web3LogFlowable logFlowable = new Web3LogFlowable(filter, web3Functions, logConsumers, network);
     new Thread(logFlowable).start();
   }
 
@@ -189,13 +189,19 @@ public class Web3Subscriber {
   }
 
   private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
-    try {
-      while (!queue.offer(o, 60, SECONDS)) {
-        log.warn("The queue is full for {}", o.getClass().getSimpleName());
+    int count = 0;
+    while (true) {
+      try {
+        boolean result = queue.offer(o, 60, SECONDS);
+        if (result) {
+          return;
+        }
+        count++;
+        log.warn("The queue is full for {}, retry {}",
+            o.getClass().getSimpleName(), count);
+      } catch (Exception e) {
+        log.error("Error write in queue", e);
       }
-
-    } catch (Exception e) {
-      log.error("Error write in queue", e);
     }
   }
 

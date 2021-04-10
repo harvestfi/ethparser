@@ -1,9 +1,7 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -36,7 +34,7 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 @Log4j2
 public class PriceLogParser implements Web3Parser {
 
-  private static final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
@@ -131,7 +129,7 @@ public class PriceLogParser implements Web3Parser {
     fillLpStats(dto);
 
     dto.setBlockDate(
-        ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue()));
+        ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue(), ETH_NETWORK));
     log.info(dto.print());
     return dto;
   }
@@ -141,9 +139,9 @@ public class PriceLogParser implements Web3Parser {
         .orElseThrow(
             () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
-        lpAddress, dto.getBlock(), contractUtils.getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE);
-    double lpBalance = parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock())
+        lpAddress, dto.getBlock(), ETH_NETWORK);
+    double lpBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
+        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock(), ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress);
     dto.setLpTotalSupply(lpBalance);
@@ -249,7 +247,7 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private static double parseAmountFromTx(PriceTx tx, int i, String name) {
-    return parseAmount(tx.getIntegers()[i],
+    return ContractUtils.getInstance(ETH_NETWORK).parseAmount(tx.getIntegers()[i],
         contractUtils.getAddressByName(name, ContractType.TOKEN)
             .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
     );
