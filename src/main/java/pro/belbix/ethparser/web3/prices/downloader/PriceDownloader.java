@@ -69,7 +69,7 @@ public class PriceDownloader {
     List<PriceDTO> result = new ArrayList<>();
     for (LogResult logResult : logResults) {
       try {
-        PriceDTO dto = priceLogParser.parse((Log) logResult.get());
+        PriceDTO dto = priceLogParser.parse((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
           result.add(dto);
         }

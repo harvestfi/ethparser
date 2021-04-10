@@ -22,7 +22,7 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class PriceLogParserTest {
+public class PriceLogParserEthTest {
 
   @Autowired
   private PriceLogParser priceLogParser;
@@ -103,7 +103,7 @@ public class PriceLogParserTest {
             .fetchContractLogs(Collections.singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
-        PriceDTO dto = priceLogParser.parse((Log) logResults.get(logId));
+        PriceDTO dto = priceLogParser.parse((Log) logResults.get(logId), ETH_NETWORK);
         assertNotNull(dto);
         assertAll(
             () -> assertEquals("id", id, dto.getId()),
