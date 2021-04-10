@@ -399,15 +399,15 @@ public class ContractUtils {
     contracts.addAll(getCache().getAllVaults().stream()
         .map(v -> v.getContract().getAddress())
         .collect(Collectors.toList()));
-//    contracts.addAll(getCache().getAllPools().stream()
-//        .map(v -> v.getContract().getAddress())
-//        .collect(Collectors.toList()));
-    // price parsing
-//    contracts.addAll(getCache().getLpEntities().stream()
-//        .filter(u -> u.getKeyToken() != null)
-//        .map(UniPairEntity::getContract)
-//        .map(ContractEntity::getAddress)
-//        .collect(Collectors.toList()));
+    contracts.addAll(getCache().getAllPools().stream()
+        .map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList()));
+//     price parsing
+    contracts.addAll(getCache().getLpEntities().stream()
+        .filter(u -> u.getKeyToken() != null)
+        .map(UniPairEntity::getContract)
+        .map(ContractEntity::getAddress)
+        .collect(Collectors.toList()));
 
     return new ArrayList<>(contracts);
   }
