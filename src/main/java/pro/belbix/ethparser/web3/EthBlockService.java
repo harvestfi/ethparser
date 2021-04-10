@@ -1,12 +1,11 @@
 package pro.belbix.ethparser.web3;
 
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
-import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.v0.BlockCacheEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
@@ -19,10 +18,10 @@ public class EthBlockService {
   private final BlockCacheRepository blockCacheRepository;
   private final EthBlockRepository ethBlockRepository;
   private final AppProperties appProperties;
-  private long lastBlockEth = 0L;
-  private long lastBlockBsc = 0L;
+  private Map<String, Long> blockCache = new HashMap<>();
 
-  public EthBlockService(Web3Functions web3, BlockCacheRepository blockCacheRepository,
+  public EthBlockService(Web3Functions web3,
+      BlockCacheRepository blockCacheRepository,
       EthBlockRepository ethBlockRepository,
       AppProperties appProperties) {
     this.web3 = web3;
@@ -31,24 +30,22 @@ public class EthBlockService {
     this.appProperties = appProperties;
   }
 
-  public synchronized long getTimestampSecForBlock(long blockId) {
-    BlockCacheEntity cachedBlock = blockCacheRepository.findById(blockId).orElse(null);
+  public synchronized long getTimestampSecForBlock(long blockNumber, String network) {
+    BlockCacheEntity cachedBlock =
+        blockCacheRepository.findFirstByBlockAndNetwork(blockNumber, network);
     if (cachedBlock != null) {
       return cachedBlock.getBlockDate();
     }
-    web3.setCurrentNetwork(appProperties.getNetwork());
-    Block block = web3.findBlockByNumber(blockId, false).getBlock();
+    Block block = web3.findBlockByNumber(blockNumber, false, network).getBlock();
     if (block == null) {
       return 0;
     }
 
     cachedBlock = new BlockCacheEntity();
-    cachedBlock.setBlock(blockId);
+    cachedBlock.setBlock(blockNumber);
     cachedBlock.setBlockDate(extractDateFromBlock(block));
+    cachedBlock.setNetwork(network);
     blockCacheRepository.save(cachedBlock);
-    if (lastBlockEth < blockId) {
-      lastBlockEth = blockId;
-    }
     return extractDateFromBlock(block);
   }
 
@@ -61,31 +58,13 @@ public class EthBlockService {
   }
 
   public Long getLastBlock(String network) {
-    if (BSC_NETWORK.equals(network)) {
-      if (lastBlockBsc == 0) {
-        lastBlockBsc = Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
-            .map(EthBlockEntity::getNumber)
-            .orElseGet(() -> {
-              web3.setCurrentNetwork(BSC_NETWORK);
-              return web3.fetchCurrentBlock().longValue();
-            });
-      }
-      return lastBlockBsc;
-    } else if (ETH_NETWORK.equals(network)) {
-      if (lastBlockEth == 0) {
-        lastBlockEth = Optional.ofNullable(blockCacheRepository.findFirstByOrderByBlockDateDesc())
-            .map(BlockCacheEntity::getBlock)
-            .orElseGet(() -> {
-              web3.setCurrentNetwork(ETH_NETWORK);
-              return web3.fetchCurrentBlock().longValue();
-            });
-      }
-      return lastBlockEth;
-    } else {
-      throw new IllegalStateException("Unknown network " + network);
+    Long block = blockCache.get(network);
+    if (block != null) {
+      return block;
     }
-
-
+    block = web3.fetchCurrentBlock(network).longValue();
+    blockCache.put(network, block);
+    return block;
   }
 
 

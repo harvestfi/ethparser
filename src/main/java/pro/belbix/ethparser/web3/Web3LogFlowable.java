@@ -21,17 +21,20 @@ public class Web3LogFlowable implements Runnable {
   private final Web3Functions web3Functions;
   private final List<String> addresses;
   private final List<BlockingQueue<Log>> logConsumers;
+  private final String network;
   private Integer from;
   private BigInteger lastBlock;
 
   public Web3LogFlowable(
       EthFilter filter,
       Web3Functions web3Functions,
-      List<BlockingQueue<Log>> logConsumers) {
+      List<BlockingQueue<Log>> logConsumers,
+      String network) {
     this.web3Functions = web3Functions;
     this.addresses = filter.getAddress();
     this.from = ((DefaultBlockParameterNumber) filter.getFromBlock()).getBlockNumber().intValue();
     this.logConsumers = logConsumers;
+    this.network = network;
   }
 
   public void stop() {
@@ -45,7 +48,7 @@ public class Web3LogFlowable implements Runnable {
     BigInteger currentBlock;
     while (run.get()) {
       try {
-        currentBlock = web3Functions.fetchCurrentBlock();
+        currentBlock = web3Functions.fetchCurrentBlock(network);
         if (lastBlock != null && lastBlock.intValue() >= currentBlock.intValue()) {
           Thread.sleep(DEFAULT_BLOCK_TIME);
           continue;
@@ -61,7 +64,7 @@ public class Web3LogFlowable implements Runnable {
           }
         }
         //noinspection rawtypes
-        List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addresses, from, to);
+        List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addresses, from, to, network);
         log.info("Parse log from {} to {} on block: {} - {}", from, to,
             currentBlock, logResults.size());
         //noinspection rawtypes

@@ -4,14 +4,20 @@ import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
@@ -70,7 +76,8 @@ public class HardWorkController {
     @RequestMapping(value = "total_saved_gas_fee_by_address", method = RequestMethod.GET)
     public RestResponse totalSavedGasFeeByEthAddress(@RequestParam(value = "address") String address) {
         try {
-            return RestResponse.ok((String.format("%.8f", hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address))));
+            return RestResponse.ok((String.format("%.8f",
+                hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address.toLowerCase()))));
         } catch (Exception e) {
             String msg = "Error get total saved gas fee for address: " + address;
             log.error(msg, e);
@@ -81,6 +88,43 @@ public class HardWorkController {
     @GetMapping(value = "/last/hardwork")
     public HardWorkDTO lastHardWork() {
         return hardWorkRepository.findFirstByOrderByBlockDateDesc();
+    }
+
+    @GetMapping(value = "/hardwork/pages")
+    public RestResponse hardworkPages(
+        @RequestParam("pageSize") String pageSize,
+        @RequestParam("page") String page,
+        @RequestParam(value = "ordering", required = false) String ordering) {
+        try {
+            int start = Integer.parseInt(page);
+            int size = Integer.parseInt(pageSize);
+            Sort sorting = Sort.by("blockDate");
+            if (!Strings.isBlank(ordering) && "desc".equals(ordering)) {
+                sorting = sorting.descending();
+            }
+            Page<HardWorkDTO> pages = hardWorkRepository
+                .findAll(PageRequest.of(start, size, sorting));
+
+            if (!pages.hasContent()) {
+                return RestResponse.error("Data not found");
+            }
+            return RestResponse.ok(
+                ObjectMapperFactory.getObjectMapper().writeValueAsString(
+                    PaginatedResponse.builder()
+                        .currentPage(start)
+                        .previousPage(pages.hasPrevious() ? start - 1 : -1)
+                        .nextPage(pages.hasNext() ? start + 1 : -1)
+                        .totalPages(pages.getTotalPages())
+                        .data(pages.getContent())
+                        .build()
+                )
+            );
+
+        } catch (Exception e) {
+            String msg = "Error get hardwork pages";
+            log.warn(msg, e);
+            return RestResponse.error(msg);
+        }
     }
 
 

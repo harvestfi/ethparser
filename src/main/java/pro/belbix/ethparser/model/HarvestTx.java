@@ -1,8 +1,5 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
-
 import java.math.BigInteger;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
@@ -32,19 +29,20 @@ public class HarvestTx implements EthTransactionI {
   private boolean enriched;
   private boolean migration = false;
 
-  public HarvestDTO toDto() {
+  public HarvestDTO toDto(String network) {
     HarvestDTO dto = new HarvestDTO();
     dto.setId(hash + "_" + logId);
     dto.setHash(hash);
     dto.setBlock(block.longValue());
-    dto.setVault(new ContractUtils(ETH_NETWORK).getNameByAddress(vault.getValue())
+    dto.setNetwork(network);
+    dto.setVault(ContractUtils.getInstance(network).getNameByAddress(vault.getValue())
         .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
     );
     dto.setConfirmed(1);
     dto.setMethodName(methodName);
-    dto.setAmount(parseAmount(amount, vault.getValue()));
+    dto.setAmount(ContractUtils.getInstance(network).parseAmount(amount, vault.getValue()));
     if (amountIn != null) {
-      dto.setAmountIn(parseAmount(amountIn, fToken.getValue()));
+      dto.setAmountIn(ContractUtils.getInstance(network).parseAmount(amountIn, fToken.getValue()));
     }
     dto.setOwner(owner);
 

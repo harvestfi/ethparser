@@ -1,8 +1,9 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.vault;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class HarvestVaultDecoderTest {
   public void parseVault_WBTC() {
     Map<String, Integer> topics = new HashMap<>();
     List<LogResult> logResults = web3Functions.fetchContractLogs(
-        singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null);
+        singletonList("0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"), 11164503, null, ETH_NETWORK);
     assertFalse(logResults.isEmpty());
     for (LogResult logResult : logResults) {
       Log log = (Log) logResult.get();
@@ -74,17 +75,18 @@ public class HarvestVaultDecoderTest {
 
     @Test
     public void parseTxFromVault_WBTC() throws IOException {
-        Transaction transaction = web3Functions
-            .findTransaction("0x2c832ad9081512251dd172fc9de36bed1035649d51278b2a3bff501039885376");
-        assertNotNull(transaction);
-        HarvestTx harvestTx = (HarvestTx) harvestVaultDecoder.decodeInputData(transaction);
-        assertNotNull(harvestTx);
+      Transaction transaction = web3Functions
+          .findTransaction("0x2c832ad9081512251dd172fc9de36bed1035649d51278b2a3bff501039885376",
+              ETH_NETWORK);
+      assertNotNull(transaction);
+      HarvestTx harvestTx = (HarvestTx) harvestVaultDecoder.decodeInputData(transaction);
+      assertNotNull(harvestTx);
     }
 
     @Test
     public void fetchLogTransaction() {
-        TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(
-            "0xc33899ec1de810b99071a2883e7f65300f1f1db5ca0987cc517f5e3a2551500d");
-        assertNotNull(receipt);
+      TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(
+          "0xc33899ec1de810b99071a2883e7f65300f1f1db5ca0987cc517f5e3a2551500d", ETH_NETWORK);
+      assertNotNull(receipt);
     }
 }

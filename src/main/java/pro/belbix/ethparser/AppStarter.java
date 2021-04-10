@@ -106,43 +106,43 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            contractLoader.load();
+            contractLoader.load(conf.getNetwork());
 
             if (conf.isParseHarvest()) {
-                startParse(web3Functions, harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
+                startParse(harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
             }
 
             if (conf.isParseUniswapLog()) {
-                startParse(web3Functions, uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHarvestLog()) {
-                startParse(web3Functions, harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHardWorkLog()) {
-                startParse(web3Functions, hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+                startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
             }
 
             if (conf.isParseRewardsLog()) {
-                startParse(web3Functions, rewardParser, ws, REWARDS_TOPIC_NAME, true);
+                startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
             }
 
             if (conf.isParseImportantEvents()) {
-                startParse(web3Functions, importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+                startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
             }
 
             if (conf.isConvertUniToHarvest()) {
-                startParse(web3Functions, uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
             if (conf.isParseTransfers()) {
-                startParse(web3Functions, transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+                startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
             }
             if (conf.isParsePrices()) {
-                startParse(web3Functions, priceLogParser, ws, PRICES_TOPIC_NAME, true);
+                startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
             }
             if (conf.isParseDeployerTransactions()) {
-                startParse(web3Functions, deployerTransactionsParser, ws,
+                startParse(deployerTransactionsParser, ws,
                     DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
             }
             if (conf.isParseBlocks()) {
@@ -152,7 +152,7 @@ public class AppStarter {
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
-        contractLoader.load();
+        contractLoader.load(conf.getNetwork());
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
@@ -170,12 +170,12 @@ public class AppStarter {
         }
     }
 
-    public void startParse(Web3Functions web3Functions, Web3Parser parser, WsService ws,
+    public void startParse(Web3Parser parser, WsService ws,
                            String topicName, boolean logs) {
         if (logs) {
-            startWeb3SubscribeLog(web3Functions);
+            startWeb3SubscribeLog();
         } else {
-            startWeb3SubscribeTx(web3Functions);
+            startWeb3SubscribeTx();
         }
         parser.startParse();
 
@@ -195,23 +195,23 @@ public class AppStarter {
 
     }
 
-    private void startWeb3SubscribeLog(Web3Functions web3Functions) {
+    private void startWeb3SubscribeLog() {
         if (!web3LogsStarted) {
-            web3Subscriber.subscribeLogFlowable();
+            web3Subscriber.subscribeLogFlowable(conf.getNetwork());
             web3LogsStarted = true;
         }
     }
 
-    private void startWeb3SubscribeTx(Web3Functions web3Functions) {
+    private void startWeb3SubscribeTx() {
         if (!web3TransactionsStarted) {
-            web3Subscriber.subscribeTransactionFlowable();
+            web3Subscriber.subscribeTransactionFlowable(conf.getNetwork());
             web3TransactionsStarted = true;
         }
     }
 
     private void startParseBlocks() {
         if (!web3BlocksStarted) {
-            web3Subscriber.subscribeOnBlocks();
+            web3Subscriber.subscribeOnBlocks(conf.getNetwork());
             web3BlocksStarted = true;
         }
         ethBlockParser.startParse();

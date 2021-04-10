@@ -33,5 +33,9 @@ public class FunctionsNames {
   public static final String VAULT_FRACTION_TO_INVEST_NUMERATOR = "vaultFractionToInvestNumerator";
   public static final String VAULT_FRACTION_TO_INVEST_DENOMINATOR = "vaultFractionToInvestDenominator";
   public static final String GET_PRICE = "getPrice";
-    
+  public static final String PROFITSHARING_DENOMINATOR = "profitSharingDenominator";
+  public static final String PROFITSHARING_NUMERATOR = "profitSharingNumerator";
+  public static final String BUYBACK_RATIO = "buybackRatio";
+  public static final String UNIVERSAL_LIQUIDATOR = "universalLiquidator";
+  public static final String LIQUIDATE_REWARD_TO_WETH_IN_SUSHI = "liquidateRewardToWethInSushi";
 }

@@ -3,11 +3,16 @@ package pro.belbix.ethparser.web3.contracts;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,10 +29,24 @@ import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public class ContractUtils {
+
   private final String network;
-  
-  public ContractUtils(String network) {
+
+  private ContractUtils(String network) {
     this.network = network;
+  }
+
+  private static final ContractUtils ETH_INSTANCE = new ContractUtils(ETH_NETWORK);
+  private static final ContractUtils BSC_INSTANCE = new ContractUtils(BSC_NETWORK);
+
+  public static ContractUtils getInstance(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return ETH_INSTANCE;
+    } else if (BSC_NETWORK.equals(network)) {
+      return BSC_INSTANCE;
+    } else {
+      throw new IllegalStateException("Unknown network " + network);
+    }
   }
 
   public Optional<String> getNameByAddress(String address) {
@@ -189,8 +208,8 @@ public class ContractUtils {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
     return new Tuple2<>(
-        uniPair.getToken0().getAddress(),
-        uniPair.getToken1().getAddress()
+        getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress()),
+        getBaseAddressInsteadOfZero(uniPair.getToken1().getAddress())
     );
   }
 
@@ -246,14 +265,20 @@ public class ContractUtils {
   public Tuple2<TokenEntity, TokenEntity> getUniPairTokens(String address) {
     UniPairEntity uniPair = getCache().getUniPairByAddress(address)
         .orElseThrow(() -> new IllegalStateException("Not found uniPair by " + address));
+    String token0Adr = getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress());
+    String token1Adr = getBaseAddressInsteadOfZero(uniPair.getToken1().getAddress());
     return new Tuple2<>(
-        getCache().getTokenByAddress(uniPair.getToken0().getAddress())
-            .orElseThrow(() -> new IllegalStateException(
-                "Not found token by " + uniPair.getToken0().getAddress())),
-        getCache().getTokenByAddress(uniPair.getToken1().getAddress())
-            .orElseThrow(() -> new IllegalStateException(
-                "Not found token by " + uniPair.getToken1().getAddress()))
+        getCache().getTokenByAddress(token0Adr)
+            .orElseThrow(() -> new IllegalStateException("Not found token by " + token0Adr)),
+        getCache().getTokenByAddress(token1Adr)
+            .orElseThrow(() -> new IllegalStateException("Not found token by " + token1Adr))
     );
+  }
+
+  public String getBaseAddressInsteadOfZero(String address) {
+    return ZERO_ADDRESS.equalsIgnoreCase(address) ?
+        getBaseNetworkWrappedTokenAddress() :
+        address;
   }
 
   public boolean isDivisionSequenceSecondDividesFirst(String uniPairAddress,
@@ -330,7 +355,7 @@ public class ContractUtils {
     if (ETH_NETWORK.equals(network)) {
       return getEthSubscriptions();
     } else if (BSC_NETWORK.equals(network)) {
-      return List.of();
+      return getBscSubscriptions();
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }
@@ -362,6 +387,103 @@ public class ContractUtils {
     contracts.addAll(PARSABLE_UNI_PAIRS);
 
     return new ArrayList<>(contracts);
+  }
+
+  private List<String> getBscSubscriptions() {
+    Set<String> contracts = new HashSet<>();
+
+    // hard work parsing
+//    contracts.add(BSC_CONTROLLER);
+
+    // harvest events
+    contracts.addAll(getCache().getAllVaults().stream()
+        .map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList()));
+//    contracts.addAll(getCache().getAllPools().stream()
+//        .map(v -> v.getContract().getAddress())
+//        .collect(Collectors.toList()));
+    // price parsing
+//    contracts.addAll(getCache().getLpEntities().stream()
+//        .filter(u -> u.getKeyToken() != null)
+//        .map(UniPairEntity::getContract)
+//        .map(ContractEntity::getAddress)
+//        .collect(Collectors.toList()));
+
+    return new ArrayList<>(contracts);
+  }
+
+  public double parseAmount(BigInteger amount, String address) {
+    if (amount == null) {
+      return 0.0;
+    }
+    return new BigDecimal(amount)
+        .divide(getDividerByAddress(address), 99, RoundingMode.HALF_UP)
+        .doubleValue();
+  }
+
+  public boolean isOneInch(String factoryAdr) {
+    if (ETH_NETWORK.equals(network)) {
+      return MOONISWAP_FACTORY.equalsIgnoreCase(factoryAdr);
+    } else if (BSC_NETWORK.equals(network)) {
+      return MOONISWAP_FACTORY_BSC.equalsIgnoreCase(factoryAdr);
+    }
+    return false;
+  }
+
+  public String getBaseNetworkWrappedTokenAddress() {
+    if (ETH_NETWORK.equals(network)) {
+      return "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+    } else if (BSC_NETWORK.equals(network)) {
+      return "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+    }
+    return null;
+  }
+
+  public String getSimilarActiveForPrice(String name) {
+    if(ETH_NETWORK.equals(network)) {
+      return getSimilarActiveForPriceEth(name);
+    } else if(BSC_NETWORK.equals(network)) {
+      return getSimilarActiveForPriceBsc(name);
+    }
+    return name;
+  }
+
+  public String getSimilarActiveForPriceEth(String name) {
+    name = name.replaceFirst("_V0", "");
+    switch (name) {
+      case "CRV_STETH":
+      case "WETH":
+        return "ETH";
+      case "PS":
+      case "iPS":
+        return "FARM";
+      case "RENBTC":
+      case "CRVRENWBTC":
+      case "TBTC":
+      case "BTC":
+      case "CRV_OBTC":
+      case "CRV_TBTC":
+      case "HBTC":
+      case "CRV_HBTC":
+      case "CRV_RENBTC":
+        return "WBTC";
+      case "CRV_EURS":
+        return "EURS";
+      case "CRV_LINK":
+        return "LINK";
+      case "SUSHI_HODL":
+        return "SUSHI";
+    }
+    return name;
+  }
+
+  public String getSimilarActiveForPriceBsc(String name) {
+    //noinspection SwitchStatementWithTooFewBranches
+    switch (name) {
+      case "RENBTC":
+        return "BTCB";
+    }
+    return name;
   }
 
   public Collection<VaultEntity> getAllVaults() {

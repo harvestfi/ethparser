@@ -40,11 +40,11 @@ backup-db:
 
 run:
 	@mvn clean
-	@mvn spring-boot:run  -Dspring.config.location=file:tmp/application.yml
+	@mvn spring-boot:run -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest -Dspring.datasource.username=harvest -Dspring.datasource.password=password
 
 test:
 	@mvn clean
-	@mvn test  -Dspring.config.location=file:tmp/application.yml
+	@mvn test -Dspring.config.location=file:src/test/resources/application.yml -Dethparser.web3Url="https://eth-mainnet.alchemyapi.io/v2/$ALCHEMY_TOKEN" -Dethparser.etherscanApiKey=$ETHERSCAN_TOKEN -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest -Dspring.datasource.username=harvest -Dspring.datasource.password=password
 
 build:
 	@mvn verify -Dspring.config.location=file:tmp/application.yml

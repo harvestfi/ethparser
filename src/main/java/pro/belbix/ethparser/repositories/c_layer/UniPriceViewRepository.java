@@ -13,7 +13,7 @@ public interface UniPriceViewRepository extends JpaRepository<UniPriceViewEntity
       + "t.address in :addresses "
       + "and t.blockNumber between :startBlock and :endBlock"
   )
-  List<UniPriceViewEntity> findByAddressesAndLogNames(
+  List<UniPriceViewEntity> findByAddresses(
       @Param("addresses") List<String> addresses,
       @Param("startBlock") long startBlock,
       @Param("endBlock") long endBlock,

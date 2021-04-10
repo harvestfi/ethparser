@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import java.math.BigDecimal;
@@ -24,11 +23,11 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
@@ -37,7 +36,7 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Service
 @Log4j2
 public class RewardParser implements Web3Parser {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
@@ -114,16 +113,16 @@ public class RewardParser implements Web3Parser {
     //todo if it is the last block it will be not safe, create another logic
     long nextBlock = tx.getBlock().longValue() + 1;
     String poolAddress = tx.getVault().getValue();
-    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock)
+    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
         .longValue();
-    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock)
+    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
     if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
       log.error("Wrong values for " + ethLog);
       return null;
     }
-    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock);
+    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock, ETH_NETWORK);
 
     double farmRewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {
@@ -133,9 +132,9 @@ public class RewardParser implements Web3Parser {
           .doubleValue();
     }
 
-    double farmBalance = parseAmount(
+    double farmBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
         functionsUtils
-            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock)
+            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get balance from " + ContractConstants.FARM_TOKEN)),
         ContractConstants.FARM_TOKEN);

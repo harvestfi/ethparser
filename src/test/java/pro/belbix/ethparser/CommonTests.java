@@ -9,7 +9,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public class CommonTests {
 
-    private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+    private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
 
     @Test
     public void testAprToApy() {

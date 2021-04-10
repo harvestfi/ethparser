@@ -45,7 +45,8 @@ public class UniController {
     public List<UniswapDTO> addressHistoryUni(@PathVariable("address") String address,
                                               @RequestParam(value = "from", required = false) String from,
                                               @RequestParam(value = "to", required = false) String to) {
-        return uniswapRepository.fetchAllByOwner(address, parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
+        return uniswapRepository.fetchAllByOwner(
+            address.toLowerCase(), parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
     }
 
 }

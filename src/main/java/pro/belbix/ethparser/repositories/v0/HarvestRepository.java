@@ -168,7 +168,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "    last_value(profit_usd) over w             as profit_usd, "
         + "    last_value(total_amount) over w           as total_amount, "
         + "    last_value(all_pools_owners_count) over w as all_pools_owners_count, "
-        + "    last_value(migrated) over w               as migrated "
+        + "    last_value(migrated) over w               as migrated, "
+        + "    last_value(network) over w                as network "
         + "from harvest_tx "
         + "    window w as (PARTITION BY vault order by block_date desc)")
     List<HarvestDTO> fetchLastTvl();

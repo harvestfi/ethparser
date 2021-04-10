@@ -70,22 +70,20 @@ public class PriceProviderAutoTest {
 
   @TestFactory
   public Stream<DynamicTest> tokenPricesEth() throws Exception {
-    web3Functions.setCurrentNetwork(ETH_NETWORK);
-    long block = web3Functions.fetchCurrentBlock().longValue();
+    long block = web3Functions.fetchCurrentBlock(ETH_NETWORK).longValue();
     return runTests(fetchPrices(ETH_NETWORK), block, ETH_NETWORK);
   }
 
   @TestFactory
   @Disabled("CG doesn't provide bsc data via api yet")
   public Stream<DynamicTest> tokenPricesBsc() throws Exception {
-    web3Functions.setCurrentNetwork(BSC_NETWORK);
-    long block = web3Functions.fetchCurrentBlock().longValue();
+    long block = web3Functions.fetchCurrentBlock(BSC_NETWORK).longValue();
     return runTests(fetchPrices(BSC_NETWORK), block, BSC_NETWORK);
 
   }
 
   private Stream<DynamicTest> runTests(HashMap<String, Double> cgPrices, long block, String network) {
-    return new ContractUtils(network).getAllTokens().stream()
+    return ContractUtils.getInstance(network).getAllTokens().stream()
         .filter(token -> !exclude.contains(token.getContract().getName()))
         .filter(t -> network.equals(t.getContract().getNetwork()))
         .map(token -> {
@@ -114,7 +112,7 @@ public class PriceProviderAutoTest {
 
   private HashMap<String, Double> fetchPrices(String network) throws Exception {
     HashMap<String, Double> result = new HashMap<>();
-    ContractUtils contractUtils = new ContractUtils(network);
+    ContractUtils contractUtils = ContractUtils.getInstance(network);
     String coins = contractUtils.getAllTokens().stream()
         .map(t -> t.getContract().getAddress())
         .collect(Collectors.joining(","));
@@ -156,7 +154,7 @@ public class PriceProviderAutoTest {
   }
 
   private String getDateByBlockNumber(long block) {
-    long ts = ethBlockService.getTimestampSecForBlock(block);
+    long ts = ethBlockService.getTimestampSecForBlock(block, ETH_NETWORK);
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     return dateFormat.format(new Date(ts * 1000));

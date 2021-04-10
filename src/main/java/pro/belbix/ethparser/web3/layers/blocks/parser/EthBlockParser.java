@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
@@ -36,7 +38,7 @@ import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 public class EthBlockParser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(10);
+  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(1);
   private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
@@ -66,7 +68,7 @@ public class EthBlockParser {
           if (count % 100 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
-          EthBlockEntity entity = parse(ethBlock);
+          EthBlockEntity entity = parse(ethBlock, appProperties.getNetwork());
           if (entity != null) {
             lastTx = Instant.now();
             var persistedBlock = ethBlockDbService.save(entity);
@@ -77,16 +79,16 @@ public class EthBlockParser {
             }
           }
         } catch (Exception e) {
-                    log.error("Error block parser loop " + ethBlock, e);
-                    if (appProperties.isStopOnParseError()) {
-                        System.exit(-1);
-                    }
-                }
-            }
-        }).start();
-    }
+          log.error("Error block parser loop " + ethBlock, e);
+          if (appProperties.isStopOnParseError()) {
+            System.exit(-1);
+          }
+        }
+      }
+    }).start();
+  }
 
-  public EthBlockEntity parse(EthBlock ethBlock) {
+  public EthBlockEntity parse(EthBlock ethBlock, String network) {
     if (ethBlock == null) {
       return null;
     }
@@ -105,7 +107,7 @@ public class EthBlockParser {
     }
     ethBlockEntity.setTransactions(ethTxEntities);
 
-    transactionReceipts(txMap, 0);
+    transactionReceipts(txMap, 0, network);
 
     log.info("Block {} parsed by {}ms", ethBlockEntity.getNumber(),
         Duration.between(timer, Instant.now()).toMillis());
@@ -152,12 +154,12 @@ public class EthBlockParser {
     return ethBlockEntity;
   }
 
-  private void transactionReceipts(Map<String, EthTxEntity> txMap, int retryCount) {
-    if (retryCount > 10) {
-      return;
+  private void transactionReceipts(Map<String, EthTxEntity> txMap, int retryCount, String network) {
+    if (retryCount > 1000) {
+      throw new IllegalStateException("Can't fetch all receipts");
     }
     Stream<Optional<TransactionReceipt>> receipts =
-        web3Functions.fetchTransactionReceiptBatch(txMap.keySet());
+        web3Functions.fetchTransactionReceiptBatch(txMap.keySet(), network);
     receipts
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -177,7 +179,7 @@ public class EthBlockParser {
         Thread.sleep(1000);
       } catch (InterruptedException ignored) {
       }
-      transactionReceipts(txMap, retryCount + 1);
+      transactionReceipts(txMap, retryCount + 1, network);
     }
   }
 
@@ -217,11 +219,11 @@ public class EthBlockParser {
     return ethLogEntity;
   }
 
-    public BlockingQueue<EthBlockEntity> getOutput() {
-        return output;
-    }
+  public BlockingQueue<EthBlockEntity> getOutput() {
+    return output;
+  }
 
-    public Instant getLastTx() {
-        return lastTx;
-    }
+  public Instant getLastTx() {
+    return lastTx;
+  }
 }

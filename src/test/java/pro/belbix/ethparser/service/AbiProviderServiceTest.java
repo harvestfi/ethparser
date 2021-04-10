@@ -9,8 +9,8 @@ class AbiProviderServiceTest {
 
   @Test
   void contractSourceCode() {
-    AbiProviderService abiProviderService = new AbiProviderService(ETH_NETWORK);
+    AbiProviderService abiProviderService = new AbiProviderService();
     assertNotNull(abiProviderService.contractSourceCode(
-        "0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413", "YourApiKeyToken"));
+        "0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413", "YourApiKeyToken", ETH_NETWORK));
   }
 }

@@ -67,6 +67,11 @@
       <artifactId>spring-messaging</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+  </dependency>
+
     <!--******************************************-->
 
     <!--**************OTHER***********************-->
@@ -189,6 +194,13 @@
       <groupId>com.vladmihalcea</groupId>
       <artifactId>hibernate-types-52</artifactId>
       <version>2.10.3</version>
+    </dependency>
+
+    <!-- metrics for prometheus -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <version>${micrometer.version}</version>
     </dependency>
   </dependencies>
 

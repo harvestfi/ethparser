@@ -19,7 +19,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class RewardsDBService {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final RewardsRepository rewardsRepository;
   private final HarvestRepository harvestRepository;
   private final PriceProvider priceProvider;
@@ -58,7 +58,7 @@ public class RewardsDBService {
       reward = dto.getReward();
     } else {
       tvl = harvest.getLastUsdTvl();
-      double price = priceProvider.getPriceForCoin("FARM", dto.getBlock());
+      double price = priceProvider.getPriceForCoin("FARM", dto.getBlock(), ETH_NETWORK);
       reward = dto.getReward() * price;
     }
 

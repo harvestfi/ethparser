@@ -5,7 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.web3.MethodDecoder.parseAmount;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
 
 import java.math.BigInteger;
@@ -31,6 +32,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -50,7 +52,7 @@ public class Web3FunctionsTest {
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
     TransactionReceipt transactionReceipt = web3Functions
         .fetchTransactionReceipt(
-            "0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48");
+            "0x266519b5e5756ea500d505afdfaa7d8cbb1fa0acc895fb9b9e6dbfefd3e7ce48", ETH_NETWORK);
     assertNotNull(transactionReceipt);
     List<Log> logs = transactionReceipt.getLogs();
     for (Log log : logs) {
@@ -80,7 +82,7 @@ public class Web3FunctionsTest {
     public void testFetchBlock() {
       Block block = web3Functions.findBlockByHash(
           "0x185e7b9fa5700b045cb319472b2e7e73540aa56392389d7789d1d6b6e72dd832"
-          , false)
+          , false, ETH_NETWORK)
           .getBlock();
       assertNotNull(block);
       Instant date = Instant.ofEpochSecond(block.getTimestamp().longValue());
@@ -89,7 +91,7 @@ public class Web3FunctionsTest {
 
   @Test
   void testFetchBlockByNumber() {
-    Block block = web3Functions.findBlockByNumber(9000000, false)
+    Block block = web3Functions.findBlockByNumber(9000000, false, ETH_NETWORK)
         .getBlock();
     assertNotNull(block);
     assertEquals(BigInteger.valueOf(1574706444L), block.getTimestamp());
@@ -101,10 +103,10 @@ public class Web3FunctionsTest {
         "getPricePerFullShare",
         Collections.emptyList(),
         Collections.singletonList(new TypeReference<Uint256>() {
-        })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST);
+        })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST, ETH_NETWORK);
     assertNotNull(types);
     assertFalse(types.isEmpty());
-    assertTrue(parseAmount((BigInteger) types.get(0).getValue(),
+    assertTrue(ContractUtils.getInstance(ETH_NETWORK).parseAmount((BigInteger) types.get(0).getValue(),
         "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
   }
 
@@ -119,7 +121,7 @@ public class Web3FunctionsTest {
             },
                 new TypeReference<Uint32>() {
                 }
-            )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", BLOCK_NUMBER_30_AUGUST_2020);
+            )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", BLOCK_NUMBER_30_AUGUST_2020, ETH_NETWORK);
         assertNotNull(types);
         assertEquals(3, types.size());
         assertTrue(((Uint112) types.get(0)).getValue()
@@ -132,7 +134,7 @@ public class Web3FunctionsTest {
   @Test
   public void getReceiptShouldWork() {
     TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(
-        "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101");
+        "0x18c4470ae45ac9183e4fd47335e7c4cbd97e76a631abec13334891818fe06101", ETH_NETWORK);
     assertNotNull(transactionReceipt);
   }
 
@@ -142,6 +144,7 @@ public class Web3FunctionsTest {
         List.of("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
         null,
         null,
+        ETH_NETWORK,
         "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b"
     );
     assertNotNull(results);

@@ -7,4 +7,6 @@ public interface BlockCacheRepository extends JpaRepository<BlockCacheEntity, Lo
 
     BlockCacheEntity findFirstByOrderByBlockDateDesc();
 
+    BlockCacheEntity findFirstByBlockAndNetwork(Long block, String network);
+
 }

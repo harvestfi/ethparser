@@ -1,10 +1,11 @@
-package pro.belbix.ethparser.web3.harvest;
+package pro.belbix.ethparser.web3.harvest.hardwork;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.util.Collections;
@@ -42,7 +43,6 @@ public class DoHardWorkTest {
     @BeforeEach
     public void setUp() throws Exception {
         contractLoader.load();
-        priceProvider.setUpdateBlockDifference(1);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class DoHardWorkTest {
             "SUSHI_MIC_USDT",
             "0.000000",
             "9189.958992",
-            "10.425585"
+            "34.751949"
         );
     }
 
@@ -83,7 +83,7 @@ public class DoHardWorkTest {
             "SUSHI_MIC_USDT",
             "0,000000",
             "17800.133375",
-            "24,508470"
+            "81,694899"
         );
     }
 
@@ -183,8 +183,32 @@ public class DoHardWorkTest {
             "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
             "UNI_ETH_DAI",
             "0,000000",
-            "1669,580492",
+            "10017,482955",
             "2,804286"
+        );
+    }
+
+    @Test
+    public void parseDUDES20_buybackratio() {
+        assertOnBlock(
+            12149939,
+            "0xfdcaaf8e5aeac3a97d4fdda8c5779ab6fa6ad178c2d5350f5c85ec7886b8be4f_94",
+            "DUDES20_ETH",
+            "0,010783",
+            "7698,248019",
+            "16,798303"
+        );
+    }
+
+    @Test
+    public void parseMNFLX_UST_buybackratio() {
+        assertOnBlock(
+            12130332,
+            "0x2462bc51b117c3b50e9e051e35a885e582737567e899c84ce6af98b16b51f217_44",
+            "MNFLX_UST",
+            "0,000000",
+            "4552.389815",
+            "17.223407"
         );
     }
 
@@ -199,7 +223,7 @@ public class DoHardWorkTest {
         String fullRewardUsd = numberFormat(_fullRewardUsd);
         String farmBuyback = numberFormat(_farmBuyback);
         List<LogResult> logResults = web3Functions
-            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock);
+            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
         HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0));
@@ -216,8 +240,9 @@ public class DoHardWorkTest {
         if (dto.getFullRewardUsd() != 0) {
             double psReward = dto.getFarmBuyback();
             double psRewardUsd = psReward * dto.getFarmPrice();
-            double wholeRewardBasedOnPsReward = psRewardUsd / 0.3;
-            double wholeRewardBasedOnVaultReward = dto.getFullRewardUsd() / 0.7;
+
+            double wholeRewardBasedOnPsReward = psRewardUsd / dto.getProfitSharingRate();
+            double wholeRewardBasedOnVaultReward = dto.getFullRewardUsd() / (1-dto.getProfitSharingRate());
             // when price volatile we can by less % value for the strategy income
             double diff =
                 Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward)

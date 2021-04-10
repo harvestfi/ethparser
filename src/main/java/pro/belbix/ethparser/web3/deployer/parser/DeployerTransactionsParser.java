@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -84,7 +86,7 @@ public class DeployerTransactionsParser implements Web3Parser {
       if (deployerTx != null) {
         deployerDTO = deployerTx.toDto();
         deployerDTO.setBlockDate(
-            ethBlockService.getTimestampSecForBlock(tx.getBlockNumber().longValue()));
+            ethBlockService.getTimestampSecForBlock(tx.getBlockNumber().longValue(), ETH_NETWORK));
         print(deployerDTO);
       }
     }

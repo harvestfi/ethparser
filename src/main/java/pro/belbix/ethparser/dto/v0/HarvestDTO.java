@@ -8,7 +8,10 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
@@ -18,12 +21,16 @@ import pro.belbix.ethparser.dto.DtoI;
 })
 @Cacheable(false)
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class HarvestDTO implements DtoI {
 
   @Id
   private String id;
   private String hash;
   private Long block;
+  private String network;
   private int confirmed;
   private Long blockDate;
   private String methodName;
@@ -31,15 +38,17 @@ public class HarvestDTO implements DtoI {
   private Double amount;
   private Double amountIn;
   private String vault;
-  private Double lastGas;
+  private Double lastGas; // not historical data!
   private Double lastTvl;
   private Double lastUsdTvl;
   private Integer ownerCount;
   private Double sharePrice;
   private Long usdAmount;
+  @Deprecated
   @Column(columnDefinition = "TEXT")
   private String prices;
   private String lpStat;
+  @Deprecated
   private Double lastAllUsdTvl;
   private Double ownerBalance;
   private Double ownerBalanceUsd;
@@ -51,7 +60,7 @@ public class HarvestDTO implements DtoI {
   private HarvestDTO migration;
   private Double profit;
   private Double profitUsd;
-  private Double totalAmount;
+  private Double totalAmount;  // fo PS only
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "

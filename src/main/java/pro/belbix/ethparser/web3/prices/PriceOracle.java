@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.prices;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -32,16 +33,14 @@ public class PriceOracle {
             throw new IllegalStateException("Oracle price smart contract was deploy on block " + ORACLE_START_BLOCK); 
         }
 
-        double price = functionsUtils.callIntByName(GET_PRICE, tokenAdr, ORACLE, block)
+        double price = functionsUtils.callIntByName(GET_PRICE, tokenAdr, ORACLE, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Can't fetch price for " + tokenAdr)).doubleValue();
         
         return price / D18;
     }
 
     public boolean isAvailable(String coinName, long block) {
-        if (block <= ORACLE_START_BLOCK || coinName.equals("USDC")){
-            return false;
-        }
-        return true;
+        return block > ORACLE_START_BLOCK
+            && !coinName.equals("USDC");
     }
 }

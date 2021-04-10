@@ -6,13 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-class ContractDetectorTest {
+class EthContractDetectorTest {
 
   @Autowired
   private ContractDetector contractDetector;
@@ -60,7 +60,7 @@ class ContractDetectorTest {
   void handleBlock_12055610_empty() throws JsonProcessingException {
     EthBlockEntity ethBlockEntity =
         loadBlock("0x8de7a4d9064e0a12b94ab833ca99ac76aecdb61c71e58926d256f92f8fb04dbe");
-    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, ETH_NETWORK);
     assertTrue(events.isEmpty());
   }
 
@@ -68,7 +68,7 @@ class ContractDetectorTest {
   void handleBlock_10800000() throws JsonProcessingException {
     EthBlockEntity ethBlockEntity =
         loadBlock("0xf0efb2f2c63adf9f09a6fc05808985bb46896c11d83659b51a49d6f96d3053d7");
-    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, ETH_NETWORK);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
 
     assertTwoArrays(events.stream()
@@ -89,7 +89,7 @@ class ContractDetectorTest {
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
-    assertEvents(events, AssertData.builder()
+    assertEvents(events, ContractEventAssertion.builder()
         .eventSize(12)
         .eventContractAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
         .txSize(15)
@@ -115,7 +115,7 @@ class ContractDetectorTest {
     EthBlockEntity ethBlockEntity =
         loadBlock("0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1");
 
-    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, ETH_NETWORK);
 //    System.out.println(new ObjectMapper().writeValueAsString(events));
 
     assertTwoArrays(events.stream()
@@ -136,7 +136,7 @@ class ContractDetectorTest {
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
-    assertEvents(events, AssertData.builder()
+    assertEvents(events, ContractEventAssertion.builder()
         .eventSize(12)
         .eventContractAddress("0x274aa8b58e8c57c4e347c8768ed853eb6d375b48")
         .txSize(1)
@@ -161,7 +161,7 @@ class ContractDetectorTest {
   void testEligibleContracts_SUSHI_HODL_12030868() {
     EthBlockEntity ethBlockEntity =
         loadBlock("0x69d416e65f5997b22cd17dc1f27544407db08901cda211526b4b5a14fd2247c1");
-    assertTwoArrays(ContractDetector.collectEligible(ethBlockEntity).component1().stream()
+    assertTwoArrays(contractDetector.collectEligible(ethBlockEntity, ETH_NETWORK).component1().stream()
             .map(EthAddressEntity::getAddress)
             .collect(Collectors.toList()),
         new ArrayList<>(Set.of(
@@ -182,7 +182,7 @@ class ContractDetectorTest {
 
   private EthBlockEntity loadBlock(String hash) {
     EthBlockEntity ethBlockEntity =
-        ethBlockParser.parse(web3Functions.findBlockByHash(hash, true));
+        ethBlockParser.parse(web3Functions.findBlockByHash(hash, true, ETH_NETWORK), ETH_NETWORK);
     long blockNumber = ethBlockEntity.getNumber();
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
@@ -191,7 +191,7 @@ class ContractDetectorTest {
     return ethBlockEntity;
   }
 
-  private void assertEvents(List<ContractEventEntity> events, AssertData data) {
+  private void assertEvents(List<ContractEventEntity> events, ContractEventAssertion data) {
     ContractEventEntity event = events.stream()
         .filter(e -> e.getContract().getAddress().equals(data.eventContractAddress))
         .findFirst()
@@ -208,7 +208,7 @@ class ContractDetectorTest {
     );
   }
 
-  private void assertEvent(ContractEventEntity event, AssertData data) {
+  private void assertEvent(ContractEventEntity event, ContractEventAssertion data) {
     assertAll(
         () -> assertEquals(data.eventContractAddress, event.getContract().getAddress(),
             "eventContractAddress"),
@@ -225,14 +225,14 @@ class ContractDetectorTest {
     );
   }
 
-  private void assertState(ContractStateEntity state, AssertData data) {
+  private void assertState(ContractStateEntity state, ContractEventAssertion data) {
     assertAll(
         () -> assertEquals(data.stateName, state.getName(), "state name"),
         () -> assertEquals(data.stateValue, state.getValue(), "state value")
     );
   }
 
-  private void assertTx(ContractTxEntity tx, AssertData data) {
+  private void assertTx(ContractTxEntity tx, ContractEventAssertion data) {
     assertAll(
         () -> assertEquals(data.txAddress, tx.getTx().getHash().getHash(), "txAddress"),
         () -> assertEquals(data.funcHex, tx.getFuncHash().getMethodId(), "funcHex"),
@@ -246,33 +246,12 @@ class ContractDetectorTest {
     );
   }
 
-  private void assertLog(ContractLogEntity ethLog, AssertData data) {
+  private void assertLog(ContractLogEntity ethLog, ContractEventAssertion data) {
     assertAll(
         () -> assertEquals(data.logAddress, ethLog.getAddress().getAddress(), "log address"),
         () -> assertEquals(data.logName, ethLog.getTopic().getMethodName(), "log name"),
         () -> assertEquals(data.logMethodId, ethLog.getTopic().getMethodId(), "logMethodId"),
         () -> assertEquals(data.logValues, ethLog.getLogs(), "log values")
     );
-  }
-
-  @Builder
-  private static class AssertData {
-
-    int eventSize;
-    String eventContractAddress;
-    int txSize;
-    String txAddress;
-    int stateSize;
-    String stateName;
-    String stateValue;
-    int logSize;
-    int logIdx;
-    String logAddress;
-    String logName;
-    String logMethodId;
-    String logValues;
-    String funcHex;
-    String funcName;
-    String funcData;
   }
 }

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.deployer.downloader;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
 
 import io.reactivex.disposables.Disposable;
@@ -63,7 +64,7 @@ public class DeployerTransactionsDownloader {
 
   private void parse(DefaultBlockParameter start, DefaultBlockParameter end) {
     Disposable subscription =
-        web3Subscriber.getTransactionFlowableRangeSubscription(transactionQueue, start, end);
+        web3Subscriber.getTransactionFlowableRangeSubscription(transactionQueue, start, end, ETH_NETWORK);
     while (!subscription.isDisposed()) {
       Transaction transaction = null;
       try {

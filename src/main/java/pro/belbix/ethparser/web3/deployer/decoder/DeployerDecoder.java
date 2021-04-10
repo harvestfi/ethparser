@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.deployer.decoder;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -54,7 +56,7 @@ public class DeployerDecoder extends MethodDecoder {
                   + deployerTx.getHash());
         }
       }
-      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash());
+      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash(), ETH_NETWORK);
       deployerTx.setGasUsed(transactionReceipt.getGasUsed());
       deployerTx.setSuccess("0x1".equalsIgnoreCase(transactionReceipt.getStatus()));
 

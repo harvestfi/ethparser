@@ -60,19 +60,15 @@ public class SimpleContractGenerator {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
-    this.abiProviderService = new AbiProviderService(appProperties.getNetwork());
+    this.abiProviderService = new AbiProviderService();
   }
 
-  public GeneratedContract getContract(String address, int block) {
-    return getContract(address, block, null);
-  }
-
-  public GeneratedContract getContract(String address, int block, String selector) {
+  public GeneratedContract getContract(String address, int block, String selector, String network) {
     GeneratedContract generatedContract = findInCache(address, block);
     if (generatedContract != null) {
       return generatedContract;
     }
-    return generateContract(address, block, false, selector)
+    return generateContract(address, block, false, selector, network)
         .map(newContract -> {
           log.info("Generated {} {}", newContract.getName(), newContract.getAddress());
           var implementations
@@ -100,7 +96,8 @@ public class SimpleContractGenerator {
       String address,
       long block,
       boolean isProxy,
-      String selector
+      String selector,
+      String network
   ) {
 
     boolean isOverride = isOverrideAbi(address);
@@ -110,7 +107,7 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, getAbiProviderKey());
+        abiProviderService.contractSourceCode(address, getAbiProviderKey(), network);
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -137,17 +134,17 @@ public class SimpleContractGenerator {
 
     if (!isProxy && (etherscanIsProxy || isProxy(abis))) {
       log.info("Detect proxy {}", address);
-      String proxyAddress = readProxyAddressOnChain(address, block, contract, selector);
+      String proxyAddress = readProxyAddressOnChain(address, block, contract, selector, network);
       if (proxyAddress == null) {
         if(etherscanIsProxy) {
           log.info("Try to generate proxy from etherscan implementation");
           // only last implementation but it's better than nothing
-          return generateContract(etherscanProxyImpl, block, true, selector);
+          return generateContract(etherscanProxyImpl, block, true, selector, network);
         }
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
       }
-      return generateContract(proxyAddress, block, true, selector);
+      return generateContract(proxyAddress, block, true, selector, network);
     }
 
     contract.setProxy(isProxy);
@@ -181,28 +178,32 @@ public class SimpleContractGenerator {
       String address,
       long block,
       GeneratedContract contract,
-      String selector
+      String selector,
+      String network
   ) {
-    // open zeppelin proxy doesn't have public call_implementation
-    // some contracts have event but didn't call it
-    String proxyImpl =
-        findLastProxyUpgrade(address, (int) block, contract.getEvent(UPGRADED_EVENT));
-    if (proxyImpl != null) {
-      return proxyImpl;
-    }
+    String proxyImpl;
+
     // EIP-897 DelegateProxy concept
     if (contract.getFunction(IMPLEMENTATION_HASH) != null) {
-      proxyImpl = proxyAddressFromFunc(address, block);
+      proxyImpl = proxyAddressFromFunc(address, block, network);
       if (proxyImpl != null) {
         return proxyImpl;
       }
+    }
+
+    // open zeppelin proxy doesn't have public call_implementation
+    // some contracts have event but didn't call it
+    proxyImpl = findLastProxyUpgrade(address, (int) block, contract.getEvent(UPGRADED_EVENT), network);
+    if (proxyImpl != null) {
+      return proxyImpl;
     }
 
     //0xProxy https://github.com/0xProject/0x-protocol-specification/blob/master/exchange-proxy/exchange-proxy.md
     if (contract.getFunction(IMPLEMENTATION_0X_HASH) != null && selector != null) {
       selector = selector.replace("0x", "");
       byte[] selectorB = DatatypeConverter.parseHexBinary(selector);
-      return functionsUtils.callAddressByNameBytes4(IMPLEMENTATION_0X, selectorB, address, block)
+      return functionsUtils
+          .callAddressByNameBytes4(IMPLEMENTATION_0X, selectorB, address, block, network)
           .orElse(null);
     }
 
@@ -210,16 +211,17 @@ public class SimpleContractGenerator {
     return null;
   }
 
-  private String proxyAddressFromFunc(String address, long block) {
-    return functionsUtils.callAddressByName(IMPLEMENTATION, address, block)
+  private String proxyAddressFromFunc(String address, long block, String network) {
+    return functionsUtils.callAddressByName(IMPLEMENTATION, address, block, network)
         .orElse(null);
   }
 
-  private String findLastProxyUpgrade(String address, Integer block, Event event) {
+  private String findLastProxyUpgrade(String address, Integer block, Event event, String network) {
     List<LogResult> logResults = web3Functions.fetchContractLogs(
         List.of(address),
         null,
         block,
+        network,
         UPGRADED_EVENT);
     if (logResults == null || logResults.isEmpty()) {
       return null;

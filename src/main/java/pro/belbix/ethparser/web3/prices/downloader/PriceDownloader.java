@@ -24,7 +24,7 @@ import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 @Log4j2
 @SuppressWarnings("rawtypes")
 public class PriceDownloader {
-  private final ContractUtils contractUtils = new ContractUtils(ETH_NETWORK);
+  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final Web3Functions web3Functions;
   private final PriceRepository priceRepository;
   private final PriceLogParser priceLogParser;
@@ -61,7 +61,7 @@ public class PriceDownloader {
 
   private void parse(Integer start, Integer end, String contractName) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(contractName), start, end);
+        .fetchContractLogs(singletonList(contractName), start, end, ETH_NETWORK);
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;

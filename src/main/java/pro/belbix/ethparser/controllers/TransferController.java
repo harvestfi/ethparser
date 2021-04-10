@@ -26,7 +26,7 @@ public class TransferController {
                                                      @RequestParam(value = "from", required = false) String from,
                                                      @RequestParam(value = "to", required = false) String to) {
         return transferRepository
-            .fetchAllByOwnerAndRecipient(address, address, parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
+            .fetchAllByOwnerAndRecipient(address.toLowerCase(), address, parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
     }
 
 }

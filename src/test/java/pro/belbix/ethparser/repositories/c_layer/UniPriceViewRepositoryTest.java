@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
@@ -54,11 +56,11 @@ class UniPriceViewRepositoryTest {
   void testUniPriceView_UNI_LP_ETH_USDT() {
     loadBlock(12080691);
     List<UniPriceViewEntity> uniPrices =
-        uniPriceViewRepository.findByAddressesAndLogNames(
+        uniPriceViewRepository.findByAddresses(
             List.of("0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase()),
             0,
             999999999,
-            PageRequest.of(0, 1)
+            PageRequest.of(0, 1, Sort.by("blockNumber"))
         );
     assertNotNull(uniPrices);
     assertEquals(uniPrices.size(), 1);
@@ -126,12 +128,13 @@ class UniPriceViewRepositoryTest {
 
   private void loadBlock(long blockNumber) {
     EthBlockEntity ethBlockEntity =
-        ethBlockParser.parse(web3Functions.findBlockByNumber(blockNumber, true));
+        ethBlockParser.parse(web3Functions.findBlockByNumber(
+            blockNumber, true, ETH_NETWORK), ETH_NETWORK);
     ethBlockEntity = ethBlockDbService.save(ethBlockEntity);
     if (ethBlockEntity == null) {
       ethBlockEntity = ethBlockRepository.findById(blockNumber).orElseThrow();
     }
-    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity);
+    List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, ETH_NETWORK);
     assertFalse(events.isEmpty(), "Not found eligible blocks");
     events.forEach(e -> contractEventsDbService.save(e));
   }
