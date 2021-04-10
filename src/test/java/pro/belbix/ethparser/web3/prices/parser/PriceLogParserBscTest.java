@@ -40,6 +40,7 @@ public class PriceLogParserBscTest {
     assertModel(
         PriceDTO.builder()
             .block(6442026L)
+            .network(BSC_NETWORK)
             .token("WBNB")
             .tokenAmount(0.18967699605476643)
             .otherToken("BUSD")

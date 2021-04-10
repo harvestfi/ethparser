@@ -112,6 +112,7 @@ public class PriceLogParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBuy(buy ? 1 : 0);
+    dto.setNetwork(network);
 
     if (!isValidSource(dto, network)) {
       return null;
