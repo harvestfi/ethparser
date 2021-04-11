@@ -250,7 +250,7 @@ public class SimpleContractGenerator {
       return null;
     }
     TreeMap<Long, GeneratedContract> contractByBlocks = contracts.get(address);
-    if (contractByBlocks == null) {
+    if (contractByBlocks == null || contractByBlocks.firstEntry() == null) {
       return null;
     }
     GeneratedContract contract = contractByBlocks.firstEntry().getValue();

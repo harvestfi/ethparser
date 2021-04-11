@@ -1,0 +1,7 @@
+ethparser:
+  startUtil: hardwork-download
+  overrideDuplicates: true
+
+hardwork-download:
+  from: 5993570
+#  to: 11445244
