@@ -7,37 +7,37 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 
 @Service
 @Log4j2
 public class MigrationRecalculate {
 
   private final HarvestRepository harvestRepository;
-  private final HarvestVaultParserV2 harvestVaultParserV2;
+  private final VaultActionsParser vaultActionsParser;
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
 
   public MigrationRecalculate(HarvestRepository harvestRepository,
-      HarvestVaultParserV2 harvestVaultParserV2,
+      VaultActionsParser vaultActionsParser,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
-      HarvestDBService harvestDBService) {
+      VaultActionsDBService vaultActionsDBService) {
     this.harvestRepository = harvestRepository;
-    this.harvestVaultParserV2 = harvestVaultParserV2;
+    this.vaultActionsParser = vaultActionsParser;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
   }
 
   public void start() {
     for (HarvestDTO dto : harvestRepository.fetchAllMigration()) {
 
-      harvestVaultParserV2.parseMigration(dto, ETH_NETWORK);
+      vaultActionsParser.parseMigration(dto, ETH_NETWORK);
       HarvestDTO migration = dto.getMigration();
       assert migration != null;
-      harvestVaultParserV2.enrichDto(migration, ETH_NETWORK);
+      vaultActionsParser.enrichDto(migration, ETH_NETWORK);
       harvestOwnerBalanceCalculator.fillBalance(migration, ETH_NETWORK);
-      boolean success = harvestDBService.saveHarvestDTO(migration);
+      boolean success = vaultActionsDBService.saveHarvestDTO(migration);
       log.info("Parse migration " + success + " " + migration.print());
     }
   }

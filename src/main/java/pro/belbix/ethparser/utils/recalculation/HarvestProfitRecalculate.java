@@ -7,22 +7,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @Service
 @Log4j2
 public class HarvestProfitRecalculate {
 
   private final HarvestRepository harvestRepository;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
 
   @Value("${profit-recalculate.from:}")
   private Integer from;
 
   public HarvestProfitRecalculate(HarvestRepository harvestRepository,
-      HarvestDBService harvestDBService) {
+      VaultActionsDBService vaultActionsDBService) {
     this.harvestRepository = harvestRepository;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
   }
 
   public void start() {
@@ -39,7 +39,7 @@ public class HarvestProfitRecalculate {
     List<HarvestDTO> results = new ArrayList<>();
     for (HarvestDTO harvestDTO : harvestDTOList) {
       try {
-        harvestDBService.fillProfit(harvestDTO);
+        vaultActionsDBService.fillProfit(harvestDTO);
         if (harvestDTO.getProfit() != null && harvestDTO.getProfit() != 0.0) {
           results.add(harvestDTO);
         }

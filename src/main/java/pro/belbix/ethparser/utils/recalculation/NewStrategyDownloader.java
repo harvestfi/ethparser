@@ -10,13 +10,13 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
+import pro.belbix.ethparser.web3.harvest.downloader.VaultActionsDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
 
 @Service
 @Log4j2
 public class NewStrategyDownloader {
-  private final HarvestVaultDownloader harvestVaultDownloader;
+  private final VaultActionsDownloader vaultActionsDownloader;
   private final RewardDownloader rewardDownloader;
   private final HardWorkDownloader hardWorkDownloader;
   private final HarvestRepository harvestRepository;
@@ -26,11 +26,11 @@ public class NewStrategyDownloader {
   private String[] vaults;
 
   public NewStrategyDownloader(
-      HarvestVaultDownloader harvestVaultDownloader,
+      VaultActionsDownloader vaultActionsDownloader,
       RewardDownloader rewardDownloader,
       HardWorkDownloader hardWorkDownloader, HarvestRepository harvestRepository,
       AppProperties appProperties) {
-    this.harvestVaultDownloader = harvestVaultDownloader;
+    this.vaultActionsDownloader = vaultActionsDownloader;
     this.rewardDownloader = rewardDownloader;
     this.hardWorkDownloader = hardWorkDownloader;
     this.harvestRepository = harvestRepository;
@@ -41,8 +41,8 @@ public class NewStrategyDownloader {
     int minBlock = Integer.MAX_VALUE;
     for (String vaultName : vaults) {
       log.info("Start download " + vaultName);
-      harvestVaultDownloader.setVaultName(vaultName);
-      harvestVaultDownloader.start();
+      vaultActionsDownloader.setVaultName(vaultName);
+      vaultActionsDownloader.start();
 
       HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(vaultName);
       if (harvest == null) {

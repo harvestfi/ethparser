@@ -26,7 +26,7 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
@@ -42,7 +42,7 @@ public class AppStarter {
 
     private final Web3Subscriber web3Subscriber;
     private final UniswapLpLogParser uniswapLpLogParser;
-    private final HarvestVaultParserV2 harvestVaultParserV2;
+    private final VaultActionsParser vaultActionsParser;
     private final RewardParser rewardParser;
     private final HardWorkParser hardWorkParser;
     private final ImportantEventsParser importantEventsParser;
@@ -64,7 +64,7 @@ public class AppStarter {
     public AppStarter(
         Web3Subscriber web3Subscriber,
         UniswapLpLogParser uniswapLpLogParser,
-        HarvestVaultParserV2 harvestVaultParserV2,
+        VaultActionsParser vaultActionsParser,
         RewardParser rewardParser, HardWorkParser hardWorkParser,
         ImportantEventsParser importantEventsParser,
         UniToHarvestConverter uniToHarvestConverter,
@@ -76,7 +76,7 @@ public class AppStarter {
         ContractDetector contractDetector) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
-        this.harvestVaultParserV2 = harvestVaultParserV2;
+        this.vaultActionsParser = vaultActionsParser;
         this.rewardParser = rewardParser;
         this.hardWorkParser = hardWorkParser;
         this.importantEventsParser = importantEventsParser;
@@ -106,7 +106,7 @@ public class AppStarter {
             }
 
             if (conf.isParseHarvestLog()) {
-                startParse(harvestVaultParserV2, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             }
 
             if (conf.isParseHardWorkLog()) {

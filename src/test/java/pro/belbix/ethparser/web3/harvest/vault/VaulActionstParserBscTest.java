@@ -19,18 +19,18 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class HarvestVaultParserBscTest {
+public class VaulActionstParserBscTest {
 
   private static final int LOG_ID = 0;
 
   @Autowired
-  private HarvestVaultParserV2 harvestVaultParser;
+  private VaultActionsParser harvestVaultParser;
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
@@ -38,7 +38,7 @@ public class HarvestVaultParserBscTest {
   @Autowired
   private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   @Autowired
-  private HarvestDBService harvestDBService;
+  private VaultActionsDBService vaultActionsDBService;
   @Autowired
   private ContractLoader contractLoader;
 
@@ -208,7 +208,7 @@ public class HarvestVaultParserBscTest {
         (Log) logResults.get(LOG_ID).get(), BSC_NETWORK);
     harvestVaultParser.enrichDto(harvestDTO, BSC_NETWORK);
     harvestOwnerBalanceCalculator.fillBalance(harvestDTO, BSC_NETWORK);
-    harvestDBService.saveHarvestDTO(harvestDTO);
+    vaultActionsDBService.saveHarvestDTO(harvestDTO);
     return harvestDTO;
   }
 

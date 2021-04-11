@@ -88,7 +88,7 @@ public class RewardDownloader {
     }
     for (LogResult logResult : logResults) {
       try {
-        RewardDTO dto = rewardParser.parseLog((Log) logResult.get());
+        RewardDTO dto = rewardParser.parseLog((Log) logResult.get(), appProperties.getNetwork());
         if (dto != null) {
           try {
             rewardsDBService.saveRewardDTO(dto);

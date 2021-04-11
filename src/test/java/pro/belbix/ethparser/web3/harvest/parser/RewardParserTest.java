@@ -134,7 +134,7 @@ public class RewardParserTest {
             .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         try {
-            RewardDTO dto = rewardParser.parseLog((Log) logResults.get(logId).get());
+            RewardDTO dto = rewardParser.parseLog((Log) logResults.get(logId).get(), ETH_NETWORK);
 
             assertNotNull(dto, "Dto is null");
             assertAll(

@@ -24,7 +24,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -37,17 +37,17 @@ public class UniToHarvestConverter implements Web3Parser {
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
   private Instant lastTx = Instant.now();
 
   public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
-      HarvestDBService harvestDBService, ParserInfo parserInfo,
+      VaultActionsDBService vaultActionsDBService, ParserInfo parserInfo,
       AppProperties appProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
   }
@@ -64,7 +64,7 @@ public class UniToHarvestConverter implements Web3Parser {
           HarvestDTO dto = convert(uniswapDTO);
           if (dto != null) {
             lastTx = Instant.now();
-            boolean success = harvestDBService.saveHarvestDTO(dto);
+            boolean success = vaultActionsDBService.saveHarvestDTO(dto);
             if (success) {
               output.put(dto);
             }

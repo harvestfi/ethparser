@@ -4,8 +4,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;

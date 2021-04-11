@@ -30,7 +30,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
-import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
 @Service
 @Log4j2
@@ -39,7 +39,7 @@ public class RewardParser implements Web3Parser {
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-  private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+  private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
   private final FunctionsUtils functionsUtils;
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
@@ -97,7 +97,7 @@ public class RewardParser implements Web3Parser {
       return null;
     }
 
-    HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
+    HarvestTx tx = vaultActionsLogDecoder.decode(ethLog);
     if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
     }

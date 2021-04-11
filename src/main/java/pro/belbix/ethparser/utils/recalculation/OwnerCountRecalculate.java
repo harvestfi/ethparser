@@ -8,7 +8,7 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
 @Service
@@ -16,7 +16,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 public class OwnerCountRecalculate {
 
   private final HarvestRepository harvestRepository;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
   private final UniswapDbService uniswapDbService;
   private final UniswapRepository uniswapRepository;
 
@@ -30,11 +30,11 @@ public class OwnerCountRecalculate {
   private boolean uni;
 
   public OwnerCountRecalculate(HarvestRepository harvestRepository,
-      HarvestDBService harvestDBService,
+      VaultActionsDBService vaultActionsDBService,
       UniswapDbService uniswapDbService,
       UniswapRepository uniswapRepository) {
     this.harvestRepository = harvestRepository;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
     this.uniswapDbService = uniswapDbService;
     this.uniswapRepository = uniswapRepository;
   }
@@ -51,7 +51,7 @@ public class OwnerCountRecalculate {
         harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
       }
       for (HarvestDTO harvestDTO : harvestDTOList) {
-        harvestDBService.fillOwnersCount(harvestDTO);
+        vaultActionsDBService.fillOwnersCount(harvestDTO);
         harvestRepository.save(harvestDTO);
         count++;
         if (count % 100 == 0) {

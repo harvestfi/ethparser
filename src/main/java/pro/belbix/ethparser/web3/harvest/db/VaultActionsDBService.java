@@ -24,7 +24,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
-public class HarvestDBService {
+public class VaultActionsDBService {
   private final static ObjectMapper objectMapper = new ObjectMapper();
 
   private final HarvestRepository harvestRepository;
@@ -32,7 +32,7 @@ public class HarvestDBService {
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
 
-  public HarvestDBService(HarvestRepository harvestRepository,
+  public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
       UniswapRepository uniswapRepository) {

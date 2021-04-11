@@ -13,19 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository.UserBalance;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 public class HarvestController {
 
     private final HarvestRepository harvestRepository;
-    private final HarvestDBService harvestDBService;
+    private final VaultActionsDBService vaultActionsDBService;
 
     public HarvestController(HarvestRepository harvestRepository,
-                             HarvestDBService harvestDBService) {
+                             VaultActionsDBService vaultActionsDBService) {
         this.harvestRepository = harvestRepository;
-        this.harvestDBService = harvestDBService;
+        this.vaultActionsDBService = vaultActionsDBService;
     }
 
     @RequestMapping(value = "api/transactions/last/harvest", method = RequestMethod.GET)
@@ -43,7 +43,7 @@ public class HarvestController {
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryData(@RequestParam(value = "from", required = false) String from,
                                                    @RequestParam(value = "to", required = false) String to) {
-        return harvestDBService.fetchHarvest(from, to);
+        return vaultActionsDBService.fetchHarvest(from, to);
     }
 
     @GetMapping("/history/harvest/{address}")
