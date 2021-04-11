@@ -62,6 +62,7 @@ public class HardWorkDbService {
     calculateFarmBuybackSum(dto);
   }
 
+  // todo fetch all info from chain
   private void calculateVaultProfits(HardWorkDTO dto) {
     silentCall(
         () -> harvestRepository.fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getBlockDate()))

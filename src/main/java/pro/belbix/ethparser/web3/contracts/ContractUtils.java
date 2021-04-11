@@ -492,6 +492,10 @@ public class ContractUtils {
     return name;
   }
 
+  public Optional<VaultEntity> getVaultEntityByAddress(String address) {
+    return getCache().getVaultByAddress(address);
+  }
+
   public Collection<VaultEntity> getAllVaults() {
     return getCache().getAllVaults();
   }

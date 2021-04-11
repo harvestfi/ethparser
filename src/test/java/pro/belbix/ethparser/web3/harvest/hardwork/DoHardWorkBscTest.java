@@ -44,15 +44,15 @@ public class DoHardWorkBscTest {
     }
 
     @Test
-    public void parse_() throws Exception {
-        HardWorkDTO dto = loadHardWork(6169694);
+    public void parse_VENUS_VAI() throws Exception {
+        HardWorkDTO dto = loadHardWork(6168762);
         assertModel(
             HardWorkDTO.builder()
-                .id("0x60f1f15632d368b00255b5369dec8f29d9787a7f8f4c70518e393fecbaddbd6a")
-                .vault("VENUS_BETH")
-                .block(6169694)
-                .blockDate(1617222675)
-                .shareChange(5.84328668143E-7)
+                .id("0xa244cf7c9a934b526404c03af7b28acb4926a128be85ef85f2911961c0c116b7_329")
+                .vault("VENUS_VAI")
+                .block(6168762)
+                .blockDate(1617219879)
+                .shareChange(8.0323703167537E-5)
                 .fullRewardUsd(0.0)
                 .fullRewardUsdTotal(0.0)
                 .tvl(0.0)
@@ -66,21 +66,21 @@ public class DoHardWorkBscTest {
                 .psTvlUsd(0.0)
                 .psApr(0.0)
                 .farmBuyback(0.0)
-                .farmBuybackSum(0.)
+                .farmBuybackSum(30.89214304)
                 .callsQuantity(1)
                 .poolUsers(0)
                 .savedGasFees(0.0)
                 .savedGasFeesSum(0.0)
-                .fee(6.96817876103766)
+                .fee(2.37311058876429)
                 .weeklyAverageTvl(null)
                 .farmBuybackEth(0.0)
-                .feeEth(0.02291484)
-                .gasUsed(2291484.0)
+                .feeEth(0.00781472)
+                .gasUsed(781472.0)
                 .idleTime(0)
                 .invested(100.0)
                 .investmentTarget(100.0)
                 .farmPrice(0.0)
-                .ethPrice(1915.2507584481245)
+                .ethPrice(1908.7038402179446)
                 .profitSharingRate(0.08)
                 .buyBackRate(1.0)
                 .autoStake(0)
