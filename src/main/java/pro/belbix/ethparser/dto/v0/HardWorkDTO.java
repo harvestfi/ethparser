@@ -20,6 +20,7 @@ public class HardWorkDTO implements DtoI {
   private String vault;
   private long block;
   private long blockDate;
+  private String network;
   // don't use it, share price doesn't change for AutoStake strats
   // keep for compatibility and statistic
   private double shareChange;

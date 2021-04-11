@@ -23,6 +23,7 @@ public class TransferDTO implements DtoI {
   private String name;
   private long block;
   private long blockDate;
+  private String network;
   private String owner;
   private String recipient;
   private double value;

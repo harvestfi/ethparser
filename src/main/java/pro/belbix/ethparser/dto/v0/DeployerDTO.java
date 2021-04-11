@@ -24,6 +24,7 @@ public class DeployerDTO implements DtoI {
   private long idx;
   private long block;
   private long blockDate;
+  private String network;
   private String toAddress;
   private String fromAddress;
   private BigDecimal value;

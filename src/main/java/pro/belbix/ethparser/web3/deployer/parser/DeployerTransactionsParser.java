@@ -85,6 +85,7 @@ public class DeployerTransactionsParser implements Web3Parser {
       DeployerTx deployerTx = deployerDecoder.decodeTransaction(tx);
       if (deployerTx != null) {
         deployerDTO = deployerTx.toDto();
+        deployerDTO.setNetwork(ETH_NETWORK);
         deployerDTO.setBlockDate(
             ethBlockService.getTimestampSecForBlock(tx.getBlockNumber().longValue(), ETH_NETWORK));
         print(deployerDTO);
