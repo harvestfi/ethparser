@@ -75,7 +75,7 @@ public class HardWorkDbService {
 
           silentCall(() -> hardWorkRepository
               .fetchPercentForPeriod(dto.getVault(), dto.getBlockDate() - 1, limitOne))
-              .filter(Caller::isFilledList)
+              .filter(Caller::isNotEmptyList)
               .ifPresentOrElse(sumOfPercL -> {
                 final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
 
@@ -98,7 +98,7 @@ public class HardWorkDbService {
                   dto.getBlockDate() - (long) SECONDS_IN_WEEK,
                   dto.getBlockDate() - 1,
                   limitOne))
-              .filter(Caller::isFilledList)
+              .filter(Caller::isNotEmptyList)
               .ifPresentOrElse(sumOfProfitL -> {
                 double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
                 dto.setWeeklyProfit(sumOfProfit);
@@ -110,7 +110,7 @@ public class HardWorkDbService {
                   dto.getBlockDate() - (long) SECONDS_IN_WEEK,
                   dto.getBlockDate(),
                   limitOne))
-              .filter(Caller::isFilledList)
+              .filter(Caller::isNotEmptyList)
               .ifPresentOrElse(avgTvlD -> {
                 dto.setWeeklyAverageTvl(avgTvlD.get(0));
               }, () -> log.warn("Not found average tvl for period for " + dto.print()));
@@ -177,7 +177,7 @@ public class HardWorkDbService {
 
   public void calculateFarmBuybackSum(HardWorkDTO dto) {
     silentCall(() -> hardWorkRepository.fetchAllBuybacksAtDate(dto.getBlockDate() - 1, limitOne))
-        .filter(Caller::isFilledList)
+        .filter(Caller::isNotEmptyList)
         .ifPresentOrElse(l -> dto.setFarmBuybackSum(l.get(0) + dto.getFarmBuyback()),
             () -> dto.setFarmBuybackSum(dto.getFarmBuyback()));
   }

@@ -28,7 +28,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class DoHardWorkTest {
+public class DoHardWorkEthTest {
 
     @Autowired
     private HardWorkParser hardWorkParser;

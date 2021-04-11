@@ -1,0 +1,165 @@
+package pro.belbix.ethparser.web3.harvest.hardwork;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.TestUtils.assertModel;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
+
+import java.util.Collections;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.web3j.protocol.core.methods.response.EthLog.LogResult;
+import org.web3j.protocol.core.methods.response.Log;
+import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
+import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
+
+@SpringBootTest(classes = Application.class)
+@ContextConfiguration
+public class DoHardWorkBscTest {
+
+    @Autowired
+    private HardWorkParser hardWorkParser;
+    @Autowired
+    private Web3Functions web3Functions;
+    @Autowired
+    private PriceProvider priceProvider;
+    @Autowired
+    private HardWorkDbService hardWorkDbService;
+    @Autowired
+    private ContractLoader contractLoader;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        contractLoader.load(BSC_NETWORK);
+    }
+
+    @Test
+    public void parse_() throws Exception {
+        HardWorkDTO dto = loadHardWork(6169694);
+        assertModel(
+            HardWorkDTO.builder()
+                .id("0x60f1f15632d368b00255b5369dec8f29d9787a7f8f4c70518e393fecbaddbd6a")
+                .vault("VENUS_BETH")
+                .block(6169694)
+                .blockDate(1617222675)
+                .shareChange(5.84328668143E-7)
+                .fullRewardUsd(0.0)
+                .fullRewardUsdTotal(0.0)
+                .tvl(0.0)
+                .allProfit(0.0)
+                .periodOfWork(0)
+                .psPeriodOfWork(0)
+                .perc(0.0)
+                .apr(0.0)
+                .weeklyProfit(0.0)
+                .weeklyAllProfit(0.0)
+                .psTvlUsd(0.0)
+                .psApr(0.0)
+                .farmBuyback(0.0)
+                .farmBuybackSum(0.)
+                .callsQuantity(1)
+                .poolUsers(0)
+                .savedGasFees(0.0)
+                .savedGasFeesSum(0.0)
+                .fee(6.96817876103766)
+                .weeklyAverageTvl(null)
+                .farmBuybackEth(0.0)
+                .feeEth(0.02291484)
+                .gasUsed(2291484.0)
+                .idleTime(0)
+                .invested(100.0)
+                .investmentTarget(100.0)
+                .farmPrice(0.0)
+                .ethPrice(1915.2507584481245)
+                .profitSharingRate(0.08)
+                .buyBackRate(1.0)
+                .autoStake(0)
+                .build(),
+            dto
+        );
+    }
+
+    @Test
+    public void parse_VENUS_BETH_empty() throws Exception {
+        HardWorkDTO dto = loadHardWork(6166719);
+        assertModel(
+            HardWorkDTO.builder()
+                .id("0x3cd8edeba0ff0937c692e1fc130e8db08d605c02c7d62352c328c6412f1f56d0_277")
+                .vault("VENUS_BETH")
+                .block(6166719)
+                .blockDate(1617213744)
+                .shareChange(5.84328668143E-7)
+                .fullRewardUsd(0.0)
+                .fullRewardUsdTotal(0.0)
+                .tvl(0.0)
+                .allProfit(0.0)
+                .periodOfWork(0)
+                .psPeriodOfWork(0)
+                .perc(0.0)
+                .apr(0.0)
+                .weeklyProfit(0.0)
+                .weeklyAllProfit(0.0)
+                .psTvlUsd(0.0)
+                .psApr(0.0)
+                .farmBuyback(0.0)
+                .farmBuybackSum(0.)
+                .callsQuantity(1)
+                .poolUsers(0)
+                .savedGasFees(0.0)
+                .savedGasFeesSum(0.0)
+                .fee(6.96817876103766)
+                .weeklyAverageTvl(null)
+                .farmBuybackEth(0.0)
+                .feeEth(0.02291484)
+                .gasUsed(2291484.0)
+                .idleTime(0)
+                .invested(100.0)
+                .investmentTarget(100.0)
+                .farmPrice(0.0)
+                .ethPrice(1847.7470251769919)
+                .profitSharingRate(0.08)
+                .buyBackRate(1.0)
+                .autoStake(0)
+                .build(),
+            dto
+        );
+    }
+
+    private HardWorkDTO loadHardWork(int onBlock) {
+        //noinspection rawtypes
+        List<LogResult> logResults = web3Functions.fetchContractLogs(
+            Collections.singletonList(CONTROLLERS.get(BSC_NETWORK)),
+            onBlock, onBlock, BSC_NETWORK);
+        assertNotNull(logResults);
+        Assertions.assertFalse(logResults.isEmpty());
+        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0), BSC_NETWORK);
+        assertNotNull(dto);
+
+        if (dto.getFullRewardUsd() != 0) {
+            double psReward = dto.getFarmBuyback();
+            double psRewardUsd = psReward * dto.getFarmPrice();
+
+            double wholeRewardBasedOnPsReward = psRewardUsd / dto.getProfitSharingRate();
+            double wholeRewardBasedOnVaultReward =
+                dto.getFullRewardUsd() / (1 - dto.getProfitSharingRate());
+            // when price volatile we can by less % value for the strategy income
+            double diff =
+                Math.abs(wholeRewardBasedOnPsReward - wholeRewardBasedOnVaultReward)
+                    / wholeRewardBasedOnPsReward;
+            Assertions.assertEquals(0.0, diff, 2.0, "% diff balance check");
+        }
+        hardWorkDbService.save(dto);
+        return dto;
+    }
+
+}

@@ -47,7 +47,7 @@ public class PriceProvider {
     String lpName = cu(network).getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
-        .filter(Caller::isFilledList)
+        .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
@@ -175,7 +175,7 @@ public class PriceProvider {
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
-        .filter(Caller::isFilledList)
+        .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {

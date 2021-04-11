@@ -2,6 +2,9 @@ ethparser:
   startUtil: hardwork-download
   overrideDuplicates: true
 
+server:
+  port: 4143
+
 hardwork-download:
   from: 5993570
-#  to: 11445244
+  to: 6466170

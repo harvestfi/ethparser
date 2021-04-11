@@ -195,6 +195,12 @@ public class ContractUtils {
         .isPresent();
   }
 
+  public Optional<Long> getTokenCreated(String tokenAddress) {
+    return getCache().getTokenByAddress(tokenAddress)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getCreated);
+  }
+
   public boolean isUniPairCreated(String uniPairName, long block) {
     return getCache().getUniPairByName(uniPairName)
         .map(UniPairEntity::getContract)

@@ -1,13 +1,13 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Objects.requireNonNullElse;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BUYBACK_RATIO;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.LIQUIDATE_REWARD_TO_WETH_IN_SUSHI;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNIVERSAL_LIQUIDATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
@@ -15,16 +15,21 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Event;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import pro.belbix.ethparser.codegen.GeneratedContract;
+import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.HardWorkTx;
@@ -54,6 +59,7 @@ public class HardWorkParser implements Web3Parser {
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
+  private final SimpleContractGenerator simpleContractGenerator;
   private Instant lastTx = Instant.now();
 
   public HardWorkParser(PriceProvider priceProvider,
@@ -61,7 +67,8 @@ public class HardWorkParser implements Web3Parser {
       Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
       ParserInfo parserInfo,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      SimpleContractGenerator simpleContractGenerator) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
@@ -69,6 +76,7 @@ public class HardWorkParser implements Web3Parser {
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
+    this.simpleContractGenerator = simpleContractGenerator;
   }
 
   @Override
@@ -128,6 +136,7 @@ public class HardWorkParser implements Web3Parser {
       return null;
     }
     HardWorkDTO dto = new HardWorkDTO();
+    dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(tx.getBlockDate());
@@ -146,13 +155,36 @@ public class HardWorkParser implements Web3Parser {
   // not in the root because it can be weekly reward
   private void parseRewards(HardWorkDTO dto, String txHash, String network) {
     TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash, network);
+
+    boolean autoStake = isAutoStake(tr.getLogs());
+    dto.setAutoStake(autoStake ? 1 : 0);
+
     double farmPrice =
         priceProvider.getPriceForCoin("FARM", dto.getBlock(), network);
     dto.setFarmPrice(farmPrice);
-    boolean autoStake = isAutoStake(tr.getLogs());
-    dto.setAutoStake(autoStake ? 1 : 0);
+
+    Set<String> events = new LinkedHashSet<>();
     for (Log ethLog : tr.getLogs()) {
-      parseRewardAddedEvents(ethLog, dto, autoStake, network);
+//      if (ETH_NETWORK.equals(network)) {
+        parseRewardAddedEventsEth(ethLog, dto, autoStake, network);
+//      } else if (BSC_NETWORK.equals(network)) {
+//        GeneratedContract generatedContract =
+//            simpleContractGenerator.getContract(
+//                ethLog.getAddress(), dto.getBlock(), null, network);
+//        if (generatedContract != null && !ethLog.getTopics().isEmpty()) {
+//          String eventHash = ethLog.getTopics().get(0);
+//          Event event = generatedContract.getEvent(eventHash);
+//          if (event != null) {
+//            events.add(event.getName());
+//          } else {
+//            log.info("Event not found {}", eventHash);
+//          }
+//        } else {
+//          log.info("Can't generate for {}", ethLog.getAddress());
+//        }
+//        log.info(events);
+//        parseBscRewards(ethLog, dto, autoStake, network);
+//      }
     }
 
     double ethPrice =
@@ -161,6 +193,11 @@ public class HardWorkParser implements Web3Parser {
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);
     fillFeeInfo(dto, txHash, tr, network);
+  }
+
+  private void parseBscRewards(Log ethLog, HardWorkDTO dto, boolean autoStake, String network) {
+    dto.setFullRewardUsd(0);
+    dto.setFarmBuyback(0);
   }
 
   private void parseRates(HardWorkDTO dto, String strategyHash, String network) {
@@ -193,20 +230,22 @@ public class HardWorkParser implements Web3Parser {
     if (buyBackRatio > 0) {
       return buyBackRatio / 10000;
     }
-
-    if (functionsUtils.callAddressByName(
-        UNIVERSAL_LIQUIDATOR, strategyAddress, block, network)
-        .isPresent()) {
-      return 1;
-    }
-
-    Boolean liquidateRewardToWethInSushi =
-        functionsUtils.callBoolByName(
-            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, network)
-            .orElse(false);
-    return liquidateRewardToWethInSushi ? 1 : 0;
+    return 1;
+    // todo investigate
+//    if (functionsUtils.callAddressByName(
+//        UNIVERSAL_LIQUIDATOR, strategyAddress, block, network)
+//        .isPresent()) {
+//      return 1;
+//    }
+//
+//    Boolean liquidateRewardToWethInSushi =
+//        functionsUtils.callBoolByName(
+//            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, network)
+//            .orElse(false);
+//    return liquidateRewardToWethInSushi ? 1 : 0;
   }
 
+  //todo change on topic comparison
   private boolean isAutoStake(List<Log> logs) {
     return logs.stream()
         .filter(l -> {
@@ -218,7 +257,7 @@ public class HardWorkParser implements Web3Parser {
         }).count() > 1;
   }
 
-  private void parseRewardAddedEvents(
+  private void parseRewardAddedEventsEth(
       Log ethLog, HardWorkDTO dto, boolean autoStake, String network) {
     HardWorkTx tx;
     try {
@@ -273,7 +312,8 @@ public class HardWorkParser implements Web3Parser {
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
     double ethPrice =
-        priceProvider.getPriceForCoin("ETH", dto.getBlock(), network);
+        priceProvider.getPriceForCoin(cu(network).getBaseNetworkWrappedTokenAddress()
+            , dto.getBlock(), network);
     double feeUsd = gas * gasPrice * ethPrice;
     dto.setFee(feeUsd);
     double feeEth = gas * gasPrice;

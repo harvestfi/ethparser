@@ -147,6 +147,7 @@ public class RewardParser implements Web3Parser {
         ContractConstants.FARM_TOKEN);
 
     RewardDTO dto = new RewardDTO();
+    dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);

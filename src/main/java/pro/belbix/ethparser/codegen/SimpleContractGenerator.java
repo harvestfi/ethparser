@@ -32,6 +32,7 @@ import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Log4j2
 @Service
@@ -220,15 +221,25 @@ public class SimpleContractGenerator {
   }
 
   private String findLastProxyUpgrade(String address, Long _block, Event event, String network) {
-    Integer block = null;
-    if(_block != null) {
-      block = _block.intValue();
+    Integer start = null;
+    Integer end = null;
+    if (_block != null) {
+      end = _block.intValue();
+    }
+    // bsc has an odd bug with latest/earliest block fetching
+    if (BSC_NETWORK.equals(network)) {
+      Long created = ContractUtils.getInstance(network).getTokenCreated(address)
+          .orElse(null);
+      if (created == null) {
+        return null;
+      }
+      start = created.intValue() - 1;
     }
     //noinspection rawtypes
     List<LogResult> logResults = web3Functions.fetchContractLogs(
         List.of(address),
-        null,
-        block,
+        start,
+        end,
         network,
         UPGRADED_EVENT);
     if (logResults == null || logResults.isEmpty()) {
