@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY_TIME_LOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
@@ -35,7 +34,6 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 @Service
 @Log4j2
 public class ImportantEventsParser implements Web3Parser {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
@@ -76,7 +74,7 @@ public class ImportantEventsParser implements Web3Parser {
         Log ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          ImportantEventsDTO dto = parseLog(ethLog);
+          ImportantEventsDTO dto = parseLog(ethLog, appProperties.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = importantEventsDbService.save(dto);
@@ -94,10 +92,11 @@ public class ImportantEventsParser implements Web3Parser {
     }).start();
   }
 
-  public ImportantEventsDTO parseLog(Log ethLog) {
+  public ImportantEventsDTO parseLog(Log ethLog, String network) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-            && contractUtils.getNameByAddress(ethLog.getAddress()).isEmpty())
+            && ContractUtils.getInstance(network)
+            .getNameByAddress(ethLog.getAddress()).isEmpty())
     ) {
       return null;
     }
@@ -117,12 +116,12 @@ public class ImportantEventsParser implements Web3Parser {
     //enrich date
     dto.setBlockDate(
         ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), ETH_NETWORK));
+            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), network));
 
     parseEvent(dto, tx.getMethodName());
-    parseVault(dto, tx.getVault());
+    parseVault(dto, tx.getVault(), network);
     parseMintAmount(dto, tx.getMintAmount());
-    updateInfo(dto, tx);
+    updateInfo(dto, tx, network);
     log.info(dto.print());
     return dto;
   }
@@ -136,10 +135,10 @@ public class ImportantEventsParser implements Web3Parser {
     }
   }
 
-  private void parseVault(ImportantEventsDTO dto, String vault) {
-    dto.setVault(
-        contractUtils.getNameByAddress(vault)
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
+  private void parseVault(ImportantEventsDTO dto, String vault, String network) {
+    dto.setVault(ContractUtils.getInstance(network)
+        .getNameByAddress(vault)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
     );
   }
 
@@ -149,17 +148,17 @@ public class ImportantEventsParser implements Web3Parser {
     }
   }
 
-  private void updateInfo(ImportantEventsDTO dto, ImportantEventsTx tx) {
+  private void updateInfo(ImportantEventsDTO dto, ImportantEventsTx tx, String network) {
     ImportantEventsInfo info = new ImportantEventsInfo();
     info.setVaultAddress(tx.getVault());
 
     if ("StrategyAnnounced".equals(dto.getEvent())) {
       info.setStrategyTimeLock(
           functionsUtils
-              .callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock(), ETH_NETWORK)
+              .callIntByName(STRATEGY_TIME_LOCK, tx.getVault(), tx.getBlock(), network)
               .orElse(BigInteger.ZERO).longValue());
       dto.setOldStrategy(
-          functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock(), ETH_NETWORK)
+          functionsUtils.callAddressByName(STRATEGY, tx.getVault(), tx.getBlock(), network)
               .orElse(""));
     }
     ObjectMapper mapper = new ObjectMapper();

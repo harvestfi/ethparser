@@ -24,7 +24,6 @@ import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -36,14 +35,12 @@ import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
 @Service
 @Log4j2
 public class RewardParser implements Web3Parser {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
   private final FunctionsUtils functionsUtils;
-  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final RewardsDBService rewardsDBService;
@@ -52,13 +49,14 @@ public class RewardParser implements Web3Parser {
   private Instant lastTx = Instant.now();
   private boolean waitNewBlock = true;
 
-  public RewardParser(FunctionsUtils functionsUtils,
-      Web3Functions web3Functions,
-      Web3Subscriber web3Subscriber, EthBlockService ethBlockService,
-      RewardsDBService rewardsDBService, AppProperties appProperties,
+  public RewardParser(
+      FunctionsUtils functionsUtils,
+      Web3Subscriber web3Subscriber,
+      EthBlockService ethBlockService,
+      RewardsDBService rewardsDBService,
+      AppProperties appProperties,
       ParserInfo parserInfo) {
     this.functionsUtils = functionsUtils;
-    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.rewardsDBService = rewardsDBService;
@@ -76,7 +74,7 @@ public class RewardParser implements Web3Parser {
         Log ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          RewardDTO dto = parseLog(ethLog);
+          RewardDTO dto = parseLog(ethLog, appProperties.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = rewardsDBService.saveRewardDTO(dto);
@@ -94,8 +92,8 @@ public class RewardParser implements Web3Parser {
     }).start();
   }
 
-  public RewardDTO parseLog(Log ethLog) throws InterruptedException {
-    if (ethLog == null || !contractUtils.isPoolAddress(ethLog.getAddress())) {
+  public RewardDTO parseLog(Log ethLog, String network) throws InterruptedException {
+    if (ethLog == null || !cu(network).isPoolAddress(ethLog.getAddress())) {
       return null;
     }
 
@@ -103,26 +101,31 @@ public class RewardParser implements Web3Parser {
     if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
     }
+    long blockForParsing = tx.getBlock().longValue();
     if (!notWaitNewBlock.contains(appProperties.getStartUtil())
         && waitNewBlock
-        && tx.getBlock().longValue() > ethBlockService.getLastBlock(ETH_NETWORK)
+        && ETH_NETWORK.equals(appProperties.getNetwork())
+        && tx.getBlock().longValue() > ethBlockService.getLastBlock(network)
     ) {
+      //todo remove when migrate to our own nodes
       log.info("Wait new block for correct parsing rewards");
       Thread.sleep(60 * 1000 * 5); //wait until new block created
+      blockForParsing += 1;
     }
-    //todo if it is the last block it will be not safe, create another logic
-    long nextBlock = tx.getBlock().longValue() + 1;
+
     String poolAddress = tx.getVault().getValue();
-    long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock, ETH_NETWORK)
+    long periodFinish = functionsUtils
+        .callIntByName(PERIOD_FINISH, poolAddress, blockForParsing, network)
         .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
         .longValue();
-    BigInteger rewardRate = functionsUtils.callIntByName(REWARD_RATE, poolAddress, nextBlock, ETH_NETWORK)
+    BigInteger rewardRate = functionsUtils
+        .callIntByName(REWARD_RATE, poolAddress, blockForParsing, network)
         .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
     if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
       log.error("Wrong values for " + ethLog);
       return null;
     }
-    long blockTime = ethBlockService.getTimestampSecForBlock(nextBlock, ETH_NETWORK);
+    long blockTime = ethBlockService.getTimestampSecForBlock(blockForParsing, network);
 
     double farmRewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {
@@ -132,9 +135,13 @@ public class RewardParser implements Web3Parser {
           .doubleValue();
     }
 
-    double farmBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
-        functionsUtils
-            .callIntByName(BALANCE_OF, poolAddress, ContractConstants.FARM_TOKEN, nextBlock, ETH_NETWORK)
+    double farmBalance = ContractUtils.getInstance(network).parseAmount(
+        functionsUtils.callIntByName(
+            BALANCE_OF,
+            poolAddress,
+            ContractConstants.FARM_TOKEN,
+            blockForParsing,
+            network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get balance from " + ContractConstants.FARM_TOKEN)),
         ContractConstants.FARM_TOKEN);
@@ -143,7 +150,7 @@ public class RewardParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);
-    dto.setVault(contractUtils.getNameByAddress(poolAddress)
+    dto.setVault(cu(network).getNameByAddress(poolAddress)
         .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
         .replaceFirst("ST__", "")
         .replaceFirst("ST_", ""));
@@ -156,6 +163,10 @@ public class RewardParser implements Web3Parser {
 
   public void setWaitNewBlock(boolean waitNewBlock) {
     this.waitNewBlock = waitNewBlock;
+  }
+
+  private static ContractUtils cu(String network) {
+    return ContractUtils.getInstance(network);
   }
 
   @Override

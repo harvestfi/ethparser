@@ -361,6 +361,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
   private void fillUsdValues(HarvestDTO dto, String vaultHash, String network) {
     String underlyingAddress;
+    // todo check how it works on eth
     if (ETH_NETWORK.equals(network)) {
       underlyingAddress = dto.getVault();
     } else {
