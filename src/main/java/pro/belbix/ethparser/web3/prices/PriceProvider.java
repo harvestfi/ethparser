@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_ETH_START_BLOCK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.HashMap;
@@ -74,7 +74,7 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (block > ORACLE_START_BLOCK) {
+    if (block > ORACLE_ETH_START_BLOCK) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block);
     }
 
@@ -201,7 +201,7 @@ public class PriceProvider {
     }
     String tokenAdr = cu(network).getAddressByName(name, ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
-    if (block > ORACLE_START_BLOCK) {
+    if (block > ORACLE_ETH_START_BLOCK) {
       return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
     }
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
