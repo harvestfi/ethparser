@@ -94,7 +94,9 @@ public class HardWorkController {
     public RestResponse hardworkPages(
         @RequestParam("pageSize") String pageSize,
         @RequestParam("page") String page,
-        @RequestParam(value = "ordering", required = false) String ordering) {
+        @RequestParam(value = "ordering", required = false) String ordering,
+        @RequestParam(value = "vault", required = false) String vault
+    ) {
         try {
             int start = Integer.parseInt(page);
             int size = Integer.parseInt(pageSize);
@@ -102,8 +104,15 @@ public class HardWorkController {
             if (!Strings.isBlank(ordering) && "desc".equals(ordering)) {
                 sorting = sorting.descending();
             }
-            Page<HardWorkDTO> pages = hardWorkRepository
-                .findAll(PageRequest.of(start, size, sorting));
+
+            Page<HardWorkDTO> pages;
+            if (Strings.isBlank(vault)) {
+                pages = hardWorkRepository
+                    .findAll(PageRequest.of(start, size, sorting));
+            } else {
+                pages = hardWorkRepository
+                    .fetchPages(vault, PageRequest.of(start, size, sorting));
+            }
 
             if (!pages.hasContent()) {
                 return RestResponse.error("Data not found");

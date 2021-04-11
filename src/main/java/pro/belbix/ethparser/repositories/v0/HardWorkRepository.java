@@ -10,7 +10,8 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 
 public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
-//    Page<HardWorkDTO> fetchPages(Pageable pageable)
+    @Query("select t from HardWorkDTO t where t.vault = :vault")
+    Page<HardWorkDTO> fetchPages(@Param("vault") String vault, Pageable pageable);
 
     HardWorkDTO findFirstByOrderByBlockDateDesc();
 
