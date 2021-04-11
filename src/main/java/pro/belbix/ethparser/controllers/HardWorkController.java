@@ -95,7 +95,8 @@ public class HardWorkController {
         @RequestParam("pageSize") String pageSize,
         @RequestParam("page") String page,
         @RequestParam(value = "ordering", required = false) String ordering,
-        @RequestParam(value = "vault", required = false) String vault
+        @RequestParam(value = "vault", required = false) String vault,
+        @RequestParam(value = "minAmount", required = false) Integer minAmount
     ) {
         try {
             int start = Integer.parseInt(page);
@@ -106,12 +107,15 @@ public class HardWorkController {
             }
 
             Page<HardWorkDTO> pages;
+            if (minAmount == null) {
+                minAmount = Integer.MIN_VALUE;
+            }
             if (Strings.isBlank(vault)) {
                 pages = hardWorkRepository
-                    .findAll(PageRequest.of(start, size, sorting));
+                    .fetchPages(minAmount, PageRequest.of(start, size, sorting));
             } else {
                 pages = hardWorkRepository
-                    .fetchPages(vault, PageRequest.of(start, size, sorting));
+                    .fetchPagesByVault(vault, minAmount, PageRequest.of(start, size, sorting));
             }
 
             if (!pages.hasContent()) {
