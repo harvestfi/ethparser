@@ -28,7 +28,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_USDT() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0xdac17f958d2ee523a2206206994597c13d831ec7", 10800000, null, ETH_NETWORK);
+        "0xdac17f958d2ee523a2206206994597c13d831ec7", 10800000L, null, ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(11, contract.getEvents().size(), "Events size"),
@@ -39,7 +39,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_USDC() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", 10800000, null, ETH_NETWORK);
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", 10800000L, null, ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(17, contract.getEvents().size(), "Events size"),
@@ -50,7 +50,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_LINK() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0x514910771AF9Ca656af840dff83E8264EcF986CA", 10800000, null,ETH_NETWORK);
+        "0x514910771AF9Ca656af840dff83E8264EcF986CA", 10800000L, null,ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(3, contract.getEvents().size(), "Events size"),
@@ -61,7 +61,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_fSUSHI() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0x274AA8B58E8C57C4e347C8768ed853Eb6D375b48", 11954198, null,ETH_NETWORK);
+        "0x274AA8B58E8C57C4e347C8768ed853Eb6D375b48", 11954198L, null,ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(7, contract.getEvents().size(), "Events size"),
@@ -72,7 +72,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_YPoolDelegator() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0x329239599afB305DA0A2eC69c58F8a6697F9F88d", 11954198, null,ETH_NETWORK);
+        "0x329239599afB305DA0A2eC69c58F8a6697F9F88d", 11954198L, null,ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(9, contract.getEvents().size(), "Events size"),
@@ -83,7 +83,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getContract_ZeroEx() {
     GeneratedContract contract = simpleContractGenerator.getContract(
-        "0xDef1C0ded9bec7F1a1670819833240f027b25EfF", 11954198, "0xd9627aa4", ETH_NETWORK);
+        "0xDef1C0ded9bec7F1a1670819833240f027b25EfF", 11954198L, "0xd9627aa4", ETH_NETWORK);
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(0, contract.getEvents().size(), "Events size"),

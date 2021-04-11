@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
@@ -365,7 +365,7 @@ public class ContractUtils {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
-    contracts.add(ETH_CONTROLLER);
+    contracts.add(CONTROLLERS.get(ETH_NETWORK));
 
     // FARM token Mint event parsing + transfers parsing
     contracts.add(ContractConstants.FARM_TOKEN);

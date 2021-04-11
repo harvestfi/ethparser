@@ -1,13 +1,10 @@
 package pro.belbix.ethparser.web3;
 
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.lang.reflect.ParameterizedType;
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +30,6 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.abi.CommonMethods;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {

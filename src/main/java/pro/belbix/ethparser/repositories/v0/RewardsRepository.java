@@ -27,6 +27,7 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         + "       last_value(id) over w            as id, "
         + "       last_value(block) over w         as block, "
         + "       last_value(block_date) over w    as block_date, "
+        + "       last_value(network) over w       as network, "
         + "       vault, "
         + "       last_value(reward) over w        as reward, "
         + "       last_value(apy) over w           as apy, "

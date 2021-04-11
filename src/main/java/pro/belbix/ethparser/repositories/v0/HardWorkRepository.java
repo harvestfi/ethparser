@@ -73,6 +73,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "    vault, "
         + "    last_value(block) over w                 as block, "
         + "    last_value(block_date) over w            as block_date, "
+        + "    last_value(network) over w               as network, "
         + "    last_value(share_change) over w          as share_change, "
         + "    last_value(full_reward_usd) over w       as full_reward_usd, "
         + "    last_value(full_reward_usd_total) over w as full_reward_usd_total, "

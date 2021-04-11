@@ -20,6 +20,7 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "    last_value(id) over w                 as id, "
         + "    last_value(block) over w              as block, "
         + "    last_value(block_date) over w         as block_date, "
+        + "    last_value(network) over w            as network, "
         + "    source, "
         + "    last_value(token) over w              as token, "
         + "    last_value(token_amount) over w       as token_amount, "

@@ -40,6 +40,7 @@ public class BscTokenAddresses {
       new TokenContract(5013255, "ONEINCH", "0x111111111117dC0aa78b770fA6A738034120C302")
           .addLp(0, "ONEINCH_BNB_ONEINCH"),
       new TokenContract(2132296, "RENBTC", "0xfCe146bF3146100cfe5dB4129cf6C82b0eF4Ad8c")
-          .addLp(0, "ONEINCH_ONEINCH_RENBTC")
+          .addLp(0, "ONEINCH_ONEINCH_RENBTC"),
+      new TokenContract(5491276, "bFARM", "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743")
   );
 }

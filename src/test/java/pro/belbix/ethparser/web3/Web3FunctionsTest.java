@@ -5,9 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -121,7 +120,7 @@ public class Web3FunctionsTest {
             },
                 new TypeReference<Uint32>() {
                 }
-            )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", BLOCK_NUMBER_30_AUGUST_2020, ETH_NETWORK);
+            )), "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11", ETH_BLOCK_NUMBER_30_AUGUST_2020, ETH_NETWORK);
         assertNotNull(types);
         assertEquals(3, types.size());
         assertTrue(((Uint112) types.get(0)).getValue()

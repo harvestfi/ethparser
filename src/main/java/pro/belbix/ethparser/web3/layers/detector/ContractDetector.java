@@ -184,7 +184,7 @@ public class ContractDetector {
         GeneratedContract contract =
             simpleContractGenerator.getContract(
                 address,
-                (int) tx.getBlockNumber().getNumber(),
+                tx.getBlockNumber().getNumber(),
                 methodId,
                 network
             );
@@ -261,7 +261,7 @@ public class ContractDetector {
     }
 
     private Event findEvent(String address, String hash, int block, String network) {
-        GeneratedContract contract = simpleContractGenerator.getContract(address, block, null,network);
+        GeneratedContract contract = simpleContractGenerator.getContract(address, (long) block, null,network);
         if (contract == null) {
             return null;
         }
@@ -293,7 +293,7 @@ public class ContractDetector {
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
 
         GeneratedContract contract =
-            simpleContractGenerator.getContract(contractAddress, block,null, network);
+            simpleContractGenerator.getContract(contractAddress, (long) block,null, network);
         if (contract == null) {
             log.error("Can't generate contract for {} at {}", contractAddress, block);
             return;

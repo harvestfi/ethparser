@@ -1,35 +1,24 @@
 package pro.belbix.ethparser.web3.deployer.decoder;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 import pro.belbix.ethparser.model.DeployerTx;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 
 @SuppressWarnings({"rawtypes"})
-@Component
 @Log4j2
 public class DeployerDecoder extends MethodDecoder {
 
-  private final Web3Functions web3Functions;
-
-  public DeployerDecoder(Web3Functions web3Functions) {
-    this.web3Functions = web3Functions;
-  }
-
-  public DeployerTx decodeTransaction(Transaction tx) {
+  public DeployerTx decodeTransaction(Transaction tx, String network) {
     DeployerTx deployerTx = null;
     try {
-      if (!isValidTransaction(tx)) {
+      if (!isValidTransaction(tx, network)) {
         return null;
       }
       if (tx.getTo() == null) {
@@ -56,19 +45,15 @@ public class DeployerDecoder extends MethodDecoder {
                   + deployerTx.getHash());
         }
       }
-      TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash(), ETH_NETWORK);
-      deployerTx.setGasUsed(transactionReceipt.getGasUsed());
-      deployerTx.setSuccess("0x1".equalsIgnoreCase(transactionReceipt.getStatus()));
-
     } catch (Exception e) {
       log.error("Error tx " + tx.getHash(), e);
     }
     return deployerTx;
   }
 
-  private boolean isValidTransaction(Transaction tx) {
+  private boolean isValidTransaction(Transaction tx, String network) {
     // If deployer address ever changes -- supply a list and check here
-    return ContractConstants.ETH_DEPLOYER.equalsIgnoreCase(tx.getFrom());
+    return DEPLOYERS.get(network).equalsIgnoreCase(tx.getFrom());
   }
 
   @Override

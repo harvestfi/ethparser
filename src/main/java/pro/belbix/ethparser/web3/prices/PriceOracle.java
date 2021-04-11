@@ -1,10 +1,8 @@
 package pro.belbix.ethparser.web3.prices;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_ETH;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_ETH_START_BLOCK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -25,22 +23,27 @@ public class PriceOracle {
 
     }
 
-    public double getPriceForCoinOnChain(String tokenAdr, Long block) {
+    public double getPriceForCoinOnChain(String tokenAdr, Long block, String network) {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
-        if (block <= ORACLE_ETH_START_BLOCK){
-            throw new IllegalStateException("Oracle price smart contract was deploy on block " + ORACLE_ETH_START_BLOCK);
+        long startBlock = ORACLES.get(network).component1();
+        if (block <= startBlock) {
+            throw new IllegalStateException(
+                "Oracle price smart contract was deploy on block " + startBlock);
         }
+        String oracleAddress = ORACLES.get(network).component2();
+        double price = functionsUtils
+            .callIntByName(GET_PRICE, tokenAdr, oracleAddress, block, network)
+            .orElseThrow(() -> new IllegalStateException(
+                "Can't fetch price for " + tokenAdr))
+            .doubleValue();
 
-        double price = functionsUtils.callIntByName(GET_PRICE, tokenAdr, ORACLE_ETH, block, ETH_NETWORK)
-        .orElseThrow(() -> new IllegalStateException("Can't fetch price for " + tokenAdr)).doubleValue();
-        
         return price / D18;
     }
 
-    public boolean isAvailable(String coinName, long block) {
-        return block > ORACLE_ETH_START_BLOCK
-            && !coinName.equals("USDC");
+    public boolean isNotAvailable(String coinName, long block, String network) {
+        return block <= ORACLES.get(network).component1()
+            || coinName.equals("USDC");
     }
 }

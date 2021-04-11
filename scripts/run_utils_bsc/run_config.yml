@@ -45,3 +45,5 @@ price-download:
   to: 11739000
 block-download:
   from: 10765094
+deployer-download:
+  from: 5993575
