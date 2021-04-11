@@ -32,7 +32,8 @@ public class HardWorkDownloader {
 
   public HardWorkDownloader(Web3Functions web3Functions,
       HardWorkDbService hardWorkDbService,
-      HardWorkParser hardWorkParser, AppProperties appProperties) {
+      HardWorkParser hardWorkParser,
+      AppProperties appProperties) {
     this.web3Functions = web3Functions;
     this.hardWorkDbService = hardWorkDbService;
     this.hardWorkParser = hardWorkParser;

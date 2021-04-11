@@ -105,7 +105,7 @@ public class RewardParser implements Web3Parser {
     }
     if (!notWaitNewBlock.contains(appProperties.getStartUtil())
         && waitNewBlock
-        && tx.getBlock().longValue() > ethBlockService.getLastBlock()
+        && tx.getBlock().longValue() > ethBlockService.getLastBlock(ETH_NETWORK)
     ) {
       log.info("Wait new block for correct parsing rewards");
       Thread.sleep(60 * 1000 * 5); //wait until new block created

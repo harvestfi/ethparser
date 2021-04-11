@@ -91,7 +91,7 @@ public class UniToHarvestConverter implements Web3Parser {
             .orElseThrow(() -> new IllegalStateException(
                 "Not found address for " + uniswapDTO.getOtherCoin()))
     );
-    if (!PARSABLE_UNI_PAIRS.contains(lpHash)) {
+    if (!PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(lpHash)) {
       return null;
     }
     HarvestDTO harvestDTO = new HarvestDTO();

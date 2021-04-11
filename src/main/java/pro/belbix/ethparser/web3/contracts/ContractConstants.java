@@ -25,7 +25,7 @@ public class ContractConstants {
 
   public final static Map<String, String> CONTROLLERS = Map.of(
       ETH_NETWORK, "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase(),
-      BSC_NETWORK, "".toLowerCase()
+      BSC_NETWORK, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()
   );
 
   public final static Map<String, Tuple2<Long, String>> ORACLES = Map.of(
@@ -56,11 +56,14 @@ public class ContractConstants {
   public static final int PAIR_TYPE_SUSHI = 2;
   public static final int PAIR_TYPE_ONEINCHE = 3;
 
-  public static final Set<String> PARSABLE_UNI_PAIRS = new HashSet<>(List.of(
-      "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
-      "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM
-      "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase() // UNI_LP_GRAIN_FARM - GRAIN
-  ));
+  public static final Map<String, Set<String>> PARSABLE_UNI_PAIRS = Map.of(
+      ETH_NETWORK, Set.of(
+          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
+          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM
+          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase() // UNI_LP_GRAIN_FARM - GRAIN
+      ),
+      BSC_NETWORK, Set.of()
+  );
 
   public static final Set<String> PS_ADDRESSES = Set.of(
       "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS

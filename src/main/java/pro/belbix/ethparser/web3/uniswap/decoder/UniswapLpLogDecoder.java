@@ -67,7 +67,7 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return PARSABLE_UNI_PAIRS.contains(log.getAddress());
+    return PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(log.getAddress());
   }
 
   private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {

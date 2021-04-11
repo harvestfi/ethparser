@@ -60,7 +60,7 @@ public class PriceController {
                 }
             }
             if (block == null) {
-                block = ethBlockService.getLastBlock();
+                block = ethBlockService.getLastBlock(network);
             }
             double amountUsd = priceProvider.getLpTokenUsdPrice(
                 lpAddress.toLowerCase(), amount, block, network);

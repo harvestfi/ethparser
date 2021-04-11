@@ -21,13 +21,11 @@ import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestTransactionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
@@ -42,9 +40,7 @@ import pro.belbix.ethparser.ws.WsService;
 @Log4j2
 public class AppStarter {
 
-    private final Web3Functions web3Functions;
     private final Web3Subscriber web3Subscriber;
-    private final HarvestTransactionsParser harvestTransactionsParser;
     private final UniswapLpLogParser uniswapLpLogParser;
     private final HarvestVaultParserV2 harvestVaultParserV2;
     private final RewardParser rewardParser;
@@ -65,9 +61,8 @@ public class AppStarter {
     private boolean web3LogsStarted = false;
     private boolean web3BlocksStarted = false;
 
-    public AppStarter(Web3Functions web3Functions,
+    public AppStarter(
         Web3Subscriber web3Subscriber,
-        HarvestTransactionsParser harvestTransactionsParser,
         UniswapLpLogParser uniswapLpLogParser,
         HarvestVaultParserV2 harvestVaultParserV2,
         RewardParser rewardParser, HardWorkParser hardWorkParser,
@@ -79,9 +74,7 @@ public class AppStarter {
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
         ContractDetector contractDetector) {
-        this.web3Functions = web3Functions;
         this.web3Subscriber = web3Subscriber;
-        this.harvestTransactionsParser = harvestTransactionsParser;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.harvestVaultParserV2 = harvestVaultParserV2;
         this.rewardParser = rewardParser;
@@ -107,10 +100,6 @@ public class AppStarter {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
             contractLoader.load(conf.getNetwork());
-
-            if (conf.isParseHarvest()) {
-                startParse(harvestTransactionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, false);
-            }
 
             if (conf.isParseUniswapLog()) {
                 startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);

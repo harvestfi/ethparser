@@ -384,7 +384,7 @@ public class ContractUtils {
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList()));
     // uni events
-    contracts.addAll(PARSABLE_UNI_PAIRS);
+    contracts.addAll(PARSABLE_UNI_PAIRS.get(network));
 
     return new ArrayList<>(contracts);
   }

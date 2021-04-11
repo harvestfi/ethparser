@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
@@ -77,7 +78,10 @@ public class HardWorkController {
     public RestResponse totalSavedGasFeeByEthAddress(@RequestParam(value = "address") String address) {
         try {
             return RestResponse.ok((String.format("%.8f",
-                hardWorkCalculator.calculateTotalHardWorksFeeByOwner(address.toLowerCase()))));
+                hardWorkCalculator
+                    .calculateTotalHardWorksFeeByOwner(address.toLowerCase(), ETH_NETWORK)
+            )
+            ));
         } catch (Exception e) {
             String msg = "Error get total saved gas fee for address: " + address;
             log.error(msg, e);

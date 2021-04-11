@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -136,12 +135,12 @@ public class HarvestDBService {
 
     List<String> contracts = new ArrayList<>(
         ContractUtils.getInstance(dto.getNetwork()).vaultNames());
-    if (ETH_NETWORK.equals(dto.getNetwork())) {
-      PARSABLE_UNI_PAIRS.stream()
-          .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
-              .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-          .forEach(contracts::add);
-    }
+
+    PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
+        .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
+        .forEach(contracts::add);
+
     for (String vaultName : contracts) {
       HarvestDTO lastHarvest = harvestRepository
           .fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
