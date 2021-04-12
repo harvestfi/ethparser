@@ -5,7 +5,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
@@ -13,6 +16,9 @@ import pro.belbix.ethparser.dto.DtoI;
     @Index(name = "idx_hard_work", columnList = "blockDate")
 })
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class HardWorkDTO implements DtoI {
 
   @Id
@@ -20,6 +26,7 @@ public class HardWorkDTO implements DtoI {
   private String vault;
   private long block;
   private long blockDate;
+  private String network;
   // don't use it, share price doesn't change for AutoStake strats
   // keep for compatibility and statistic
   private double shareChange;
@@ -53,6 +60,7 @@ public class HardWorkDTO implements DtoI {
   private double ethPrice;
   private Double profitSharingRate;
   private Double buyBackRate;
+  private Integer autoStake;
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "

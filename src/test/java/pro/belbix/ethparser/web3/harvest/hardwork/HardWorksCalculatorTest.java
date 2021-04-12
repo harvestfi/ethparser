@@ -60,7 +60,7 @@ public class HardWorksCalculatorTest {
 
   @BeforeEach
     public void setup() {
-      when(ethBlockService.getLastBlock()).thenReturn(fakeBlock2);
+      when(ethBlockService.getLastBlock(ETH_NETWORK)).thenReturn(fakeBlock2);
         when(ethBlockService.getTimestampSecForBlock(fakeBlock2, ETH_NETWORK)).thenReturn(fakeEndBlockDate2);
     }
 
@@ -96,7 +96,7 @@ public class HardWorksCalculatorTest {
         when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
-        double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
+        double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         double expected = hardworks.size() * 0.1 * fakeEthPrice;
         assertEquals(expected, feeInUsd, 1e-4);
     }
@@ -106,7 +106,7 @@ public class HardWorksCalculatorTest {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
             .thenReturn(List.of());
 
-        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
+        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0d;
         assertEquals(expected, feeInUsd);
     }
@@ -125,7 +125,7 @@ public class HardWorksCalculatorTest {
         when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
-        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
+        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0.4d;
         assertEquals(expected, feeInUsd);
     }
@@ -137,7 +137,7 @@ public class HardWorksCalculatorTest {
 
         verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(), anyLong(), anyLong());
 
-        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
+        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0d;
         assertEquals(expected, feeInUsd);
     }
@@ -152,7 +152,7 @@ public class HardWorksCalculatorTest {
         when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), fakeEndBlockDate2))
             .thenReturn(List.of(hardwork));
 
-        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr);
+        Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0.2d;
         assertEquals(expected, feeInUsd);
     }

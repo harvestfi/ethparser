@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.prices.decoder;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,18 +13,13 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.EthTransactionI;
 import pro.belbix.ethparser.model.PriceTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 @Log4j2
 public class PriceDecoder extends MethodDecoder {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final Set<String> allowedMethods = new HashSet<>(Arrays.asList("Swap"));
 
   public PriceTx decode(Log ethLog) {
-    if (!isValidLog(ethLog)) {
-      return null;
-    }
     String methodId = parseMethodId(ethLog)
         .orElse(null);
     if (methodId == null) {
@@ -55,13 +48,6 @@ public class PriceDecoder extends MethodDecoder {
     tx.setMethodName(methodName);
     enrich(types, tx);
     return tx;
-  }
-
-  private boolean isValidLog(Log log) {
-    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
-      return false;
-    }
-    return contractUtils.isUniPairAddress(log.getAddress());
   }
 
   private void enrich(List<Type> types, PriceTx tx) {

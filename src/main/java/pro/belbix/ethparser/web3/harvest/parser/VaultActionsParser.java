@@ -42,23 +42,23 @@ import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
-public class HarvestVaultParserV2 implements Web3Parser {
+public class VaultActionsParser implements Web3Parser {
   public static final double BURNED_FARM = 14850.0;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private static final Set<String> allowedMethods = new HashSet<>(
       Collections.singletonList("transfer"));
-  private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+  private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
   private final EthBlockService ethBlockService;
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
@@ -68,8 +68,8 @@ public class HarvestVaultParserV2 implements Web3Parser {
   private Instant lastTx = Instant.now();
   private long count = 0;
 
-  public HarvestVaultParserV2(Web3Functions web3Functions,
-      Web3Subscriber web3Subscriber, HarvestDBService harvestDBService,
+  public VaultActionsParser(Web3Functions web3Functions,
+      Web3Subscriber web3Subscriber, VaultActionsDBService vaultActionsDBService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -78,7 +78,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
@@ -114,7 +114,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
       lastTx = Instant.now();
       enrichDto(dto, network);
       harvestOwnerBalanceCalculator.fillBalance(dto, network);
-      boolean success = harvestDBService.saveHarvestDTO(dto);
+      boolean success = vaultActionsDBService.saveHarvestDTO(dto);
 
       if (success) {
         output.put(dto);
@@ -133,7 +133,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
     if (count % 100 == 0) {
       log.info(this.getClass().getSimpleName() + " handled " + count);
     }
-    HarvestTx harvestTx = harvestVaultLogDecoder.decode(ethLog);
+    HarvestTx harvestTx = vaultActionsLogDecoder.decode(ethLog);
     if (harvestTx == null) {
       return null;
     }
@@ -274,7 +274,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
         .fetchContractLogs(singletonList(poolAddress), onBlock, onBlock, network);
     HarvestTx migrationTx = null;
     for (LogResult ethLog : logResults) {
-      HarvestTx tx = harvestVaultLogDecoder.decode((Log) ethLog.get());
+      HarvestTx tx = vaultActionsLogDecoder.decode((Log) ethLog.get());
       if (tx != null && "Migrated".equals(tx.getMethodName())) {
         migrationTx = tx;
         break;
@@ -361,6 +361,7 @@ public class HarvestVaultParserV2 implements Web3Parser {
 
   private void fillUsdValues(HarvestDTO dto, String vaultHash, String network) {
     String underlyingAddress;
+    // todo check how it works on eth
     if (ETH_NETWORK.equals(network)) {
       underlyingAddress = dto.getVault();
     } else {

@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLE_START_BLOCK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class PriceProvider {
     String lpName = cu(network).getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
-        .filter(Caller::isFilledList)
+        .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
@@ -74,8 +74,8 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (block > ORACLE_START_BLOCK) {
-      return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block);
+    if (block > ORACLES.get(network).component1()) {
+      return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
 
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
@@ -116,19 +116,19 @@ public class PriceProvider {
   }
 
   // you can use Vault name instead of coinName if it is not a LP
-  public Double getPriceForCoin(final String coinName, long block, String network) {
-    if (ZERO_ADDRESS.equalsIgnoreCase(coinName)) {
+  public Double getPriceForCoin(final String coinNameOrAddress, long block, String network) {
+    if (ZERO_ADDRESS.equalsIgnoreCase(coinNameOrAddress)) {
       return 0.0;
     }
-    String nameOrAddress = coinName;
-    if (coinName.startsWith("0x")) {
-      nameOrAddress = cu(network).getNameByAddress(coinName)
-          .orElseThrow(() -> new IllegalStateException("Not found name for " + coinName));
+    String coinName = coinNameOrAddress;
+    if (coinNameOrAddress.startsWith("0x")) {
+      coinName = cu(network).getNameByAddress(coinNameOrAddress)
+          .orElseThrow(() -> new IllegalStateException("Not found name for " + coinNameOrAddress));
     }
-    String coinNameSimple = cu(network).getSimilarActiveForPrice(nameOrAddress);
+    String coinNameSimple = cu(network).getSimilarActiveForPrice(coinName);
     updateUSDPrice(coinNameSimple, block, network);
-    if (cu(network).isStableCoin(coinNameSimple) && !priceOracle
-        .isAvailable(nameOrAddress, block)) {
+    if (cu(network).isStableCoin(coinNameSimple)
+        && priceOracle.isNotAvailable(coinName, block, network)) {
       return 1.0;
     }
     return getLastPrice(coinNameSimple, block);
@@ -158,8 +158,8 @@ public class PriceProvider {
       savePrice(0.0, coinName, block);
       return;
     }
-    if (cu(network).isStableCoin(coinName) && !priceOracle
-        .isAvailable(coinName, block)) {
+    if (cu(network).isStableCoin(coinName)
+        && priceOracle.isNotAvailable(coinName, block, network)) {
       return;
     }
 
@@ -175,7 +175,7 @@ public class PriceProvider {
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
-        .filter(Caller::isFilledList)
+        .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
@@ -201,8 +201,8 @@ public class PriceProvider {
     }
     String tokenAdr = cu(network).getAddressByName(name, ContractType.TOKEN)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
-    if (block > ORACLE_START_BLOCK) {
-      return priceOracle.getPriceForCoinOnChain(tokenAdr, block);
+    if (block > ORACLES.get(network).component1()) {
+      return priceOracle.getPriceForCoinOnChain(tokenAdr, block, network);
     }
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);

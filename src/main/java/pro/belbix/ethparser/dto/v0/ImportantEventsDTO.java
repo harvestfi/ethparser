@@ -23,6 +23,7 @@ public class ImportantEventsDTO implements DtoI {
   private String hash;
   private Long block;
   private Long blockDate;
+  private String network;
   private String event;
   private String oldStrategy;
   private String newStrategy;

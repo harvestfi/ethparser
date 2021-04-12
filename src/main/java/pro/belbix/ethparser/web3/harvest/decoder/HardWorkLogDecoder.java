@@ -28,7 +28,6 @@ public class HardWorkLogDecoder extends MethodDecoder {
       parameters = findParameters(methodId)
           .orElseThrow(() -> new IllegalStateException("Not found parameters for " + methodId));
     } catch (IllegalStateException e) {
-      log.warn("Can't parse method {}", ethLog);
       return null;
     }
 

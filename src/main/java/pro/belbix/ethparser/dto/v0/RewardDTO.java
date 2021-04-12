@@ -19,6 +19,7 @@ public class RewardDTO implements DtoI {
   private String vault;
   private long block;
   private long blockDate;
+  private String network;
   private double reward;
   private long periodFinish;
   private double apy;

@@ -23,24 +23,23 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class HarvestVaultParserEthTest {
+public class VaultActionsParserEthTest {
 
     private static final int LOG_ID = 0;
 
     @Autowired
-    private HarvestVaultParserV2 harvestVaultParser;
+    private VaultActionsParser harvestVaultParser;
     @Autowired
     private Web3Functions web3Functions;
     @Autowired
     private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     @Autowired
-    private HarvestDBService harvestDBService;
+    private VaultActionsDBService vaultActionsDBService;
     @Autowired
     private ContractLoader contractLoader;
 
@@ -67,7 +66,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -136,7 +135,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -165,7 +164,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -194,7 +193,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -223,7 +222,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -252,7 +251,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -281,7 +280,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -310,7 +309,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -332,7 +331,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -354,7 +353,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -376,7 +375,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -398,7 +397,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -420,7 +419,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -442,7 +441,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -464,7 +463,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -486,7 +485,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -508,7 +507,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -530,7 +529,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -552,7 +551,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -574,7 +573,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -596,7 +595,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -618,7 +617,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -640,7 +639,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -662,7 +661,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -684,7 +683,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -706,7 +705,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -728,7 +727,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -750,7 +749,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -772,7 +771,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -794,7 +793,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 

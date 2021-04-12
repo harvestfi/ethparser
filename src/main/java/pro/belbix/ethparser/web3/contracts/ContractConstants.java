@@ -1,22 +1,38 @@
 package pro.belbix.ethparser.web3.contracts;
 
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.tuples.generated.Tuple2;
 
 public class ContractConstants {
 
-  public static final DefaultBlockParameter BLOCK_NUMBER_30_AUGUST_2020 = DefaultBlockParameter
-      .valueOf(new BigInteger("10765094"));
+  public static final DefaultBlockParameter ETH_BLOCK_NUMBER_30_AUGUST_2020 =
+      DefaultBlockParameter.valueOf(new BigInteger("10765094"));
+  public static final DefaultBlockParameter BSC_BLOCK_NUMBER_25_MARCH_2021 =
+      DefaultBlockParameter.valueOf(new BigInteger("5993570"));
 
-  public static final String ETH_DEPLOYER = "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f"
-      .toLowerCase();
-  public static final String BSC_DEPLOYER = "0xf00dd244228f51547f0563e60bca65a30fbf5f7f"
-      .toLowerCase();
-  public static final String ETH_CONTROLLER = "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C"
-      .toLowerCase();
+  public final static Map<String, String> DEPLOYERS = Map.of(
+      ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),
+      BSC_NETWORK, "0xf00dd244228f51547f0563e60bca65a30fbf5f7f".toLowerCase()
+  );
+
+  public final static Map<String, String> CONTROLLERS = Map.of(
+      ETH_NETWORK, "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase(),
+      BSC_NETWORK, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()
+  );
+
+  public final static Map<String, Tuple2<Long, String>> ORACLES = Map.of(
+      ETH_NETWORK,
+      new Tuple2<>(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
+      BSC_NETWORK,
+      new Tuple2<>(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase())
+  );
+
   static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"
       .toLowerCase();
   static final String SUSHI_FACTORY = "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac"
@@ -28,23 +44,24 @@ public class ContractConstants {
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
-  public static final String ORACLE = "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase();
-  public static final Long ORACLE_START_BLOCK = 12015724L;
+
   public static final double D2 = 100.0;
   public static final double D6 = 1000_000.0;
   public static final double D8 = 100_000_000.0;
   public static final double D18 = 1000_000_000_000_000_000.0;
 
-
   public static final int PAIR_TYPE_UNISWAP = 1;
   public static final int PAIR_TYPE_SUSHI = 2;
   public static final int PAIR_TYPE_ONEINCHE = 3;
 
-  public static final Set<String> PARSABLE_UNI_PAIRS = new HashSet<>(List.of(
-      "0x514906fc121c7878424a5c928cad1852cc545892", // UNI_LP_USDC_FARM - FARM
-      "0x56feaccb7f750b997b36a68625c7c596f0b41a58", // UNI_LP_WETH_FARM - FARM
-      "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49" // UNI_LP_GRAIN_FARM - GRAIN
-  ));
+  public static final Map<String, Set<String>> PARSABLE_UNI_PAIRS = Map.of(
+      ETH_NETWORK, Set.of(
+          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
+          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM
+          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase() // UNI_LP_GRAIN_FARM - GRAIN
+      ),
+      BSC_NETWORK, Set.of()
+  );
 
   public static final Set<String> PS_ADDRESSES = Set.of(
       "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
@@ -53,7 +70,6 @@ public class ContractConstants {
       "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".toLowerCase() // PS_V0
   );
 
-  // todo get real prices
   public static final Set<String> ONE_DOLLAR_TOKENS = Set.of(
       //STABLE COINS
       "USD",
@@ -77,29 +93,5 @@ public class ContractConstants {
       "CRV_UST",
       "CRV_GUSD",
       "CRV_AAVE"
-  );
-
-  public static final List<Integer> KEY_BLOCKS_FOR_LOADING = List.of(
-      10777209, // Sep-01-2020
-      10800000, // Sep-05-2020
-      10850000, // Sep-12-2020
-      10900000, // Sep-20-2020
-      10950000, // Sep-28-2020
-      11000000, // Oct-06-2020
-      11050000, // Oct-13-2020
-      11100000, // Oct-21-2020
-      11150000, // Oct-29-2020
-      11200000, // Nov-05-2020
-      11250000, // Nov-13-2020
-      11300000, // Nov-21-2020
-      11350000, // Nov-28-2020
-      11400000, // Dec-06-2020
-      11450000, // Dec-14-2020
-      11500000, // Dec-22-2020
-      11550000, // Dec-29-2020
-      11600000, // Jan-06-2020
-      11650000, // Jan-14-2020
-      11700000, // Jan-21-2020
-      11750000 // Jan-29-2020
   );
 }

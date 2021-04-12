@@ -14,7 +14,7 @@ import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 @Log4j2
-public class HarvestVaultLogDecoder extends MethodDecoder {
+public class VaultActionsLogDecoder extends MethodDecoder {
 
   public HarvestTx decode(Log ethLog) {
     if (!isValidLog(ethLog)) {

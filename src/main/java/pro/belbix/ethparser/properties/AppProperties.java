@@ -42,6 +42,7 @@ public class AppProperties {
     // transaction parsing
     private boolean parseTransactions = true;
     private String startTransactionBlock = "";
+    @Deprecated
     private boolean parseHarvest = false;
     private boolean parseDeployerTransactions = true;
 

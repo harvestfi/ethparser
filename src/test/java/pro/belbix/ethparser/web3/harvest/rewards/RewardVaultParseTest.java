@@ -16,7 +16,7 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -27,7 +27,7 @@ public class RewardVaultParseTest {
   @Autowired
   private ContractLoader contractLoader;
 
-  private final HarvestVaultLogDecoder harvestVaultLogDecoder = new HarvestVaultLogDecoder();
+  private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
 
    @BeforeEach
   public void setUp() throws Exception {
@@ -41,7 +41,7 @@ public class RewardVaultParseTest {
         .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), null, null, ETH_NETWORK);
     for (LogResult logResult : logResults) {
       Log ethLog = (Log) logResult.get();
-      HarvestTx tx = harvestVaultLogDecoder.decode(ethLog);
+      HarvestTx tx = vaultActionsLogDecoder.decode(ethLog);
       if ("RewardAdded".equals(tx.getMethodName())) {
                 System.out.println(ethLog);
             }
@@ -54,7 +54,7 @@ public class RewardVaultParseTest {
             .fetchContractLogs(singletonList("0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"), 11413701, 11413701, ETH_NETWORK);
         for (LogResult logResult : logResults) {
             Log ethLog = (Log) logResult.get();
-            harvestVaultLogDecoder.decode(ethLog);
+            vaultActionsLogDecoder.decode(ethLog);
         }
     }
 }

@@ -17,7 +17,7 @@ public class Caller {
     return Optional.empty();
   }
 
-  public static <T> boolean isFilledList(List<T> list) {
+  public static <T> boolean isNotEmptyList(List<T> list) {
     return !list.isEmpty() && list.get(0) != null;
   }
 

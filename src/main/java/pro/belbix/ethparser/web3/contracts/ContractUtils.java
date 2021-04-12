@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
@@ -195,6 +195,12 @@ public class ContractUtils {
         .isPresent();
   }
 
+  public Optional<Long> getTokenCreated(String tokenAddress) {
+    return getCache().getTokenByAddress(tokenAddress)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getCreated);
+  }
+
   public boolean isUniPairCreated(String uniPairName, long block) {
     return getCache().getUniPairByName(uniPairName)
         .map(UniPairEntity::getContract)
@@ -365,7 +371,7 @@ public class ContractUtils {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
-    contracts.add(ETH_CONTROLLER);
+    contracts.add(CONTROLLERS.get(ETH_NETWORK));
 
     // FARM token Mint event parsing + transfers parsing
     contracts.add(ContractConstants.FARM_TOKEN);
@@ -384,7 +390,7 @@ public class ContractUtils {
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList()));
     // uni events
-    contracts.addAll(PARSABLE_UNI_PAIRS);
+    contracts.addAll(PARSABLE_UNI_PAIRS.get(network));
 
     return new ArrayList<>(contracts);
   }
@@ -399,15 +405,15 @@ public class ContractUtils {
     contracts.addAll(getCache().getAllVaults().stream()
         .map(v -> v.getContract().getAddress())
         .collect(Collectors.toList()));
-//    contracts.addAll(getCache().getAllPools().stream()
-//        .map(v -> v.getContract().getAddress())
-//        .collect(Collectors.toList()));
-    // price parsing
-//    contracts.addAll(getCache().getLpEntities().stream()
-//        .filter(u -> u.getKeyToken() != null)
-//        .map(UniPairEntity::getContract)
-//        .map(ContractEntity::getAddress)
-//        .collect(Collectors.toList()));
+    contracts.addAll(getCache().getAllPools().stream()
+        .map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList()));
+//     price parsing
+    contracts.addAll(getCache().getLpEntities().stream()
+        .filter(u -> u.getKeyToken() != null)
+        .map(UniPairEntity::getContract)
+        .map(ContractEntity::getAddress)
+        .collect(Collectors.toList()));
 
     return new ArrayList<>(contracts);
   }
@@ -484,6 +490,16 @@ public class ContractUtils {
         return "BTCB";
     }
     return name;
+  }
+
+  public Optional<VaultEntity> getVaultEntityByAddress(String address) {
+    return getCache().getVaultByAddress(address);
+  }
+
+  public Optional<String> getPoolRewardToken(String address) {
+    return getCache().getPoolByAddress(address)
+        .map(PoolEntity::getRewardToken)
+        .map(ContractEntity::getAddress);
   }
 
   public Collection<VaultEntity> getAllVaults() {

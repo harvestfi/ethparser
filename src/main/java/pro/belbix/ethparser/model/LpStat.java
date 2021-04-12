@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.model;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;

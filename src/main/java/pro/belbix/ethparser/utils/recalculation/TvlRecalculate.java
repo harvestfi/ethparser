@@ -11,7 +11,7 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @Service
 @Log4j2
@@ -19,7 +19,7 @@ public class TvlRecalculate {
 
   private final HarvestRepository harvestRepository;
   private final HarvestTvlRepository harvestTvlRepository;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
 
   @Value("${tvl-recalculate.from:}")
   private Integer from;
@@ -30,10 +30,10 @@ public class TvlRecalculate {
 
   public TvlRecalculate(HarvestRepository harvestRepository,
       HarvestTvlRepository harvestTvlRepository,
-      HarvestDBService harvestDBService) {
+      VaultActionsDBService vaultActionsDBService) {
     this.harvestRepository = harvestRepository;
     this.harvestTvlRepository = harvestTvlRepository;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
   }
 
   public void start() {
@@ -55,7 +55,7 @@ public class TvlRecalculate {
     List<HarvestTvlEntity> tvls = new ArrayList<>();
     for (HarvestDTO harvestDTO : harvestDTOList) {
       count++;
-      HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(harvestDTO, false);
+      HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(harvestDTO, false);
       tvls.add(tvl);
       if (count % 100 == 0) {
         harvestTvlRepository.saveAll(tvls);
@@ -88,7 +88,7 @@ public class TvlRecalculate {
         harvestTvlEntity.setCalculateHash(harvestDTO.getId());
       }
       // todo type of recalculations
-      harvestDBService.fillSimpleDataFromDto(harvestDTO, harvestTvlEntity);
+      vaultActionsDBService.fillSimpleDataFromDto(harvestDTO, harvestTvlEntity);
 
       tvls.add(harvestTvlEntity);
       count++;

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 
 @Service
@@ -16,17 +16,17 @@ public class LpTvlRecalculate {
 
   private final UniswapRepository uniswapRepository;
   private final UniToHarvestConverter uniToHarvestConverter;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
 
   @Value("${lp-tvl-recalculate.from:}")
   private Integer from;
 
   public LpTvlRecalculate(UniswapRepository uniswapRepository,
       UniToHarvestConverter uniToHarvestConverter,
-      HarvestDBService harvestDBService) {
+      VaultActionsDBService vaultActionsDBService) {
     this.uniswapRepository = uniswapRepository;
     this.uniToHarvestConverter = uniToHarvestConverter;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
   }
 
   public void start() {
@@ -44,7 +44,7 @@ public class LpTvlRecalculate {
 
         if (harvestDto != null) {
 
-          boolean success = harvestDBService.saveHarvestDTO(harvestDto);
+          boolean success = vaultActionsDBService.saveHarvestDTO(harvestDto);
 
           if (!success) {
             log.warn("Save failed for " + harvestDto.print());

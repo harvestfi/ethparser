@@ -5,7 +5,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
@@ -13,12 +16,16 @@ import pro.belbix.ethparser.dto.DtoI;
     @Index(name = "idx_prices", columnList = "block")
 })
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PriceDTO implements DtoI {
 
   @Id
   private String id;
   private Long block;
   private Long blockDate;
+  private String network;
   private String token;
   private Double tokenAmount;
   private String otherToken;

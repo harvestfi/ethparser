@@ -1,36 +1,44 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Objects.requireNonNullElse;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BUYBACK_RATIO;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LIQUIDATE_REWARD_TO_WETH_IN_SUSHI;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNIVERSAL_LIQUIDATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import pro.belbix.ethparser.codegen.GeneratedContract;
+import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -45,7 +53,11 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class HardWorkParser implements Web3Parser {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
+
+  private final static String PROFIT_LOG_IN_REWARD_HASH =
+      "0x33fd2845a0f10293482de360244dd4ad31ddbb4b8c4a1ded3875cf8ebfba184b";
+  private final static String REWARD_ADDED_HASH =
+      "0xde88a922e0d3b88b24e9623efeb464919c6bf9f66857a65e2bfcf2ce87a9433d";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -57,18 +69,16 @@ public class HardWorkParser implements Web3Parser {
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
+  private final SimpleContractGenerator simpleContractGenerator;
   private Instant lastTx = Instant.now();
-
-  private final static Set<String> allowedRewardAddedContracts = Set.of(
-    "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase()
-  );
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
       Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
       ParserInfo parserInfo,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      SimpleContractGenerator simpleContractGenerator) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
@@ -76,6 +86,7 @@ public class HardWorkParser implements Web3Parser {
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
+    this.simpleContractGenerator = simpleContractGenerator;
   }
 
   @Override
@@ -88,7 +99,7 @@ public class HardWorkParser implements Web3Parser {
         Log ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          HardWorkDTO dto = parseLog(ethLog);
+          HardWorkDTO dto = parseLog(ethLog, appProperties.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = hardWorkDbService.save(dto);
@@ -106,8 +117,9 @@ public class HardWorkParser implements Web3Parser {
     }).start();
   }
 
-  public HardWorkDTO parseLog(Log ethLog) {
-    if (ethLog == null || !ETH_CONTROLLER.equals(ethLog.getAddress())) {
+  public HardWorkDTO parseLog(Log ethLog, String network) {
+    if (ethLog == null
+        || !CONTROLLERS.get(network).equalsIgnoreCase(ethLog.getAddress())) {
       return null;
     }
 
@@ -123,63 +135,118 @@ public class HardWorkParser implements Web3Parser {
       throw new IllegalStateException("Unknown method " + tx.getMethodName());
     }
 
-    if (contractUtils.getNameByAddress(tx.getVault()).isEmpty()) {
+    if (cu(network).getNameByAddress(tx.getVault()).isEmpty()) {
       log.warn("Unknown vault " + tx.getVault());
       return null;
     }
-    String vaultName = contractUtils.getNameByAddress(tx.getVault())
+    String vaultName = cu(network).getNameByAddress(tx.getVault())
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
     if (vaultName.endsWith("_V0")) {
       // skip old strategies
       return null;
     }
     HardWorkDTO dto = new HardWorkDTO();
+    dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);
-    dto.setShareChange(
-        ContractUtils.getInstance(ETH_NETWORK).parseAmount(
-            tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
+    dto.setShareChange(cu(network).parseAmount(
+        tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
-    parseRates(dto, tx.getStrategy());
-    parseRewards(dto, tx.getHash(), tx.getStrategy());
-    parseVaultInvestedFunds(dto);
+    parseRates(dto, tx.getStrategy(), network);
+    parseRewards(dto, tx.getHash(), tx.getStrategy(), network);
+    parseVaultInvestedFunds(dto, network);
 
     log.info(dto.print());
     return dto;
   }
 
   // not in the root because it can be weekly reward
-  private void parseRewards(HardWorkDTO dto, String txHash, String strategyHash) {
-    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash, ETH_NETWORK);
-    double farmPrice = priceProvider.getPriceForCoin("FARM", dto.getBlock(), ETH_NETWORK);
-    dto.setFarmPrice(farmPrice);
-    boolean autoStake = isAutoStake(tr.getLogs());
-    for (Log ethLog : tr.getLogs()) {
-      parseRewardAddedEvents(ethLog, dto, autoStake);
-    }
+  private void parseRewards(HardWorkDTO dto, String txHash, String strategyAdr, String network) {
+    TransactionReceipt tr = web3Functions.fetchTransactionReceipt(txHash, network);
 
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), ETH_NETWORK);
+    boolean autoStake = isAutoStake(tr.getLogs());
+    dto.setAutoStake(autoStake ? 1 : 0);
+
+    double farmPrice =
+        priceProvider.getPriceForCoin("FARM", dto.getBlock(), network);
+    dto.setFarmPrice(farmPrice);
+
+    for (Log ethLog : tr.getLogs()) {
+      if (ETH_NETWORK.equals(network)) {
+        parseRewardAddedEventsEth(ethLog, dto, autoStake, network);
+      } else if (BSC_NETWORK.equals(network)) {
+        parseBscRewards(ethLog, strategyAdr, dto, autoStake, network);
+      }
+    }
+    double ethPrice =
+        priceProvider.getPriceForCoin("ETH", dto.getBlock(), network);
     dto.setEthPrice(ethPrice);
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);
-
-    // for AutoStaking vault rewards already parsed
-    // skip vault reward parsing if we didn't earn anything
-    // BROKEN LOGIC if we don't send rewards to strategy (yes, it happened for uni strats)
-//        if (!autoStake && dto.getFarmBuyback() != 0) {
-//            for (Log ethLog : tr.getLogs()) {
-//                parseVaultReward(ethLog, dto, underlyingTokenHash, strategyHash);
-//            }
-//        }
-    fillFeeInfo(dto, txHash, tr);
+    fillFeeInfo(dto, txHash, tr, network);
   }
 
-  private void parseRates(HardWorkDTO dto, String strategyHash) {
+  private void parseBscRewards(
+      Log ethLog, String strategyAdr, HardWorkDTO dto, boolean autoStake, String network) {
+    if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
+      return;
+    }
+    String eventHash = ethLog.getTopics().get(0);
+    if (!PROFIT_LOG_IN_REWARD_HASH.equals(eventHash)) {
+      return;
+    }
+    GeneratedContract generatedContract =
+        simpleContractGenerator.getContract(
+            ethLog.getAddress(), dto.getBlock(), null, network);
+    if (generatedContract == null) {
+      return;
+    }
+    Event event = generatedContract.getEvent(eventHash);
+    if (event == null) {
+      return;
+    }
+
+    if (!"ProfitLogInReward".equals(event.getName())) {
+      return;
+    }
+
+    //noinspection rawtypes
+    List<Type> types = MethodDecoder.extractLogIndexedValues(
+        ethLog.getTopics(),
+        ethLog.getData(),
+        event.getParameters()
+    );
+    if (types == null || types.size() < 2) {
+      return;
+    }
+    String strategyAddress = cu(network).getVaultEntityByAddress(
+        cu(network).getAddressByName(dto.getVault(), ContractType.VAULT)
+            .orElseThrow())
+        .map(VaultEntity::getStrategy)
+        .map(ContractEntity::getAddress)
+        .orElseThrow();
+    String rewardTokenAdr =
+        functionsUtils.callAddressByName(
+            REWARD_TOKEN, strategyAddress, dto.getBlock(), network)
+            .orElseThrow();
+    double rewardTokenPrice =
+        priceProvider.getPriceForCoin(rewardTokenAdr, dto.getBlock(), network);
+    double rewardBalance = cu(network)
+        .parseAmount((BigInteger) types.get(0).getValue(), rewardTokenAdr);
+    double feeAmount = cu(network)
+        .parseAmount((BigInteger) types.get(1).getValue(), rewardTokenAdr);
+
+    dto.setFullRewardUsd(rewardTokenPrice * rewardBalance);
+    dto.setFarmBuyback(rewardTokenPrice * feeAmount);
+  }
+
+  private void parseRates(HardWorkDTO dto, String strategyHash, String network) {
     double profitSharingDenominator =
         functionsUtils
-            .callIntByName(PROFITSHARING_DENOMINATOR, strategyHash, dto.getBlock(), ETH_NETWORK)
+            .callIntByName(
+                PROFITSHARING_DENOMINATOR, strategyHash, dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get profitSharingDenominator from " + strategyHash))
             .doubleValue();
@@ -187,62 +254,62 @@ public class HardWorkParser implements Web3Parser {
     if (profitSharingDenominator > 0) {
       double profitSharingNumerator =
           functionsUtils
-              .callIntByName(PROFITSHARING_NUMERATOR, strategyHash, dto.getBlock(), ETH_NETWORK)
+              .callIntByName(PROFITSHARING_NUMERATOR, strategyHash, dto.getBlock(), network)
               .orElseThrow(() -> new IllegalStateException(
                   "Error get profitSharingNumerator from " + strategyHash))
               .doubleValue();
       profitSharingRate = profitSharingNumerator / profitSharingDenominator;
     }
     dto.setProfitSharingRate(profitSharingRate);
-    dto.setBuyBackRate(fetchBuybackRatio(strategyHash, dto.getBlock()));
+    dto.setBuyBackRate(fetchBuybackRatio(strategyHash, dto.getBlock(), network));
   }
 
-  private double fetchBuybackRatio(String strategyAddress, long block) {
+  private double fetchBuybackRatio(String strategyAddress, long block, String network) {
+    if (BSC_NETWORK.equals(network)) {
+      return 0;
+    }
     double buyBackRatio =
         functionsUtils.callIntByName(
-            BUYBACK_RATIO, strategyAddress, block, ETH_NETWORK)
+            BUYBACK_RATIO, strategyAddress, block, network)
             .orElse(BigInteger.ZERO).doubleValue();
     if (buyBackRatio > 0) {
       return buyBackRatio / 10000;
     }
 
     if (functionsUtils.callAddressByName(
-        UNIVERSAL_LIQUIDATOR, strategyAddress, block, ETH_NETWORK)
+        UNIVERSAL_LIQUIDATOR, strategyAddress, block, network)
         .isPresent()) {
       return 1;
     }
 
     Boolean liquidateRewardToWethInSushi =
         functionsUtils.callBoolByName(
-            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, ETH_NETWORK)
+            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, network)
             .orElse(false);
     return liquidateRewardToWethInSushi ? 1 : 0;
   }
 
   private boolean isAutoStake(List<Log> logs) {
     return logs.stream()
-        .filter(l -> {
-          try {
-            return hardWorkLogDecoder.decode(l).getMethodName().equals("RewardAdded");
-          } catch (Exception ignored) {
-          }
-          return false;
-        }).count() > 1;
+        .filter(this::isRewardAddedLog)
+        .count() > 1;
   }
 
-  private void parseRewardAddedEvents(Log ethLog, HardWorkDTO dto, boolean autoStake) {
-    HardWorkTx tx;
-    try {
-      tx = hardWorkLogDecoder.decode(ethLog);
-    } catch (Exception e) {
-      return;
-    }
-    if (tx == null) {
-      return;
-    }
-    if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog)) {
+  private void parseRewardAddedEventsEth(
+      Log ethLog, HardWorkDTO dto, boolean autoStake, String network) {
+
+    if (isRewardAddedLog(ethLog) && isAllowedLog(ethLog, network)) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
+      }
+      HardWorkTx tx;
+      try {
+        tx = hardWorkLogDecoder.decode(ethLog);
+      } catch (Exception e) {
+        return;
+      }
+      if (tx == null) {
+        return;
       }
       double reward = tx.getReward().doubleValue() / D18;
 
@@ -273,16 +340,25 @@ public class HardWorkParser implements Web3Parser {
     }
   }
 
-  private boolean isAllowedLog(Log ethLog) {
-    return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
-        || contractUtils.isPoolAddress(ethLog.getAddress().toLowerCase());
+  private boolean isRewardAddedLog(Log ethLog) {
+    return ethLog.getTopics() != null
+        && !ethLog.getTopics().isEmpty()
+        && REWARD_ADDED_HASH.equalsIgnoreCase(ethLog.getTopics().get(0));
   }
 
-  private void fillFeeInfo(HardWorkDTO dto, String txHash, TransactionReceipt tr) {
-    Transaction transaction = web3Functions.findTransaction(txHash, ETH_NETWORK);
+  private boolean isAllowedLog(Log ethLog, String network) {
+    return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
+        || cu(network).isPoolAddress(ethLog.getAddress().toLowerCase());
+  }
+
+  private void fillFeeInfo(
+      HardWorkDTO dto, String txHash, TransactionReceipt tr, String network) {
+    Transaction transaction = web3Functions.findTransaction(txHash, network);
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), ETH_NETWORK);
+    double ethPrice =
+        priceProvider.getPriceForCoin(cu(network).getBaseNetworkWrappedTokenAddress()
+            , dto.getBlock(), network);
     double feeUsd = gas * gasPrice * ethPrice;
     dto.setFee(feeUsd);
     double feeEth = gas * gasPrice;
@@ -290,24 +366,25 @@ public class HardWorkParser implements Web3Parser {
     dto.setGasUsed(gas);
   }
 
-  private void parseVaultInvestedFunds(HardWorkDTO dto) {
-    String vaultHash = contractUtils.getAddressByName(dto.getVault(), ContractType.VAULT).get();
+  private void parseVaultInvestedFunds(HardWorkDTO dto, String network) {
+    String vaultHash = cu(network).getAddressByName(dto.getVault(), ContractType.VAULT)
+        .orElseThrow();
     double underlyingBalanceInVault = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_IN_VAULT,
         vaultHash,
-        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double underlyingBalanceWithInvestment = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_WITH_INVESTMENT,
         vaultHash,
-        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestNumerator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_NUMERATOR,
         vaultHash,
-        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestDenominator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_DENOMINATOR,
         vaultHash,
-        dto.getBlock(), ETH_NETWORK).orElse(BigInteger.ZERO).doubleValue();
+        dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
 
     double invested =
         100.0 * (underlyingBalanceWithInvestment - underlyingBalanceInVault)
@@ -315,6 +392,10 @@ public class HardWorkParser implements Web3Parser {
     dto.setInvested(invested);
     double target = 100.0 * (vaultFractionToInvestNumerator / vaultFractionToInvestDenominator);
     dto.setInvestmentTarget(target);
+  }
+
+  private static ContractUtils cu(String network) {
+    return ContractUtils.getInstance(network);
   }
 
   @Override

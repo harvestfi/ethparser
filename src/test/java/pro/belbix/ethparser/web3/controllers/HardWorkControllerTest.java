@@ -42,7 +42,7 @@ public class HardWorkControllerTest {
 
     @BeforeEach
     public void setUp() {
-        doReturn(fakeBlock).when(ethBlockService).getLastBlock();
+        doReturn(fakeBlock).when(ethBlockService).getLastBlock(ETH_NETWORK);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class HardWorkControllerTest {
     public void shouldHandleException() {
         doThrow(NullPointerException.class)
             .when(hardWorkCalculator)
-            .calculateTotalHardWorksFeeByOwner(owner);
+            .calculateTotalHardWorksFeeByOwner(owner, ETH_NETWORK);
         RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
         String code = response.getCode();
         String message = response.getStatus();
