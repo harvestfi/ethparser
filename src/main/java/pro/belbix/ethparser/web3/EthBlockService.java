@@ -25,7 +25,7 @@ public class EthBlockService {
     }
     Block block = web3.findBlockByNumber(blockNumber, false, network).getBlock();
     if (block == null) {
-      return 0;
+      throw new IllegalStateException("Can't fetch block for " + blockNumber);
     }
 
     cachedBlock = new BlockCacheEntity();

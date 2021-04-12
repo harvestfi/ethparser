@@ -496,6 +496,12 @@ public class ContractUtils {
     return getCache().getVaultByAddress(address);
   }
 
+  public Optional<String> getPoolRewardToken(String address) {
+    return getCache().getPoolByAddress(address)
+        .map(PoolEntity::getRewardToken)
+        .map(ContractEntity::getAddress);
+  }
+
   public Collection<VaultEntity> getAllVaults() {
     return getCache().getAllVaults();
   }

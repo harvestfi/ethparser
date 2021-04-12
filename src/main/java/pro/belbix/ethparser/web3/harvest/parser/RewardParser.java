@@ -127,24 +127,27 @@ public class RewardParser implements Web3Parser {
     }
     long blockTime = ethBlockService.getTimestampSecForBlock(blockForParsing, network);
 
-    double farmRewardsForPeriod = 0.0;
+    double rewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {
-      farmRewardsForPeriod = new BigDecimal(rewardRate)
+      rewardsForPeriod = new BigDecimal(rewardRate)
           .divide(new BigDecimal(D18), 999, RoundingMode.HALF_UP)
           .multiply(BigDecimal.valueOf((double) (periodFinish - blockTime)))
           .doubleValue();
     }
 
-    double farmBalance = ContractUtils.getInstance(network).parseAmount(
+    String rewardTokenAdr = ContractUtils.getInstance(network).getPoolRewardToken(poolAddress)
+        .orElseThrow(() -> new IllegalStateException("Reward token not found for " + poolAddress));
+
+    double rewardBalance = ContractUtils.getInstance(network).parseAmount(
         functionsUtils.callIntByName(
             BALANCE_OF,
             poolAddress,
-            ContractConstants.FARM_TOKEN,
+            rewardTokenAdr,
             blockForParsing,
             network)
             .orElseThrow(() -> new IllegalStateException(
-                "Error get balance from " + ContractConstants.FARM_TOKEN)),
-        ContractConstants.FARM_TOKEN);
+                "Error get balance from " + rewardTokenAdr)),
+        rewardTokenAdr);
 
     RewardDTO dto = new RewardDTO();
     dto.setNetwork(network);
@@ -155,9 +158,9 @@ public class RewardParser implements Web3Parser {
         .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
         .replaceFirst("ST__", "")
         .replaceFirst("ST_", ""));
-    dto.setReward(farmRewardsForPeriod);
+    dto.setReward(rewardsForPeriod);
     dto.setPeriodFinish(periodFinish);
-    dto.setFarmBalance(farmBalance);
+    dto.setFarmBalance(rewardBalance);
     log.info("Parsed " + dto);
     return dto;
   }
