@@ -82,7 +82,7 @@ public class DoHardWorkBscTest {
                 .farmPrice(0.0)
                 .ethPrice(1908.7038402179446)
                 .profitSharingRate(0.08)
-                .buyBackRate(1.0)
+                .buyBackRate(0.0)
                 .autoStake(0)
                 .build(),
             dto
@@ -128,7 +128,7 @@ public class DoHardWorkBscTest {
                 .farmPrice(0.0)
                 .ethPrice(1847.7470251769919)
                 .profitSharingRate(0.08)
-                .buyBackRate(1.0)
+                .buyBackRate(0.0)
                 .autoStake(0)
                 .build(),
             dto

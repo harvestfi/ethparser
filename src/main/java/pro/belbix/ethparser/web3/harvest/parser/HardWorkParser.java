@@ -265,6 +265,9 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private double fetchBuybackRatio(String strategyAddress, long block, String network) {
+    if (BSC_NETWORK.equals(network)) {
+      return 0;
+    }
     double buyBackRatio =
         functionsUtils.callIntByName(
             BUYBACK_RATIO, strategyAddress, block, network)
