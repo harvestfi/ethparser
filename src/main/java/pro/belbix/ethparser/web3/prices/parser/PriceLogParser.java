@@ -109,7 +109,7 @@ public class PriceLogParser implements Web3Parser {
     boolean keyCoinFirst = checkAndFillCoins(tx, dto, network);
     boolean buy = isBuy(tx, keyCoinFirst);
     dto.setSource(sourceName);
-    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setId(tx.getHash() + "_" + tx.getLogId() + "_" + network);
     dto.setBlock(tx.getBlock().longValue());
     dto.setBuy(buy ? 1 : 0);
     dto.setNetwork(network);

@@ -96,6 +96,7 @@ public class VaultActionsDBService {
       log.warn("Found the same harvestTvl record for " + dto);
     }
     HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+    harvestTvl.setNetwork(dto.getNetwork());
     harvestTvl.setCalculateHash(dto.getId());
     harvestTvl.setCalculateTime(dto.getBlockDate());
 

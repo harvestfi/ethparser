@@ -126,7 +126,8 @@ public class ContractLoader {
           contract.getCreatedOnBlock(),
           true,
           network);
-      TokenEntity tokenEntity = tokenRepository.findFirstByContract(tokenContract);
+      TokenEntity tokenEntity = tokenRepository
+          .findFirstByContract(tokenContract.getAddress(), network);
       if (tokenEntity == null) {
         tokenEntity = new TokenEntity();
         tokenEntity.setContract(tokenContract);
@@ -157,7 +158,8 @@ public class ContractLoader {
               vault.getCreatedOnBlock(),
               true,
               network);
-      VaultEntity vaultEntity = vaultRepository.findFirstByContract(vaultContract);
+      VaultEntity vaultEntity = vaultRepository
+          .findFirstByContract(vaultContract.getAddress(), network);
       if (vaultEntity == null) {
         vaultEntity = new VaultEntity();
         vaultEntity.setContract(vaultContract);
@@ -190,7 +192,7 @@ public class ContractLoader {
               pool.getCreatedOnBlock(),
               true,
               network);
-      PoolEntity poolEntity = poolRepository.findFirstByContract(poolContract);
+      PoolEntity poolEntity = poolRepository.findFirst(poolContract.getAddress(), network);
       if (poolEntity == null) {
         poolEntity = new PoolEntity();
         poolEntity.setContract(poolContract);
@@ -216,7 +218,8 @@ public class ContractLoader {
           uniPair.getCreatedOnBlock(),
           true,
           network);
-      UniPairEntity uniPairEntity = uniPairRepository.findFirstByContract(poolContract);
+      UniPairEntity uniPairEntity = uniPairRepository
+          .findFirstByContract(poolContract.getAddress(), network);
       if (uniPairEntity == null) {
         uniPairEntity = new UniPairEntity();
         uniPairEntity.setContract(poolContract);
@@ -455,7 +458,7 @@ public class ContractLoader {
           continue;
         }
         TokenToUniPairEntity link =
-            findOrCreateTokenToUniPair(tokenEntity, uniPair, lp.getValue());
+            findOrCreateTokenToUniPair(tokenEntity, uniPair, lp.getValue(), network);
         if (link == null) {
           log.warn("Not found token to uni {}", lp);
           continue;
@@ -468,17 +471,23 @@ public class ContractLoader {
   private TokenToUniPairEntity findOrCreateTokenToUniPair(
       TokenEntity token,
       UniPairEntity uniPair,
-      long blockStart) {
+      long blockStart,
+      String network) {
     TokenToUniPairEntity tokenToUniPairEntity =
-        tokenToUniPairRepository.findFirstByTokenAndUniPair(token, uniPair);
+        tokenToUniPairRepository.findFirstByTokenAndUniPair(
+            token.getContract().getAddress(),
+            uniPair.getContract().getAddress(),
+            network);
     if (appProperties.isOnlyApi()) {
       return tokenToUniPairEntity;
     }
     if (tokenToUniPairEntity == null) {
-      if (tokenToUniPairRepository.findFirstByToken(token) != null) {
+      if (tokenToUniPairRepository
+          .findFirstByToken(token.getContract().getAddress(), network) != null) {
         log.info("We already had linked " + token.getContract().getName());
       }
-      if (tokenToUniPairRepository.findFirstByUniPair(uniPair) != null) {
+      if (tokenToUniPairRepository
+          .findFirstByUniPair(uniPair.getContract().getAddress(), network) != null) {
         log.info("We already had linked " + uniPair.getContract().getName());
       }
       tokenToUniPairEntity = new TokenToUniPairEntity();
@@ -502,7 +511,7 @@ public class ContractLoader {
     if (address == null || address.isBlank()) {
       return null;
     }
-    ContractEntity entity = contractRepository.findFirstByAddress(address);
+    ContractEntity entity = contractRepository.findFirstByAddress(address, network);
     if (appProperties.isOnlyApi()) {
       return entity;
     }

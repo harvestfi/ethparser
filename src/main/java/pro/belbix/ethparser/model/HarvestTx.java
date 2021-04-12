@@ -31,7 +31,7 @@ public class HarvestTx implements EthTransactionI {
 
   public HarvestDTO toDto(String network) {
     HarvestDTO dto = new HarvestDTO();
-    dto.setId(hash + "_" + logId);
+    dto.setId(hash + "_" + logId + "_" + network);
     dto.setHash(hash);
     dto.setBlock(block.longValue());
     dto.setNetwork(network);

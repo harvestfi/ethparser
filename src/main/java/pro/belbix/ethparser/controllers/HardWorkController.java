@@ -37,20 +37,39 @@ public class HardWorkController {
     }
 
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
-    public List<HardWorkDTO> lastHardWorks() {
-        return hardWorkRepository.fetchLatest();
+    public List<HardWorkDTO> lastHardWorks(
+        @RequestParam(value = "network", required = false) String network
+    ) {
+        if (Strings.isBlank(network)) {
+            network = ETH_NETWORK;
+        }
+        return hardWorkRepository.fetchLatest(network);
     }
 
     @RequestMapping(value = "api/transactions/history/hardwork/{name}", method = RequestMethod.GET)
-    public List<HardWorkDTO> historyHardWork(@PathVariable("name") String name,
-                                             @RequestParam(value = "start", required = false) String start,
-                                             @RequestParam(value = "end", required = false) String end) {
-        return hardWorkRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+    public List<HardWorkDTO> historyHardWorkByName(
+        @PathVariable("name") String name,
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false) String network
+    ) {
+        if (Strings.isBlank(network)) {
+            network = ETH_NETWORK;
+        }
+        return hardWorkRepository
+            .findAllByVaultOrderByBlockDate(name, network, parseLong(start, 0),
+                parseLong(end, Long.MAX_VALUE));
     }
 
     @RequestMapping(value = "api/transactions/history/hardwork", method = RequestMethod.GET)
-    public List<HardWorkDTO> historyHardWork(@RequestParam(value = "from", required = false) String from,
-                                             @RequestParam(value = "to", required = false) String to) {
+    public List<HardWorkDTO> historyHardWork(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "network", required = false) String network
+    ) {
+        if (Strings.isBlank(network)) {
+            network = ETH_NETWORK;
+        }
         long fromL = 0L;
         long toL = Long.MAX_VALUE;
         if (from != null) {
@@ -60,13 +79,19 @@ public class HardWorkController {
             toL = Long.parseLong(to);
         }
 
-        return hardWorkRepository.fetchAllInRange(fromL, toL);
+        return hardWorkRepository.fetchAllInRange(fromL, toL, network);
     }
 
     @RequestMapping(value = "last_saved_gas_sum", method = RequestMethod.GET)
-    public RestResponse lastSavedGasSum() {
+    public RestResponse lastSavedGasSum(
+        @RequestParam(value = "network", required = false) String network
+    ) {
         try {
-            return RestResponse.ok((String.format("%.8f", hardWorkRepository.fetchLastGasSaved())));
+            if (Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
+            return RestResponse.ok((String.format("%.8f",
+                hardWorkRepository.fetchLastGasSaved(network))));
         } catch (Exception e) {
             log.error("Error get last saved gas sum", e);
             return RestResponse.error("Server error during getting last saved gas");
@@ -90,8 +115,12 @@ public class HardWorkController {
     }
 
     @GetMapping(value = "/last/hardwork")
-    public HardWorkDTO lastHardWork() {
-        return hardWorkRepository.findFirstByOrderByBlockDateDesc();
+    public HardWorkDTO lastHardWork(
+        @RequestParam(value = "network", required = false) String network) {
+        if (Strings.isBlank(network)) {
+            network = ETH_NETWORK;
+        }
+        return hardWorkRepository.findFirstByNetworkOrderByBlockDateDesc(network);
     }
 
     @GetMapping(value = "/hardwork/pages")
@@ -100,9 +129,13 @@ public class HardWorkController {
         @RequestParam("page") String page,
         @RequestParam(value = "ordering", required = false) String ordering,
         @RequestParam(value = "vault", required = false) String vault,
-        @RequestParam(value = "minAmount", required = false) Integer minAmount
+        @RequestParam(value = "minAmount", required = false) Integer minAmount,
+        @RequestParam(value = "network", required = false) String network
     ) {
         try {
+            if (Strings.isBlank(network)) {
+                network = ETH_NETWORK;
+            }
             int start = Integer.parseInt(page);
             int size = Integer.parseInt(pageSize);
             Sort sorting = Sort.by("blockDate");
@@ -116,10 +149,11 @@ public class HardWorkController {
             }
             if (Strings.isBlank(vault)) {
                 pages = hardWorkRepository
-                    .fetchPages(minAmount, PageRequest.of(start, size, sorting));
+                    .fetchPages(minAmount, network, PageRequest.of(start, size, sorting));
             } else {
                 pages = hardWorkRepository
-                    .fetchPagesByVault(vault, minAmount, PageRequest.of(start, size, sorting));
+                    .fetchPagesByVault(vault, network, minAmount,
+                        PageRequest.of(start, size, sorting));
             }
 
             if (!pages.hasContent()) {

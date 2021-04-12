@@ -109,7 +109,7 @@ public class TransferParser implements Web3Parser {
 
     TransferDTO dto = new TransferDTO();
     dto.setNetwork(ETH_NETWORK);
-    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setId(tx.getHash() + "_" + tx.getLogId() + "_" + ETH_NETWORK);
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);
     dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());

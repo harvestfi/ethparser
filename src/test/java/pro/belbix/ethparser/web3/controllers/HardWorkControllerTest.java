@@ -71,7 +71,10 @@ public class HardWorkControllerTest {
     @Test
     void testPagination() throws IOException {
         RestResponse response =
-            hardWorksController.hardworkPages("2", "0", "desc", null, Integer.MIN_VALUE);
+            hardWorksController
+                .hardworkPages(
+                    "2", "0", "desc",
+                    null, Integer.MIN_VALUE, ETH_NETWORK);
         assertNotNull(response, "null response");
         assertEquals("200", response.getCode(), "code 200");
         assertNotNull(response.getData(), "null data");

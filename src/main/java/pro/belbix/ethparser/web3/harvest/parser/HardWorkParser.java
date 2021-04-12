@@ -147,7 +147,7 @@ public class HardWorkParser implements Web3Parser {
     }
     HardWorkDTO dto = new HardWorkDTO();
     dto.setNetwork(network);
-    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setId(tx.getHash() + "_" + tx.getLogId() + "_" + network);
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);

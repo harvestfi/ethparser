@@ -49,6 +49,14 @@ public class VaultActionsParserEthTest {
     }
 
     @Test
+    public void shouldNotParseDoHardWork_iPS() {
+        harvestVaultParseTestNull(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            12225574,
+            2);
+    }
+
+    @Test
     public void shouldParseWithdraw_iPS() {
         HarvestDTO dto = harvestVaultParseTest(
             "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
@@ -57,7 +65,7 @@ public class VaultActionsParserEthTest {
             "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
             "Withdraw",
             "iPS",
-            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_202",
+            "0xde72009a7e131b6a403e8d35b4de381313f74b96d2e21571b33a3abb206d201d_202_eth",
             "96,67835046",
             "",
             "",
@@ -1873,6 +1881,7 @@ public class VaultActionsParserEthTest {
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        assertNotNull(dto);
         harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
         assertDto(dto,
             owner,

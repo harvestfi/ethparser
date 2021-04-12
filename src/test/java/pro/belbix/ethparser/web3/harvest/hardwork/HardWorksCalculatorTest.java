@@ -93,7 +93,7 @@ public class HardWorksCalculatorTest {
             mockHardWork(fakeVault2, fakeBlock2, harvest6.getBlockDate())
         );
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
         double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
@@ -122,7 +122,7 @@ public class HardWorksCalculatorTest {
             mockHardWork(fakeVault1, fakeBlock1, harvest5.getBlockDate())
         );
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
@@ -135,7 +135,7 @@ public class HardWorksCalculatorTest {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
             .thenReturn(List.of(harvest2, harvest6));
 
-        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(), anyLong(), anyLong());
+        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(),ETH_NETWORK, anyLong(), anyLong());
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0d;
@@ -149,7 +149,7 @@ public class HardWorksCalculatorTest {
 
         HardWorkDTO hardwork = mockHardWork(fakeVault1, fakeBlock1, harvest1.getBlockDate());
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), fakeEndBlockDate2))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), fakeEndBlockDate2))
             .thenReturn(List.of(hardwork));
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);

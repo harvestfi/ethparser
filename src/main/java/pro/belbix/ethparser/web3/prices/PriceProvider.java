@@ -125,7 +125,7 @@ public class PriceProvider {
       coinName = cu(network).getNameByAddress(coinNameOrAddress)
           .orElseThrow(() -> new IllegalStateException("Not found name for " + coinNameOrAddress));
     }
-    String coinNameSimple = cu(network).getSimilarActiveForPrice(coinName);
+    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinName);
     updateUSDPrice(coinNameSimple, block, network);
     if (cu(network).isStableCoin(coinNameSimple)
         && priceOracle.isNotAvailable(coinName, block, network)) {
