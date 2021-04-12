@@ -104,7 +104,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "    last_value(farm_price) over w            as farm_price, "
         + "    last_value(eth_price) over w             as eth_price, "
         + "    last_value(buy_back_rate) over w             as buy_back_rate, "
-        + "    last_value(profit_sharing_rate) over w             as profit_sharing_rate "
+        + "    last_value(profit_sharing_rate) over w             as profit_sharing_rate, "
+        + "    last_value(auto_stake) over w             as auto_stake "
         + "from hard_work "
         + "    window w as (PARTITION BY vault order by block_date desc) "
         + "order by vault")

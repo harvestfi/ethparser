@@ -4,12 +4,13 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BUYBACK_RATIO;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.LIQUIDATE_REWARD_TO_WETH_IN_SUSHI;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNIVERSAL_LIQUIDATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
@@ -55,6 +56,8 @@ public class HardWorkParser implements Web3Parser {
 
   private final static String PROFIT_LOG_IN_REWARD_HASH =
       "0x33fd2845a0f10293482de360244dd4ad31ddbb4b8c4a1ded3875cf8ebfba184b";
+  private final static String REWARD_ADDED_HASH =
+      "0xde88a922e0d3b88b24e9623efeb464919c6bf9f66857a65e2bfcf2ce87a9433d";
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -269,48 +272,41 @@ public class HardWorkParser implements Web3Parser {
     if (buyBackRatio > 0) {
       return buyBackRatio / 10000;
     }
-    return 1;
-    // todo investigate
-//    if (functionsUtils.callAddressByName(
-//        UNIVERSAL_LIQUIDATOR, strategyAddress, block, network)
-//        .isPresent()) {
-//      return 1;
-//    }
-//
-//    Boolean liquidateRewardToWethInSushi =
-//        functionsUtils.callBoolByName(
-//            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, network)
-//            .orElse(false);
-//    return liquidateRewardToWethInSushi ? 1 : 0;
+
+    if (functionsUtils.callAddressByName(
+        UNIVERSAL_LIQUIDATOR, strategyAddress, block, network)
+        .isPresent()) {
+      return 1;
+    }
+
+    Boolean liquidateRewardToWethInSushi =
+        functionsUtils.callBoolByName(
+            LIQUIDATE_REWARD_TO_WETH_IN_SUSHI, strategyAddress, block, network)
+            .orElse(false);
+    return liquidateRewardToWethInSushi ? 1 : 0;
   }
 
-  //todo change on topic comparison
   private boolean isAutoStake(List<Log> logs) {
     return logs.stream()
-        .filter(l -> {
-          try {
-            return hardWorkLogDecoder.decode(l).getMethodName().equals("RewardAdded");
-          } catch (Exception ignored) {
-          }
-          return false;
-        }).count() > 1;
+        .filter(this::isRewardAddedLog)
+        .count() > 1;
   }
 
   private void parseRewardAddedEventsEth(
       Log ethLog, HardWorkDTO dto, boolean autoStake, String network) {
-    HardWorkTx tx;
-    try {
-      tx = hardWorkLogDecoder.decode(ethLog);
-    } catch (Exception e) {
-      return;
-    }
-    if (tx == null) {
-      return;
-    }
-    //todo replace with hash checking
-    if ("RewardAdded".equals(tx.getMethodName()) && isAllowedLog(ethLog, network)) {
+
+    if (isRewardAddedLog(ethLog) && isAllowedLog(ethLog, network)) {
       if (!autoStake && dto.getFarmBuyback() != 0.0) {
         throw new IllegalStateException("Duplicate RewardAdded for " + dto);
+      }
+      HardWorkTx tx;
+      try {
+        tx = hardWorkLogDecoder.decode(ethLog);
+      } catch (Exception e) {
+        return;
+      }
+      if (tx == null) {
+        return;
       }
       double reward = tx.getReward().doubleValue() / D18;
 
@@ -339,6 +335,12 @@ public class HardWorkParser implements Web3Parser {
       }
 
     }
+  }
+
+  private boolean isRewardAddedLog(Log ethLog) {
+    return ethLog.getTopics() != null
+        && !ethLog.getTopics().isEmpty()
+        && REWARD_ADDED_HASH.equalsIgnoreCase(ethLog.getTopics().get(0));
   }
 
   private boolean isAllowedLog(Log ethLog, String network) {
