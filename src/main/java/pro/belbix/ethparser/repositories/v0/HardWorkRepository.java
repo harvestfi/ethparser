@@ -10,7 +10,16 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 
 public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
-//    Page<HardWorkDTO> fetchPages(Pageable pageable)
+    @Query("select t from HardWorkDTO t where t.fullRewardUsd > :minAmount")
+    Page<HardWorkDTO> fetchPages(@Param("minAmount") double vault, Pageable pageable);
+
+    @Query("select t from HardWorkDTO t where "
+        + "t.vault = :vault "
+        + "and t.fullRewardUsd > :minAmount")
+    Page<HardWorkDTO> fetchPagesByVault(
+        @Param("vault") String vault,
+        @Param("minAmount") double minAmount,
+        Pageable pageable);
 
     HardWorkDTO findFirstByOrderByBlockDateDesc();
 

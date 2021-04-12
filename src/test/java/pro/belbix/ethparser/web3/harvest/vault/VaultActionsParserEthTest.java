@@ -1825,6 +1825,25 @@ public class VaultActionsParserEthTest {
         );
     }
 
+    @Test
+    public void parseVaultMCAT20_ETH() {
+        harvestVaultParseTest(
+            "0x0ca19915439c12b16c0a8c119ec05fa801365a15",
+            12204006,
+            LOG_ID,
+            "0x5bc98c35c7a0385b4a210ca55878682f34482304",
+            "Deposit",
+            "MCAT20_ETH",
+            "0x619826bc7feb5e7a58923ba2704141a23559cb1d49a183b8b46a385afbaa58d5_146",
+            "88,68783907",
+            "",
+            "",
+            18644L,
+            170278L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
