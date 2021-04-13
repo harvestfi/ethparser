@@ -1844,6 +1844,82 @@ public class VaultActionsParserEthTest {
         );
     }
 
+    @Test
+    public void parseVaultMEME20_ETH() {
+        harvestVaultParseTest(
+            "0x227A46266329767cEa8883BFC81d21f1Ea0EdbB3",
+            12231326,
+            LOG_ID,
+            "0xdeeb758e147ea422e6bad89bcfafabfac0527949",
+            "Deposit",
+            "MEME20_ETH",
+            "0x54c40a1e169f7b8a24fab73ed51eb31c66de22f40b756768e749caf00a84c20f_274",
+            "99.17979546",
+            "",
+            "",
+            4109L,
+            69265L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultGPUNK20_ETH() {
+        harvestVaultParseTest(
+            "0xe6e0b4294ef6a518bb702402e9842df2a2abf1b1",
+            12227091,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "GPUNK20_ETH",
+            "0x245b1879ad95a9f3f92e749e009d47bb25a493aebe7a6c822af57967f717bdc2_69",
+            "0.01396012",
+            "",
+            "",
+            2L,
+            2L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMVI_ETH() {
+        harvestVaultParseTest(
+            "0x5ea74c6abf0e523fdecfe218ccb3d2fde2339613",
+            12227153,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "MVI_ETH",
+            "0x6ba0c6165865bc0b7dad65c5b11d658e7d07a1f91748a436ff533fca88390ed0_83",
+            "0.00227570",
+            "",
+            "",
+            2L,
+            2L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultKXUSD_DAI() {
+        harvestVaultParseTest(
+            "0x26193024f481aa987fc5230e107f1651b3e01741",
+            12232841,
+            LOG_ID,
+            "0xe323cf1ca53ddb43e838093016559ea6af78af26",
+            "Deposit",
+            "KXUSD_DAI",
+            "0x74677ea6ac8093c706821bbef52bcccd645b75e7f5a15803f5f9783ad6c761fc_119",
+            "132.75160560",
+            "",
+            "",
+            352L,
+            1854L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
