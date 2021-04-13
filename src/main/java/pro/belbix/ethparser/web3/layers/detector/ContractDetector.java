@@ -179,7 +179,15 @@ public class ContractDetector {
         String methodId = input.substring(0, 10);
         String inputData = input.substring(10);
 
-        String address = tx.getToAddress().getAddress();
+        String address;
+        if(tx.getToAddress() != null) {
+            address = tx.getToAddress().getAddress();
+        } else if(tx.getContractAddress() != null) {
+            address = tx.getContractAddress().getAddress();
+        } else {
+            log.error("to address not found");
+            return;
+        }
         GeneratedContract contract =
             simpleContractGenerator.getContract(
                 address,
