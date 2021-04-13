@@ -109,7 +109,8 @@ class EthTokenAddresses {
           .addLp(0, "UNI_LP_LINK_ETH"),
       new TokenContract(10151366, "CRV_RENWBTC", "0x49849C98ae39Fff122806C06791Fa73784FB3675"),
       new TokenContract(11869798, "MCAT20", "0xf961a1fa7c781ecd23689fe1d0b7f3b6cbb2f972")
-          .addLp(0, "UNI_LP_MCAT20_ETH")
+          .addLp(0, "UNI_LP_MCAT20_ETH"),
+      new TokenContract(10732326, "CRV_HBTC", "0xb19059ebb43466C323583928285a49f558E572Fd")
   );
 
 }

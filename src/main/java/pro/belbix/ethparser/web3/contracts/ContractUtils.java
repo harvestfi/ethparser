@@ -142,16 +142,8 @@ public class ContractUtils {
     return getCache().getVaultByName(name).isPresent();
   }
 
-  public boolean isPoolName(String name) {
-    return getCache().getPoolByName(name).isPresent();
-  }
-
   public boolean isUniPairName(String name) {
     return getCache().getUniPairByName(name).isPresent();
-  }
-
-  public boolean isTokenName(String name) {
-    return getCache().getTokenByName(name).isPresent();
   }
 
   public boolean isVaultAddress(String address) {
@@ -445,16 +437,16 @@ public class ContractUtils {
     return null;
   }
 
-  public String getSimilarActiveForPrice(String name) {
+  public String getSimilarAssetForPrice(String name) {
     if(ETH_NETWORK.equals(network)) {
-      return getSimilarActiveForPriceEth(name);
+      return getSimilarAssetForPriceEth(name);
     } else if(BSC_NETWORK.equals(network)) {
       return getSimilarActiveForPriceBsc(name);
     }
     return name;
   }
 
-  public String getSimilarActiveForPriceEth(String name) {
+  public String getSimilarAssetForPriceEth(String name) {
     name = name.replaceFirst("_V0", "");
     switch (name) {
       case "CRV_STETH":
@@ -502,20 +494,12 @@ public class ContractUtils {
         .map(ContractEntity::getAddress);
   }
 
-  public Collection<VaultEntity> getAllVaults() {
-    return getCache().getAllVaults();
-  }
-
   public Collection<PoolEntity> getAllPools() {
     return getCache().getAllPools();
   }
 
   public Collection<TokenEntity> getAllTokens() {
     return getCache().getAllTokens();
-  }
-
-  public Collection<UniPairEntity> getAllUniPairs() {
-    return getCache().getAllUniPairs();
   }
 
   public Set<String> getAllContractAddresses() {

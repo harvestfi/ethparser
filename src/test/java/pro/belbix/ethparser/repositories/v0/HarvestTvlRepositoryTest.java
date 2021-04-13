@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,11 @@ public class HarvestTvlRepositoryTest {
 
     @Test
     public void findAllByOrderByCalculateTime() {
-        assertNotNull(harvestTvlRepository.findAllByOrderByCalculateTime());
+        assertNotNull(harvestTvlRepository.findAllByNetworkOrderByCalculateTime(ETH_NETWORK));
     }
 
     @Test
     public void getHistoryOfAllTvl() {
-        assertNotNull(harvestTvlRepository.getHistoryOfAllTvl(0, Long.MAX_VALUE));
+        assertNotNull(harvestTvlRepository.getHistoryOfAllTvl(0, Long.MAX_VALUE, ETH_NETWORK));
     }
 }

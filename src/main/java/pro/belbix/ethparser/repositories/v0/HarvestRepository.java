@@ -9,41 +9,39 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 
 public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
 
-    List<HarvestDTO> findAllByOrderByBlockDate();
+    List<HarvestDTO> findAllByNetworkOrderByBlockDate(String network);
 
-    List<HarvestDTO> findAllByBlockDateGreaterThanOrderByBlockDate(long blockDate);
-
-    @Query(nativeQuery = true, value = ""
-        + "select * from harvest_tx where all_pools_owners_count is null order by block_date;")
-    List<HarvestDTO> fetchAllWithoutCounts();
+    List<HarvestDTO> findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(long blockDate, String network);
 
     @Query(nativeQuery = true, value = ""
-        + "select (coalesce( (select SUM(amount) d "
-        + "                   from harvest_tx t "
-        + "                   where t.method_name = 'Deposit' "
-        + "                     and t.vault = :vault "
-        + "                     and t.block_date <= :block_date), 0) - "
-        + "        coalesce((select SUM(amount) w "
-        + "                  from harvest_tx t "
-        + "                  where t.method_name = 'Withdraw' "
-        + "                    and t.vault = :vault "
-        + "                    and t.block_date <= :block_date), 0)) result "
-        + "from (select where true) t")
-    Double fetchTVL(@Param("vault") String vault, @Param("block_date") long blockDate);
+        + "select * from harvest_tx where "
+        + "all_pools_owners_count is null "
+        + "and network = :network "
+        + "order by block_date;")
+    List<HarvestDTO> fetchAllWithoutCounts(@Param("network") String network);
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault = :vault and block_date <= :block_date order by block_date desc limit 1")
-    HarvestDTO fetchLastByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
+        + "where vault = :vault "
+        + "and network = :network "
+        + "and block_date <= :block_date "
+        + "order by block_date desc limit 1")
+    HarvestDTO fetchLastByVaultAndDate(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("block_date") long blockDate
+    );
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault = :vault and last_usd_tvl != 0 and block_date <= :block_date order by block_date desc limit 1")
-    HarvestDTO fetchLastByVaultAndDateNotZero(@Param("vault") String vault, @Param("block_date") long blockDate);
-
-    @Query(nativeQuery = true, value = ""
-        + "select count(*) from ("
-        + "select t.owner from harvest_tx t where t.vault = :vault and t.block_date <= :block_date group by t.owner) tt"
-    )
-    Integer fetchOwnerCount(@Param("vault") String vault, @Param("block_date") long blockDate);
+        + "where vault = :vault "
+        + "and last_usd_tvl != 0 "
+        + "and network = :network "
+        + "and block_date <= :block_date "
+        + "order by block_date desc limit 1")
+    HarvestDTO fetchLastByVaultAndDateNotZero(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("block_date") long blockDate
+    );
 
     @Query(nativeQuery = true, value = ""
         + "select count(t.owner) "
@@ -53,12 +51,14 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "         from harvest_tx "
         + "         where vault in (:vault, :oldVault) "
         + "           and block_date <= :block_date "
+        + "           and network = :network "
         + "             window w as (PARTITION BY owner order by block_date desc) "
         + "     ) t "
         + "where t.balance > 10"
     )
     Integer fetchActualOwnerQuantity(@Param("vault") String vault,
                                      @Param("oldVault") String oldVault,
+                                     @Param("network") String network,
                                      @Param("block_date") long blockDate);
 
     @Query(nativeQuery = true, value = ""
@@ -71,7 +71,9 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                   where uni_tx.block_date <= :block_date "
         + "              ) t "
         + "     ) t2")
-    Integer fetchAllUsersQuantity(@Param("block_date") long blockDate);
+    Integer fetchAllUsersQuantity(
+        @Param("block_date") long blockDate
+    );
 
     @Query(nativeQuery = true, value = ""
         + "select count(owner) from ( "
@@ -80,64 +82,94 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "      cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', "
         + "                 coalesce(owner_balance_usd, 0))), '|', -1) as DOUBLE PRECISION) b "
         + "          from harvest_tx "
-        + "          where vault in :vaults and block_date < :block_date "
+        + "          where vault in :vaults "
+        + "          and block_date < :block_date "
+        + "          and network = :network "
         + "          group by vault, owner) t "
         + "                   where t.b > 10 "
         + "    group by t.owner "
         + "    order by balance desc "
         + ") t2")
-    Integer fetchAllPoolsUsersQuantity(@Param("vaults") List<String> vaults, @Param("block_date") long blockDate);
+    Integer fetchAllPoolsUsersQuantity(
+        @Param("vaults") List<String> vaults,
+        @Param("block_date") long blockDate,
+        @Param("network") String network
+    );
 
-    HarvestDTO findFirstByOrderByBlockDesc();
-
-    HarvestDTO findFirstByVaultAndBlockDateLessThanEqualAndIdNotOrderByBlockDateDesc(String vault, long date,
-                                                                                     String id);
-
-    @Query("select t.lastTvl from HarvestDTO t where t.vault = :vault and t.blockDate <= :from order by t.blockDate desc")
-    List<Double> fetchTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
-
-    @Query("select t.lastUsdTvl from HarvestDTO t where t.vault = :vault and t.blockDate <= :from  order by t.blockDate desc")
-    List<Double> fetchUsdTvlFrom(@Param("from") long from, @Param("vault") String vault, Pageable pageable);
+    HarvestDTO findFirstByNetworkOrderByBlockDesc(String network);
 
     @Query("select max(t.blockDate) - min(t.blockDate) as period from HarvestDTO t where "
-        + "t.vault = :vault and t.blockDate <= :to")
+        + "t.vault = :vault "
+        + "and t.network = :network "
+        + "and t.blockDate <= :to")
     List<Long> fetchPeriodOfWork(@Param("vault") String vault,
                                  @Param("to") long to,
+                                 @Param("network") String network,
                                  Pageable pageable);
 
     @Query("select avg(t.lastUsdTvl) as period from HarvestDTO t where "
-        + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
-    List<Double> fetchAverageTvl(@Param("vault") String vault,
-                                 @Param("from") long from,
-                                 @Param("to") long to,
-                                 Pageable pageable);
+        + "t.vault = :vault "
+        + "and t.blockDate between :from and :to "
+        + "and t.network = :network")
+    List<Double> fetchAverageTvl(
+        @Param("vault") String vault,
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select t from HarvestDTO t where "
-        + "t.owner = :owner and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
-    List<HarvestDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);
-
-    @Query("select t from HarvestDTO t where "
-        + "t.ownerBalance is null "
-        + "or t.ownerBalanceUsd is null "
+        + "t.owner = :owner "
+        + "and t.blockDate between :from and :to "
+        + "and t.network = :network "
         + "order by t.blockDate asc")
-    List<HarvestDTO> fetchAllWithoutOwnerBalance();
+    List<HarvestDTO> fetchAllByOwner(
+        @Param("owner") String owner,
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network
+    );
+
+    @Query("select t from HarvestDTO t where "
+        + "(t.ownerBalance is null "
+        + "or t.ownerBalanceUsd is null) "
+        + "and t.network = :network "
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllWithoutOwnerBalance(
+        @Param("network") String network
+    );
 
     @Query("select t from HarvestDTO t where "
         + "t.sharePrice = 0.00000000000000001"
         + "order by t.blockDate asc")
     List<HarvestDTO> fetchAllMigration();
 
-    HarvestDTO findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(String vault, long blockDate);
+    HarvestDTO findFirstByVaultAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
+        String vault, long blockDate, String network);
 
-    HarvestDTO findFirstByVaultOrderByBlockDate(String vault);
+    HarvestDTO findFirstByVaultAndNetworkOrderByBlockDate(String vault, String network);
 
     @Query(nativeQuery = true, value =
-        "select * from harvest_tx t where t.block_date > :fromTs order by t.block_date")
-    List<HarvestDTO> fetchAllFromBlockDate(@Param("fromTs") long fromTs);
+        "select * from harvest_tx t where "
+            + "t.block_date > :fromTs "
+            + "and t.network > :network "
+            + "order by t.block_date")
+    List<HarvestDTO> fetchAllFromBlockDate(
+        @Param("fromTs") long fromTs,
+        @Param("network") String network
+    );
 
-    @Query("select t from HarvestDTO t where t.vault = :vault and t.blockDate between :startTime and :endTime order by t.blockDate")
-    List<HarvestDTO> findAllByVaultOrderByBlockDate(@Param("vault") String vault, @Param("startTime") long startTime,
-                                                    @Param("endTime") long endTime);
+    @Query("select t from HarvestDTO t where "
+        + "t.vault = :vault "
+        + "and t.blockDate between :startTime and :endTime "
+        + "and t.network = :network "
+        + "order by t.blockDate")
+    List<HarvestDTO> findAllByVaultOrderByBlockDate(
+        @Param("vault") String vault,
+        @Param("startTime") long startTime,
+        @Param("endTime") long endTime,
+        @Param("network") String network
+    );
 
     @Query(nativeQuery = true, value = "" +
         "select distinct on (vault) "
@@ -170,17 +202,24 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "    last_value(all_pools_owners_count) over w as all_pools_owners_count, "
         + "    last_value(migrated) over w               as migrated, "
         + "    last_value(network) over w                as network "
-        + "from harvest_tx "
+        + "from harvest_tx where network = :network "
         + "    window w as (PARTITION BY vault order by block_date desc)")
-    List<HarvestDTO> fetchLastTvl();
+    List<HarvestDTO> fetchLastTvl(@Param("network") String network);
 
     @Query("select t from HarvestDTO t where "
         + "t.blockDate > :from "
         + "and t.blockDate <= :to "
+        + "and t.network = :network "
         + "order by t.blockDate")
-    List<HarvestDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
+    List<HarvestDTO> fetchAllByPeriod(
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network
+    );
 
-    List<HarvestDTO> findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate(String methodName, long blockDate);
+    List<HarvestDTO> findAllByMethodNameAndBlockDateGreaterThanAndNetworkOrderByBlockDate(
+        String methodName, long blockDate, String network
+    );
 
     @Query(nativeQuery = true, value = "select * from ( "
         + "                  select *, "
@@ -197,22 +236,26 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                  where owner = :owner "
         + "                    and vault = :vault "
         + "                    and block_date < :blockDate "
+        + "                    and network = :network "
         + "                  order by block_date "
         + "              ) t where block_date > last_withdraw_block_date")
-    List<HarvestDTO> fetchLatestSinceLastWithdraw(@Param("owner") String owner,
-                                                  @Param("vault") String vault,
-                                                  @Param("blockDate") long blockDate);
+    List<HarvestDTO> fetchLatestSinceLastWithdraw(
+        @Param("owner") String owner,
+        @Param("vault") String vault,
+        @Param("blockDate") long blockDate,
+        @Param("network") String network
+    );
 
     @Query(nativeQuery = true, value = ""
         + "select t.owner, sum(t.b) balance from "
         + "(select owner, "
         + "        cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', coalesce(owner_balance_usd, 0))), '|', -1) as DOUBLE PRECISION) as b "
-        + " from harvest_tx "
-        + " group by vault, owner) t "
+        + " from harvest_tx where network = :network "
+        + "group by vault, owner) t "
         + "where t.b > 50000 " //for optimization
         + "group by t.owner "
         + "order by balance desc")
-    List<UserBalance> fetchOwnerBalances();
+    List<UserBalance> fetchOwnerBalances(@Param("network") String network);
 
     interface UserBalance {
 

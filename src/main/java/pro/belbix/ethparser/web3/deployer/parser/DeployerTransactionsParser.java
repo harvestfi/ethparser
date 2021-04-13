@@ -106,8 +106,7 @@ public class DeployerTransactionsParser implements Web3Parser {
     deployerTx.setGasUsed(transactionReceipt.getGasUsed());
     deployerTx.setSuccess("0x1".equalsIgnoreCase(transactionReceipt.getStatus()));
 
-    DeployerDTO dto = deployerTx.toDto();
-    dto.setNetwork(network);
+    DeployerDTO dto = deployerTx.toDto(network);
     dto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(tx.getBlockNumber().longValue(), network));
 

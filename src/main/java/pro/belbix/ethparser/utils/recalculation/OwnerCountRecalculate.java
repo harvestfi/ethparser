@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
@@ -19,6 +20,7 @@ public class OwnerCountRecalculate {
   private final VaultActionsDBService vaultActionsDBService;
   private final UniswapDbService uniswapDbService;
   private final UniswapRepository uniswapRepository;
+  private final AppProperties appProperties;
 
   @Value("${owners-count-recalculate.from:}")
   private Integer from;
@@ -32,11 +34,13 @@ public class OwnerCountRecalculate {
   public OwnerCountRecalculate(HarvestRepository harvestRepository,
       VaultActionsDBService vaultActionsDBService,
       UniswapDbService uniswapDbService,
-      UniswapRepository uniswapRepository) {
+      UniswapRepository uniswapRepository,
+      AppProperties appProperties) {
     this.harvestRepository = harvestRepository;
     this.vaultActionsDBService = vaultActionsDBService;
     this.uniswapDbService = uniswapDbService;
     this.uniswapRepository = uniswapRepository;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -44,11 +48,13 @@ public class OwnerCountRecalculate {
     if (hv) {
       List<HarvestDTO> harvestDTOList;
       if (empty != null) {
-        harvestDTOList = harvestRepository.fetchAllWithoutCounts();
+        harvestDTOList = harvestRepository.fetchAllWithoutCounts(appProperties.getNetwork());
       } else if (from == null) {
-        harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+        harvestDTOList = harvestRepository
+            .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
       } else {
-        harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+        harvestDTOList = harvestRepository
+            .findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(from, appProperties.getNetwork());
       }
       for (HarvestDTO harvestDTO : harvestDTOList) {
         vaultActionsDBService.fillOwnersCount(harvestDTO);

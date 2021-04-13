@@ -46,7 +46,8 @@ public class PriceProvider {
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
     String lpName = cu(network).getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
-    PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+    PriceDTO priceDTO = silentCall(() -> priceRepository
+        .fetchLastPrice(lpName, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
@@ -125,7 +126,7 @@ public class PriceProvider {
       coinName = cu(network).getNameByAddress(coinNameOrAddress)
           .orElseThrow(() -> new IllegalStateException("Not found name for " + coinNameOrAddress));
     }
-    String coinNameSimple = cu(network).getSimilarActiveForPrice(coinName);
+    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinName);
     updateUSDPrice(coinNameSimple, block, network);
     if (cu(network).isStableCoin(coinNameSimple)
         && priceOracle.isNotAvailable(coinName, block, network)) {
@@ -174,7 +175,8 @@ public class PriceProvider {
   private double getPriceForCoinWithoutCache(String name, Long block, String network) {
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
-    PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+    PriceDTO priceDTO = silentCall(() -> priceRepository
+        .fetchLastPrice(lpName, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);

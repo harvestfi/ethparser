@@ -42,12 +42,9 @@ public class PriceController {
         @PathVariable("lp") String lp,
         @RequestParam("amount") double amount,
         @RequestParam(value = "block", required = false) Long block,
-        @RequestParam(value = "network", required = false) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
@@ -75,12 +72,9 @@ public class PriceController {
     public RestResponse token(
         @PathVariable("token") String token,
         @RequestParam(value = "block", required = false) Long block,
-        @RequestParam(value = "network", required = false) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             String tokenName = token;
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
@@ -124,7 +118,9 @@ public class PriceController {
     }
 
     @RequestMapping(value = "/token/latest", method = RequestMethod.GET)
-    public List<PriceDTO> lastReward() {
-        return priceRepository.fetchLastPrices();
+    public List<PriceDTO> lastPrices(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return priceRepository.fetchLastPrices(network);
     }
 }
