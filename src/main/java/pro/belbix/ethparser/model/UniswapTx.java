@@ -62,7 +62,7 @@ public class UniswapTx implements EthTransactionI {
   public UniswapDTO toDto() {
     ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
     UniswapDTO uniswapDTO = new UniswapDTO();
-    uniswapDTO.setId(hash + "_" + logId + "_" + ETH_NETWORK);
+    uniswapDTO.setId(hash + "_" + logId);
     uniswapDTO.setHash(hash);
     uniswapDTO.setOwner(owner);
     uniswapDTO.setBlock(block);

@@ -151,7 +151,7 @@ public class RewardParser implements Web3Parser {
 
     RewardDTO dto = new RewardDTO();
     dto.setNetwork(network);
-    dto.setId(tx.getHash() + "_" + tx.getLogId() + "_" + network);
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);
     dto.setVault(cu(network).getNameByAddress(poolAddress)

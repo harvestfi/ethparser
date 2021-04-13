@@ -108,7 +108,7 @@ public class ImportantEventsParser implements Web3Parser {
 
     ImportantEventsDTO dto = new ImportantEventsDTO();
     dto.setNetwork(network);
-    dto.setId(tx.getHash() + "_" + tx.getLogId() + "_" + network);
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setOldStrategy(tx.getOldStrategy());
     dto.setNewStrategy(tx.getNewStrategy());

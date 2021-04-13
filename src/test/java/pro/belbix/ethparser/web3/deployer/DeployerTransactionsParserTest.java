@@ -43,7 +43,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0x648a866acbd927613f4fc3c1d510415074da8a4d796b43a34da3f981b89229c3");
     assertModel(
         DeployerDTO.builder()
-            .id("0x648a866acbd927613f4fc3c1d510415074da8a4d796b43a34da3f981b89229c3_eth")
+            .id("0x648a866acbd927613f4fc3c1d510415074da8a4d796b43a34da3f981b89229c3")
             .idx(75)
             .block(11792110)
             .blockDate(1612472244)
@@ -67,7 +67,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xe082536c0360c4c4a3e119d0b021b242891403096cf67bbdb89555e33facc7cf");
     assertModel(
         DeployerDTO.builder()
-            .id("0xe082536c0360c4c4a3e119d0b021b242891403096cf67bbdb89555e33facc7cf_eth")
+            .id("0xe082536c0360c4c4a3e119d0b021b242891403096cf67bbdb89555e33facc7cf")
             .idx(114)
             .block(11792109)
             .blockDate(1612472192)
@@ -91,7 +91,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xef92345cbdd7d25e1d0d2f8050c9d672b9cf3f7aa8e42ecffac602245776e758");
     assertModel(
         DeployerDTO.builder()
-            .id("0xef92345cbdd7d25e1d0d2f8050c9d672b9cf3f7aa8e42ecffac602245776e758_eth")
+            .id("0xef92345cbdd7d25e1d0d2f8050c9d672b9cf3f7aa8e42ecffac602245776e758")
             .idx(17)
             .block(11808046)
             .blockDate(1612684117)
@@ -115,7 +115,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xa21735d140f7877a3e72ea62ef6a4725d5e6ae742a9c04003b7a9f7ebd874334");
     assertModel(
         DeployerDTO.builder()
-            .id("0xa21735d140f7877a3e72ea62ef6a4725d5e6ae742a9c04003b7a9f7ebd874334_eth")
+            .id("0xa21735d140f7877a3e72ea62ef6a4725d5e6ae742a9c04003b7a9f7ebd874334")
             .idx(114)
             .block(11815913)
             .blockDate(1612788944)
@@ -139,7 +139,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xc2a5a2705451d33f2817a7472bdf963e8169c4bc796059b58bd46a3b4fd250e6");
     assertModel(
         DeployerDTO.builder()
-            .id("0xc2a5a2705451d33f2817a7472bdf963e8169c4bc796059b58bd46a3b4fd250e6_eth")
+            .id("0xc2a5a2705451d33f2817a7472bdf963e8169c4bc796059b58bd46a3b4fd250e6")
             .idx(8)
             .block(11808016)
             .blockDate(1612683659)
@@ -163,7 +163,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xabd90485e1c558a25b1f8a7f04f338bc5d32151aaa72a2468b739dcf5442d07e");
     assertModel(
         DeployerDTO.builder()
-            .id("0xabd90485e1c558a25b1f8a7f04f338bc5d32151aaa72a2468b739dcf5442d07e_eth")
+            .id("0xabd90485e1c558a25b1f8a7f04f338bc5d32151aaa72a2468b739dcf5442d07e")
             .idx(4)
             .block(10784945)
             .blockDate(1599091186)
@@ -187,7 +187,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xc4000221276b1e7a97cb2f64f66e9df5e68794915379611c549805b831365f8b");
     assertModel(
         DeployerDTO.builder()
-            .id("0xc4000221276b1e7a97cb2f64f66e9df5e68794915379611c549805b831365f8b_eth")
+            .id("0xc4000221276b1e7a97cb2f64f66e9df5e68794915379611c549805b831365f8b")
             .idx(93)
             .block(10770079)
             .blockDate(1598895285)
@@ -211,7 +211,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0x5e654d894b1b37eb98a19b724182ee028d541d0b87033de0ca97bcb5bb6f597d");
     assertModel(
         DeployerDTO.builder()
-            .id("0x5e654d894b1b37eb98a19b724182ee028d541d0b87033de0ca97bcb5bb6f597d_eth")
+            .id("0x5e654d894b1b37eb98a19b724182ee028d541d0b87033de0ca97bcb5bb6f597d")
             .idx(5)
             .block(10977107)
             .blockDate(1601648372)
@@ -235,7 +235,7 @@ public class DeployerTransactionsParserTest {
     DeployerDTO dto = loadDto("0xcbbf816c41ad31cd68dacc873ec2f1a025bb80864cab3d2a846398a77b294ddc");
     assertModel(
        DeployerDTO.builder()
-        .id("0xcbbf816c41ad31cd68dacc873ec2f1a025bb80864cab3d2a846398a77b294ddc_eth")
+        .id("0xcbbf816c41ad31cd68dacc873ec2f1a025bb80864cab3d2a846398a77b294ddc")
         .idx(121)
         .block(11804364)
         .blockDate(1612636157)
