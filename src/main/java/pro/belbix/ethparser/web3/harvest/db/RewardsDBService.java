@@ -42,8 +42,8 @@ public class RewardsDBService {
   public void fillApy(RewardDTO dto) {
     HarvestDTO harvest =
         harvestRepository
-            .findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(dto.getVault(),
-                dto.getBlockDate());
+            .findFirstByVaultAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
+                dto.getVault(), dto.getBlockDate(), dto.getNetwork());
     if (harvest == null) {
       log.warn("Not found harvest for " + dto);
       dto.setApy(0);
@@ -83,7 +83,7 @@ public class RewardsDBService {
     Instant blockDate = Instant.ofEpochSecond(dto.getBlockDate());
     long weekAgo = blockDate.minus(7, ChronoUnit.DAYS).getEpochSecond();
     List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
-        dto.getVault(), weekAgo, dto.getBlockDate());
+        dto.getVault(), weekAgo, dto.getBlockDate(), dto.getNetwork());
     double averageApy = calculateAverageApy(rewards);
     dto.setWeeklyApy(averageApy);
   }

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
@@ -29,33 +30,48 @@ public class HarvestController {
     }
 
     @RequestMapping(value = "api/transactions/last/harvest", method = RequestMethod.GET)
-    public List<HarvestDTO> lastTvl() {
-        return harvestRepository.fetchLastTvl();
+    public List<HarvestDTO> lastTvl(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestRepository.fetchLastTvl(network);
     }
 
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
-    public Iterable<HarvestDTO> harvestHistoryDataForVault(@PathVariable("name") String name,
-                                                           @RequestParam(value = "start", required = false) String start,
-                                                           @RequestParam(value = "end", required = false) String end) {
-        return harvestRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+    public Iterable<HarvestDTO> harvestHistoryDataForVault(
+        @PathVariable("name") String name,
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+            parseLong(end, Long.MAX_VALUE), network);
     }
 
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
-    public Iterable<HarvestDTO> harvestHistoryData(@RequestParam(value = "from", required = false) String from,
-                                                   @RequestParam(value = "to", required = false) String to) {
-        return vaultActionsDBService.fetchHarvest(from, to);
+    public Iterable<HarvestDTO> harvestHistoryData(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return vaultActionsDBService.fetchHarvest(from, to, network);
     }
 
     @GetMapping("/history/harvest/{address}")
-    public List<HarvestDTO> addressHistoryHarvest(@PathVariable("address") String address,
-                                                  @RequestParam(value = "from", required = false) String from,
-                                                  @RequestParam(value = "to", required = false) String to) {
-        return harvestRepository.fetchAllByOwner(address.toLowerCase(), parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
+    public List<HarvestDTO> addressHistoryHarvest(
+        @PathVariable("address") String address,
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestRepository.fetchAllByOwner(address.toLowerCase(), parseLong(from, 0),
+            parseLong(to, Long.MAX_VALUE), network);
     }
 
     @GetMapping("/user_balances")
-    public List<UserBalance> userBalances() {
-        return harvestRepository.fetchOwnerBalances();
+    public List<UserBalance> userBalances(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestRepository.fetchOwnerBalances(network);
     }
 
 }

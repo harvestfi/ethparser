@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.TransferRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
@@ -20,6 +21,7 @@ public class TransfersRecalculate {
   private final TransferRepository transferRepository;
   private final TransferParser transferParser;
   private final UniswapRepository uniswapRepository;
+  private final AppProperties appProperties;
 
   @Value("${transfer-recalculate.fromBlockDate:0}")
   private long fromBlockDate = 0;
@@ -42,11 +44,13 @@ public class TransfersRecalculate {
   public TransfersRecalculate(TransferDBService transferDBService,
       TransferRepository transferRepository,
       TransferParser transferParser,
-      UniswapRepository uniswapRepository) {
+      UniswapRepository uniswapRepository,
+      AppProperties appProperties) {
     this.transferDBService = transferDBService;
     this.transferRepository = transferRepository;
     this.transferParser = transferParser;
     this.uniswapRepository = uniswapRepository;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -65,7 +69,8 @@ public class TransfersRecalculate {
   }
 
   private void recalculateBalances() {
-    List<TransferDTO> dtos = transferRepository.fetchAllFromBlockDate(fromBlockDate);
+    List<TransferDTO> dtos = transferRepository
+        .fetchAllFromBlockDate(fromBlockDate, appProperties.getNetwork());
     List<TransferDTO> result = new ArrayList<>();
     for (TransferDTO dto : dtos) {
       try {
@@ -100,7 +105,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyMethods() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutMethods();
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutMethods(appProperties.getNetwork());
     log.info("Events for reparsing " + dtos.size());
     for (TransferDTO dto : dtos) {
       try {
@@ -116,7 +121,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyPrices() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutPrice();
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutPrice(appProperties.getNetwork());
     log.info("Events for reparsing " + dtos.size());
     List<TransferDTO> result = new ArrayList<>();
     int count = 0;
@@ -139,7 +144,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyProfits() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutProfits();
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutProfits(appProperties.getNetwork());
     log.info("Events for reparsing " + dtos.size());
     for (TransferDTO dto : dtos) {
       try {

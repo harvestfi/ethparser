@@ -25,9 +25,10 @@ public class DeployerTx implements EthTransactionI {
   private DeployerActivityEnum type;
   private String methodName;
 
-  public DeployerDTO toDto() {
+  public DeployerDTO toDto(String network) {
     DeployerDTO deployerDTO = new DeployerDTO();
     deployerDTO.setId(this.getHash());
+    deployerDTO.setNetwork(network);
     deployerDTO.setIdx(this.getIdx());
     deployerDTO.setBlock(this.getBlock());
     if (this.getToAddress() != null) {

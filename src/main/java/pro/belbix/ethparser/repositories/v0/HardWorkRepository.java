@@ -10,70 +10,121 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 
 public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
-    @Query("select t from HardWorkDTO t where t.fullRewardUsd > :minAmount")
-    Page<HardWorkDTO> fetchPages(@Param("minAmount") double vault, Pageable pageable);
+    @Query("select t from HardWorkDTO t where "
+        + "t.fullRewardUsd > :minAmount "
+        + "and t.network = :network")
+    Page<HardWorkDTO> fetchPages(
+        @Param("minAmount") double vault,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select t from HardWorkDTO t where "
         + "t.vault = :vault "
-        + "and t.fullRewardUsd > :minAmount")
+        + "and t.fullRewardUsd > :minAmount "
+        + "and t.network = :network")
     Page<HardWorkDTO> fetchPagesByVault(
         @Param("vault") String vault,
+        @Param("network") String network,
         @Param("minAmount") double minAmount,
         Pageable pageable);
 
-    HardWorkDTO findFirstByOrderByBlockDateDesc();
+    HardWorkDTO findFirstByNetworkOrderByBlockDateDesc(String network);
 
     @Query("select t from HardWorkDTO t where "
-        + "t.blockDate > :from and t.blockDate <= :to order by t.blockDate")
+        + "t.blockDate between :from and :to "
+        + "and t.network = :network "
+        + "order by t.blockDate")
     List<HardWorkDTO> fetchAllInRange(@Param("from") long from,
-                                      @Param("to") long to);
+        @Param("to") long to,
+        @Param("network") String network
+    );
 
     @Query(""
         + "select sum(t.fullRewardUsd) from HardWorkDTO t "
         + "where t.vault = :vault "
-        + "and t.blockDate <= :blockDate")
-    Double getSumForVault(@Param("vault") String vault, @Param("blockDate") long blockDate);
+        + "and t.blockDate <= :blockDate "
+        + "and t.network = :network")
+    Double getSumForVault(
+        @Param("vault") String vault,
+        @Param("blockDate") long blockDate,
+        @Param("network") String network
+    );
 
     @Query("select sum(t.perc) from HardWorkDTO t where "
-        + "t.vault = :vault and t.blockDate <= :to")
-    List<Double> fetchPercentForPeriod(@Param("vault") String vault,
-                                       @Param("to") long to,
-                                       Pageable pageable);
+        + "t.vault = :vault "
+        + "and t.blockDate <= :to "
+        + "and t.network = :network")
+    List<Double> fetchPercentForPeriod(
+        @Param("vault") String vault,
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
-        + "t.vault = :vault and t.blockDate > :from and t.blockDate <= :to")
-    List<Double> fetchProfitForPeriod(@Param("vault") String vault,
-                                      @Param("from") long from,
-                                      @Param("to") long to,
-                                      Pageable pageable);
+        + "t.vault = :vault "
+        + "and t.blockDate between :from and :to "
+        + "and t.network = :network")
+    List<Double> fetchProfitForPeriod(
+        @Param("vault") String vault,
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
-        + "t.blockDate <= :to")
-    List<Double> fetchAllProfitAtDate(@Param("to") long to,
-                                      Pageable pageable);
+        + "t.blockDate <= :to "
+        + "and t.network = :network")
+    List<Double> fetchAllProfitAtDate(
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
-        + "t.blockDate > :from and t.blockDate <= :to")
-    List<Double> fetchAllProfitForPeriod(@Param("from") long from,
-                                         @Param("to") long to,
-                                         Pageable pageable);
+        + "t.blockDate between :from and :to "
+        + "and t.network = :network")
+    List<Double> fetchAllProfitForPeriod(
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
     @Query("select sum(t.farmBuyback) from HardWorkDTO t where "
-        + " t.blockDate < :to")
-    List<Double> fetchAllBuybacksAtDate(@Param("to") long to,
-                                        Pageable pageable);
+        + " t.blockDate < :to "
+        + "and t.network = :network")
+    List<Double> fetchAllBuybacksAtDate(
+        @Param("to") long to,
+        @Param("network") String network,
+        Pageable pageable);
 
-    @Query(nativeQuery = true, value = ""
-        + "select count(*) from hard_work where vault = :vault and block_date < :blockDate")
-    Integer countAtBlockDate(@Param("vault") String vault, @Param("blockDate") long blockDate);
+    @Query("select count(t) from HardWorkDTO t where "
+        + "t.vault = :vault "
+        + "and t.blockDate <= :blockDate "
+        + "and t.network = :network")
+    Integer countAtBlockDate(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("blockDate") long blockDate);
 
-    @Query(nativeQuery = true, value = ""
-        + "select sum(saved_gas_fees) from hard_work where vault = :vault and block_date < :blockDate")
-    Double sumSavedGasFees(@Param("vault") String vault, @Param("blockDate") long blockDate);
+    @Query("select sum(t.savedGasFees) from HardWorkDTO t where "
+        + "t.vault = :vault "
+        + "and t.network = :network "
+        + "and t.blockDate < :blockDate")
+    Double sumSavedGasFees(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("blockDate") long blockDate
+    );
 
-    @Query("select t from HardWorkDTO t where t.vault = :vault and t.blockDate between :startTime and :endTime order by t.blockDate")
-    List<HardWorkDTO> findAllByVaultOrderByBlockDate(@Param("vault") String vault, @Param("startTime") long startTime,
-                                                    @Param("endTime") long endTime);
+    @Query("select t from HardWorkDTO t where "
+        + "t.vault = :vault "
+        + "and t.network = :network "
+        + "and t.blockDate between :startTime and :endTime "
+        + "order by t.blockDate")
+    List<HardWorkDTO> findAllByVaultOrderByBlockDate(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("startTime") long startTime,
+        @Param("endTime") long endTime);
 
     // excellent explanation https://stackoverflow.com/a/7630564/6537367
     @Query(nativeQuery = true, value = "" +
@@ -115,22 +166,29 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         + "    last_value(buy_back_rate) over w             as buy_back_rate, "
         + "    last_value(profit_sharing_rate) over w             as profit_sharing_rate, "
         + "    last_value(auto_stake) over w             as auto_stake "
-        + "from hard_work "
+        + "from hard_work where network = :network "
         + "    window w as (PARTITION BY vault order by block_date desc) "
         + "order by vault")
-    List<HardWorkDTO> fetchLatest();
+    List<HardWorkDTO> fetchLatest(@Param("network") String network);
 
     @Query(nativeQuery = true, value = ""
         + "select sum(t.saved_gas_fees_sum) gas_saved "
         + "from ( "
         + "         select distinct on (vault) "
         + "                last_value(saved_gas_fees_sum) over w as saved_gas_fees_sum "
-        + "         from hard_work "
+        + "         from hard_work where network = :network "
         + "             window w as (PARTITION BY vault order by block_date desc) "
         + "     ) t")
-    Double fetchLastGasSaved();
+    Double fetchLastGasSaved(@Param("network") String network);
 
     @Query(nativeQuery = true, value = "select block_date from hard_work "
-        + "where vault = :vault and block_date < :block_date order by block_date desc limit 1")
-    Long fetchPreviousBlockDateByVaultAndDate(@Param("vault") String vault, @Param("block_date") long blockDate);
+        + "where vault = :vault "
+        + "and block_date < :block_date "
+        + "and network = :network "
+        + "order by block_date desc limit 1")
+    Long fetchPreviousBlockDateByVaultAndDate(
+        @Param("vault") String vault,
+        @Param("network") String network,
+        @Param("block_date") long blockDate
+    );
 }

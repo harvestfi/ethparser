@@ -17,6 +17,7 @@ public class HarvestTvlEntity {
 
     @Id
     private String calculateHash;
+    private String network;
     private Long calculateTime;
     private Double lastTvl;
     private int lastOwnersCount;

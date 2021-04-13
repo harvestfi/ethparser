@@ -31,13 +31,15 @@ public class OwnerBalanceRecalculate {
   }
 
   public void start() {
-    harvestRepository.fetchAllWithoutOwnerBalance().forEach(dto -> {
-      boolean success = harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getNetwork());
-      if (success) {
-        harvestRepository.save(dto);
-        log.info("HARVEST Balance recalculated for  " + dto.print());
-      }
-    });
+    harvestRepository.fetchAllWithoutOwnerBalance(appProperties.getNetwork())
+        .forEach(dto -> {
+          boolean success = harvestOwnerBalanceCalculator
+              .fillBalance(dto, appProperties.getNetwork());
+          if (success) {
+            harvestRepository.save(dto);
+            log.info("HARVEST Balance recalculated for  " + dto.print());
+          }
+        });
 
     uniswapRepository.fetchAllWithoutOwnerBalance().forEach(dto -> {
       boolean success = uniOwnerBalanceCalculator.fillBalance(dto);

@@ -8,11 +8,12 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 
 public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, String> {
 
-    List<HarvestTvlEntity> findAllByOrderByCalculateTime();
+    List<HarvestTvlEntity> findAllByNetworkOrderByCalculateTime(String network);
 
     @Query(nativeQuery = true, value = "" +
         "select " +
         "       MAX(agg.calculate_hash) calculate_hash,  " +
+        "       MAX(agg.network) network,  " +
         "       MAX(agg.calculate_time) calculate_time,  " +
         "       MAX(agg.last_tvl) last_tvl,  " +
         "       MAX(agg.last_owners_count) last_owners_count,  " +
@@ -21,6 +22,7 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "from (  " +
         "         select  " +
         "             t.calculate_hash calculate_hash,  " +
+        "             t.network network,  " +
         "             t.calculate_time calculate_time,  " +
         "             t.last_tvl last_tvl,  " +
         "             t.last_owners_count last_owners_count,  " +
@@ -28,10 +30,15 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "             t.last_price last_price,  " +
         "             to_char(date(to_timestamp(t.calculate_time)), 'YYYY-MM-DD HH') grp  " +
         "         from harvest_tvl t  " +
-        "         where t.calculate_time between :startTime and :endTime" +
+        "         where t.calculate_time between :startTime and :endTime " +
+        "              and t.network = :network " +
         "     ) agg  " +
         "group by agg.grp  " +
         "order by calculate_time")
-    List<HarvestTvlEntity> getHistoryOfAllTvl(@Param("startTime") long startTime, @Param("endTime") long endTime);
+    List<HarvestTvlEntity> getHistoryOfAllTvl(
+        @Param("startTime") long startTime,
+        @Param("endTime") long endTime,
+        @Param("network") String network
+    );
 
 }

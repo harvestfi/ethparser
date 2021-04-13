@@ -12,7 +12,8 @@ import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
 @Table(name = "events_tx", indexes = {
-    @Index(name = "idx_events_tx", columnList = "blockDate")
+    @Index(name = "idx_events_tx", columnList = "blockDate"),
+    @Index(name = "idx_events_network", columnList = "network")
 })
 @Cacheable(false)
 @Data

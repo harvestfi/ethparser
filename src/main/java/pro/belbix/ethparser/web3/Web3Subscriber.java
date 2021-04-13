@@ -62,7 +62,8 @@ public class Web3Subscriber {
     web3Functions.waitInit(network);
     DefaultBlockParameter from;
     if (Strings.isBlank(appProperties.getStartLogBlock())) {
-      from = new DefaultBlockParameterNumber(findEarliestLastBlock().subtract(BigInteger.TEN));
+      from = new DefaultBlockParameterNumber(
+          findEarliestLastBlock(network).subtract(BigInteger.TEN));
     } else {
       from = DefaultBlockParameter.valueOf(new BigInteger(appProperties.getStartLogBlock()));
     }
@@ -153,9 +154,9 @@ public class Web3Subscriber {
     return subscription;
   }
 
-  private BigInteger findEarliestLastBlock() {
+  private BigInteger findEarliestLastBlock(String network) {
     BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
-    BigInteger lastBlocHarvest = vaultActionsDBService.lastBlock();
+    BigInteger lastBlocHarvest = vaultActionsDBService.lastBlock(network);
     //if only one enabled
     if (appProperties.isParseHarvestLog() && !appProperties.isParseUniswapLog()) {
       return lastBlocHarvest;

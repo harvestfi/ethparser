@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,12 @@ public class PriceRepositoryTest {
 
     @Test
     public void fetchLastPrice() {
-        assertNotNull(priceRepository.fetchLastPrice("UNI_LP_ETH_USDT", Long.MAX_VALUE, limitOne));
+        assertNotNull(priceRepository
+            .fetchLastPrice("UNI_LP_ETH_USDT", Long.MAX_VALUE, ETH_NETWORK, limitOne));
     }
 
     @Test
     public void fetchLastPrices() {
-        assertNotNull(priceRepository.fetchLastPrices());
+        assertNotNull(priceRepository.fetchLastPrices(ETH_NETWORK));
     }
 }

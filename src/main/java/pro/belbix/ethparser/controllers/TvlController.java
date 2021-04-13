@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -27,16 +28,24 @@ public class TvlController {
     }
 
     @RequestMapping(value = "api/transactions/history/tvl/{name}", method = RequestMethod.GET)
-    public Iterable<TvlHistory> tvlHistoryByVault(@PathVariable("name") String name,
-                                                  @RequestParam(value = "start", required = false) String start,
-                                                  @RequestParam(value = "end", required = false) String end) {
-        return harvestTvlDBService.fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+    public Iterable<TvlHistory> tvlHistoryByVault(
+        @PathVariable("name") String name,
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestTvlDBService
+            .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
     }
 
     @RequestMapping(value = "api/transactions/history/alltvl", method = RequestMethod.GET)
-    public Iterable<HarvestTvlEntity> allTvlHistoryData(@RequestParam(value = "start", required = false) String start,
-                                                        @RequestParam(value = "end", required = false) String end) {
-        return harvestTvlRepository.getHistoryOfAllTvl(parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+    public Iterable<HarvestTvlEntity> allTvlHistoryData(
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return harvestTvlRepository
+            .getHistoryOfAllTvl(parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
     }
 
 }
