@@ -101,18 +101,8 @@ public class RewardParser implements Web3Parser {
     if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
     }
-    long blockForParsing = tx.getBlock().longValue();
-    if (!notWaitNewBlock.contains(appProperties.getStartUtil())
-        && waitNewBlock
-        && ETH_NETWORK.equals(appProperties.getNetwork())
-        && tx.getBlock().longValue() > ethBlockService.getLastBlock(network)
-    ) {
-      //todo remove when migrate to our own nodes
-      log.info("Wait new block for correct parsing rewards");
-      Thread.sleep(60 * 1000 * 5); //wait until new block created
-      blockForParsing += 1;
-    }
 
+    long nextBlock = tx.getBlock().longValue();
     String poolAddress = tx.getVault().getValue();
     long periodFinish = functionsUtils
         .callIntByName(PERIOD_FINISH, poolAddress, blockForParsing, network)
