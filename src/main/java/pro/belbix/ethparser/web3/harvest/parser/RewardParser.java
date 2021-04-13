@@ -102,20 +102,20 @@ public class RewardParser implements Web3Parser {
       return null;
     }
 
-    long nextBlock = tx.getBlock().longValue();
+    long block = tx.getBlock().longValue();
     String poolAddress = tx.getVault().getValue();
     long periodFinish = functionsUtils
-        .callIntByName(PERIOD_FINISH, poolAddress, blockForParsing, network)
+        .callIntByName(PERIOD_FINISH, poolAddress, block, network)
         .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))
         .longValue();
     BigInteger rewardRate = functionsUtils
-        .callIntByName(REWARD_RATE, poolAddress, blockForParsing, network)
+        .callIntByName(REWARD_RATE, poolAddress, block, network)
         .orElseThrow(() -> new IllegalStateException("Error get rate from " + poolAddress));
     if (periodFinish == 0 || rewardRate.equals(BigInteger.ZERO)) {
       log.error("Wrong values for " + ethLog);
       return null;
     }
-    long blockTime = ethBlockService.getTimestampSecForBlock(blockForParsing, network);
+    long blockTime = ethBlockService.getTimestampSecForBlock(block, network);
 
     double rewardsForPeriod = 0.0;
     if (periodFinish > blockTime) {
@@ -133,7 +133,7 @@ public class RewardParser implements Web3Parser {
             BALANCE_OF,
             poolAddress,
             rewardTokenAdr,
-            blockForParsing,
+            block,
             network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get balance from " + rewardTokenAdr)),
