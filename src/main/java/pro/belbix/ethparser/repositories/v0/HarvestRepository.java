@@ -152,7 +152,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     @Query(nativeQuery = true, value =
         "select * from harvest_tx t where "
             + "t.block_date > :fromTs "
-            + "and t.network > :network "
+            + "and t.network = :network "
             + "order by t.block_date")
     List<HarvestDTO> fetchAllFromBlockDate(
         @Param("fromTs") long fromTs,
