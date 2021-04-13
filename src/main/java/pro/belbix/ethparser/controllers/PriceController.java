@@ -118,7 +118,9 @@ public class PriceController {
     }
 
     @RequestMapping(value = "/token/latest", method = RequestMethod.GET)
-    public List<PriceDTO> lastReward() {
-        return priceRepository.fetchLastPrices();
+    public List<PriceDTO> lastPrices(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return priceRepository.fetchLastPrices(network);
     }
 }

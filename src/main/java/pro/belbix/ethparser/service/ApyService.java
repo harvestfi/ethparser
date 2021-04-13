@@ -21,8 +21,9 @@ public class ApyService {
         this.rewardsRepository = rewardsRepository;
     }
 
-    public Double averageApyForPool(String pool, int days) {
-        RewardDTO reward = rewardsRepository.getFirstByVaultOrderByBlockDateDesc(pool);
+    public Double averageApyForPool(String pool, int days, String network) {
+        RewardDTO reward = rewardsRepository
+            .getFirstByVaultAndNetworkOrderByBlockDateDesc(pool, network);
         RewardDTO cachedReward = lastRewards.get(pool);
         if (cachedReward != null && reward.getId().equals(cachedReward.getId())) {
             Double apy = getApyFromCache(pool, days);
@@ -34,7 +35,8 @@ public class ApyService {
         List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
             pool,
             Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond(),
-            Long.MAX_VALUE);
+            Long.MAX_VALUE,
+            network);
         double averageApy = calculateAverageApy(rewards);
         saveToCache(pool, days, averageApy);
         return averageApy;

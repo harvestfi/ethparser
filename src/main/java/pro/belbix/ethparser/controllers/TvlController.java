@@ -45,7 +45,7 @@ public class TvlController {
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         return harvestTvlRepository
-            .getHistoryOfAllTvl(parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+            .getHistoryOfAllTvl(parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
     }
 
 }

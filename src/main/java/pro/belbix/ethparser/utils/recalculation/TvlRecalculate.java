@@ -77,7 +77,7 @@ public class TvlRecalculate {
     List<HarvestDTO> harvestDTOs = harvestRepository
         .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
     List<HarvestTvlEntity> harvestTvlEntities =
-        harvestTvlRepository.findAllByOrderByCalculateTime();
+        harvestTvlRepository.findAllByNetworkOrderByCalculateTime(appProperties.getNetwork());
 
     Map<String, HarvestTvlEntity> harvestTvlEntitiesMap = new HashMap<>();
 

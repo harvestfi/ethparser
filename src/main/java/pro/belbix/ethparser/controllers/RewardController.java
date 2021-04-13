@@ -38,16 +38,19 @@ public class RewardController {
         if (days != null) {
             daysI = Integer.parseInt(days);
         }
-        return rewardsRepository.fetchRewardsByVaultAfterBlockDate(pool,
+        return rewardsRepository.fetchRewardsByVaultAfterBlockDate(
+            pool,
             Instant.now().minus(daysI, ChronoUnit.DAYS).getEpochSecond(),
-            Long.MAX_VALUE);
+            Long.MAX_VALUE,
+            network
+        );
     }
 
     @RequestMapping(value = "api/transactions/last/reward", method = RequestMethod.GET)
     public List<RewardDTO> lastReward(
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return rewardsRepository.fetchLastRewards();
+        return rewardsRepository.fetchLastRewards(network);
     }
 
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
@@ -59,7 +62,7 @@ public class RewardController {
         ) {
         return rewardsRepository
             .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE));
+                parseLong(end, Long.MAX_VALUE), network);
     }
 
     @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
@@ -72,7 +75,7 @@ public class RewardController {
             end = Long.MAX_VALUE + "";
         }
         return rewardsRepository
-            .getAllOrderByBlockDate(parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+            .getAllOrderByBlockDate(parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
     }
 
 }

@@ -12,10 +12,12 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
     @Query("select t from PriceDTO t where "
         + "t.source = :source "
         + "and t.block <= :block "
+        + "and t.network = :network "
         + "order by t.block desc")
     List<PriceDTO> fetchLastPrice(
         @Param("source") String source,
         @Param("block") long block,
+        @Param("network") String network,
         Pageable pageable
     );
 
@@ -35,10 +37,10 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "    last_value(lp_token0pooled) over w    as lp_token0pooled, "
         + "    last_value(lp_token1pooled) over w    as lp_token1pooled, "
         + "    last_value(lp_total_supply) over w    as lp_total_supply "
-        + "from prices "
+        + "from prices where network = :network"
         + "    window w as (PARTITION BY source order by block_date desc)")
     List<PriceDTO> fetchLastPrices(
-
+        @Param("network") String network
     );
 
 }

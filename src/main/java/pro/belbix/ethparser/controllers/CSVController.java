@@ -84,7 +84,7 @@ public class CSVController {
         try {
             List<RewardDTO> transactions = rewardsRepository
                 .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                    parseLong(end, Long.MAX_VALUE));
+                    parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, RewardDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);

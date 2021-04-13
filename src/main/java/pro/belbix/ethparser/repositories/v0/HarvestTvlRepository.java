@@ -8,7 +8,7 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 
 public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, String> {
 
-    List<HarvestTvlEntity> findAllByOrderByCalculateTime();
+    List<HarvestTvlEntity> findAllByNetworkOrderByCalculateTime(String network);
 
     @Query(nativeQuery = true, value = "" +
         "select " +
@@ -30,13 +30,15 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "             t.last_price last_price,  " +
         "             to_char(date(to_timestamp(t.calculate_time)), 'YYYY-MM-DD HH') grp  " +
         "         from harvest_tvl t  " +
-        "         where t.calculate_time between :startTime and :endTime" +
+        "         where t.calculate_time between :startTime and :endTime " +
+        "              and t.network = :network " +
         "     ) agg  " +
         "group by agg.grp  " +
         "order by calculate_time")
     List<HarvestTvlEntity> getHistoryOfAllTvl(
         @Param("startTime") long startTime,
-        @Param("endTime") long endTime
+        @Param("endTime") long endTime,
+        @Param("network") String network
     );
 
 }

@@ -46,7 +46,8 @@ public class PriceProvider {
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
     String lpName = cu(network).getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
-    PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+    PriceDTO priceDTO = silentCall(() -> priceRepository
+        .fetchLastPrice(lpName, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
@@ -174,7 +175,8 @@ public class PriceProvider {
   private double getPriceForCoinWithoutCache(String name, Long block, String network) {
     String lpName = cu(network).findUniPairNameForTokenName(name, block)
         .orElse(null);
-    PriceDTO priceDTO = silentCall(() -> priceRepository.fetchLastPrice(lpName, block, limitOne))
+    PriceDTO priceDTO = silentCall(() -> priceRepository
+        .fetchLastPrice(lpName, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);

@@ -31,7 +31,7 @@ public class TransferController {
     ) {
         return transferRepository
             .fetchAllByOwnerAndRecipient(address.toLowerCase(), address, parseLong(from, 0),
-                parseLong(to, Long.MAX_VALUE));
+                parseLong(to, Long.MAX_VALUE), network);
     }
 
 }
