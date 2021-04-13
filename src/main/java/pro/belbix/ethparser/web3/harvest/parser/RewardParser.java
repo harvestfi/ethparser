@@ -103,15 +103,8 @@ public class RewardParser implements Web3Parser {
     if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
     }
-    if (!notWaitNewBlock.contains(appProperties.getStartUtil())
-        && waitNewBlock
-        && tx.getBlock().longValue() > ethBlockService.getLastBlock()
-    ) {
-      log.info("Wait new block for correct parsing rewards");
-      Thread.sleep(60 * 1000 * 5); //wait until new block created
-    }
-    //todo if it is the last block it will be not safe, create another logic
-    long nextBlock = tx.getBlock().longValue() + 1;
+
+    long nextBlock = tx.getBlock().longValue();
     String poolAddress = tx.getVault().getValue();
     long periodFinish = functionsUtils.callIntByName(PERIOD_FINISH, poolAddress, nextBlock, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get period from " + poolAddress))

@@ -50,7 +50,7 @@ public class RewardParserTest {
             0,
             "0xf310afbf5090cb8dc7834760029f7dd692069514adde0c1ff3bd71161f6337d3_167",
             "UNI_WBTC_KLON",
-            "110.78462298",
+            "110.79433214",
             1616027885
         );
     }
@@ -63,7 +63,7 @@ public class RewardParserTest {
             0,
             "0x94897c3575bdf2c715e8b8bb563b492b7342a4dd235f88eed9f804bf9d053728_19",
             "WETH",
-            "108.54184635",
+            "108.54400000",
             1612897280
         );
     }
@@ -76,7 +76,7 @@ public class RewardParserTest {
             0,
             "0xe27248ecb7576f83b643b8a8a9d134bc41d481c1d1f336c966c5b1c00339c2fb_118",
             "SUSHI_ETH_DAI",
-            "96,04793142",
+            "96.04999599",
             1612292480
         );
     }
@@ -89,7 +89,7 @@ public class RewardParserTest {
             0,
             "0xe27248ecb7576f83b643b8a8a9d134bc41d481c1d1f336c966c5b1c00339c2fb_91",
             "WBTC",
-            "19,39464844",
+            "19.39506533",
             1612292480
         );
     }
@@ -102,7 +102,7 @@ public class RewardParserTest {
             0,
             "0x58a005b6d7bb6534361076cda6c86c74ae4b43e753d67d2e276ac600ae8b0c5d_5",
             "DAI_BSG",
-            "39.99972386",
+            "40.00045138",
             1611348622
         );
     }
@@ -115,7 +115,7 @@ public class RewardParserTest {
             0,
             "0x05ea65f5a5954a1b7d7422b566164009cdbcfa90e099c5ea9b345de1156543fe_103",
             "PS",
-            "681,68210849",
+            "681.97415761",
             1607816667
         );
     }
