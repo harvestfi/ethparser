@@ -118,6 +118,14 @@ class EthLpAddresses {
       new LpContract(10091428, "UNI_LP_LINK_ETH", "LINK",
           "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974"),
       new LpContract(12030599, "UNI_LP_MCAT20_ETH", "MCAT20",
-          "0x31C507636a4cAB752A8A069B865099924BD5F1a9")
+          "0x31C507636a4cAB752A8A069B865099924BD5F1a9"),
+      new LpContract(11858183, "UNI_LP_MEME20_ETH", "MEME20",
+          "0xE14f1283059afA8d3c9c52EFF76FE91854F5D1B3"),
+      new LpContract(12012664, "UNI_LP_GPUNK20_ETH", "GPUNK20",
+          "0xBb1565072FB4f3244eBcE5Bc8Dfeda6baEb78Ad3"),
+      new LpContract(12184158, "UNI_LP_MVI_ETH", "MVI",
+          "0x4d3C5dB2C68f6859e0Cd05D080979f597DD64bff"),
+      new LpContract(12189129, "UNI_LP_KXUSD_DAI", "KXUSD",
+          "0x672C973155c46Fc264c077a41218Ddc397bB7532")
   );
 }
