@@ -34,6 +34,9 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "     ) agg  " +
         "group by agg.grp  " +
         "order by calculate_time")
-    List<HarvestTvlEntity> getHistoryOfAllTvl(@Param("startTime") long startTime, @Param("endTime") long endTime);
+    List<HarvestTvlEntity> getHistoryOfAllTvl(
+        @Param("startTime") long startTime,
+        @Param("endTime") long endTime
+    );
 
 }

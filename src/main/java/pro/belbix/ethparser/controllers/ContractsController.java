@@ -42,11 +42,10 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/vaults")
-    RestResponse vaults(@RequestParam(value = "network", required = false) String network) {
+    RestResponse vaults(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             List<VaultEntity> vaults = vaultRepository.fetchAllByNetwork(network);
             return RestResponse.ok(objectMapper.writeValueAsString(vaults));
         } catch (Exception e) {
@@ -56,11 +55,10 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/pools")
-    RestResponse pools(@RequestParam(value = "network", required = false) String network) {
+    RestResponse pools(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             List<PoolEntity> pools = poolRepository.fetchAllByNetwork(network);
             return RestResponse.ok(objectMapper.writeValueAsString(pools));
         } catch (Exception e) {
@@ -70,11 +68,10 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/tokens")
-    RestResponse tokens(@RequestParam(value = "network", required = false) String network) {
+    RestResponse tokens(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             List<TokenEntity> tokens = tokenRepository.fetchAllByNetwork(network);
             return RestResponse.ok(objectMapper.writeValueAsString(tokens));
         } catch (Exception e) {
@@ -84,11 +81,10 @@ public class ContractsController {
     }
 
     @GetMapping(value = "/contracts/lps")
-    RestResponse lps(@RequestParam(value = "network", required = false) String network) {
+    RestResponse lps(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             List<UniPairEntity> uniPairs = uniPairRepository.fetchAllByNetwork(network);
             return RestResponse.ok(objectMapper.writeValueAsString(uniPairs));
         } catch (Exception e) {

@@ -50,7 +50,7 @@ public class HardWorkControllerTest {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
             .getTimestampSecForBlock(fakeBlock, ETH_NETWORK);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner, ETH_NETWORK);
         String data = response.getData();
         Assertions.assertEquals("161.97026179", data);
     }
@@ -60,7 +60,7 @@ public class HardWorkControllerTest {
         doThrow(NullPointerException.class)
             .when(hardWorkCalculator)
             .calculateTotalHardWorksFeeByOwner(owner, ETH_NETWORK);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner, ETH_NETWORK);
         String code = response.getCode();
         String message = response.getStatus();
         Assertions.assertEquals("500", code);

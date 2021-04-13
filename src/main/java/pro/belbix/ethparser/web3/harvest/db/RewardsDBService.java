@@ -42,8 +42,8 @@ public class RewardsDBService {
   public void fillApy(RewardDTO dto) {
     HarvestDTO harvest =
         harvestRepository
-            .findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(dto.getVault(),
-                dto.getBlockDate());
+            .findFirstByVaultAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
+                dto.getVault(), dto.getBlockDate(), dto.getNetwork());
     if (harvest == null) {
       log.warn("Not found harvest for " + dto);
       dto.setApy(0);

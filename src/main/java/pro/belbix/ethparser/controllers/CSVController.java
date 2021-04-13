@@ -56,12 +56,14 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<HarvestDTO> transactions = harvestRepository
-                .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                    parseLong(end, Long.MAX_VALUE));
+                .findAllByVaultOrderByBlockDate(
+                    name, parseLong(start, 0),
+                    parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, HarvestDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Harvest", e);
@@ -76,7 +78,8 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<RewardDTO> transactions = rewardsRepository
@@ -97,12 +100,9 @@ public class CSVController {
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
-        @RequestParam(value = "network", required = false) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            if (Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             List<HardWorkDTO> transactions = hardWorkRepository
                 .findAllByVaultOrderByBlockDate(
                     name, network,
@@ -122,11 +122,12 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<TvlHistory> transactions = harvestTvlDBService
-                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, TvlHistory.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);

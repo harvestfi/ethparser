@@ -13,7 +13,11 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "t.source = :source "
         + "and t.block <= :block "
         + "order by t.block desc")
-    List<PriceDTO> fetchLastPrice(@Param("source") String source, @Param("block") long block, Pageable pageable);
+    List<PriceDTO> fetchLastPrice(
+        @Param("source") String source,
+        @Param("block") long block,
+        Pageable pageable
+    );
 
     @Query(nativeQuery = true, value = "" +
         "select distinct on (source) "
@@ -33,6 +37,8 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "    last_value(lp_total_supply) over w    as lp_total_supply "
         + "from prices "
         + "    window w as (PARTITION BY source order by block_date desc)")
-    List<PriceDTO> fetchLastPrices();
+    List<PriceDTO> fetchLastPrices(
+
+    );
 
 }

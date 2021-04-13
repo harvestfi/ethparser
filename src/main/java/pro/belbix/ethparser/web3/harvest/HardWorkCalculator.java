@@ -36,7 +36,8 @@ public class HardWorkCalculator {
     long lastBlockDate = ethBlockService.getTimestampSecForBlock(lastBlock, network);
 
     HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
-    List<HarvestDTO> harvests = harvestRepository.fetchAllByOwner(ownerAddress, 0, lastBlockDate);
+    List<HarvestDTO> harvests = harvestRepository
+        .fetchAllByOwner(ownerAddress, 0, lastBlockDate, network);
 
     harvests
         .stream()

@@ -66,14 +66,18 @@ public class VaultActionsDBService {
   }
 
   public void fillOwnersCount(HarvestDTO dto) {
-    Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
-        dto.getVault() + "_V0", dto.getBlockDate());
+    Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(
+        dto.getVault(),
+        dto.getVault() + "_V0",
+        dto.getNetwork(),
+        dto.getBlockDate());
     if (ownerCount == null) {
       ownerCount = 0;
     }
     dto.setOwnerCount(ownerCount);
 
-    Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity(dto.getBlockDate());
+    Integer allOwnersCount = harvestRepository
+        .fetchAllUsersQuantity(dto.getBlockDate());
     if (allOwnersCount == null) {
       allOwnersCount = 0;
     }
@@ -84,7 +88,9 @@ public class VaultActionsDBService {
             .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork()
+    );
     if (allPoolsOwnerCount == null) {
       allPoolsOwnerCount = 0;
     }
@@ -144,7 +150,7 @@ public class VaultActionsDBService {
 
     for (String vaultName : contracts) {
       HarvestDTO lastHarvest = harvestRepository
-          .fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+          .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {
         continue;
       }
@@ -198,18 +204,18 @@ public class VaultActionsDBService {
     return tvl;
   }
 
-  public BigInteger lastBlock() {
-    HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
+  public BigInteger lastBlock(String network) {
+    HarvestDTO dto = harvestRepository.findFirstByNetworkOrderByBlockDesc(network);
     if (dto == null) {
       return new BigInteger("0");
     }
     return BigInteger.valueOf(dto.getBlock());
   }
 
-  public List<HarvestDTO> fetchHarvest(String from, String to) {
+  public List<HarvestDTO> fetchHarvest(String from, String to, String network) {
     if (from == null && to == null) {
       return harvestRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000);
+          Instant.now().minus(1, DAYS).toEpochMilli() / 1000, network);
     }
     int fromI = 0;
     int toI = Integer.MAX_VALUE;
@@ -219,7 +225,7 @@ public class VaultActionsDBService {
     if (to != null) {
       toI = Integer.parseInt(to);
     }
-    return harvestRepository.fetchAllByPeriod(fromI, toI);
+    return harvestRepository.fetchAllByPeriod(fromI, toI, network);
   }
 
   public void fillProfit(HarvestDTO dto) {
@@ -237,7 +243,9 @@ public class VaultActionsDBService {
     List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
         dto.getOwner(),
         dto.getVault(),
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork()
+    );
 
     // for new transaction DB can still not write the object at this moment
     if (transfers.stream().noneMatch(h -> h.getId().equalsIgnoreCase(dto.getId()))) {

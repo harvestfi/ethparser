@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.time.Instant;
@@ -28,8 +29,11 @@ public class RewardController {
     }
 
     @GetMapping(value = "/history/rewards/{pool}")
-    List<RewardDTO> rewardsHistory(@PathVariable("pool") String pool,
-                                   @RequestParam(value = "days", required = false) String days) {
+    List<RewardDTO> rewardsHistory(
+        @PathVariable("pool") String pool,
+        @RequestParam(value = "days", required = false) String days,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         int daysI = 7;
         if (days != null) {
             daysI = Integer.parseInt(days);
@@ -40,14 +44,19 @@ public class RewardController {
     }
 
     @RequestMapping(value = "api/transactions/last/reward", method = RequestMethod.GET)
-    public List<RewardDTO> lastReward() {
+    public List<RewardDTO> lastReward(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         return rewardsRepository.fetchLastRewards();
     }
 
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
-    public List<RewardDTO> historyReward(@PathVariable("name") String name,
+    public List<RewardDTO> historyReward(
+        @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end) {
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        ) {
         return rewardsRepository
             .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
                 parseLong(end, Long.MAX_VALUE));
@@ -56,7 +65,8 @@ public class RewardController {
     @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
     public List<RewardDTO> historyReward(
         @RequestParam(value = "start") String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         if (end == null) {
             end = Long.MAX_VALUE + "";

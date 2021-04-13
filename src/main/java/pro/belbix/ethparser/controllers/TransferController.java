@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
@@ -22,11 +23,15 @@ public class TransferController {
     }
 
     @GetMapping("/history/transfer/{address}")
-    public List<TransferDTO> addressHistoryTransfers(@PathVariable("address") String address,
-                                                     @RequestParam(value = "from", required = false) String from,
-                                                     @RequestParam(value = "to", required = false) String to) {
+    public List<TransferDTO> addressHistoryTransfers(
+        @PathVariable("address") String address,
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
         return transferRepository
-            .fetchAllByOwnerAndRecipient(address.toLowerCase(), address, parseLong(from, 0), parseLong(to, Long.MAX_VALUE));
+            .fetchAllByOwnerAndRecipient(address.toLowerCase(), address, parseLong(from, 0),
+                parseLong(to, Long.MAX_VALUE));
     }
 
 }
