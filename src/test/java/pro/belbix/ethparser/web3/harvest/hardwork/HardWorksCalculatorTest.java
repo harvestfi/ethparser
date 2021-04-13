@@ -135,7 +135,7 @@ public class HardWorksCalculatorTest {
         when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
             .thenReturn(List.of(harvest2, harvest6));
 
-        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(),ETH_NETWORK, anyLong(), anyLong());
+        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(),anyString(), anyLong(), anyLong());
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0d;

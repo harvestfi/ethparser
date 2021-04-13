@@ -13,6 +13,7 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
     @Query(nativeQuery = true, value = "" +
         "select " +
         "       MAX(agg.calculate_hash) calculate_hash,  " +
+        "       MAX(agg.network) network,  " +
         "       MAX(agg.calculate_time) calculate_time,  " +
         "       MAX(agg.last_tvl) last_tvl,  " +
         "       MAX(agg.last_owners_count) last_owners_count,  " +
@@ -21,6 +22,7 @@ public interface HarvestTvlRepository extends JpaRepository<HarvestTvlEntity, St
         "from (  " +
         "         select  " +
         "             t.calculate_hash calculate_hash,  " +
+        "             t.network network,  " +
         "             t.calculate_time calculate_time,  " +
         "             t.last_tvl last_tvl,  " +
         "             t.last_owners_count last_owners_count,  " +

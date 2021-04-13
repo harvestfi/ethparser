@@ -60,7 +60,7 @@ public class DoHardWorkBscTest {
         HardWorkDTO dto = loadHardWork(6168762);
         assertModel(
             HardWorkDTO.builder()
-                .id("0xa244cf7c9a934b526404c03af7b28acb4926a128be85ef85f2911961c0c116b7_329")
+                .id("0xa244cf7c9a934b526404c03af7b28acb4926a128be85ef85f2911961c0c116b7_329_bsc")
                 .vault("VENUS_VAI")
                 .block(6168762)
                 .blockDate(1617219879)
@@ -102,7 +102,7 @@ public class DoHardWorkBscTest {
         HardWorkDTO dto = loadHardWork(6166719);
         assertModel(
             HardWorkDTO.builder()
-                .id("0x3cd8edeba0ff0937c692e1fc130e8db08d605c02c7d62352c328c6412f1f56d0_277")
+                .id("0x3cd8edeba0ff0937c692e1fc130e8db08d605c02c7d62352c328c6412f1f56d0_277_bsc")
                 .vault("VENUS_BETH")
                 .block(6166719)
                 .blockDate(1617213744)

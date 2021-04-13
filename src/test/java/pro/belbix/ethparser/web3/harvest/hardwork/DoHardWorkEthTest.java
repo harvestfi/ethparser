@@ -50,7 +50,7 @@ public class DoHardWorkEthTest {
     public void parseSUSHI_MIC_USDT() {
         assertOnBlock(
             12138001,
-            "0x4a8b9b49edda75fc2ce1d8e119ae952c92707c1b4cc04ccfacd066c0164ab35e_166",
+            "0x4a8b9b49edda75fc2ce1d8e119ae952c92707c1b4cc04ccfacd066c0164ab35e_166_eth",
             "SUSHI_MIC_USDT",
             "0.000000",
             "9189.958992",
@@ -62,7 +62,7 @@ public class DoHardWorkEthTest {
     public void parseSUSHI_ETH_DAI() {
         HardWorkDTO dto = assertOnBlock(
             12064923,
-            "0x1ce56c85fee98049f2c957b38b72a51925434771303843fc0b0212a4c1ccd0a1_164",
+            "0x1ce56c85fee98049f2c957b38b72a51925434771303843fc0b0212a4c1ccd0a1_164_eth",
             "SUSHI_ETH_DAI",
             "0.000894",
             "15589.709554",
@@ -80,7 +80,7 @@ public class DoHardWorkEthTest {
     public void parseMIS_USDT() {
         HardWorkDTO dto = assertOnBlock(
             11933706,
-            "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
+            "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40_eth",
             "SUSHI_MIC_USDT",
             "0,000000",
             "17800.133375",
@@ -92,7 +92,7 @@ public class DoHardWorkEthTest {
     public void parseDAI_BSGS() {
         HardWorkDTO dto = assertOnBlock(
             11698881,
-            "0x640b6f13a78e17860e4bd0a111a0d1fe7d31cc73554c48963d3e5ae5aa0287ff_214",
+            "0x640b6f13a78e17860e4bd0a111a0d1fe7d31cc73554c48963d3e5ae5aa0287ff_214_eth",
             "DAI_BSGS",
             "0,000000",
             "2696,891131",
@@ -109,7 +109,7 @@ public class DoHardWorkEthTest {
     public void parseSUSHI_MIC_USDT_without_profit() {
         assertOnBlock(
             11615905,
-            "0x5f1a8712f06d8ab408a21d47ddebd509ec0867001b40ac1f811a6b718a81a496_16",
+            "0x5f1a8712f06d8ab408a21d47ddebd509ec0867001b40ac1f811a6b718a81a496_16_eth",
             "SUSHI_MIC_USDT",
             "0,000000",
             "0,000000",
@@ -121,7 +121,7 @@ public class DoHardWorkEthTest {
     public void parseSUSHI_ETH_USDC() {
         assertOnBlock(
             11299287,
-            "0xfaff1b27f5f17252bea0a2a1cc452f282fc644ec8ccfa963941f2c83ce6414aa_207",
+            "0xfaff1b27f5f17252bea0a2a1cc452f282fc644ec8ccfa963941f2c83ce6414aa_207_eth",
             "SUSHI_ETH_USDC",
             "0,000073",
             "4278,343750",
@@ -133,7 +133,7 @@ public class DoHardWorkEthTest {
     public void parseUSDC() {
         assertOnBlock(
             11490124,
-            "0xb63ea164db21279e9b4a09975ca5e3313cf897cf7118e733ca81708719c87b91_190",
+            "0xb63ea164db21279e9b4a09975ca5e3313cf897cf7118e733ca81708719c87b91_190_eth",
             "USDC",
             "0,000097",
             "6628,467329",
@@ -145,7 +145,7 @@ public class DoHardWorkEthTest {
     public void parseYCRV() {
         assertOnBlock(
             11687882,
-            "0x25aed6e95e2ebb3bd66ca906bcb59cb762a286a273c1ce67052701697e4b2bc5_114",
+            "0x25aed6e95e2ebb3bd66ca906bcb59cb762a286a273c1ce67052701697e4b2bc5_114_eth",
             "YCRV",
             "0,000265",
             "12574,560831",
@@ -157,7 +157,7 @@ public class DoHardWorkEthTest {
     public void parseDAI_BSGS2() {
         assertOnBlock(
             11724037,
-            "0x054b92d6bc7e846f40a4aea5a99f3ba77941be41107fad9a72e14d68a407148f_79",
+            "0x054b92d6bc7e846f40a4aea5a99f3ba77941be41107fad9a72e14d68a407148f_79_eth",
             "DAI_BSGS",
             "0,000000",
             "3673,968759",
@@ -169,7 +169,7 @@ public class DoHardWorkEthTest {
     public void parseSUSHI_ETH_USDC2() {
         assertOnBlock(
             11425987,
-            "0xcaf98b04b4d779899e29d36833fc52955b2c887d62bd4b4c277abd998b4e355f_138",
+            "0xcaf98b04b4d779899e29d36833fc52955b2c887d62bd4b4c277abd998b4e355f_138_eth",
             "SUSHI_ETH_USDC",
             "0,000271",
             "16811,047116",
@@ -181,7 +181,7 @@ public class DoHardWorkEthTest {
     public void parseUNI_ETH_DAI_broken_when_all_profit_went_to_PS() {
         assertOnBlock(
             11058343,
-            "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
+            "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159_eth",
             "UNI_ETH_DAI",
             "0,000000",
             "10017,482955",
@@ -193,7 +193,7 @@ public class DoHardWorkEthTest {
     public void parseDUDES20_buybackratio() {
         assertOnBlock(
             12149939,
-            "0xfdcaaf8e5aeac3a97d4fdda8c5779ab6fa6ad178c2d5350f5c85ec7886b8be4f_94",
+            "0xfdcaaf8e5aeac3a97d4fdda8c5779ab6fa6ad178c2d5350f5c85ec7886b8be4f_94_eth",
             "DUDES20_ETH",
             "0,010783",
             "7698,248019",
@@ -205,7 +205,7 @@ public class DoHardWorkEthTest {
     public void parseMNFLX_UST_buybackratio() {
         assertOnBlock(
             12130332,
-            "0x2462bc51b117c3b50e9e051e35a885e582737567e899c84ce6af98b16b51f217_44",
+            "0x2462bc51b117c3b50e9e051e35a885e582737567e899c84ce6af98b16b51f217_44_eth",
             "MNFLX_UST",
             "0,000000",
             "4552.389815",
