@@ -44,7 +44,8 @@ public class NewStrategyDownloader {
       vaultActionsDownloader.setVaultName(vaultName);
       vaultActionsDownloader.start();
 
-      HarvestDTO harvest = harvestRepository.findFirstByVaultOrderByBlockDate(vaultName);
+      HarvestDTO harvest = harvestRepository
+          .findFirstByVaultAndNetworkOrderByBlockDate(vaultName, appProperties.getNetwork());
       if (harvest == null) {
         log.error("Download zero records for " + vaultName);
         continue;

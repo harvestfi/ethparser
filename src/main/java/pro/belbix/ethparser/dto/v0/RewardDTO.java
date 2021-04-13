@@ -9,7 +9,8 @@ import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
 @Table(name = "rewards", indexes = {
-    @Index(name = "idx_rewards", columnList = "blockDate")
+    @Index(name = "idx_rewards", columnList = "blockDate"),
+    @Index(name = "idx_rewards_network", columnList = "network")
 })
 @Data
 public class RewardDTO implements DtoI {

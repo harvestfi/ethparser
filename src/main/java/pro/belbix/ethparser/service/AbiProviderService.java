@@ -97,7 +97,7 @@ public class AbiProviderService {
         }
         try {
           //noinspection BusyWait
-          Thread.sleep(5000);
+          Thread.sleep(1000);
         } catch (InterruptedException ignored) {
         }
       }

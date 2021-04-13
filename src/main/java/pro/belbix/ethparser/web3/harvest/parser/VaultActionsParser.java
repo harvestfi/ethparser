@@ -317,9 +317,8 @@ public class VaultActionsParser implements Web3Parser {
     return ContractUtils.getInstance(network).isPoolAddress(v)
         //it is transfer to stacking
         && !v.equalsIgnoreCase(currentPool) // and it is not current contract
-        && !v.equalsIgnoreCase( // and it is not iPS
-        ContractUtils.getInstance(network).getAddressByName("iPS", ContractType.VAULT)
-            .orElseThrow())
+        && !"0x153C544f72329c1ba521DDf5086cf2fA98C86676"
+        .equalsIgnoreCase(harvestTx.getAddressFromArgs1().getValue()) // and it is not iFARM reward
         ;
   }
 

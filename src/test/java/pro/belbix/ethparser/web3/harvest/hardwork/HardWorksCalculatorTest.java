@@ -84,7 +84,7 @@ public class HardWorksCalculatorTest {
 
     @Test
     public void shouldCalcHardWorksFeeByPeriodsAndVaults() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
+        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2, ETH_NETWORK))
             .thenReturn(List.of(harvest1, harvest2, harvest3, harvest4, harvest5, harvest6));
 
         List<HardWorkDTO> hardworks = List.of(
@@ -93,7 +93,7 @@ public class HardWorksCalculatorTest {
             mockHardWork(fakeVault2, fakeBlock2, harvest6.getBlockDate())
         );
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
         double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
@@ -103,7 +103,7 @@ public class HardWorksCalculatorTest {
 
     @Test
     public void shouldIgnoreHardWorksFeeWhenNotMatchingHarvests() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
+        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2, ETH_NETWORK))
             .thenReturn(List.of());
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
@@ -113,7 +113,7 @@ public class HardWorksCalculatorTest {
 
     @Test
     public void shouldIgnoreHardWorksFeeNotMatchingPeriods() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
+        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2, ETH_NETWORK))
             .thenReturn(List.of(harvest1, harvest2, harvest5, harvest6));
 
         List<HardWorkDTO> hardworks = List.of(
@@ -122,7 +122,7 @@ public class HardWorksCalculatorTest {
             mockHardWork(fakeVault1, fakeBlock1, harvest5.getBlockDate())
         );
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), harvest6.getBlockDate()))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), harvest6.getBlockDate()))
             .thenReturn(List.copyOf(hardworks));
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
@@ -132,10 +132,10 @@ public class HardWorksCalculatorTest {
 
     @Test
     public void shouldIgnoreHardWorksFeeWhenZeroHarvestBalance() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
+        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2, ETH_NETWORK))
             .thenReturn(List.of(harvest2, harvest6));
 
-        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(), anyLong(), anyLong());
+        verify(hardworkRepository, times(0)).findAllByVaultOrderByBlockDate(anyString(),anyString(), anyLong(), anyLong());
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);
         Double expected = 0d;
@@ -144,12 +144,12 @@ public class HardWorksCalculatorTest {
 
     @Test
     public void shouldCalcHardWorksFeeWhenNoHarvestOut() {
-        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2))
+        when(harvestRepository.fetchAllByOwner(fakeEthAddr, 0, fakeEndBlockDate2, ETH_NETWORK))
             .thenReturn(List.of(harvest1, harvest1));
 
         HardWorkDTO hardwork = mockHardWork(fakeVault1, fakeBlock1, harvest1.getBlockDate());
 
-        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1, harvest1.getBlockDate(), fakeEndBlockDate2))
+        when(hardworkRepository.findAllByVaultOrderByBlockDate(fakeVault1,ETH_NETWORK, harvest1.getBlockDate(), fakeEndBlockDate2))
             .thenReturn(List.of(hardwork));
 
         Double feeInUsd = hardworkCalculator.calculateTotalHardWorksFeeByOwner(fakeEthAddr, ETH_NETWORK);

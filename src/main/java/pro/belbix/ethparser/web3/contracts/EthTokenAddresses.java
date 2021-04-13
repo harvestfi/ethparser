@@ -118,6 +118,7 @@ class EthTokenAddresses {
           .addLp(0, "UNI_LP_MVI_ETH"),
       new TokenContract(12188679, "KXUSD", "0x43244c686a014c49d3d5b8c4b20b4e3fab0cbda7")
           .addLp(0, "UNI_LP_KXUSD_DAI")
+      new TokenContract(10732326, "CRV_HBTC", "0xb19059ebb43466C323583928285a49f558E572Fd")
   );
 
 }

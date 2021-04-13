@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.dto.v0;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.Instant;
 import javax.persistence.Cacheable;
 import javax.persistence.Entity;
@@ -15,9 +13,12 @@ import lombok.NoArgsConstructor;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
-@Table(
-    name = "deployer_tx",
-    indexes = {@Index(name = "idx_deployer_tx", columnList = "block")})
+@Table(name = "deployer_tx",
+    indexes = {
+        @Index(name = "idx_deployer_tx", columnList = "block"),
+        @Index(name = "idx_deployer_tx_network", columnList = "network")
+    }
+)
 @Cacheable(false)
 @Data
 @Builder

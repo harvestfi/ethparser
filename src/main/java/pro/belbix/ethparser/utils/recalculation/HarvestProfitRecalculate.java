@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
@@ -15,14 +16,17 @@ public class HarvestProfitRecalculate {
 
   private final HarvestRepository harvestRepository;
   private final VaultActionsDBService vaultActionsDBService;
+  private final AppProperties appProperties;
 
   @Value("${profit-recalculate.from:}")
   private Integer from;
 
   public HarvestProfitRecalculate(HarvestRepository harvestRepository,
-      VaultActionsDBService vaultActionsDBService) {
+      VaultActionsDBService vaultActionsDBService,
+      AppProperties appProperties) {
     this.harvestRepository = harvestRepository;
     this.vaultActionsDBService = vaultActionsDBService;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -32,7 +36,8 @@ public class HarvestProfitRecalculate {
       from = 0;
     }
     harvestDTOList = harvestRepository
-        .findAllByMethodNameAndBlockDateGreaterThanOrderByBlockDate("Withdraw", from);
+        .findAllByMethodNameAndBlockDateGreaterThanAndNetworkOrderByBlockDate(
+            "Withdraw", from, appProperties.getNetwork());
 
     log.info(
         "Loaded " + harvestDTOList.size() + " Withdraw transactions. Starting recalculation..");

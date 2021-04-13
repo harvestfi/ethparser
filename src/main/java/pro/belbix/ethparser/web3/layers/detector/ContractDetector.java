@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
@@ -91,7 +89,8 @@ public class ContractDetector {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("Error contract detector loop " + block, e);
+                    log.error("Error contract detector loop {}",
+                        block == null ? null : block.getNumber(), e);
                     if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
