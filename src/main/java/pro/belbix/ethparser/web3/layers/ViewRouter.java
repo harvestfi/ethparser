@@ -89,7 +89,7 @@ public class ViewRouter {
   private boolean isVaultAction(ContractEventEntity event, String network) {
     return event.getTxs().stream()
         .map(ContractTxEntity::getTx)
-        .map(EthTxEntity::getToAddress)
+        .map(EthTxEntity::getNotNullToAddress)
         .map(EthAddressEntity::getAddress)
         .anyMatch(ContractUtils.getInstance(network)::isVaultAddress)
         &&
