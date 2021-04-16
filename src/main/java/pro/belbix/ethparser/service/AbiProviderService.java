@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Log4j2
 public class AbiProviderService {
 
-  public final static int RATE_TIMEOUT = 200;
+  public final static int RATE_TIMEOUT = 1000;
   public final static String ETH_NETWORK = "eth";
   public final static String BSC_NETWORK = "bsc";
   private final static int RETRY_COUNT = 10;
