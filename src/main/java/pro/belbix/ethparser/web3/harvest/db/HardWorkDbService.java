@@ -15,6 +15,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -23,7 +24,6 @@ public class HardWorkDbService {
 
   private final static long PS_DEPLOYED = 1601389313;
   private final static long PS_OLD_DEPLOYED = 1599258042;
-  private final static double HARD_WORK_COST = 0.1;
   private final Pageable limitOne = PageRequest.of(0, 1);
   private final HardWorkRepository hardWorkRepository;
   private final HarvestRepository harvestRepository;
@@ -201,9 +201,11 @@ public class HardWorkDbService {
         dto.getBlockDate());
     dto.setPoolUsers(owners);
 
-    double ethPrice = priceProvider.getPriceForCoin("ETH", dto.getBlock(), dto.getNetwork());
+    double baseTokenPrice = priceProvider.getPriceForCoin(
+        ContractUtils.getInstance(dto.getNetwork()).getBaseNetworkWrappedTokenAddress(),
+        dto.getBlock(), dto.getNetwork());
 
-    dto.setSavedGasFees(((double) owners) * HARD_WORK_COST * ethPrice);
+    dto.setSavedGasFees(((double) owners) * dto.getFeeEth() * baseTokenPrice);
 
     Double feesSum = hardWorkRepository
         .sumSavedGasFees(dto.getVault(), dto.getNetwork(), dto.getBlockDate());
