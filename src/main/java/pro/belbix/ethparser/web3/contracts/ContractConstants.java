@@ -92,6 +92,9 @@ public class ContractConstants {
       "CRV_HUSD",
       "CRV_UST",
       "CRV_GUSD",
-      "CRV_AAVE"
+      "CRV_AAVE",
+
+      //EPS
+      "EPS_3POOL"
   );
 }

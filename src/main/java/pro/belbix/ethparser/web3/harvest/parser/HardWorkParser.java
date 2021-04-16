@@ -136,7 +136,7 @@ public class HardWorkParser implements Web3Parser {
     }
 
     if (cu(network).getNameByAddress(tx.getVault()).isEmpty()) {
-      log.warn("Unknown vault " + tx.getVault());
+      log.error("DoHardWork catch Unknown vault " + tx.getVault());
       return null;
     }
     String vaultName = cu(network).getNameByAddress(tx.getVault())
