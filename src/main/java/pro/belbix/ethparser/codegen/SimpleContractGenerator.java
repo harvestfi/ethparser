@@ -110,7 +110,7 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, getAbiProviderKey(), network);
+        abiProviderService.contractSourceCode(address, getAbiProviderKey(network), network);
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -155,14 +155,14 @@ public class SimpleContractGenerator {
     return Optional.of(contract);
   }
 
-  private String getAbiProviderKey() {
-    switch (appProperties.getNetwork()) {
+  private String getAbiProviderKey(String network) {
+    switch (network) {
       case ETH_NETWORK:
         return appProperties.getEtherscanApiKey();
       case BSC_NETWORK:
-        return appProperties.getEtherscanApiKey();
+        return appProperties.getBscscanApiKey();
       default:
-        throw new IllegalStateException("Unknown network " + appProperties.getNetwork());
+        throw new IllegalStateException("Unknown network " + network);
     }
   }
 

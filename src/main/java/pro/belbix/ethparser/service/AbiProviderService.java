@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Log4j2
 public class AbiProviderService {
 
+  public final static int RATE_TIMEOUT = 200;
   public final static String ETH_NETWORK = "eth";
   public final static String BSC_NETWORK = "bsc";
   private final static int RETRY_COUNT = 10;
@@ -25,6 +28,7 @@ public class AbiProviderService {
   private final static String BSC_URL = "https://api.bscscan.com/api";
   private final static String PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
+  private Instant lastRequest = Instant.now();
 
   public AbiProviderService() {
     ObjectMapper mapper = new ObjectMapper();
@@ -84,13 +88,14 @@ public class AbiProviderService {
     int count = 0;
     while (true) {
       try {
+        checkRate();
         return restTemplate.getForEntity(
             getUrl(network) + PARAMS,
             ResponseSourceCode.class,
             vars
         );
       } catch (Exception e) {
-        log.error("Error send request {}, retry {}", vars, count, e);
+        log.error("Error send request {} {}, retry {}", vars,network,  count, e);
         count++;
         if (count == RETRY_COUNT) {
           throw e;
@@ -100,6 +105,16 @@ public class AbiProviderService {
           Thread.sleep(1000);
         } catch (InterruptedException ignored) {
         }
+      }
+    }
+  }
+
+  private void checkRate() {
+    long diff = Duration.between(lastRequest, Instant.now()).toMillis();
+    if(diff < RATE_TIMEOUT) {
+      try {
+        Thread.sleep(RATE_TIMEOUT - diff);
+      } catch (InterruptedException ignored) {
       }
     }
   }
