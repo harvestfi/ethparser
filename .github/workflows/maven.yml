@@ -95,5 +95,6 @@ jobs:
         run: |
           mkdir -p test
           date > test/test
-          rsync -azv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" test/ ethparser_bsc:./test
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ethparser_bsc "cat ./test/test"
+          export SERVER=ethparser_bsc
+          rsync -azv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" test/ ${{secrets.SSH_USER}}@$SERVER:./test
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "cat ./test/test"
