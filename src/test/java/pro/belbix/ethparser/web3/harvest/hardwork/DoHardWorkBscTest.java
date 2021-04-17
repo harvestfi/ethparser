@@ -56,6 +56,33 @@ public class DoHardWorkBscTest {
     }
 
     @Test
+    public void parse_ONEINCH_BNB() throws Exception {
+        HardWorkDTO dto = loadHardWork(6607654);
+        assertModel(
+            HardWorkDTO.builder()
+                .id("0x9ec4b00e31191921f3b5802a875bf778e95f563f435889f7756739028fa6475e_174")
+                .vault("ONEINCH_BNB")
+                .block(6607654)
+                .blockDate(1618551253)
+                .shareChange(6.0936797266229E-4)
+                .farmBuyback(59.379568222719335)
+                .farmBuybackEth(0.30508008675474335)
+                .fullRewardUsd(742.2446027839917)
+                .callsQuantity(1)
+                .fee(6.1353169576909306)
+                .weeklyAverageTvl(null)
+                .feeEth(0.01187918)
+                .gasUsed(1187918.0)
+                .invested(100.0)
+                .investmentTarget(100.0)
+                .ethPrice(2432.9500187296358)
+                .profitSharingRate(0.08)
+                .build(),
+            dto, excludeFields
+        );
+    }
+
+    @Test
     public void parse_VENUS_VAI() throws Exception {
         HardWorkDTO dto = loadHardWork(6168762);
         assertModel(
