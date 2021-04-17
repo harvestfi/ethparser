@@ -93,5 +93,7 @@ jobs:
             
       - name: Deploy to server
         run: |
-          rsync --version
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "date"
+          mkdir -p test
+          date > test/test
+          rsync -azv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" test/ ethparser_bsc:./test
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ethparser_bsc "cat ./test/test"
