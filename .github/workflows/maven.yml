@@ -90,6 +90,6 @@ jobs:
         uses: hughcube/deploy-action@1.0.0
         with: 
           ssh_private_key: ${{ secrets.SSH_KEY }}
-      - run:
+      - run: |
           rsync --version
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "date"
