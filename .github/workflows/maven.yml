@@ -86,10 +86,12 @@ jobs:
       #     name: jacoco-report
       #     path: target/site/jacoco/
       
-      - name: Deploy to server
+      - name: Prepare deploy to server
         uses: hughcube/deploy-action@1.0.0
         with: 
           ssh_private_key: ${{ secrets.SSH_KEY }}
-      - run: |
+            
+      - name: Deploy to server
+        run: |
           rsync --version
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "date"
