@@ -87,7 +87,7 @@ jobs:
       #     path: target/site/jacoco/
       
       - name: Deploy to server
-        uses: hughcube/deploy-action@v1.0.0
+        uses: hughcube/deploy-action@1.0.0
         with: 
           ssh_private_key: ${{ secrets.SSH_KEY }}
       - run:
