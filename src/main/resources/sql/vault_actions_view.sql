@@ -22,11 +22,11 @@ select evt.id                 as id,
            else
                'Unknown'
            end                   as op_type,
-       (shared_price.value ->> 0):: double precision /
-       (10 ^ 18)                 as shared_price,
+       (share_price.value ->> 0):: double precision /
+       (10 ^ 18)                 as share_price,
        (ftoken_total_supply.value ->> 0):: double precision /
        (10 ^ 18)                 as ftoken_total_supply,
-       ((shared_price.value ->> 0):: double precision /
+       ((share_price.value ->> 0):: double precision /
         (10 ^ 18)) * ((ftoken_total_supply.value ->> 0):: double precision /
                       (10 ^ 18)) as tvl,
        underlying.value ->> 0    as underlying,
@@ -51,8 +51,8 @@ from b_contract_events evt
          join eth_contracts log_address_contract
               on log_address_contract.address = log_address.address
 
-         join b_contract_states shared_price on evt.id = shared_price.contract_event_id and
-                                                shared_price.name = 'getPricePerFullShare'
+         join b_contract_states share_price on evt.id = share_price.contract_event_id and
+                                                share_price.name = 'getPricePerFullShare'
          join b_contract_states ftoken_total_supply
               on evt.id = ftoken_total_supply.contract_event_id and
                  ftoken_total_supply.name = 'totalSupply'

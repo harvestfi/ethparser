@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigInteger;
@@ -161,7 +161,7 @@ public class VaultActionsParser implements Web3Parser {
       fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue(), network);
     } else {
       //share price
-      fillSharedPrice(dto, network);
+      fillSharePrice(dto, network);
 
       //usd values
       fillUsdPrice(dto, network);
@@ -182,7 +182,7 @@ public class VaultActionsParser implements Web3Parser {
     String poolAddress = ContractUtils.getInstance(network).poolByVaultAddress(vaultHash)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + vaultHash))
         .getContract().getAddress();
-    Double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock(), network);
+    Double price = priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
     double vaultBalance = ContractUtils.getInstance(network).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock(), network)
             .orElse(BigInteger.ZERO),
@@ -305,7 +305,7 @@ public class VaultActionsParser implements Web3Parser {
             )
         );
 
-    fillSharedPrice(migrationDto, network);
+    fillSharePrice(migrationDto, network);
     fillUsdPrice(migrationDto, network);
     migrationDto.setMigrated(true);
     log.info("Migrated harvest " + migrationDto);
@@ -322,20 +322,20 @@ public class VaultActionsParser implements Web3Parser {
         ;
   }
 
-  private void fillSharedPrice(HarvestDTO dto, String network) {
+  private void fillSharePrice(HarvestDTO dto, String network) {
     String vaultHash = ContractUtils.getInstance(network)
         .getAddressByName(dto.getVault(), ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + dto.getVault()));
-    BigInteger sharedPriceInt =
+    BigInteger sharePriceInt =
         functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultHash, dto.getBlock(), network)
             .orElse(BigInteger.ZERO);
-    double sharedPrice;
-    if (BigInteger.ONE.equals(sharedPriceInt)) {
-      sharedPrice = 0.0;
+    double sharePrice;
+    if (BigInteger.ONE.equals(sharePriceInt)) {
+      sharePrice = 0.0;
     } else {
-      sharedPrice = ContractUtils.getInstance(network).parseAmount(sharedPriceInt, vaultHash);
+      sharePrice = ContractUtils.getInstance(network).parseAmount(sharePriceInt, vaultHash);
     }
-    dto.setSharePrice(sharedPrice);
+    dto.setSharePrice(sharePrice);
   }
 
   public void enrichDto(HarvestDTO dto, String network) {
@@ -359,32 +359,27 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private void fillUsdValues(HarvestDTO dto, String vaultHash, String network) {
-    String underlyingAddress;
-    // todo check how it works on eth
-    if (ETH_NETWORK.equals(network)) {
-      underlyingAddress = dto.getVault();
-    } else {
-      underlyingAddress = functionsUtils.callAddressByName(
-          UNDERLYING, vaultHash, dto.getBlock(), network)
-          .orElseThrow(
-              () -> new IllegalStateException(
-                  "Can't fetch underlying token for " + vaultHash));
-    }
-    Double price = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
-    if (price == null) {
+    String underlyingAddress = functionsUtils.callAddressByName(
+        UNDERLYING, vaultHash, dto.getBlock(), network)
+        .orElseThrow(
+            () -> new IllegalStateException(
+                "Can't fetch underlying token for " + vaultHash));
+
+    Double priceUnderlying = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
+    if (priceUnderlying == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }
-    dto.setUnderlyingPrice(price);
+    dto.setUnderlyingPrice(priceUnderlying);
     double vaultBalance = ContractUtils.getInstance(network).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         vaultHash);
-    double sharedPrice = dto.getSharePrice();
+    double sharePrice = dto.getSharePrice();
 
-    double vault = (vaultBalance * sharedPrice);
+    double vault = (vaultBalance * sharePrice);
     dto.setLastTvl(vault);
-    dto.setLastUsdTvl((double) Math.round(vault * price));
-    dto.setUsdAmount((long) (price * dto.getAmount() * dto.getSharePrice()));
+    dto.setLastUsdTvl((double) Math.round(vault * priceUnderlying));
+    dto.setUsdAmount((long) (priceUnderlying * dto.getAmount() * dto.getSharePrice()));
     if ("iPS".equals(dto.getVault())) {
       dto.setTotalAmount(farmTotalAmount(dto.getBlock(), network));
     }
@@ -396,7 +391,7 @@ public class VaultActionsParser implements Web3Parser {
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         vaultHash);
-    double sharedPrice = dto.getSharePrice();
+    double sharePrice = dto.getSharePrice();
     double lpTotalSupply = ContractUtils.getInstance(network).parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
@@ -412,7 +407,7 @@ public class VaultActionsParser implements Web3Parser {
     double lpUnderlyingBalance1 = lpUnderlyingBalances.component1();
     double lpUnderlyingBalance2 = lpUnderlyingBalances.component2();
 
-    double vaultSharedBalance = (vaultBalance * sharedPrice);
+    double vaultSharedBalance = (vaultBalance * sharePrice);
     dto.setLastTvl(vaultSharedBalance);
     double vaultFraction = vaultSharedBalance / lpTotalSupply;
     String underlyingLpAddress = functionsUtils.callAddressByName(

@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,7 +74,6 @@ public class PriceController {
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            String tokenName = token;
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
             }
@@ -103,13 +101,9 @@ public class PriceController {
                         )
                     ).addBlock(block);
                 }
-
-                tokenName = contractUtils.getNameByAddress(token).orElse(null);
-                if (tokenName == null) {
-                    return RestResponse.error("Token " + token + " not supported");
-                }
             }
-            double usdPrice = priceProvider.getPriceForCoin(tokenName, block, ETH_NETWORK);
+
+            double usdPrice = priceProvider.getPriceForCoin(token, block, ETH_NETWORK);
             return RestResponse.ok(String.format("%.8f", usdPrice)).addBlock(block);
         } catch (Exception e) {
             log.warn("Error token request", e);

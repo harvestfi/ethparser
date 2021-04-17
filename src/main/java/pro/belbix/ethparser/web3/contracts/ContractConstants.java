@@ -71,30 +71,7 @@ public class ContractConstants {
   );
 
   public static final Set<String> ONE_DOLLAR_TOKENS = Set.of(
-      //STABLE COINS
-      "USD",
-      "USDC",
-      "USDT",
-      "TUSD",
-      "DAI",
-      "HUSD",
-      "UST",
-      "GUSD",
-      "BUSD",
-
-      //CURVE
-      "YCRV",
-      "_3CRV",
-      "3CRV",
-      "CRV_CMPND",
-      "CRV_BUSD",
-      "CRV_USDN",
-      "CRV_HUSD",
-      "CRV_UST",
-      "CRV_GUSD",
-      "CRV_AAVE",
-
-      //EPS
-      "EPS_3POOL"
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", //USDC
+      "0xe9e7cea3dedca5984780bafc599bd69add087d56" //BUSD
   );
 }

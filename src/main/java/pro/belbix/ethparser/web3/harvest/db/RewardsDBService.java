@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -57,7 +58,7 @@ public class RewardsDBService {
     } else {
       tvl = harvest.getLastUsdTvl();
       double price = priceProvider
-          .getPriceForCoin("FARM", dto.getBlock(), dto.getNetwork());
+          .getPriceForCoin(FARM_TOKEN, dto.getBlock(), dto.getNetwork());
       reward = dto.getReward() * price;
     }
 

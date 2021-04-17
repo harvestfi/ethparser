@@ -175,12 +175,12 @@ public class ContractUtils {
     return PS_ADDRESSES.contains(address);
   }
 
-  public boolean isStableCoin(String name) {
-    return ONE_DOLLAR_TOKENS.contains(name);
+  public boolean isStableCoin(String address) {
+    return ONE_DOLLAR_TOKENS.contains(address);
   }
 
-  public boolean isTokenCreated(String tokenName, long block) {
-    return getCache().getTokenByName(tokenName)
+  public boolean isTokenCreated(String tokenAddress, long block) {
+    return getCache().getTokenByAddress(tokenAddress)
         .map(TokenEntity::getContract)
         .map(ContractEntity::getCreated)
         .filter(c -> c < block)
@@ -325,6 +325,28 @@ public class ContractUtils {
         .map(ContractEntity::getName);
   }
 
+  public Optional<String> findUniPairNameForTokenAddress(String tokenAddress, long block) {
+    TokenToUniPairEntity freshest = null;
+    for (TokenToUniPairEntity tokenToUniPairEntity : getCache()
+        .getTokenToLpEntities()) {
+      if (!tokenToUniPairEntity.getToken().getContract().getAddress()
+          .equalsIgnoreCase(tokenAddress)) {
+        continue;
+      }
+      if (freshest == null
+          || freshest.getBlockStart() < tokenToUniPairEntity.getBlockStart()) {
+        if (tokenToUniPairEntity.getBlockStart() > block) {
+          continue;
+        }
+        freshest = tokenToUniPairEntity;
+      }
+    }
+    return Optional.ofNullable(freshest)
+        .map(TokenToUniPairEntity::getUniPair)
+        .map(UniPairEntity::getContract)
+        .map(ContractEntity::getName);
+  }
+
   public Optional<ContractEntity> getContractByAddress(String address) {
     address = address.toLowerCase();
     Optional<ContractEntity> contract = getCache().getVaultByAddress(address)
@@ -391,7 +413,7 @@ public class ContractUtils {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
-//    contracts.add(BSC_CONTROLLER);
+    contracts.add(CONTROLLERS.get(BSC_NETWORK));
 
     // harvest events
     contracts.addAll(getCache().getAllVaults().stream()
@@ -446,36 +468,54 @@ public class ContractUtils {
     return name;
   }
 
-  public String getSimilarAssetForPriceEth(String name) {
+  private String getSimilarAssetForPriceEth(String name) {
     name = name.replaceFirst("_V0", "");
     switch (name) {
       case "CRV_STETH":
       case "WETH":
         return "ETH";
+
       case "PS":
       case "iPS":
         return "FARM";
+
       case "RENBTC":
       case "CRVRENWBTC":
+      case "CRV_RENWBTC":
+      case "CRV_RENBTC":
       case "TBTC":
       case "BTC":
       case "CRV_OBTC":
       case "CRV_TBTC":
       case "HBTC":
       case "CRV_HBTC":
-      case "CRV_RENBTC":
         return "WBTC";
+
       case "CRV_EURS":
         return "EURS";
+
       case "CRV_LINK":
         return "LINK";
+
       case "SUSHI_HODL":
         return "SUSHI";
+
+      case "YCRV":
+      case "_3CRV":
+      case "3CRV":
+      case "CRV_CMPND":
+      case "CRV_BUSD":
+      case "CRV_USDN":
+      case "CRV_HUSD":
+      case "CRV_UST":
+      case "CRV_AAVE":
+      case "CRV_GUSD":
+        return "USDC";
     }
     return name;
   }
 
-  public String getSimilarActiveForPriceBsc(String name) {
+  private String getSimilarActiveForPriceBsc(String name) {
     //noinspection SwitchStatementWithTooFewBranches
     switch (name) {
       case "RENBTC":

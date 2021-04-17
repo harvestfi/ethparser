@@ -121,18 +121,15 @@ public class PriceProvider {
     if (ZERO_ADDRESS.equalsIgnoreCase(coinNameOrAddress)) {
       return 0.0;
     }
-    String coinName = coinNameOrAddress;
-    if (coinNameOrAddress.startsWith("0x")) {
-      coinName = cu(network).getNameByAddress(coinNameOrAddress)
-          .orElseThrow(() -> new IllegalStateException("Not found name for " + coinNameOrAddress));
+    String coinAddress = coinNameOrAddress;
+    if (!coinNameOrAddress.startsWith("0x")) {
+      coinAddress = cu(network).getAddressByName(coinNameOrAddress, ContractType.TOKEN)
+          .orElseThrow(
+              () -> new IllegalStateException("Not found address for " + coinNameOrAddress));
     }
-    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinName);
-    updateUSDPrice(coinNameSimple, block, network);
-    if (cu(network).isStableCoin(coinNameSimple)
-        && priceOracle.isNotAvailable(coinName, block, network)) {
-      return 1.0;
-    }
-    return getLastPrice(coinNameSimple, block);
+//    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinAddress);
+    updateUSDPrice(coinAddress, block, network);
+    return getLastPrice(coinAddress, block);
   }
 
   public Tuple2<Double, Double> getPairPriceForLpHash(
@@ -154,26 +151,26 @@ public class PriceProvider {
     );
   }
 
-  private void updateUSDPrice(String coinName, long block, String network) {
-    if (!cu(network).isTokenCreated(coinName, block)) {
-      savePrice(0.0, coinName, block);
+  private void updateUSDPrice(String address, long block, String network) {
+    if (!cu(network).isTokenCreated(address, block)) {
+      savePrice(0.0, address, block);
       return;
     }
-    if (cu(network).isStableCoin(coinName)
-        && priceOracle.isNotAvailable(coinName, block, network)) {
+    if (cu(network).isStableCoin(address)) {
+      savePrice(1.0, address, block);
       return;
     }
 
-    if (hasFreshPrice(coinName, block)) {
+    if (hasFreshPrice(address, block)) {
       return;
     }
-    double price = getPriceForCoinWithoutCache(coinName, block, network);
+    double price = getPriceForCoinWithoutCache(address, block, network);
 
-    savePrice(price, coinName, block);
+    savePrice(price, address, block);
   }
 
-  private double getPriceForCoinWithoutCache(String name, Long block, String network) {
-    String lpName = cu(network).findUniPairNameForTokenName(name, block)
+  private double getPriceForCoinWithoutCache(String address, Long block, String network) {
+    String lpName = cu(network).findUniPairNameForTokenAddress(address, block)
         .orElse(null);
     PriceDTO priceDTO = silentCall(() -> priceRepository
         .fetchLastPrice(lpName, block, network, limitOne))
@@ -181,33 +178,45 @@ public class PriceProvider {
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
-      log.info("Saved price not found for " + name + " at block " + block);
-      return getPriceForCoinFromEth(name, block, network);
+      log.info("Saved price not found for " + address + " at block " + block);
+      return getPriceForCoinFromEth(address, block, network);
     }
     if (block - priceDTO.getBlock() > 1000) {
-      log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), name);
-      return getPriceForCoinFromEth(name, block, network);
-    }
-    if (!priceDTO.getToken().equalsIgnoreCase(name)
-        && !priceDTO.getOtherToken().equalsIgnoreCase(name)) {
-      throw new IllegalStateException("Wrong source for " + name);
+      log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), address);
+      return getPriceForCoinFromEth(address, block, network);
     }
 
-    double otherTokenPrice = getPriceForCoin(priceDTO.getOtherToken(), block, network);
+    String tokenName = cu(network).getNameByAddress(address).orElse("");
+    if (!priceDTO.getToken().equalsIgnoreCase(tokenName)
+        && !priceDTO.getOtherToken().equalsIgnoreCase(tokenName)) {
+      throw new IllegalStateException("Wrong source for " + tokenName);
+    }
+    String otherTokenAddress =
+        cu(network).getAddressByName(priceDTO.getOtherToken(), ContractType.TOKEN)
+            .orElse("");
+    double otherTokenPrice = getPriceForCoin(otherTokenAddress, block, network);
     return priceDTO.getPrice() * otherTokenPrice;
   }
 
-  private double getPriceForCoinFromEth(String name, Long block, String network) {
+  private double getPriceForCoinFromEth(String address, Long block, String network) {
     if (appProperties.isOnlyApi()) {
       return 0.0;
     }
-    String tokenAdr = cu(network).getAddressByName(name, ContractType.TOKEN)
-        .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
     if (block > ORACLES.get(network).component1()) {
-      return priceOracle.getPriceForCoinOnChain(tokenAdr, block, network);
+      return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
-    String lpName = cu(network).findUniPairNameForTokenName(name, block)
-        .orElse(null);
+    //LEGACY PART
+    //for compatibility with CRV prices without oracle
+    String tokenName = cu(network).getNameByAddress(address)
+        .map(n -> cu(network).getSimilarAssetForPrice(n))
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + address));
+    String similarAdr = cu(network).getAddressByName(tokenName, ContractType.TOKEN)
+        .orElseThrow();
+    if (cu(network).isStableCoin(similarAdr)) {
+      return 1.0;
+    }
+    String lpName = cu(network).findUniPairNameForTokenName(tokenName, block)
+        .orElseThrow(() -> new IllegalStateException("Not found LP for " + tokenName));
     if (!cu(network).isUniPairCreated(lpName, block)) {
       return 0.0;
     }
@@ -221,7 +230,7 @@ public class PriceProvider {
       throw new IllegalStateException("Can't reach reserves for " + lpName);
     }
     double price;
-    if (cu(network).isDivisionSequenceSecondDividesFirst(lpHash, tokenAdr)) {
+    if (cu(network).isDivisionSequenceSecondDividesFirst(lpHash, similarAdr)) {
       price = reserves.component2() / reserves.component1();
     } else {
       price = reserves.component1() / reserves.component2();
@@ -229,25 +238,21 @@ public class PriceProvider {
 
     Tuple2<String, String> lpTokenAdr = cu(network)
         .tokenAddressesByUniPairAddress(lpHash);
-    String otherTokenName;
-    if (lpTokenAdr.component1().equalsIgnoreCase(tokenAdr)) {
-      otherTokenName = cu(network).getNameByAddress(lpTokenAdr.component2())
-          .orElseThrow(
-              () -> new IllegalStateException("Not found name for " + lpTokenAdr.component2()));
-    } else if (lpTokenAdr.component2().equalsIgnoreCase(tokenAdr)) {
-      otherTokenName = cu(network).getNameByAddress(lpTokenAdr.component1())
-          .orElseThrow(
-              () -> new IllegalStateException("Not found name for " + lpTokenAdr.component1()));
+    String otherTokenAddress;
+    if (lpTokenAdr.component1().equalsIgnoreCase(similarAdr)) {
+      otherTokenAddress = lpTokenAdr.component2();
+    } else if (lpTokenAdr.component2().equalsIgnoreCase(similarAdr)) {
+      otherTokenAddress = lpTokenAdr.component1();
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }
-    price *= getPriceForCoin(otherTokenName, block, network);
-    log.info("Price {} fetched {} on block {}", name, price, block);
+    price *= getPriceForCoin(otherTokenAddress, block, network);
+    log.info("Price {} fetched {} on block {}", tokenName, price, block);
     return price;
   }
 
-  private boolean hasFreshPrice(String name, long block) {
-    TreeMap<Long, Double> lastPriceByBlock = lastPrices.get(name);
+  private boolean hasFreshPrice(String address, long block) {
+    TreeMap<Long, Double> lastPriceByBlock = lastPrices.get(address);
     if (lastPriceByBlock == null) {
       return false;
     }
@@ -264,8 +269,8 @@ public class PriceProvider {
     lastPriceByBlock.put(block, price);
   }
 
-  private double getLastPrice(String name, long block) {
-    TreeMap<Long, Double> lastPriceByBlocks = lastPrices.get(name);
+  private double getLastPrice(String address, long block) {
+    TreeMap<Long, Double> lastPriceByBlocks = lastPrices.get(address);
     if (lastPriceByBlocks == null) {
       return 0.0;
     }

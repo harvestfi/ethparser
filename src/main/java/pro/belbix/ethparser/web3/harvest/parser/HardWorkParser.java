@@ -15,6 +15,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INV
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -91,7 +92,7 @@ public class HardWorkParser implements Web3Parser {
 
   @Override
   public void startParse() {
-    log.info("Start parse Hard work logs");
+    log.info("Start parse HardWork logs on {}", appProperties.getNetwork());
     web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
@@ -170,7 +171,7 @@ public class HardWorkParser implements Web3Parser {
     dto.setAutoStake(autoStake ? 1 : 0);
 
     double farmPrice =
-        priceProvider.getPriceForCoin("FARM", dto.getBlock(), network);
+        priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
     dto.setFarmPrice(farmPrice);
 
     for (Log ethLog : tr.getLogs()) {
@@ -181,7 +182,10 @@ public class HardWorkParser implements Web3Parser {
       }
     }
     double ethPrice =
-        priceProvider.getPriceForCoin("ETH", dto.getBlock(), network);
+        priceProvider.getPriceForCoin(
+            cu(network).getAddressByName("ETH", ContractType.TOKEN)
+                .orElseThrow(),
+            dto.getBlock(), network);
     dto.setEthPrice(ethPrice);
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);

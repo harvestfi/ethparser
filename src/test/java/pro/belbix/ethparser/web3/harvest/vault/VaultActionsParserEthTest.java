@@ -100,8 +100,8 @@ public class VaultActionsParserEthTest {
             "35.98647758",
             "",
             "",
-            3751L,
-            12230395L,
+            3750L,
+            12225944L,
             true
         );
     }
@@ -422,8 +422,8 @@ public class VaultActionsParserEthTest {
             "87,57535992",
             "",
             "",
-            1998L,
-            1998L,
+            2006L,
+            2006L,
             true
         );
         assertNotNull(dto);
@@ -489,7 +489,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             1L,
-            5170L,
+            5172L,
             true
         );
         assertNotNull(dto);
@@ -532,8 +532,8 @@ public class VaultActionsParserEthTest {
             "2,82874611",
             "",
             "",
-            603L,
-            6248L,
+            601L,
+            6234L,
             true
         );
         assertNotNull(dto);
@@ -554,8 +554,8 @@ public class VaultActionsParserEthTest {
             "10,24413224",
             "",
             "",
-            2288L,
-            22244L,
+            2292L,
+            22278L,
             true
         );
         assertNotNull(dto);
@@ -576,8 +576,8 @@ public class VaultActionsParserEthTest {
             "7,49854995",
             "",
             "",
-            1090L,
-            6746L,
+            1086L,
+            6726L,
             true
         );
         assertNotNull(dto);
@@ -598,8 +598,8 @@ public class VaultActionsParserEthTest {
             "57,12271524",
             "",
             "",
-            945L,
-            123924L,
+            946L,
+            124038L,
             true
         );
         assertNotNull(dto);
@@ -620,8 +620,8 @@ public class VaultActionsParserEthTest {
             "301110,31093957",
             "",
             "",
-            249019L,
-            471579L,
+            248617L,
+            470817L,
             true
         );
         assertNotNull(dto);
@@ -687,7 +687,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             2607L,
-            197106L,
+            197078L,
             true
         );
         assertNotNull(dto);
@@ -730,8 +730,8 @@ public class VaultActionsParserEthTest {
             "14,32730677",
             "",
             "",
-            34994L,
-            47087L,
+            34971L,
+            47057L,
             true
         );
         assertNotNull(dto);
@@ -819,7 +819,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             405L,
-            279662L,
+            279984L,
             true
         );
         assertNotNull(dto);
@@ -838,8 +838,8 @@ public class VaultActionsParserEthTest {
             "0,01899012",
             "",
             "",
-            41679L,
-            2399350L,
+            41715L,
+            2401460L,
             true
         );
         assertNotNull(dto);
@@ -858,8 +858,8 @@ public class VaultActionsParserEthTest {
             "135,29092535",
             "",
             "",
-            4441L,
-            667770L,
+            4436L,
+            667058L,
             true
         );
         assertNotNull(dto);
@@ -878,8 +878,8 @@ public class VaultActionsParserEthTest {
             "179375,42468206",
             "",
             "",
-            385046L,
-            415514L,
+            385410L,
+            415906L,
             true
         );
         assertNotNull(dto);
@@ -940,15 +940,15 @@ public class VaultActionsParserEthTest {
             "12657,60435602",
             "",
             "",
-            583939L,
-            15608163L,
+            587239L,
+            15696362L,
             true
         );
         harvestOwnerBalanceCalculator.fillBalance(migration, ETH_NETWORK);
         assertAll(
             () -> assertEquals("owner balance", numberFormat("12657,60435602"),
                 String.format("%.8f", migration.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", numberFormat("583939,02122719"),
+            () -> assertEquals("owner balance usd", numberFormat("587238.78245118"),
                 String.format("%.8f", migration.getOwnerBalanceUsd()))
         );
     }
@@ -966,15 +966,15 @@ public class VaultActionsParserEthTest {
             "241,08913795",
             "",
             "",
-            11103L,
-            40861L,
+            11182L,
+            41154L,
             true
         );
 
         assertAll(
             () -> assertEquals("owner balance", numberFormat("241,08913795"),
                 String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", numberFormat("11102,67103786"),
+            () -> assertEquals("owner balance usd", numberFormat("11182.36249880"),
                 String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
@@ -1018,8 +1018,8 @@ public class VaultActionsParserEthTest {
             "0,00089347",
             "0",
             "0",
-            48497L,
-            15531830L,
+            48582L,
+            15559101L,
             true
         );
     }
@@ -1056,8 +1056,8 @@ public class VaultActionsParserEthTest {
             "181,23103431",
             "0",
             "0",
-            9328L,
-            10132491L,
+            9357L,
+            10164266L,
             true
         );
     }
@@ -1257,7 +1257,7 @@ public class VaultActionsParserEthTest {
             "0,68734177",
             "1,00424760",
             32L,
-            24905449L,
+            25035824L,
             true
         );
     }
@@ -1275,8 +1275,8 @@ public class VaultActionsParserEthTest {
             "147,42969692",
             "148,58879257",
             "1,00424760",
-            6896L,
-            24205978L,
+            6926L,
+            24312670L,
             true
         );
     }
@@ -1295,7 +1295,7 @@ public class VaultActionsParserEthTest {
             "0,33045221",
             "1,00424760",
             15L,
-            41841786L,
+            41960418L,
             true
         );
     }
@@ -1313,8 +1313,8 @@ public class VaultActionsParserEthTest {
             "158000,22215390",
             "158000,22215390",
             "1,00424760",
-            7262270L,
-            34622599L,
+            7289802L,
+            34753858L,
             true
         );
     }
@@ -1333,7 +1333,7 @@ public class VaultActionsParserEthTest {
             "0,00066200",
             "0",
             0L,
-            8979591L,
+            8995075L,
             true
         );
     }
@@ -1351,8 +1351,8 @@ public class VaultActionsParserEthTest {
             "2365639,42309700",
             "1998649,72839200",
             "0,00066200",
-            1998648L,
-            8949404L,
+            1998887L,
+            8950476L,
             true
         );
     }
@@ -1370,8 +1370,8 @@ public class VaultActionsParserEthTest {
             "0,00068016",
             "0,00068416",
             "1,00424760",
-            33497L,
-            32457454L,
+            33496L,
+            32457092L,
             true
         );
     }
@@ -1389,8 +1389,8 @@ public class VaultActionsParserEthTest {
             "0,01479451",
             "0,01488166",
             "1,00424760",
-            735155L,
-            32553250L,
+            735413L,
+            32564696L,
             true
         );
     }
@@ -1503,8 +1503,8 @@ public class VaultActionsParserEthTest {
             "4549,24977049",
             "4414,54065701",
             "0",
-            4414L,
-            1297996L,
+            4453L,
+            1309420L,
             true
         );
     }
@@ -1636,8 +1636,8 @@ public class VaultActionsParserEthTest {
             "1474561,71532449",
             "1473478,20140244",
             "0",
-            1473502L,
-            3124008L,
+            1465471L,
+            3106982L,
             true
         );
     }
@@ -1694,8 +1694,8 @@ public class VaultActionsParserEthTest {
             "1108,86509634",
             "1108,86509634",
             "0",
-            50537L,
-            452090L,
+            50838L,
+            454788L,
             true
         );
     }
@@ -1713,8 +1713,8 @@ public class VaultActionsParserEthTest {
             "1587,47546529",
             "1587,47546529",
             "0",
-            25965L,
-            204142L,
+            25835L,
+            203122L,
             true
         );
     }
@@ -1733,7 +1733,7 @@ public class VaultActionsParserEthTest {
             "4,95147346",
             "0",
             403L,
-            555L,
+            556L,
             true
         );
     }

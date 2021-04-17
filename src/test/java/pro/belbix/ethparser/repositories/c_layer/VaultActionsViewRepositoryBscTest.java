@@ -79,7 +79,7 @@ class VaultActionsViewRepositoryBscTest {
             .toAdr("0x7f4ac7a8b18d7dc76c5962aa1aacf968eac3ac67")
             .ftokenAmount(0.2662041892498321)
             .opType("Deposit")
-            .sharedPrice(1.0)
+            .sharePrice(1.0)
             .ftokenTotalSupply(0.2662041892498321)
             .tvl(0.2662041892498321)
             .underlying("0x1b96b92314c44b159149f7e0303511fb2fc4774f")
@@ -104,7 +104,7 @@ class VaultActionsViewRepositoryBscTest {
         () -> assertEquals(expected.getToAdr(), actual.getToAdr(), "getToAdr"),
         () -> assertEquals(expected.getFtokenAmount(), actual.getFtokenAmount(), "getFtokenAmount"),
         () -> assertEquals(expected.getOpType(), actual.getOpType(), "getOpType"),
-        () -> assertEquals(expected.getSharedPrice(), actual.getSharedPrice(), "getSharedPrice"),
+        () -> assertEquals(expected.getSharePrice(), actual.getSharePrice(), "getSharePrice"),
         () -> assertEquals(expected.getFtokenTotalSupply(), actual.getFtokenTotalSupply(),
             "getFtokenTotalSupply"),
         () -> assertEquals(expected.getTvl(), actual.getTvl(), "getTvl"),
