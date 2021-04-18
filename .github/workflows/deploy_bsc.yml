@@ -102,4 +102,4 @@ jobs:
         run: |
           export SERVER=ethparser_bsc
           rsync -azv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:./dist
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "ls -la ./dist"
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "ls -l ./dist"
