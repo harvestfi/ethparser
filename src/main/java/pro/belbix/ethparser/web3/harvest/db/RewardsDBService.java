@@ -1,8 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -19,7 +19,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class RewardsDBService {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final RewardsRepository rewardsRepository;
   private final HarvestRepository harvestRepository;
   private final PriceProvider priceProvider;
@@ -44,8 +43,8 @@ public class RewardsDBService {
   public void fillApy(RewardDTO dto) {
     HarvestDTO harvest =
         harvestRepository
-            .findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc(dto.getVault(),
-                dto.getBlockDate());
+            .findFirstByVaultAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
+                dto.getVault(), dto.getBlockDate(), dto.getNetwork());
     if (harvest == null) {
       log.warn("Not found harvest for " + dto);
       dto.setApy(0);
@@ -53,12 +52,13 @@ public class RewardsDBService {
     }
     Double tvl;
     double reward;
-    if (contractUtils.isPsName(dto.getVault())) {
+    if (ContractUtils.getInstance(dto.getNetwork()).isPsName(dto.getVault())) {
       tvl = harvest.getLastTvl();
       reward = dto.getReward();
     } else {
       tvl = harvest.getLastUsdTvl();
-      double price = priceProvider.getPriceForCoin("FARM", dto.getBlock(), ETH_NETWORK);
+      double price = priceProvider
+          .getPriceForCoin(FARM_TOKEN, dto.getBlock(), dto.getNetwork());
       reward = dto.getReward() * price;
     }
 
@@ -84,7 +84,7 @@ public class RewardsDBService {
     Instant blockDate = Instant.ofEpochSecond(dto.getBlockDate());
     long weekAgo = blockDate.minus(7, ChronoUnit.DAYS).getEpochSecond();
     List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
-        dto.getVault(), weekAgo, dto.getBlockDate());
+        dto.getVault(), weekAgo, dto.getBlockDate(), dto.getNetwork());
     double averageApy = calculateAverageApy(rewards);
     dto.setWeeklyApy(averageApy);
   }

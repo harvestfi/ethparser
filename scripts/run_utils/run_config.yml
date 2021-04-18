@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: reward-download
+  startUtil: deployer-download
   overrideDuplicates: true
 
 uniswap-download:

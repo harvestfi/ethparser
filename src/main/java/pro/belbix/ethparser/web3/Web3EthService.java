@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;

@@ -4,21 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.function.Executable;
-import org.web3j.tuples.generated.Tuple2;
 
 public class TestUtils {
 
@@ -49,12 +44,18 @@ public class TestUtils {
     );
   }
 
-  public static  <T> void assertModel(T expected, T actual)
+  public static <T> void assertModel(T expected, T actual) throws Exception {
+    assertModel(expected, actual, null);
+  }
+
+  public static <T> void assertModel(T expected, T actual, Set<String> excludeFields)
       throws Exception {
     Collection<Executable> asserts = new ArrayList<>();
     for (PropertyDescriptor propertyDescriptor :
         Introspector.getBeanInfo(expected.getClass()).getPropertyDescriptors()) {
-
+      if (excludeFields != null && excludeFields.contains(propertyDescriptor.getName())) {
+        continue;
+      }
       Object expectedValue = propertyDescriptor.getReadMethod().invoke(expected);
       if (expectedValue == null) {
         continue;

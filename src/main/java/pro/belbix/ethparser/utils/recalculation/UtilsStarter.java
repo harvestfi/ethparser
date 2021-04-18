@@ -7,7 +7,7 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.HarvestVaultDownloader;
+import pro.belbix.ethparser.web3.harvest.downloader.VaultActionsDownloader;
 import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
 import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
 import pro.belbix.ethparser.web3.prices.downloader.PriceDownloader;
@@ -19,7 +19,7 @@ public class UtilsStarter {
 
   private final AppProperties appProperties;
   private final UniswapLpDownloader uniswapLpDownloader;
-  private final HarvestVaultDownloader harvestVaultDownloader;
+  private final VaultActionsDownloader vaultActionsDownloader;
   private final TvlRecalculate tvlRecalculate;
   private final HardWorkDownloader hardWorkDownloader;
   private final HardWorkRecalculate hardWorkRecalculate;
@@ -41,7 +41,7 @@ public class UtilsStarter {
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
-      HarvestVaultDownloader harvestVaultDownloader,
+      VaultActionsDownloader vaultActionsDownloader,
       TvlRecalculate tvlRecalculate,
       HardWorkDownloader hardWorkDownloader,
       HardWorkRecalculate hardWorkRecalculate,
@@ -61,7 +61,7 @@ public class UtilsStarter {
       ContractLoader contractLoader) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
-    this.harvestVaultDownloader = harvestVaultDownloader;
+    this.vaultActionsDownloader = vaultActionsDownloader;
     this.tvlRecalculate = tvlRecalculate;
     this.hardWorkDownloader = hardWorkDownloader;
     this.hardWorkRecalculate = hardWorkRecalculate;
@@ -90,7 +90,7 @@ public class UtilsStarter {
     } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
       uniswapLpDownloader.start();
     } else if ("harvest-download".equals(appProperties.getStartUtil())) {
-      harvestVaultDownloader.start();
+      vaultActionsDownloader.start();
     } else if ("tvl-recalculate".equals(appProperties.getStartUtil())) {
       tvlRecalculate.start();
     } else if ("hardwork-download".equals(appProperties.getStartUtil())) {

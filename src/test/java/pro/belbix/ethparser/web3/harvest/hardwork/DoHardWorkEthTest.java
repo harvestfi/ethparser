@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,13 +21,14 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class DoHardWorkTest {
+public class DoHardWorkEthTest {
 
     @Autowired
     private HardWorkParser hardWorkParser;
@@ -222,11 +223,13 @@ public class DoHardWorkTest {
         String sharePriceChange = numberFormat(_sharePriceChange);
         String fullRewardUsd = numberFormat(_fullRewardUsd);
         String farmBuyback = numberFormat(_farmBuyback);
+        //noinspection rawtypes
         List<LogResult> logResults = web3Functions
-            .fetchContractLogs(Collections.singletonList(ETH_CONTROLLER), onBlock, onBlock, ETH_NETWORK);
+            .fetchContractLogs(Collections.singletonList(CONTROLLERS.get(ETH_NETWORK)),
+                onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
-        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0));
+        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0), ETH_NETWORK);
         assertNotNull(dto);
         assertAll(
             () -> assertEquals("id", id, dto.getId()),

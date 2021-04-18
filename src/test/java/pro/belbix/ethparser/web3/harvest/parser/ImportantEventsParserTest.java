@@ -96,7 +96,7 @@ public class ImportantEventsParserTest {
         assertTrue("Log smaller then necessary", logId < logResults.size());
         ImportantEventsDTO dto = null;
         try {
-            dto = importantEventsParser.parseLog((Log) logResults.get(logId).get());
+            dto = importantEventsParser.parseLog((Log) logResults.get(logId).get(), ETH_NETWORK);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

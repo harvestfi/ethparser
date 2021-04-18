@@ -23,30 +23,37 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class HarvestVaultParserEthTest {
+public class VaultActionsParserEthTest {
 
     private static final int LOG_ID = 0;
 
     @Autowired
-    private HarvestVaultParserV2 harvestVaultParser;
+    private VaultActionsParser harvestVaultParser;
     @Autowired
     private Web3Functions web3Functions;
     @Autowired
     private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     @Autowired
-    private HarvestDBService harvestDBService;
+    private VaultActionsDBService vaultActionsDBService;
     @Autowired
     private ContractLoader contractLoader;
 
     @BeforeEach
     public void setUp() throws Exception {
         contractLoader.load();
+    }
+
+    @Test
+    public void shouldNotParseDoHardWork_iPS() {
+        harvestVaultParseTestNull(
+            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            12225574,
+            2);
     }
 
     @Test
@@ -67,7 +74,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -93,8 +100,8 @@ public class HarvestVaultParserEthTest {
             "35.98647758",
             "",
             "",
-            3751L,
-            12230395L,
+            3750L,
+            12225944L,
             true
         );
     }
@@ -136,7 +143,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -165,7 +172,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -194,7 +201,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -223,7 +230,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -252,7 +259,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -281,7 +288,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
 
         assertAll(
@@ -310,7 +317,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -332,7 +339,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -354,7 +361,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -376,7 +383,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -398,7 +405,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -415,12 +422,12 @@ public class HarvestVaultParserEthTest {
             "87,57535992",
             "",
             "",
-            1998L,
-            1998L,
+            2006L,
+            2006L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -442,7 +449,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -464,7 +471,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -482,11 +489,11 @@ public class HarvestVaultParserEthTest {
             "",
             "",
             1L,
-            5170L,
+            5172L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -508,7 +515,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -525,12 +532,12 @@ public class HarvestVaultParserEthTest {
             "2,82874611",
             "",
             "",
-            603L,
-            6248L,
+            601L,
+            6234L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -547,12 +554,12 @@ public class HarvestVaultParserEthTest {
             "10,24413224",
             "",
             "",
-            2288L,
-            22244L,
+            2292L,
+            22278L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -569,12 +576,12 @@ public class HarvestVaultParserEthTest {
             "7,49854995",
             "",
             "",
-            1090L,
-            6746L,
+            1086L,
+            6726L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -591,12 +598,12 @@ public class HarvestVaultParserEthTest {
             "57,12271524",
             "",
             "",
-            945L,
-            123924L,
+            946L,
+            124038L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -613,12 +620,12 @@ public class HarvestVaultParserEthTest {
             "301110,31093957",
             "",
             "",
-            249019L,
-            471579L,
+            248617L,
+            470817L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -640,7 +647,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -662,7 +669,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -680,11 +687,11 @@ public class HarvestVaultParserEthTest {
             "",
             "",
             2607L,
-            197106L,
+            197078L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -706,7 +713,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -723,12 +730,12 @@ public class HarvestVaultParserEthTest {
             "14,32730677",
             "",
             "",
-            34994L,
-            47087L,
+            34971L,
+            47057L,
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -750,7 +757,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -772,7 +779,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -794,7 +801,7 @@ public class HarvestVaultParserEthTest {
             true
         );
         assertNotNull(dto);
-        HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(dto, false);
+        HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(dto, false);
         assertNotNull(tvl);
     }
 
@@ -812,7 +819,7 @@ public class HarvestVaultParserEthTest {
             "",
             "",
             405L,
-            279662L,
+            279984L,
             true
         );
         assertNotNull(dto);
@@ -831,8 +838,8 @@ public class HarvestVaultParserEthTest {
             "0,01899012",
             "",
             "",
-            41679L,
-            2399350L,
+            41715L,
+            2401460L,
             true
         );
         assertNotNull(dto);
@@ -851,8 +858,8 @@ public class HarvestVaultParserEthTest {
             "135,29092535",
             "",
             "",
-            4441L,
-            667770L,
+            4436L,
+            667058L,
             true
         );
         assertNotNull(dto);
@@ -871,8 +878,8 @@ public class HarvestVaultParserEthTest {
             "179375,42468206",
             "",
             "",
-            385046L,
-            415514L,
+            385410L,
+            415906L,
             true
         );
         assertNotNull(dto);
@@ -933,15 +940,15 @@ public class HarvestVaultParserEthTest {
             "12657,60435602",
             "",
             "",
-            583939L,
-            15608163L,
+            587239L,
+            15696362L,
             true
         );
         harvestOwnerBalanceCalculator.fillBalance(migration, ETH_NETWORK);
         assertAll(
             () -> assertEquals("owner balance", numberFormat("12657,60435602"),
                 String.format("%.8f", migration.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", numberFormat("583939,02122719"),
+            () -> assertEquals("owner balance usd", numberFormat("587238.78245118"),
                 String.format("%.8f", migration.getOwnerBalanceUsd()))
         );
     }
@@ -959,15 +966,15 @@ public class HarvestVaultParserEthTest {
             "241,08913795",
             "",
             "",
-            11103L,
-            40861L,
+            11182L,
+            41154L,
             true
         );
 
         assertAll(
             () -> assertEquals("owner balance", numberFormat("241,08913795"),
                 String.format("%.8f", dto.getOwnerBalance())),
-            () -> assertEquals("owner balance usd", numberFormat("11102,67103786"),
+            () -> assertEquals("owner balance usd", numberFormat("11182.36249880"),
                 String.format("%.8f", dto.getOwnerBalanceUsd()))
         );
     }
@@ -1011,8 +1018,8 @@ public class HarvestVaultParserEthTest {
             "0,00089347",
             "0",
             "0",
-            48497L,
-            15531830L,
+            48582L,
+            15559101L,
             true
         );
     }
@@ -1049,8 +1056,8 @@ public class HarvestVaultParserEthTest {
             "181,23103431",
             "0",
             "0",
-            9328L,
-            10132491L,
+            9357L,
+            10164266L,
             true
         );
     }
@@ -1250,7 +1257,7 @@ public class HarvestVaultParserEthTest {
             "0,68734177",
             "1,00424760",
             32L,
-            24905449L,
+            25035824L,
             true
         );
     }
@@ -1268,8 +1275,8 @@ public class HarvestVaultParserEthTest {
             "147,42969692",
             "148,58879257",
             "1,00424760",
-            6896L,
-            24205978L,
+            6926L,
+            24312670L,
             true
         );
     }
@@ -1288,7 +1295,7 @@ public class HarvestVaultParserEthTest {
             "0,33045221",
             "1,00424760",
             15L,
-            41841786L,
+            41960418L,
             true
         );
     }
@@ -1306,8 +1313,8 @@ public class HarvestVaultParserEthTest {
             "158000,22215390",
             "158000,22215390",
             "1,00424760",
-            7262270L,
-            34622599L,
+            7289802L,
+            34753858L,
             true
         );
     }
@@ -1326,7 +1333,7 @@ public class HarvestVaultParserEthTest {
             "0,00066200",
             "0",
             0L,
-            8979591L,
+            8995075L,
             true
         );
     }
@@ -1344,8 +1351,8 @@ public class HarvestVaultParserEthTest {
             "2365639,42309700",
             "1998649,72839200",
             "0,00066200",
-            1998648L,
-            8949404L,
+            1998887L,
+            8950476L,
             true
         );
     }
@@ -1363,8 +1370,8 @@ public class HarvestVaultParserEthTest {
             "0,00068016",
             "0,00068416",
             "1,00424760",
-            33497L,
-            32457454L,
+            33496L,
+            32457092L,
             true
         );
     }
@@ -1382,8 +1389,8 @@ public class HarvestVaultParserEthTest {
             "0,01479451",
             "0,01488166",
             "1,00424760",
-            735155L,
-            32553250L,
+            735413L,
+            32564696L,
             true
         );
     }
@@ -1496,8 +1503,8 @@ public class HarvestVaultParserEthTest {
             "4549,24977049",
             "4414,54065701",
             "0",
-            4414L,
-            1297996L,
+            4453L,
+            1309420L,
             true
         );
     }
@@ -1629,8 +1636,8 @@ public class HarvestVaultParserEthTest {
             "1474561,71532449",
             "1473478,20140244",
             "0",
-            1473502L,
-            3124008L,
+            1465471L,
+            3106982L,
             true
         );
     }
@@ -1687,8 +1694,8 @@ public class HarvestVaultParserEthTest {
             "1108,86509634",
             "1108,86509634",
             "0",
-            50537L,
-            452090L,
+            50838L,
+            454788L,
             true
         );
     }
@@ -1706,8 +1713,8 @@ public class HarvestVaultParserEthTest {
             "1587,47546529",
             "1587,47546529",
             "0",
-            25965L,
-            204142L,
+            25835L,
+            203122L,
             true
         );
     }
@@ -1726,7 +1733,7 @@ public class HarvestVaultParserEthTest {
             "4,95147346",
             "0",
             403L,
-            555L,
+            556L,
             true
         );
     }
@@ -1826,6 +1833,101 @@ public class HarvestVaultParserEthTest {
         );
     }
 
+    @Test
+    public void parseVaultMCAT20_ETH() {
+        harvestVaultParseTest(
+            "0x0ca19915439c12b16c0a8c119ec05fa801365a15",
+            12204006,
+            LOG_ID,
+            "0x5bc98c35c7a0385b4a210ca55878682f34482304",
+            "Deposit",
+            "MCAT20_ETH",
+            "0x619826bc7feb5e7a58923ba2704141a23559cb1d49a183b8b46a385afbaa58d5_146",
+            "88,68783907",
+            "",
+            "",
+            18644L,
+            170278L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMEME20_ETH() {
+        harvestVaultParseTest(
+            "0x227A46266329767cEa8883BFC81d21f1Ea0EdbB3",
+            12231326,
+            LOG_ID,
+            "0xdeeb758e147ea422e6bad89bcfafabfac0527949",
+            "Deposit",
+            "MEME20_ETH",
+            "0x54c40a1e169f7b8a24fab73ed51eb31c66de22f40b756768e749caf00a84c20f_274",
+            "99.17979546",
+            "",
+            "",
+            4109L,
+            69265L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultGPUNK20_ETH() {
+        harvestVaultParseTest(
+            "0xe6e0b4294ef6a518bb702402e9842df2a2abf1b1",
+            12227091,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "GPUNK20_ETH",
+            "0x245b1879ad95a9f3f92e749e009d47bb25a493aebe7a6c822af57967f717bdc2_69",
+            "0.01396012",
+            "",
+            "",
+            2L,
+            2L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultMVI_ETH() {
+        harvestVaultParseTest(
+            "0x5ea74c6abf0e523fdecfe218ccb3d2fde2339613",
+            12227153,
+            LOG_ID,
+            "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
+            "Deposit",
+            "MVI_ETH",
+            "0x6ba0c6165865bc0b7dad65c5b11d658e7d07a1f91748a436ff533fca88390ed0_83",
+            "0.00227570",
+            "",
+            "",
+            2L,
+            2L,
+            true
+        );
+    }
+
+    @Test
+    public void parseVaultKXUSD_DAI() {
+        harvestVaultParseTest(
+            "0x26193024f481aa987fc5230e107f1651b3e01741",
+            12232841,
+            LOG_ID,
+            "0xe323cf1ca53ddb43e838093016559ea6af78af26",
+            "Deposit",
+            "KXUSD_DAI",
+            "0x74677ea6ac8093c706821bbef52bcccd645b75e7f5a15803f5f9783ad6c761fc_119",
+            "132.75160560",
+            "",
+            "",
+            352L,
+            1854L,
+            true
+        );
+    }
+
     private void shouldNotParse(String fromVault, int onBlock, int logId) {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
@@ -1855,6 +1957,7 @@ public class HarvestVaultParserEthTest {
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
         HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        assertNotNull(dto);
         harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
         assertDto(dto,
             owner,

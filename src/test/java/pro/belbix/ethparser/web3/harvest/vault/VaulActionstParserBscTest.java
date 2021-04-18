@@ -19,18 +19,18 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
-public class HarvestVaultParserBscTest {
+public class VaulActionstParserBscTest {
 
   private static final int LOG_ID = 0;
 
   @Autowired
-  private HarvestVaultParserV2 harvestVaultParser;
+  private VaultActionsParser harvestVaultParser;
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
@@ -38,13 +38,72 @@ public class HarvestVaultParserBscTest {
   @Autowired
   private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   @Autowired
-  private HarvestDBService harvestDBService;
+  private VaultActionsDBService vaultActionsDBService;
   @Autowired
   private ContractLoader contractLoader;
 
   @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load(BSC_NETWORK);
+  }
+
+  @Test
+  void test_EPS_BNB() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0x0A7d74604b39229D444855eF294F287099774aC8",
+        6617283);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0xae43076f19628b1c671aba6bb6044ca23a09741ebc6e162e7a2dd5a2aa26e026")
+        .block(6617283L)
+        .blockDate(1618580189L)
+        .confirmed(1)
+        .methodName("Deposit")
+        .owner("0x72c2c890625f7e2ec82a49a5b0d6438c36fc1bb5")
+        .vault("PC_EPS_BNB")
+        .amount(28.97068833608871)
+        .usdAmount(2421L)
+        .lastTvl(644.3396792810088)
+        .lastUsdTvl(52790.0)
+        .ownerBalance(29.553600928619893)
+        .ownerBalanceUsd(2421.3216560351125)
+        .sharePrice(1.020120771235009)
+        .lpStat(null)
+        .migrated(false)
+        .underlyingPrice(null)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+  }
+
+  @Test
+  void test_EPS_3POOL() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0x63671425ef4D25Ec2b12C7d05DE855C143f16e3B", 6612952);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0x6bcae70f8628ef5711500d155bc974a67853e9b8444ad8405be35d4f724c6efb")
+        .block(6612952L)
+        .blockDate(1618567196L)
+        .confirmed(1)
+        .methodName("Withdraw")
+        .owner("0xedd828ed8bf8205cdbf4439349c539215d3fad1d")
+        .vault("EPS_3POOL")
+        .amount(40654.48461038426)
+        .usdAmount(25441L)
+        .lastTvl(501441.97904271755)
+        .lastUsdTvl(313473.0)
+        .ownerBalance(0.0)
+        .ownerBalanceUsd(0.)
+        .sharePrice(1.001042916331453)
+        .lpStat(null)
+        .migrated(false)
+        .underlyingPrice(null)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
   }
 
   @Test
@@ -208,7 +267,7 @@ public class HarvestVaultParserBscTest {
         (Log) logResults.get(LOG_ID).get(), BSC_NETWORK);
     harvestVaultParser.enrichDto(harvestDTO, BSC_NETWORK);
     harvestOwnerBalanceCalculator.fillBalance(harvestDTO, BSC_NETWORK);
-    harvestDBService.saveHarvestDTO(harvestDTO);
+    vaultActionsDBService.saveHarvestDTO(harvestDTO);
     return harvestDTO;
   }
 

@@ -83,4 +83,14 @@ public class EthTxEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<EthLogEntity> logs;
 
+    public EthAddressEntity getNotNullToAddress() {
+        if (toAddress != null) {
+            return toAddress;
+        } else if (contractAddress != null) {
+            return contractAddress;
+        } else {
+            throw new IllegalStateException("Address is null");
+        }
+    }
+
 }

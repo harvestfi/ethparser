@@ -28,7 +28,8 @@ public class BscLpAddresses {
       new LpContract(5908100, "ONEINCH_ONEINCH_RENBTC", "RENBTC",
           "0xe3f6509818ccf031370bB4cb398EB37C21622ac4"),
       new LpContract(3411917, "PC_BDO_WBNB", "", "0x74690f829fec83ea424ee1F1654041b2491A7bE9"),
-      new LpContract(4739700, "PC_WBNB_EGG", "", "0xd1B59D11316E87C3a0A069E80F590BA35cD8D8D3")
+      new LpContract(4739700, "PC_WBNB_EGG", "", "0xd1B59D11316E87C3a0A069E80F590BA35cD8D8D3"),
+      new LpContract(5937786, "PC_EPS_BNB", "", "0xf9045866e7b372def1eff3712ce55fac1a98daf0")
   );
 
 }

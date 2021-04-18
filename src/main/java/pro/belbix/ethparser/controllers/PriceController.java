@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,12 +41,9 @@ public class PriceController {
         @PathVariable("lp") String lp,
         @RequestParam("amount") double amount,
         @RequestParam(value = "block", required = false) Long block,
-        @RequestParam(value = "network", required = false) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
             ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
@@ -60,7 +56,7 @@ public class PriceController {
                 }
             }
             if (block == null) {
-                block = ethBlockService.getLastBlock();
+                block = ethBlockService.getLastBlock(network);
             }
             double amountUsd = priceProvider.getLpTokenUsdPrice(
                 lpAddress.toLowerCase(), amount, block, network);
@@ -75,13 +71,9 @@ public class PriceController {
     public RestResponse token(
         @PathVariable("token") String token,
         @RequestParam(value = "block", required = false) Long block,
-        @RequestParam(value = "network", required = false) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            if (network == null || Strings.isBlank(network)) {
-                network = ETH_NETWORK;
-            }
-            String tokenName = token;
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
             }
@@ -109,13 +101,9 @@ public class PriceController {
                         )
                     ).addBlock(block);
                 }
-
-                tokenName = contractUtils.getNameByAddress(token).orElse(null);
-                if (tokenName == null) {
-                    return RestResponse.error("Token " + token + " not supported");
-                }
             }
-            double usdPrice = priceProvider.getPriceForCoin(tokenName, block, ETH_NETWORK);
+
+            double usdPrice = priceProvider.getPriceForCoin(token, block, ETH_NETWORK);
             return RestResponse.ok(String.format("%.8f", usdPrice)).addBlock(block);
         } catch (Exception e) {
             log.warn("Error token request", e);
@@ -124,7 +112,9 @@ public class PriceController {
     }
 
     @RequestMapping(value = "/token/latest", method = RequestMethod.GET)
-    public List<PriceDTO> lastReward() {
-        return priceRepository.fetchLastPrices();
+    public List<PriceDTO> lastPrices(
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        return priceRepository.fetchLastPrices(network);
     }
 }

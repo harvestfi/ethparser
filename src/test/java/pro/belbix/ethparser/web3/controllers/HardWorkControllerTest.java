@@ -42,7 +42,7 @@ public class HardWorkControllerTest {
 
     @BeforeEach
     public void setUp() {
-        doReturn(fakeBlock).when(ethBlockService).getLastBlock();
+        doReturn(fakeBlock).when(ethBlockService).getLastBlock(ETH_NETWORK);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class HardWorkControllerTest {
         doReturn(fakeBlockDate)
             .when(ethBlockService)
             .getTimestampSecForBlock(fakeBlock, ETH_NETWORK);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner, ETH_NETWORK);
         String data = response.getData();
         Assertions.assertEquals("161.97026179", data);
     }
@@ -59,8 +59,8 @@ public class HardWorkControllerTest {
     public void shouldHandleException() {
         doThrow(NullPointerException.class)
             .when(hardWorkCalculator)
-            .calculateTotalHardWorksFeeByOwner(owner);
-        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner);
+            .calculateTotalHardWorksFeeByOwner(owner, ETH_NETWORK);
+        RestResponse response = hardWorksController.totalSavedGasFeeByEthAddress(owner, ETH_NETWORK);
         String code = response.getCode();
         String message = response.getStatus();
         Assertions.assertEquals("500", code);
@@ -71,7 +71,10 @@ public class HardWorkControllerTest {
     @Test
     void testPagination() throws IOException {
         RestResponse response =
-            hardWorksController.hardworkPages("2", "0", "desc");
+            hardWorksController
+                .hardworkPages(
+                    "2", "0", "desc",
+                    null, Integer.MIN_VALUE, ETH_NETWORK);
         assertNotNull(response, "null response");
         assertEquals("200", response.getCode(), "code 200");
         assertNotNull(response.getData(), "null data");

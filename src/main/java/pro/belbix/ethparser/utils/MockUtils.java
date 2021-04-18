@@ -14,12 +14,12 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.harvest.decoder.HarvestVaultLogDecoder;
+import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
 public class MockUtils {
     private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
     private static final List<String> harvestMethods =
-        new ArrayList<>(new HarvestVaultLogDecoder().getMethodNamesByMethodId().values());
+        new ArrayList<>(new VaultActionsLogDecoder().getMethodNamesByMethodId().values());
 
     public static UniswapDTO createUniswapDTO(long seed) {
         double currentCount = seed * new Random().nextDouble();

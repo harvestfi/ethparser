@@ -2,7 +2,7 @@ package pro.belbix.ethparser;
 
 import static org.junit.Assert.assertEquals;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.harvest.db.HarvestDBService.aprToApy;
+import static pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService.aprToApy;
 
 import org.junit.jupiter.api.Test;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;

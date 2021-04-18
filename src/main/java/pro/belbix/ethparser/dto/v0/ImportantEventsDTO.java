@@ -12,7 +12,8 @@ import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
 @Table(name = "events_tx", indexes = {
-    @Index(name = "idx_events_tx", columnList = "blockDate")
+    @Index(name = "idx_events_tx", columnList = "blockDate"),
+    @Index(name = "idx_events_network", columnList = "network")
 })
 @Cacheable(false)
 @Data
@@ -23,6 +24,7 @@ public class ImportantEventsDTO implements DtoI {
   private String hash;
   private Long block;
   private Long blockDate;
+  private String network;
   private String event;
   private String oldStrategy;
   private String newStrategy;

@@ -108,6 +108,7 @@ public class TransferParser implements Web3Parser {
     long blockTime = ethBlockService.getTimestampSecForBlock(tx.getBlock(), ETH_NETWORK);
 
     TransferDTO dto = new TransferDTO();
+    dto.setNetwork(ETH_NETWORK);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);

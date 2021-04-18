@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,12 +56,14 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<HarvestDTO> transactions = harvestRepository
-                .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                    parseLong(end, Long.MAX_VALUE));
+                .findAllByVaultOrderByBlockDate(
+                    name, parseLong(start, 0),
+                    parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, HarvestDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Harvest", e);
@@ -74,12 +78,13 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<RewardDTO> transactions = rewardsRepository
                 .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
-                    parseLong(end, Long.MAX_VALUE));
+                    parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, RewardDTO.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);
@@ -94,11 +99,14 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<HardWorkDTO> transactions = hardWorkRepository
-                .findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                .findAllByVaultOrderByBlockDate(
+                    name, network,
+                    parseLong(start, 0),
                     parseLong(end, Long.MAX_VALUE));
             writeCSV(response, transactions, HardWorkDTO.class);
         } catch (Exception e) {
@@ -114,11 +122,12 @@ public class CSVController {
         HttpServletResponse response,
         @PathVariable("name") String name,
         @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end
+        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
             List<TvlHistory> transactions = harvestTvlDBService
-                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, TvlHistory.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);
