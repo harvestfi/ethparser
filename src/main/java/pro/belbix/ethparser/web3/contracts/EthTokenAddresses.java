@@ -120,7 +120,8 @@ class EthTokenAddresses {
           .addLp(0, "UNI_LP_KXUSD_DAI"),
       new TokenContract(10732326, "CRV_HBTC", "0xb19059ebb43466C323583928285a49f558E572Fd"),
       new TokenContract(11010066, "CRV_HUSD", "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"),
-      new TokenContract(11095911, "CRV_SBTC", "0x64eda51d3ad40d56b9dfc5554e06f94e1dd786fd")
+      new TokenContract(11095911, "CRV_SBTC", "0x64eda51d3ad40d56b9dfc5554e06f94e1dd786fd"),
+      new TokenContract(11921924, "CRV_USDP", "0x7Eb40E450b9655f4B3cC4259BCC731c63ff55ae6")
   );
 
 }
