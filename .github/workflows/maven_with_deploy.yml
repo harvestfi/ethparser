@@ -98,11 +98,11 @@ jobs:
             #- name: Deploy to BSC server
             #  run: |
             #    export SERVER=ethparser_bsc
-            #    rsync -rz -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+            #    rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
             #    ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
 
       - name: Deploy to ETH server
         run: |
           export SERVER=ethparser_eth
-          rsync -rz -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
           ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
