@@ -8,7 +8,7 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 
-public class HarvestDBServiceTest {
+public class VaultActionsDBServiceTest {
 
     private static final Double PROFIT = 41.2912731552351;
     private static final String WITH = "Withdraw";
@@ -26,7 +26,7 @@ public class HarvestDBServiceTest {
         transfers.add(createDto(transfers.size(), DEP, 100.0, null, 0.0, 0.0, 0.0, PROFIT));
         transfers.add(createDto(transfers.size(), DEP, 100.0, 0.0, 0.0, 0.0, 0.0, PROFIT));
 
-        profit = HarvestDBService.calculateProfit(transfers);
+        profit = VaultActionsDBService.calculateProfit(transfers);
         assertEquals("CalculateProfit - Illegal", "0,000000", String.format(Locale.FRANCE, "%.6f", profit));
 
         //testing share price
@@ -35,7 +35,7 @@ public class HarvestDBServiceTest {
         transfers.add(createDto(transfers.size(), WITH, 100.0, 100.0, 0.0, 0.0, 0.0, PROFIT));
         transfers.add(createDto(transfers.size(), WITH, 0.0, 50.0, 2.0, 0.0, 0.0, PROFIT));
 
-        profit = HarvestDBService.calculateProfit(transfers);
+        profit = VaultActionsDBService.calculateProfit(transfers);
         assertEquals("CalculateProfit - Share Price", "300,000000", String.format(Locale.FRANCE, "%.6f", profit));
 
     }
@@ -59,14 +59,14 @@ public class HarvestDBServiceTest {
 
         for (HarvestDTO transfer : transfers){
 
-            profit = HarvestDBService.calculateProfitUsd(transfer);
+            profit = VaultActionsDBService.calculateProfitUsd(transfer);
             assertEquals("CalculateProfitUsd - Illegal", "0,000000" , String.format(Locale.FRANCE, "%.6f", profit));
 
         }
 
         //testing valid arguments
         transfers.get(0).setLastUsdTvl(110.0);
-        profit = HarvestDBService.calculateProfitUsd(transfers.get(0));
+        profit = VaultActionsDBService.calculateProfitUsd(transfers.get(0));
         assertEquals("CalculateProfitUsd", "45,4204004707586" , String.format(Locale.FRANCE, "%.13f", profit));
 
     }

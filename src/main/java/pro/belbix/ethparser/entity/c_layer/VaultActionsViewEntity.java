@@ -34,7 +34,7 @@ public class VaultActionsViewEntity implements ViewI {
   private String toAdr;
   private Double ftokenAmount;
   private String opType;
-  private Double sharedPrice;
+  private Double sharePrice;
   private Double ftokenTotalSupply;
   private Double tvl;
   private String underlying;

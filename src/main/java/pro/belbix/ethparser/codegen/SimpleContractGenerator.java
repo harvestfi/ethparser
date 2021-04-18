@@ -32,6 +32,7 @@ import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Log4j2
 @Service
@@ -53,7 +54,7 @@ public class SimpleContractGenerator {
   private final FunctionsUtils functionsUtils;
   private final Web3Functions web3Functions;
 
-  private final Map<String, TreeMap<Integer, GeneratedContract>> contracts = new HashMap<>();
+  private final Map<String, TreeMap<Long, GeneratedContract>> contracts = new HashMap<>();
 
   public SimpleContractGenerator(AppProperties appProperties, FunctionsUtils functionsUtils,
       Web3Functions web3Functions) {
@@ -63,7 +64,8 @@ public class SimpleContractGenerator {
     this.abiProviderService = new AbiProviderService();
   }
 
-  public GeneratedContract getContract(String address, int block, String selector, String network) {
+  public GeneratedContract getContract(String address, Long block, String selector,
+      String network) {
     GeneratedContract generatedContract = findInCache(address, block);
     if (generatedContract != null) {
       return generatedContract;
@@ -75,15 +77,16 @@ public class SimpleContractGenerator {
               = contracts.computeIfAbsent(address, k -> new TreeMap<>());
 
           // for reducing memory usage don't save the same proxy impl
-          if (!implementations.isEmpty()) {
+          if (!implementations.isEmpty() && block != null) {
             var existContract = implementations.floorEntry(block).getValue();
             if (existContract.isProxy()
                 && equalContracts(newContract, existContract)) {
               return newContract;
             }
           }
-
-          implementations.put(block, newContract);
+          if(block != null) {
+            implementations.put(block, newContract);
+          }
           return newContract;
         }).orElse(null);
   }
@@ -94,7 +97,7 @@ public class SimpleContractGenerator {
 
   private Optional<GeneratedContract> generateContract(
       String address,
-      long block,
+      Long block,
       boolean isProxy,
       String selector,
       String network
@@ -107,7 +110,7 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, getAbiProviderKey(), network);
+        abiProviderService.contractSourceCode(address, getAbiProviderKey(network), network);
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -152,14 +155,14 @@ public class SimpleContractGenerator {
     return Optional.of(contract);
   }
 
-  private String getAbiProviderKey() {
-    switch (appProperties.getNetwork()) {
+  private String getAbiProviderKey(String network) {
+    switch (network) {
       case ETH_NETWORK:
         return appProperties.getEtherscanApiKey();
       case BSC_NETWORK:
-        return appProperties.getEtherscanApiKey();
+        return appProperties.getBscscanApiKey();
       default:
-        throw new IllegalStateException("Unknown network " + appProperties.getNetwork());
+        throw new IllegalStateException("Unknown network " + network);
     }
   }
 
@@ -176,7 +179,7 @@ public class SimpleContractGenerator {
 
   private String readProxyAddressOnChain(
       String address,
-      long block,
+      Long block,
       GeneratedContract contract,
       String selector,
       String network
@@ -193,7 +196,8 @@ public class SimpleContractGenerator {
 
     // open zeppelin proxy doesn't have public call_implementation
     // some contracts have event but didn't call it
-    proxyImpl = findLastProxyUpgrade(address, (int) block, contract.getEvent(UPGRADED_EVENT), network);
+    proxyImpl = findLastProxyUpgrade(address, block, contract.getEvent(UPGRADED_EVENT),
+        network);
     if (proxyImpl != null) {
       return proxyImpl;
     }
@@ -211,22 +215,38 @@ public class SimpleContractGenerator {
     return null;
   }
 
-  private String proxyAddressFromFunc(String address, long block, String network) {
+  private String proxyAddressFromFunc(String address, Long block, String network) {
     return functionsUtils.callAddressByName(IMPLEMENTATION, address, block, network)
         .orElse(null);
   }
 
-  private String findLastProxyUpgrade(String address, Integer block, Event event, String network) {
+  private String findLastProxyUpgrade(String address, Long _block, Event event, String network) {
+    Integer start = null;
+    Integer end = null;
+    if (_block != null) {
+      end = _block.intValue();
+    }
+    // bsc has an odd bug with latest/earliest block fetching
+    if (BSC_NETWORK.equals(network)) {
+      Long created = ContractUtils.getInstance(network).getTokenCreated(address)
+          .orElse(null);
+      if (created == null) {
+        return null;
+      }
+      start = created.intValue() - 1;
+    }
+    //noinspection rawtypes
     List<LogResult> logResults = web3Functions.fetchContractLogs(
         List.of(address),
-        null,
-        block,
+        start,
+        end,
         network,
         UPGRADED_EVENT);
     if (logResults == null || logResults.isEmpty()) {
       return null;
     }
     Log ethLog = (Log) logResults.get(logResults.size() - 1).get();
+    //noinspection rawtypes
     List<Type> types = extractLogIndexedValues(
         ethLog.getTopics(), ethLog.getData(), event.getParameters());
     if (types == null || types.isEmpty()) {
@@ -236,9 +256,12 @@ public class SimpleContractGenerator {
     return (String) types.get(0).getValue();
   }
 
-  private GeneratedContract findInCache(String address, int block) {
-    TreeMap<Integer, GeneratedContract> contractByBlocks = contracts.get(address);
-    if (contractByBlocks == null) {
+  private GeneratedContract findInCache(String address, Long block) {
+    if (block == null) {
+      return null;
+    }
+    TreeMap<Long, GeneratedContract> contractByBlocks = contracts.get(address);
+    if (contractByBlocks == null || contractByBlocks.firstEntry() == null) {
       return null;
     }
     GeneratedContract contract = contractByBlocks.firstEntry().getValue();
@@ -246,7 +269,7 @@ public class SimpleContractGenerator {
     if (!contract.isProxy()) {
       return contract;
     }
-    Integer floorBlock = contractByBlocks.floorKey(block);
+    Long floorBlock = contractByBlocks.floorKey(block);
     if (floorBlock != null) {
       return contractByBlocks.get(floorBlock);
     }

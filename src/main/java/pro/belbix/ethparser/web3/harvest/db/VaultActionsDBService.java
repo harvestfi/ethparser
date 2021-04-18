@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +24,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
-public class HarvestDBService {
+public class VaultActionsDBService {
   private final static ObjectMapper objectMapper = new ObjectMapper();
 
   private final HarvestRepository harvestRepository;
@@ -33,7 +32,7 @@ public class HarvestDBService {
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
 
-  public HarvestDBService(HarvestRepository harvestRepository,
+  public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
       UniswapRepository uniswapRepository) {
@@ -67,14 +66,18 @@ public class HarvestDBService {
   }
 
   public void fillOwnersCount(HarvestDTO dto) {
-    Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(dto.getVault(),
-        dto.getVault() + "_V0", dto.getBlockDate());
+    Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(
+        dto.getVault(),
+        dto.getVault() + "_V0",
+        dto.getNetwork(),
+        dto.getBlockDate());
     if (ownerCount == null) {
       ownerCount = 0;
     }
     dto.setOwnerCount(ownerCount);
 
-    Integer allOwnersCount = harvestRepository.fetchAllUsersQuantity(dto.getBlockDate());
+    Integer allOwnersCount = harvestRepository
+        .fetchAllUsersQuantity(dto.getBlockDate());
     if (allOwnersCount == null) {
       allOwnersCount = 0;
     }
@@ -85,7 +88,9 @@ public class HarvestDBService {
             .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork()
+    );
     if (allPoolsOwnerCount == null) {
       allPoolsOwnerCount = 0;
     }
@@ -97,6 +102,7 @@ public class HarvestDBService {
       log.warn("Found the same harvestTvl record for " + dto);
     }
     HarvestTvlEntity harvestTvl = new HarvestTvlEntity();
+    harvestTvl.setNetwork(dto.getNetwork());
     harvestTvl.setCalculateHash(dto.getId());
     harvestTvl.setCalculateTime(dto.getBlockDate());
 
@@ -136,15 +142,15 @@ public class HarvestDBService {
 
     List<String> contracts = new ArrayList<>(
         ContractUtils.getInstance(dto.getNetwork()).vaultNames());
-    if (ETH_NETWORK.equals(dto.getNetwork())) {
-      PARSABLE_UNI_PAIRS.stream()
-          .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
-              .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-          .forEach(contracts::add);
-    }
+
+    PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
+        .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
+            .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
+        .forEach(contracts::add);
+
     for (String vaultName : contracts) {
       HarvestDTO lastHarvest = harvestRepository
-          .fetchLastByVaultAndDate(vaultName, dto.getBlockDate());
+          .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {
         continue;
       }
@@ -198,18 +204,18 @@ public class HarvestDBService {
     return tvl;
   }
 
-  public BigInteger lastBlock() {
-    HarvestDTO dto = harvestRepository.findFirstByOrderByBlockDesc();
+  public BigInteger lastBlock(String network) {
+    HarvestDTO dto = harvestRepository.findFirstByNetworkOrderByBlockDesc(network);
     if (dto == null) {
       return new BigInteger("0");
     }
     return BigInteger.valueOf(dto.getBlock());
   }
 
-  public List<HarvestDTO> fetchHarvest(String from, String to) {
+  public List<HarvestDTO> fetchHarvest(String from, String to, String network) {
     if (from == null && to == null) {
       return harvestRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000);
+          Instant.now().minus(1, DAYS).toEpochMilli() / 1000, network);
     }
     int fromI = 0;
     int toI = Integer.MAX_VALUE;
@@ -219,7 +225,7 @@ public class HarvestDBService {
     if (to != null) {
       toI = Integer.parseInt(to);
     }
-    return harvestRepository.fetchAllByPeriod(fromI, toI);
+    return harvestRepository.fetchAllByPeriod(fromI, toI, network);
   }
 
   public void fillProfit(HarvestDTO dto) {
@@ -237,7 +243,9 @@ public class HarvestDBService {
     List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
         dto.getOwner(),
         dto.getVault(),
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork()
+    );
 
     // for new transaction DB can still not write the object at this moment
     if (transfers.stream().noneMatch(h -> h.getId().equalsIgnoreCase(dto.getId()))) {

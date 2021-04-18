@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
@@ -142,16 +142,8 @@ public class ContractUtils {
     return getCache().getVaultByName(name).isPresent();
   }
 
-  public boolean isPoolName(String name) {
-    return getCache().getPoolByName(name).isPresent();
-  }
-
   public boolean isUniPairName(String name) {
     return getCache().getUniPairByName(name).isPresent();
-  }
-
-  public boolean isTokenName(String name) {
-    return getCache().getTokenByName(name).isPresent();
   }
 
   public boolean isVaultAddress(String address) {
@@ -183,16 +175,22 @@ public class ContractUtils {
     return PS_ADDRESSES.contains(address);
   }
 
-  public boolean isStableCoin(String name) {
-    return ONE_DOLLAR_TOKENS.contains(name);
+  public boolean isStableCoin(String address) {
+    return ONE_DOLLAR_TOKENS.contains(address);
   }
 
-  public boolean isTokenCreated(String tokenName, long block) {
-    return getCache().getTokenByName(tokenName)
+  public boolean isTokenCreated(String tokenAddress, long block) {
+    return getCache().getTokenByAddress(tokenAddress)
         .map(TokenEntity::getContract)
         .map(ContractEntity::getCreated)
         .filter(c -> c < block)
         .isPresent();
+  }
+
+  public Optional<Long> getTokenCreated(String tokenAddress) {
+    return getCache().getTokenByAddress(tokenAddress)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getCreated);
   }
 
   public boolean isUniPairCreated(String uniPairName, long block) {
@@ -327,6 +325,28 @@ public class ContractUtils {
         .map(ContractEntity::getName);
   }
 
+  public Optional<String> findUniPairNameForTokenAddress(String tokenAddress, long block) {
+    TokenToUniPairEntity freshest = null;
+    for (TokenToUniPairEntity tokenToUniPairEntity : getCache()
+        .getTokenToLpEntities()) {
+      if (!tokenToUniPairEntity.getToken().getContract().getAddress()
+          .equalsIgnoreCase(tokenAddress)) {
+        continue;
+      }
+      if (freshest == null
+          || freshest.getBlockStart() < tokenToUniPairEntity.getBlockStart()) {
+        if (tokenToUniPairEntity.getBlockStart() > block) {
+          continue;
+        }
+        freshest = tokenToUniPairEntity;
+      }
+    }
+    return Optional.ofNullable(freshest)
+        .map(TokenToUniPairEntity::getUniPair)
+        .map(UniPairEntity::getContract)
+        .map(ContractEntity::getName);
+  }
+
   public Optional<ContractEntity> getContractByAddress(String address) {
     address = address.toLowerCase();
     Optional<ContractEntity> contract = getCache().getVaultByAddress(address)
@@ -365,7 +385,7 @@ public class ContractUtils {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
-    contracts.add(ETH_CONTROLLER);
+    contracts.add(CONTROLLERS.get(ETH_NETWORK));
 
     // FARM token Mint event parsing + transfers parsing
     contracts.add(ContractConstants.FARM_TOKEN);
@@ -384,7 +404,7 @@ public class ContractUtils {
         .map(ContractEntity::getAddress)
         .collect(Collectors.toList()));
     // uni events
-    contracts.addAll(PARSABLE_UNI_PAIRS);
+    contracts.addAll(PARSABLE_UNI_PAIRS.get(network));
 
     return new ArrayList<>(contracts);
   }
@@ -393,21 +413,21 @@ public class ContractUtils {
     Set<String> contracts = new HashSet<>();
 
     // hard work parsing
-//    contracts.add(BSC_CONTROLLER);
+    contracts.add(CONTROLLERS.get(BSC_NETWORK));
 
     // harvest events
     contracts.addAll(getCache().getAllVaults().stream()
         .map(v -> v.getContract().getAddress())
         .collect(Collectors.toList()));
-//    contracts.addAll(getCache().getAllPools().stream()
-//        .map(v -> v.getContract().getAddress())
-//        .collect(Collectors.toList()));
-    // price parsing
-//    contracts.addAll(getCache().getLpEntities().stream()
-//        .filter(u -> u.getKeyToken() != null)
-//        .map(UniPairEntity::getContract)
-//        .map(ContractEntity::getAddress)
-//        .collect(Collectors.toList()));
+    contracts.addAll(getCache().getAllPools().stream()
+        .map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList()));
+//     price parsing
+    contracts.addAll(getCache().getLpEntities().stream()
+        .filter(u -> u.getKeyToken() != null)
+        .map(UniPairEntity::getContract)
+        .map(ContractEntity::getAddress)
+        .collect(Collectors.toList()));
 
     return new ArrayList<>(contracts);
   }
@@ -439,45 +459,63 @@ public class ContractUtils {
     return null;
   }
 
-  public String getSimilarActiveForPrice(String name) {
+  public String getSimilarAssetForPrice(String name) {
     if(ETH_NETWORK.equals(network)) {
-      return getSimilarActiveForPriceEth(name);
+      return getSimilarAssetForPriceEth(name);
     } else if(BSC_NETWORK.equals(network)) {
       return getSimilarActiveForPriceBsc(name);
     }
     return name;
   }
 
-  public String getSimilarActiveForPriceEth(String name) {
+  private String getSimilarAssetForPriceEth(String name) {
     name = name.replaceFirst("_V0", "");
     switch (name) {
       case "CRV_STETH":
       case "WETH":
         return "ETH";
+
       case "PS":
       case "iPS":
         return "FARM";
+
       case "RENBTC":
       case "CRVRENWBTC":
+      case "CRV_RENWBTC":
+      case "CRV_RENBTC":
       case "TBTC":
       case "BTC":
       case "CRV_OBTC":
       case "CRV_TBTC":
       case "HBTC":
       case "CRV_HBTC":
-      case "CRV_RENBTC":
         return "WBTC";
+
       case "CRV_EURS":
         return "EURS";
+
       case "CRV_LINK":
         return "LINK";
+
       case "SUSHI_HODL":
         return "SUSHI";
+
+      case "YCRV":
+      case "_3CRV":
+      case "3CRV":
+      case "CRV_CMPND":
+      case "CRV_BUSD":
+      case "CRV_USDN":
+      case "CRV_HUSD":
+      case "CRV_UST":
+      case "CRV_AAVE":
+      case "CRV_GUSD":
+        return "USDC";
     }
     return name;
   }
 
-  public String getSimilarActiveForPriceBsc(String name) {
+  private String getSimilarActiveForPriceBsc(String name) {
     //noinspection SwitchStatementWithTooFewBranches
     switch (name) {
       case "RENBTC":
@@ -486,8 +524,14 @@ public class ContractUtils {
     return name;
   }
 
-  public Collection<VaultEntity> getAllVaults() {
-    return getCache().getAllVaults();
+  public Optional<VaultEntity> getVaultEntityByAddress(String address) {
+    return getCache().getVaultByAddress(address);
+  }
+
+  public Optional<String> getPoolRewardToken(String address) {
+    return getCache().getPoolByAddress(address)
+        .map(PoolEntity::getRewardToken)
+        .map(ContractEntity::getAddress);
   }
 
   public Collection<PoolEntity> getAllPools() {
@@ -496,10 +540,6 @@ public class ContractUtils {
 
   public Collection<TokenEntity> getAllTokens() {
     return getCache().getAllTokens();
-  }
-
-  public Collection<UniPairEntity> getAllUniPairs() {
-    return getCache().getAllUniPairs();
   }
 
   public Set<String> getAllContractAddresses() {

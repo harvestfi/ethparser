@@ -17,11 +17,16 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.keyToken f2f2 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where t.token = :token and t.uniPair = :uniPair"
+        + "where f1f1.address = :tokenAdr "
+        + "and f1f1.network = :network "
+        + "and f2f1.address = :uniPairAdr "
+        + "and f2f1.network = :network"
     )
     TokenToUniPairEntity findFirstByTokenAndUniPair(
-        @Param("token") TokenEntity token,
-        @Param("uniPair") UniPairEntity uniPair);
+        @Param("tokenAdr") String tokenAdr,
+        @Param("uniPairAdr") String uniPairAdr,
+        @Param("network") String network
+    );
 
     @Query("select t from TokenToUniPairEntity t "
         + "left join fetch t.token f1 "
@@ -31,9 +36,13 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.keyToken f2f2 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where t.token = :token order by t.blockStart desc"
+        + "where f1f1.address = :tokenAdr and f1f1.network = :network "
+        + "order by t.blockStart desc"
     )
-    TokenToUniPairEntity findFirstByToken(@Param("token") TokenEntity token);
+    TokenToUniPairEntity findFirstByToken(
+        @Param("tokenAdr") String tokenAdr,
+        @Param("network") String network
+    );
 
     @Query("select t from TokenToUniPairEntity t "
         + "left join fetch t.token f1 "
@@ -43,8 +52,12 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.keyToken f2f2 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where t.uniPair = :uniPair order by t.blockStart desc"
+        + "where f2f1.address = :uniPairAdr and f2f1.network = :network "
+        + "order by t.blockStart desc"
     )
-    TokenToUniPairEntity findFirstByUniPair(@Param("uniPair") UniPairEntity uniPair);
+    TokenToUniPairEntity findFirstByUniPair(
+        @Param("uniPairAdr") String uniPairAdr,
+        @Param("network") String network
+    );
 
 }

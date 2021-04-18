@@ -21,7 +21,7 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
-import pro.belbix.ethparser.web3.harvest.parser.HarvestVaultParserV2;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
@@ -29,7 +29,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 public class HarvestOwnerBalanceCalculatorTest {
 
   @Autowired
-  private HarvestVaultParserV2 harvestVaultParser;
+  private VaultActionsParser harvestVaultParser;
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
@@ -51,7 +51,7 @@ public class HarvestOwnerBalanceCalculatorTest {
         10780101,
         1,
         "4990,85837900",
-        "4990,85837900"
+        "4943.34928575"
     );
     }
 

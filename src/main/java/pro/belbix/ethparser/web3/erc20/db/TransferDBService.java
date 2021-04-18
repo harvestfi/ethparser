@@ -63,8 +63,10 @@ public class TransferDBService {
   }
 
   public boolean checkBalances(TransferDTO dto) {
-    return checkBalance(dto.getOwner(), dto.getBalanceOwner(), dto.getBlockDate())
-        && checkBalance(dto.getRecipient(), dto.getBalanceRecipient(), dto.getBlockDate());
+    return checkBalance(
+        dto.getOwner(), dto.getBalanceOwner(), dto.getBlockDate(), dto.getNetwork())
+        && checkBalance(
+        dto.getRecipient(), dto.getBalanceRecipient(), dto.getBlockDate(), dto.getNetwork());
   }
 
   public void fillProfit(TransferDTO dto) {
@@ -73,11 +75,12 @@ public class TransferDBService {
     fillProfitForTrade(dto);
   }
 
-  private boolean checkBalance(String holder, double expectedBalance, long blockDate) {
+  private boolean checkBalance(
+      String holder, double expectedBalance, long blockDate, String network) {
     if (notCheckableAddresses.contains(holder.toLowerCase())) {
       return true;
     }
-    Double balance = transferRepository.getBalanceForOwner(holder, blockDate);
+    Double balance = transferRepository.getBalanceForOwner(holder, blockDate, network);
     if (balance == null) {
       balance = 0.0;
     }
@@ -96,7 +99,8 @@ public class TransferDBService {
         dto.getRecipient(),
         dto.getRecipient(),
         0,
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork());
     if (isNotContainsDto(transfers, dto.getId())) {
       transfers.add(dto);
     }
@@ -122,7 +126,8 @@ public class TransferDBService {
         dto.getOwner(),
         dto.getOwner(),
         0,
-        dto.getBlockDate());
+        dto.getBlockDate(),
+        dto.getNetwork());
     if (isNotContainsDto(transfers, dto.getId())) {
       transfers.add(dto);
     }
@@ -241,14 +246,15 @@ public class TransferDBService {
 
   // used only for recalculation
   public void fillBalances(TransferDTO dto) {
-    Double balanceOwner = transferRepository.getBalanceForOwner(dto.getOwner(), dto.getBlockDate());
+    Double balanceOwner = transferRepository
+        .getBalanceForOwner(dto.getOwner(), dto.getBlockDate(), dto.getNetwork());
     if (balanceOwner == null) {
       balanceOwner = 0.0;
     }
     dto.setBalanceOwner(balanceOwner);
 
     Double balanceRecipient = transferRepository
-        .getBalanceForOwner(dto.getRecipient(), dto.getBlockDate());
+        .getBalanceForOwner(dto.getRecipient(), dto.getBlockDate(), dto.getNetwork());
     if (balanceRecipient == null) {
       balanceRecipient = 0.0;
     }

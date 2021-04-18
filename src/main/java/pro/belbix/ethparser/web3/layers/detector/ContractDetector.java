@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
@@ -91,7 +89,8 @@ public class ContractDetector {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("Error contract detector loop " + block, e);
+                    log.error("Error contract detector loop {}",
+                        block == null ? null : block.getNumber(), e);
                     if (appProperties.isStopOnParseError()) {
                         System.exit(-1);
                     }
@@ -180,11 +179,11 @@ public class ContractDetector {
         String methodId = input.substring(0, 10);
         String inputData = input.substring(10);
 
-        String address = tx.getToAddress().getAddress();
+        String address = tx.getNotNullToAddress().getAddress();
         GeneratedContract contract =
             simpleContractGenerator.getContract(
                 address,
-                (int) tx.getBlockNumber().getNumber(),
+                tx.getBlockNumber().getNumber(),
                 methodId,
                 network
             );
@@ -261,7 +260,7 @@ public class ContractDetector {
     }
 
     private Event findEvent(String address, String hash, int block, String network) {
-        GeneratedContract contract = simpleContractGenerator.getContract(address, block, null,network);
+        GeneratedContract contract = simpleContractGenerator.getContract(address, (long) block, null,network);
         if (contract == null) {
             return null;
         }
@@ -293,7 +292,7 @@ public class ContractDetector {
         String contractAddress = eventEntity.getContract().getAddress().toLowerCase();
 
         GeneratedContract contract =
-            simpleContractGenerator.getContract(contractAddress, block,null, network);
+            simpleContractGenerator.getContract(contractAddress, (long) block,null, network);
         if (contract == null) {
             log.error("Can't generate contract for {} at {}", contractAddress, block);
             return;

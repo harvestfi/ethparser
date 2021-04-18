@@ -1,0 +1,10 @@
+ethparser:
+  startUtil: hardwork-download
+  overrideDuplicates: true
+
+server:
+  port: 4143
+
+hardwork-download:
+  from: 5993570
+  to: 6563378

@@ -41,7 +41,7 @@ public class PriceProviderTest {
     @Test
     public void priceForBAS() {
         double price = priceProvider.getPriceForCoin("BAS", 11619379L, ETH_NETWORK);
-      assertEquals(numberFormat("143,06"), String.format("%.2f", price));
+      assertEquals(numberFormat("142.91"), String.format("%.2f", price));
     }
 
   @Test

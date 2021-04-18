@@ -13,7 +13,8 @@ import pro.belbix.ethparser.dto.DtoI;
     @Index(name = "idx_transfers_date", columnList = "blockDate"),
     @Index(name = "idx_transfers_owner", columnList = "owner"),
     @Index(name = "idx_transfers_type", columnList = "type"),
-    @Index(name = "idx_transfers_name", columnList = "name")
+    @Index(name = "idx_transfers_name", columnList = "name"),
+    @Index(name = "idx_transfers_network", columnList = "network")
 })
 @Data
 public class TransferDTO implements DtoI {
@@ -23,6 +24,7 @@ public class TransferDTO implements DtoI {
   private String name;
   private long block;
   private long blockDate;
+  private String network;
   private String owner;
   private String recipient;
   private double value;

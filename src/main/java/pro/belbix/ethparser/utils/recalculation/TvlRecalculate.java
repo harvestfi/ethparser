@@ -9,9 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
-import pro.belbix.ethparser.web3.harvest.db.HarvestDBService;
+import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @Service
 @Log4j2
@@ -19,7 +20,8 @@ public class TvlRecalculate {
 
   private final HarvestRepository harvestRepository;
   private final HarvestTvlRepository harvestTvlRepository;
-  private final HarvestDBService harvestDBService;
+  private final VaultActionsDBService vaultActionsDBService;
+  private final AppProperties appProperties;
 
   @Value("${tvl-recalculate.from:}")
   private Integer from;
@@ -30,10 +32,12 @@ public class TvlRecalculate {
 
   public TvlRecalculate(HarvestRepository harvestRepository,
       HarvestTvlRepository harvestTvlRepository,
-      HarvestDBService harvestDBService) {
+      VaultActionsDBService vaultActionsDBService,
+      AppProperties appProperties) {
     this.harvestRepository = harvestRepository;
     this.harvestTvlRepository = harvestTvlRepository;
-    this.harvestDBService = harvestDBService;
+    this.vaultActionsDBService = vaultActionsDBService;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -47,15 +51,18 @@ public class TvlRecalculate {
   private void createNew() {
     List<HarvestDTO> harvestDTOList;
     if (from == null) {
-      harvestDTOList = harvestRepository.findAllByOrderByBlockDate();
+      harvestDTOList = harvestRepository
+          .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
     } else {
-      harvestDTOList = harvestRepository.findAllByBlockDateGreaterThanOrderByBlockDate(from);
+      harvestDTOList = harvestRepository
+          .findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(
+              from, appProperties.getNetwork());
     }
     int count = 0;
     List<HarvestTvlEntity> tvls = new ArrayList<>();
     for (HarvestDTO harvestDTO : harvestDTOList) {
       count++;
-      HarvestTvlEntity tvl = harvestDBService.calculateHarvestTvl(harvestDTO, false);
+      HarvestTvlEntity tvl = vaultActionsDBService.calculateHarvestTvl(harvestDTO, false);
       tvls.add(tvl);
       if (count % 100 == 0) {
         harvestTvlRepository.saveAll(tvls);
@@ -67,9 +74,10 @@ public class TvlRecalculate {
   }
 
   private void recalculate() {
-    List<HarvestDTO> harvestDTOs = harvestRepository.findAllByOrderByBlockDate();
+    List<HarvestDTO> harvestDTOs = harvestRepository
+        .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
     List<HarvestTvlEntity> harvestTvlEntities =
-        harvestTvlRepository.findAllByOrderByCalculateTime();
+        harvestTvlRepository.findAllByNetworkOrderByCalculateTime(appProperties.getNetwork());
 
     Map<String, HarvestTvlEntity> harvestTvlEntitiesMap = new HashMap<>();
 
@@ -88,7 +96,7 @@ public class TvlRecalculate {
         harvestTvlEntity.setCalculateHash(harvestDTO.getId());
       }
       // todo type of recalculations
-      harvestDBService.fillSimpleDataFromDto(harvestDTO, harvestTvlEntity);
+      vaultActionsDBService.fillSimpleDataFromDto(harvestDTO, harvestTvlEntity);
 
       tvls.add(harvestTvlEntity);
       count++;

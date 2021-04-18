@@ -35,7 +35,7 @@ public class PriceOracleTest {
 
         double priceBAS = priceProvider.getPriceForCoin("BAS", 12015725, ETH_NETWORK);
         double priceWBTC = priceProvider.getPriceForCoin("WBTC", 12015725, ETH_NETWORK);
-        double priceWETH = priceProvider.getPriceForCoin("WETH", 12015725, ETH_NETWORK);
+        double priceWETH = priceProvider.getPriceForCoin("ETH", 12015725, ETH_NETWORK);
         double priceUSDC = priceProvider.getPriceForCoin("USDC", 12015725, ETH_NETWORK);
         double priceUSDT = priceProvider.getPriceForCoin("USDT", 12015725, ETH_NETWORK);
         double priceSUSHI_LP_ETH_WBTC = priceProvider
@@ -48,27 +48,27 @@ public class PriceOracleTest {
         double price3CRV = priceProvider.getPriceForCoin("3CRV", 12015725, ETH_NETWORK);
 
         assertAll(
-            () -> assertEquals("Price", numberFormat("0,46139880"),
+            () -> assertEquals("priceBAS", numberFormat("0,46139880"),
                 String.format("%.8f", priceBAS)),
-            () -> assertEquals("Price", numberFormat("55435,19606653"),
+            () -> assertEquals("priceWBTC", numberFormat("55435,19606653"),
                 String.format("%.8f", priceWBTC)),
-            () -> assertEquals("Price", numberFormat("1786,09068119"),
+            () -> assertEquals("priceWETH", numberFormat("1786,09068119"),
                 String.format("%.8f", priceWETH)),
-            () -> assertEquals("Price", numberFormat("1,00000000"),
+            () -> assertEquals("priceUSDC", numberFormat("1,00000000"),
                 String.format("%.8f", priceUSDC)),
-            () -> assertEquals("Price", numberFormat("0,99958400"),
+            () -> assertEquals("priceUSDT", numberFormat("0,99958400"),
                 String.format("%.8f", priceUSDT)),
-            () -> assertEquals("Price", numberFormat("47351069766,33282500"),
+            () -> assertEquals("priceSUSHI_LP_ETH_WBTC", numberFormat("47351069766,33282500"),
                 String.format("%.8f", priceSUSHI_LP_ETH_WBTC)),
-            () -> assertEquals("Price", numberFormat("1,19183883"),
+            () -> assertEquals("priceCRV_EURS", numberFormat("1,19492675"),
                 String.format("%.8f", priceCRV_EURS)),
-            () -> assertEquals("Price", numberFormat("2079,61790428"),
+            () -> assertEquals("priceMGOOGL", numberFormat("2079,61790428"),
                 String.format("%.8f", priceMGOOGL)),
-            () -> assertEquals("Price", numberFormat("229,46677216"),
+            () -> assertEquals("priceFARM", numberFormat("229,46677216"),
                 String.format("%.8f", priceFARM)),
-            () -> assertEquals("Price", numberFormat("55435,19606653"),
+            () -> assertEquals("priceRENBTC", numberFormat("55353.30276455"),
                 String.format("%.8f", priceRENBTC)),
-            () -> assertEquals("Price", numberFormat("1,01426724"),
+            () -> assertEquals("price3CRV", numberFormat("1,01426724"),
                 String.format("%.8f", price3CRV))
         );
     }

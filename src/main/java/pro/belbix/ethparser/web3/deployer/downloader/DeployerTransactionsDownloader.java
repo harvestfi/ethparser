@@ -1,7 +1,5 @@
 package pro.belbix.ethparser.web3.deployer.downloader;
-
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.BLOCK_NUMBER_30_AUGUST_2020;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
@@ -15,6 +13,7 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
@@ -26,6 +25,7 @@ public class DeployerTransactionsDownloader {
   private final Web3Subscriber web3Subscriber;
   private final DeployerDbService deployerDbService;
   private final DeployerTransactionsParser parser;
+  private final AppProperties appProperties;
   private final BlockingQueue<Transaction> transactionQueue = new ArrayBlockingQueue<>(100);
 
   @Value("${deployer-download.from:}")
@@ -36,10 +36,12 @@ public class DeployerTransactionsDownloader {
 
   public DeployerTransactionsDownloader(
       Web3Subscriber web3Subscriber, DeployerDbService deployerDbService,
-      DeployerTransactionsParser parser) {
+      DeployerTransactionsParser parser,
+      AppProperties appProperties) {
     this.web3Subscriber = web3Subscriber;
     this.deployerDbService = deployerDbService;
     this.parser = parser;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -47,7 +49,7 @@ public class DeployerTransactionsDownloader {
     DefaultBlockParameter blockTo;
 
     if (from == null) {
-      blockFrom = BLOCK_NUMBER_30_AUGUST_2020;
+      blockFrom = ETH_BLOCK_NUMBER_30_AUGUST_2020;
     } else {
       blockFrom = DefaultBlockParameter.valueOf(new BigInteger(from.toString()));
     }
@@ -64,14 +66,15 @@ public class DeployerTransactionsDownloader {
 
   private void parse(DefaultBlockParameter start, DefaultBlockParameter end) {
     Disposable subscription =
-        web3Subscriber.getTransactionFlowableRangeSubscription(transactionQueue, start, end, ETH_NETWORK);
+        web3Subscriber.getTransactionFlowableRangeSubscription(
+            transactionQueue, start, end, appProperties.getNetwork());
     while (!subscription.isDisposed()) {
       Transaction transaction = null;
       try {
         transaction = transactionQueue.poll(1, TimeUnit.SECONDS);
       } catch (InterruptedException ignored) {
       }
-      DeployerDTO dto = parser.parseDeployerTransaction(transaction);
+      DeployerDTO dto = parser.parseDeployerTransaction(transaction, appProperties.getNetwork());
       if (dto != null) {
         try {
           deployerDbService.save(dto);

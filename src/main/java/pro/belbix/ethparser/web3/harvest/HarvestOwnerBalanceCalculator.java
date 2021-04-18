@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.harvest;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.math.BigInteger;
 import lombok.extern.log4j.Log4j2;
@@ -52,7 +53,7 @@ public class HarvestOwnerBalanceCalculator {
     double balance = ContractUtils.getInstance(network).parseAmount(balanceI, psHash);
     dto.setOwnerBalance(balance);
 
-    double price = priceProvider.getPriceForCoin(dto.getVault(), dto.getBlock(), network);
+    double price = priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
     dto.setOwnerBalanceUsd(balance * price);
     return true;
   }

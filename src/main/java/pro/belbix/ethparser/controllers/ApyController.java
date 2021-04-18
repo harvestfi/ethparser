@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,8 +25,10 @@ public class ApyController {
     }
 
     @GetMapping(value = "/average/{pool}")
-    public RestResponse psApyAverage(@PathVariable("pool") String pool,
-                                     @RequestParam(value = "days", required = false) String days
+    public RestResponse psApyAverage(
+        @PathVariable("pool") String pool,
+        @RequestParam(value = "days", required = false) String days,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         int daysI = 7;
         if (days != null) {
@@ -36,7 +40,8 @@ public class ApyController {
             }
         }
         try {
-            return RestResponse.ok(String.format("%.8f", apyService.averageApyForPool(pool, daysI)));
+            return RestResponse.ok(String.format("%.8f",
+                apyService.averageApyForPool(pool, daysI, network)));
         } catch (Exception e) {
             log.error("Error get average apy for " + pool + " with days " + days);
             return RestResponse.error("Server error during calculation average apy");

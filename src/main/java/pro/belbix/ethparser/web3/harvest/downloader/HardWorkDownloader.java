@@ -1,8 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_CONTROLLER;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -11,11 +10,11 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopUtils;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @SuppressWarnings("rawtypes")
@@ -25,7 +24,7 @@ public class HardWorkDownloader {
   private final Web3Functions web3Functions;
   private final HardWorkDbService hardWorkDbService;
   private final HardWorkParser hardWorkParser;
-  private final PriceProvider priceProvider;
+  private final AppProperties appProperties;
 
   @Value("${hardwork-download.from:}")
   private Integer from;
@@ -34,11 +33,12 @@ public class HardWorkDownloader {
 
   public HardWorkDownloader(Web3Functions web3Functions,
       HardWorkDbService hardWorkDbService,
-      HardWorkParser hardWorkParser, PriceProvider priceProvider) {
+      HardWorkParser hardWorkParser,
+      AppProperties appProperties) {
     this.web3Functions = web3Functions;
     this.hardWorkDbService = hardWorkDbService;
     this.hardWorkParser = hardWorkParser;
-    this.priceProvider = priceProvider;
+    this.appProperties = appProperties;
   }
 
   public void start() {
@@ -49,14 +49,16 @@ public class HardWorkDownloader {
 
   private void parse(Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(ETH_CONTROLLER), start, end, ETH_NETWORK);
+        .fetchContractLogs(singletonList(CONTROLLERS.get(appProperties.getNetwork())),
+            start, end, appProperties.getNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;
     }
     for (LogResult logResult : logResults) {
       try {
-        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResult.get());
+        HardWorkDTO dto = hardWorkParser
+            .parseLog((Log) logResult.get(), appProperties.getNetwork());
         if (dto != null) {
           hardWorkDbService.save(dto);
         }
