@@ -63,7 +63,6 @@ jobs:
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest
-          -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
       - name: Generate JaCoCo Badge
