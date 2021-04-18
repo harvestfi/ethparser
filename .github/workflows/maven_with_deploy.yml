@@ -6,8 +6,7 @@ name: Java CICD with Maven
 on:
   push:
     branches:
-      - master
-      - 'release-**'
+      - 'release-*'
 
 jobs:
   # Wait for up to a minute for previous run to complete, abort if not done by then
@@ -95,11 +94,11 @@ jobs:
         with: 
           ssh_private_key: ${{ secrets.SSH_KEY }}
             
-            #- name: Deploy to BSC server
-            #  run: |
-            #    export SERVER=ethparser_bsc
-            #    rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-            #    ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
+      - name: Deploy to BSC server
+        run: |
+          export SERVER=ethparser_bsc
+          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
 
       - name: Deploy to ETH server
         run: |
