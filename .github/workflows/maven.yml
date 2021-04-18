@@ -85,16 +85,3 @@ jobs:
       #   with:
       #     name: jacoco-report
       #     path: target/site/jacoco/
-      
-      - name: Prepare deploy to server
-        uses: hughcube/deploy-action@1.0.0
-        with: 
-          ssh_private_key: ${{ secrets.SSH_KEY }}
-            
-      - name: Deploy to server
-        run: |
-          mkdir -p test
-          date > test/test
-          export SERVER=ethparser_bsc
-          rsync -azv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" test/ ${{secrets.SSH_USER}}@$SERVER:./test
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "cat ./test/test"
