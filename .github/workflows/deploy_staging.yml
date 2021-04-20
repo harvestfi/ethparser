@@ -35,7 +35,7 @@ jobs:
         id: extract_branch
 
       - name: Download aftifact
-        uses: actions/download-aftifact@v2.0.9
+        uses: actions/download-aftifact@v2
         with:
           name: ${{ steps.extract_branch.outputs.branch }}
 
