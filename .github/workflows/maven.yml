@@ -66,6 +66,7 @@ jobs:
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest
+          -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
       - name: Generate JaCoCo Badge
@@ -94,7 +95,9 @@ jobs:
           path: target/site/jacoco/
 
       - name: Upload Artifact
+        env:
+          branch: ${{ format('release-{}',${GITHUB_REF##*/}) }}
         uses: actions/upload-artifact@v2
         with:
-          name: release-${GITHUB_REF##*/}
+          name: ${{ env.branch }}
           path: dist/
