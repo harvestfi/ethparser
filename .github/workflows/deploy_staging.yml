@@ -39,6 +39,40 @@ jobs:
         with:
           name: ${{ steps.extract_branch.outputs.branch }}
 
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          # Optional, GitHub token
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          # Required, workflow file name or ID
+          workflow: maven.yml
+          # Optional, the status or conclusion of a completed workflow to search for
+          # Can be one of a workflow conclusion::
+          # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
+          # Or a workflow status:
+          # "completed", "in_progress", "queued"
+          # Default: "completed,success"
+          workflow_conclusion: "completed,success"
+          # Optional, will get head commit SHA
+          #pr: ${{github.event.pull_request.number}}
+          # Optional, no need to specify if PR is
+          #commit: ${{github.event.pull_request.head.sha}}
+          # Optional, will use the branch
+          branch: ${{ steps.extract_branch.outputs.branch }}
+          # Optional, will use specified workflow run
+          #run_id: 1122334455
+          # Optional, run number from the workflow
+          #run_number: 34
+          # Optional, uploaded artifact name,
+          # will download all artifacts if not specified
+          # and extract them in respective subdirectories
+          # https://github.com/actions/download-artifact#download-all-artifacts
+          #name: artifact_name
+          # Optional, directory where to extract artifact
+          #path: extract_here
+          # Optional, defaults to current repo
+          #repo: ${{github.repository}}
+
       - name: Display structure of downloaded files
         run: ls -R
 
