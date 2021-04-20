@@ -94,10 +94,13 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
 
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
+        id: extract_branch
+      
       - name: Upload Artifact
-        env:
-          branch: ${{ format('release-{}',${GITHUB_REF##*/}) }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.branch }}
+          name: ${{ steps.extract_branch.outputs.branch }}
           path: dist/
