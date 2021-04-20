@@ -34,11 +34,6 @@ jobs:
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
         id: extract_branch
 
-      - name: Download aftifact
-        uses: actions/download-aftifact@v2
-        with:
-          name: ${{ steps.extract_branch.outputs.branch }}
-
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
