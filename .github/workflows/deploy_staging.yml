@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - 'release-*'
+  workflow_dispatch:
 
 jobs:
   # Wait for up to a minute for previous run to complete, abort if not done by then
