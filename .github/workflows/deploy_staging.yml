@@ -64,7 +64,7 @@ jobs:
           # https://github.com/actions/download-artifact#download-all-artifacts
           name: dist
           # Optional, directory where to extract artifact
-          #path: extract_here
+          path: dist
           # Optional, defaults to current repo
           #repo: ${{github.repository}}
 
