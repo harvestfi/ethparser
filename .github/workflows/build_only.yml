@@ -1,0 +1,47 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:
+
+jobs:
+  # Wait for up to a minute for previous run to complete, abort if not done by then
+  pre-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - name: 'Block Concurrent Executions'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 60
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 1.11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
+
+      - name: Build with Maven
+        run: >
+          mvn
+          -Dethparser.web3Url="${{secrets.ETH_WEB3}}"
+          -Dethparser.etherscanApiKey=${{secrets.ETHERSCAN_TOKEN}}
+          -Dethparser.web3BscUrl="${{secrets.BSC_WEB3}}"
+          -Dethparser.bscscanApiKey=${{secrets.BSCSCAN_TOKEN}}
+          -Dmaven.test.skip=true
+          -B package -ff -T 1 --file pom.xml
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/

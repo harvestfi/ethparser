@@ -6,7 +6,6 @@ name: Deploy to staging
 on:
   push:
     branches:
-      - master
       - 'release-*'
 
 jobs:
@@ -49,7 +48,7 @@ jobs:
           # Default: "completed,success"
           workflow_conclusion: "completed,success"
           # Optional, will get head commit SHA
-          #commit: ${{github.event.pull_request.head.sha}}
+          commit: ${{github.event.pull_request.head.sha}}
           # Optional, no need to specify if PR is
           #pr: ${{github.event.pull_request.number}}
           # Optional, will use the branch
@@ -68,9 +67,6 @@ jobs:
           # Optional, defaults to current repo
           #repo: ${{github.repository}}
 
-      - name: Display structure of downloaded files
-        run: ls -R
-
       - name: Prepare deploy to server
         uses: hughcube/deploy-action@1.0.0
         with: 
@@ -80,10 +76,10 @@ jobs:
         run: |
           export SERVER=ethparser_bsc
           rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "echo /opt/ethparser/deploy.sh"
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
 
-          #- name: Deploy to ETH server
-          #  run: |
-          #    export SERVER=ethparser_eth
-          #    rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-          #    ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
+      - name: Deploy to ETH server
+        run: |
+          export SERVER=ethparser_eth
+          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
