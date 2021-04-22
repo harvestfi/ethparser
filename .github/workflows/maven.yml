@@ -22,6 +22,7 @@ jobs:
 
       # Get source code diff
       - uses: technote-space/get-diff-action@v4
+        id: git-diff
         with:
           PATTERNS: |
             +src/**
@@ -31,7 +32,7 @@ jobs:
   build:
 
     # Run only if there are differences in the source code
-    if: env.GIT_DIFF
+    if: steps.git-diff.outputs.diff
 
     runs-on: ubuntu-latest
 
