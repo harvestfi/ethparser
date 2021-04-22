@@ -111,6 +111,7 @@ jobs:
 
   deploy:
     
+    needs: [pre-ci, build]
     # Run only on push
     if: ${{ github.event_name == 'push' }}
 
