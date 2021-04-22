@@ -1,0 +1,86 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Deploy to staging
+
+on:
+  push:
+    branches:
+      - 'release-*'
+  workflow_dispatch:
+
+jobs:
+  # Wait for up to a minute for previous run to complete, abort if not done by then
+  pre-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - name: 'Block Concurrent Executions'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 60
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
+        id: extract_branch
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          # Optional, GitHub token
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          # Required, workflow file name or ID
+          workflow: maven.yml
+          # Optional, the status or conclusion of a completed workflow to search for
+          # Can be one of a workflow conclusion::
+          # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
+          # Or a workflow status:
+          # "completed", "in_progress", "queued"
+          # Default: "completed,success"
+          workflow_conclusion: "completed,success"
+          # Optional, will get head commit SHA
+          commit: ${{github.event.pull_request.head.sha}}
+          # Optional, no need to specify if PR is
+          #pr: ${{github.event.pull_request.number}}
+          # Optional, will use the branch
+          branch: ${{ steps.extract_branch.outputs.branch }}
+          # Optional, will use specified workflow run
+          #run_id: 1122334455
+          # Optional, run number from the workflow
+          #run_number: 34
+          # Optional, uploaded artifact name,
+          # will download all artifacts if not specified
+          # and extract them in respective subdirectories
+          # https://github.com/actions/download-artifact#download-all-artifacts
+          name: dist
+          # Optional, directory where to extract artifact
+          path: dist
+          # Optional, defaults to current repo
+          #repo: ${{github.repository}}
+
+      - name: Prepare deploy to server
+        uses: hughcube/deploy-action@1.0.0
+        with: 
+          ssh_private_key: ${{ secrets.SSH_KEY }}
+            
+      - name: Deploy to BSC server
+        run: |
+          export SERVER=ethparser_bsc
+          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
+
+      - name: Deploy to ETH server
+        run: |
+          export SERVER=ethparser_eth
+          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
+          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
