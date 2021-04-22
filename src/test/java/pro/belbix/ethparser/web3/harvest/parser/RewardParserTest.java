@@ -39,6 +39,7 @@ public class RewardParserTest {
     @BeforeEach
     public void setUp() {
         contractLoader.load();
+        rewardParser.setWaitNewBlock(false);
     }
 
     @Test

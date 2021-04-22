@@ -49,6 +49,7 @@ public class RewardParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final Web3Functions web3Functions;
   private Instant lastTx = Instant.now();
+  private boolean waitNewBlock = true;
 
   public RewardParser(
       FunctionsUtils functionsUtils,
@@ -111,6 +112,15 @@ public class RewardParser implements Web3Parser {
       return null;
     }
 
+    // TODO remove when we will have our own node
+    if (!notWaitNewBlock.contains(appProperties.getStartUtil())
+        && waitNewBlock
+        && tx.getBlock().longValue() > ethBlockService.getLastBlock(network)
+    ) {
+      log.info("Wait new block for correct parsing rewards");
+      Thread.sleep(60 * 1000 * 5); //wait until new block created
+    }
+
     long block = tx.getBlock().longValue();
     String poolAddress = tx.getVault().getValue();
     long periodFinish = functionsUtils
@@ -166,6 +176,10 @@ public class RewardParser implements Web3Parser {
 
   private static ContractUtils cu(String network) {
     return ContractUtils.getInstance(network);
+  }
+
+  public void setWaitNewBlock(boolean waitNewBlock) {
+    this.waitNewBlock = waitNewBlock;
   }
 
   @Override
