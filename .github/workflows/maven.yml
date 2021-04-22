@@ -32,7 +32,7 @@ jobs:
   build:
 
     # Run only if there are differences in the source code
-    if: steps.git-diff.outputs.diff
+    if: pre-ci.steps.git-diff.outputs.diff
 
     runs-on: ubuntu-latest
 
