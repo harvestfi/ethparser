@@ -26,6 +26,11 @@ public class ContractConstants {
       BSC_NETWORK, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()
   );
 
+  public final static Map<String, String> NOTIFY_HELPER = Map.of(
+      ETH_NETWORK, "0xe20c31e3d08027f5aface84a3a46b7b3b165053c".toLowerCase(),
+      BSC_NETWORK, "0xf71042c88458ff1702c3870f62f4c764712cc9f0".toLowerCase()
+  );
+
   public final static Map<String, Tuple2<Long, String>> ORACLES = Map.of(
       ETH_NETWORK,
       new Tuple2<>(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),

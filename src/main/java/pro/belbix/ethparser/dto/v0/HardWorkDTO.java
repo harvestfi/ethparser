@@ -33,6 +33,9 @@ public class HardWorkDTO implements DtoI {
   // don't use it, share price doesn't change for AutoStake strats
   // keep for compatibility and statistic
   private double shareChange;
+  /**
+   * strategy + ps sum of earns
+   */
   private double fullRewardUsd;
   private double fullRewardUsdTotal;
   private double tvl;
@@ -42,6 +45,9 @@ public class HardWorkDTO implements DtoI {
   private double perc;
   private double apr;
   private double weeklyProfit;
+  /**
+   * {@link #fullRewardUsd} sum of all vaults for the last week
+   */
   private double weeklyAllProfit;
   private double psTvlUsd;
   private double psApr;
