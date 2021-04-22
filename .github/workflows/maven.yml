@@ -10,6 +10,8 @@ jobs:
   pre-ci:
     runs-on: ubuntu-latest
     timeout-minutes: 100
+    outputs:
+      diff: ${{ steps.git-diff.outputs.diff }}
     steps:
       - name: 'Block Concurrent Executions'
         uses: softprops/turnstyle@v1
@@ -31,8 +33,9 @@ jobs:
           
   build:
 
+    needs: pre-ci
     # Run only if there are differences in the source code
-    if: pre-ci.steps.git-diff.outputs.diff
+    if: needs.pre-ci.outputs.diff
 
     runs-on: ubuntu-latest
 
