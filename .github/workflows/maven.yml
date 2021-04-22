@@ -112,8 +112,8 @@ jobs:
   deploy:
     
     needs: [pre-ci, build]
-    # Run only on push
-    if: ${{ github.event_name == 'push' }}
+    # Run only on push, but after pre-ci and build
+    if: ${{ always() && github.event_name == 'push' }}
 
     runs-on: ubuntu-latest
     
