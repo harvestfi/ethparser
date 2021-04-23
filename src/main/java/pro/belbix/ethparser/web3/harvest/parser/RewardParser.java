@@ -106,16 +106,17 @@ public class RewardParser implements Web3Parser {
     }
 
     Transaction transaction = web3Functions.findTransaction(tx.getHash(), network);
+    int isWeeklyReward = 1;
     if (transaction == null ||
         !NOTIFY_HELPER.get(network).equalsIgnoreCase(transaction.getTo())) {
-      log.info("Not weekly reward");
-      return null;
+      isWeeklyReward = 0;
     }
 
     // TODO remove when we will have our own node
     if (!notWaitNewBlock.contains(appProperties.getStartUtil())
         && waitNewBlock
         && tx.getBlock().longValue() > ethBlockService.getLastBlock(network)
+        && isWeeklyReward == 1
     ) {
       log.info("Wait new block for correct parsing rewards");
       Thread.sleep(60 * 1000 * 5); //wait until new block created
@@ -170,6 +171,7 @@ public class RewardParser implements Web3Parser {
     dto.setReward(rewardsForPeriod);
     dto.setPeriodFinish(periodFinish);
     dto.setFarmBalance(rewardBalance);
+    dto.setIsWeeklyReward(isWeeklyReward);
     log.info("Parsed " + dto);
     return dto;
   }

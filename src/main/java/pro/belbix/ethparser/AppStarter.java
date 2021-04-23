@@ -3,6 +3,7 @@ package pro.belbix.ethparser;
 import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createImportantEventsDTO;
+import static pro.belbix.ethparser.utils.MockUtils.createPriceDTO;
 import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.DEPLOYER_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
@@ -149,6 +150,7 @@ public class AppStarter {
             ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, createHarvestDTO(count));
             ws.send(HARDWORK_TOPIC_NAME, createHardWorkDTO(count));
             ws.send(IMPORTANT_EVENTS_TOPIC_NAME, createImportantEventsDTO(count));
+            ws.send(PRICES_TOPIC_NAME, createPriceDTO(count));
             log.info("Msg sent " + currentCount);
             count++;
             try {

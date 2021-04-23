@@ -43,7 +43,8 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         + "       last_value(tvl) over w           as tvl, "
         + "       last_value(farm_balance) over w  as farm_balance, "
         + "       last_value(weekly_apy) over w    as weekly_apy, "
-        + "       last_value(period_finish) over w as period_finish "
+        + "       last_value(period_finish) over w as period_finish, "
+        + "       last_value(is_weekly_reward) over w as is_weekly_reward "
         + " "
         + "from rewards where network = :network "
         + "    window w as (PARTITION BY vault order by block_date desc)")

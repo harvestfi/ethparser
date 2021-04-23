@@ -27,5 +27,6 @@ public class RewardDTO implements DtoI {
   private double weeklyApy;
   private double tvl;
   private double farmBalance;
+  private int isWeeklyReward;
 
 }
