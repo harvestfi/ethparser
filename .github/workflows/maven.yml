@@ -28,6 +28,7 @@ jobs:
         with:
           PATTERNS: |
             +src/**/*.java
+            +**/*.yml
           FILES: |
             pom.xml
           
