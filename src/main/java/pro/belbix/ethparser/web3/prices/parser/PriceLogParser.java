@@ -109,6 +109,7 @@ public class PriceLogParser implements Web3Parser {
     boolean keyCoinFirst = checkAndFillCoins(tx, dto, network);
     boolean buy = isBuy(tx, keyCoinFirst);
     dto.setSource(sourceName);
+    dto.setSourceAddress(tx.getSource());
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBuy(buy ? 1 : 0);
@@ -120,7 +121,7 @@ public class PriceLogParser implements Web3Parser {
 
     fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
 
-    if (appProperties.isSkipSimilarPrices() && skipSimilar(dto, network)) {
+    if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
       return null;
     }
 
@@ -155,7 +156,7 @@ public class PriceLogParser implements Web3Parser {
     dto.setLpToken1Pooled(lpPooled.component2());
   }
 
-  private boolean skipSimilar(PriceDTO dto, String network) {
+  private boolean skipSimilar(PriceDTO dto) {
     PriceDTO lastPrice = lastPrices.get(dto.getToken());
     if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
       return true;
@@ -198,11 +199,15 @@ public class PriceLogParser implements Web3Parser {
 
     if (tokensNames.component1().equals(keyCoinName)) {
       dto.setToken(tokensNames.component1());
+      dto.setTokenAddress(tokensAdr.component1());
       dto.setOtherToken(tokensNames.component2());
+      dto.setOtherTokenAddress(tokensAdr.component2());
       return true;
     } else if (tokensNames.component2().equals(keyCoinName)) {
       dto.setToken(tokensNames.component2());
+      dto.setTokenAddress(tokensAdr.component2());
       dto.setOtherToken(tokensNames.component1());
+      dto.setOtherTokenAddress(tokensAdr.component1());
       return false;
     } else {
       throw new IllegalStateException("Swap doesn't contains key coin " + keyCoinName + " " + tx);
