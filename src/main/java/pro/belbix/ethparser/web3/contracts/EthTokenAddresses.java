@@ -110,7 +110,7 @@ class EthTokenAddresses {
       new TokenContract(10151366, "CRV_RENWBTC", "0x49849C98ae39Fff122806C06791Fa73784FB3675"),
       new TokenContract(11869798, "MCAT20", "0xf961a1fa7c781ecd23689fe1d0b7f3b6cbb2f972")
           .addLp(0, "UNI_LP_MCAT20_ETH"),
-      new TokenContract(11832535, "MEME20_ETH", "0x60acd58d00b2bcc9a8924fdaa54a2f7c0793b3b2")
+      new TokenContract(11832535, "MEME20", "0x60acd58d00b2bcc9a8924fdaa54a2f7c0793b3b2")
           .addLp(0, "UNI_LP_MEME20_ETH"),
       new TokenContract(12007263, "GPUNK20", "0xcCcBF11AC3030ee8CD7a04CFE15a3718df6dD030")
           .addLp(0, "UNI_LP_GPUNK20_ETH"),

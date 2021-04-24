@@ -4,7 +4,7 @@ import java.util.function.BiConsumer;
 
 public class LoopUtils {
 
-    private static final int LOOP_BATCH = 1000;
+    private static final int LOOP_BATCH = 5000;
 
     public static void handleLoop(Integer from, Integer to, BiConsumer<Integer, Integer> handler) {
         while (true) {

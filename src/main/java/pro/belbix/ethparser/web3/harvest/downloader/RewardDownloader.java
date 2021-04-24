@@ -34,6 +34,8 @@ public class RewardDownloader {
 
   @Value("${reward-download.contract:}")
   private String contractName;
+  @Value("${reward-download.vaults:}")
+  private String[] vaultNames;
   @Value("${reward-download.exclude:}")
   private String[] exclude;
   @Value("${reward-download.from:}")
@@ -52,24 +54,32 @@ public class RewardDownloader {
   }
 
   public void start() {
-    if (!Strings.isBlank(contractName)) {
-      String adr = ContractUtils.getInstance(appProperties.getNetwork())
+    ContractUtils cu = ContractUtils.getInstance(appProperties.getNetwork());
+    if (vaultNames != null) {
+      handleLoop(from, to, (from, end) -> parseContracts(from, end,
+          Arrays.stream(vaultNames)
+              .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
+              .map(p -> p.getContract().getName())
+              .collect(Collectors.toList())
+          )
+      );
+    } else if (!Strings.isBlank(contractName)) {
+      log.info("Start parse rewards for " + contractName);
+      String adr = cu
           .getAddressByName(contractName, ContractType.POOL)
-          .orElseThrow();
+          .orElseThrow(() -> new IllegalStateException("Not found pool for " + contractName));
       handleLoop(from, to, (from, end) -> parseContracts(from, end, singletonList(adr)));
     } else {
       Set<String> excludeSet = new HashSet<>();
       if (exclude != null && exclude.length != 0) {
         excludeSet.addAll(new HashSet<>(Arrays.asList(exclude)));
       }
-
-      log.info("Start parse rewards for " + contractName);
       handleLoop(from, to, (from, end) -> parseContracts(from, end,
-          ContractUtils.getInstance(appProperties.getNetwork())
+          cu
               .getAllPools().stream()
               .map(v -> v.getContract().getAddress())
               .filter(c -> !excludeSet.contains(
-                  ContractUtils.getInstance(appProperties.getNetwork()).getNameByAddress(c)
+                  cu.getNameByAddress(c)
                       .orElseThrow()))
               .collect(Collectors.toList())));
     }
@@ -114,5 +124,9 @@ public class RewardDownloader {
 
   public void setTo(Integer to) {
     this.to = to;
+  }
+
+  public void setVaultNames(String[] vaultNames) {
+    this.vaultNames = vaultNames;
   }
 }

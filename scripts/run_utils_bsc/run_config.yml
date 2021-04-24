@@ -1,6 +1,6 @@
 ethparser:
-  startUtil: reward-download
-  overrideDuplicates: true
+  startUtil: new-strategy-download
+  overrideDuplicates: false
 
 uniswap-download:
   contract:
@@ -47,3 +47,7 @@ block-download:
   from: 10765094
 deployer-download:
   from: 5993575
+new-strategy-download:
+  vaults: BELT_BNB, BELT_VENUS, SWIRL_BNB, SPACE_BNB, SPACE_BUSD, ICE_BNB, POPSICLE_ICE, EPS_FUSDT, EPS_BTC
+  from: 6620000
+  to: 7000000

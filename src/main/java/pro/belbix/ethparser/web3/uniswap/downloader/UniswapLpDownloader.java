@@ -4,8 +4,7 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
@@ -20,9 +19,9 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
 @SuppressWarnings("rawtypes")
 @Service
+@Log4j2
 public class UniswapLpDownloader {
   private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
-  private static final Logger logger = LoggerFactory.getLogger(UniswapLpDownloader.class);
   private final Web3Functions web3Functions;
   private final UniswapDbService saveHarvestDTO;
   private final UniswapLpLogParser uniswapLpLogParser;
@@ -54,7 +53,7 @@ public class UniswapLpDownloader {
         to, ETH_NETWORK
     );
     if (logResults == null) {
-      logger.error("Log results is null");
+      log.error("Log results is null");
       return;
     }
     for (LogResult logResult : logResults) {
@@ -65,7 +64,7 @@ public class UniswapLpDownloader {
           saveHarvestDTO.saveUniswapDto(dto);
         }
       } catch (Exception e) {
-        logger.info("Downloader error  " + dto, e);
+        log.info("Downloader error  " + dto, e);
       }
     }
   }

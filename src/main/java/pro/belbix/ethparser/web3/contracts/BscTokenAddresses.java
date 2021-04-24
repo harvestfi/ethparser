@@ -43,6 +43,16 @@ public class BscTokenAddresses {
           .addLp(0, "ONEINCH_ONEINCH_RENBTC"),
       new TokenContract(5491276, "bFARM", "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"),
       new TokenContract(5935718, "EPS3", "0xaF4dE8E872131AE328Ce21D909C74705d3Aaf452"),
-      new TokenContract(5936650, "EPS", "0xA7f552078dcC247C2684336020c03648500C6d9F")
+      new TokenContract(5936650, "EPS", "0xA7f552078dcC247C2684336020c03648500C6d9F"),
+      new TokenContract(5246875, "BELT", "0xE0e514c71282b6f4e823703a39374Cf58dc3eA4f")
+          .addLp(0, "PC_WBNB_BELT"),
+      new TokenContract(5797193, "SWIRL", "0x52d86850bc8207b520340b7e39cdaf22561b9e56")
+          .addLp(0, "PC_WBNB_SWIRL"),
+      new TokenContract(5907924, "SPACE", "0x0abd3E3502c15ec252f90F64341cbA74a24fba06")
+          .addLp(0, "PC_WBNB_SPACE"),
+      new TokenContract(6046882, "ICE", "0xf16e81dce15B08F326220742020379B855B87DF9")
+          .addLp(0, "PC_WBNB_ICE"),
+      new TokenContract(6310794, "EPS_FUSDT", "0x373410A99B64B089DFE16F1088526D399252dacE"),
+      new TokenContract(6570993, "EPS_BTC", "0x2a435Ecb3fcC0E316492Dc1cdd62d0F189be5640")
   );
 }
