@@ -65,6 +65,7 @@ public class PriceProviderAutoTest {
       // unstable prices on coingecko
       "DSD",
       "ESD",
+      "BSGS",
       "BSG"
   );
 
