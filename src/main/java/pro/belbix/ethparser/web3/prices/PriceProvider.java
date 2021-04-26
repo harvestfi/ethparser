@@ -52,7 +52,7 @@ public class PriceProvider {
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
-      log.warn("Saved price not found for " + lpName + " at block " + block);
+      log.debug("Saved price not found for " + lpName + " at block " + block);
       return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
     }
     if (priceDTO.getLpTotalSupply() == null
@@ -178,7 +178,7 @@ public class PriceProvider {
         .map(l -> l.get(0))
         .orElse(null);
     if (priceDTO == null) {
-      log.info("Saved price not found for " + address + " at block " + block);
+      log.debug("Saved price not found for " + address + " at block " + block);
       return getPriceForCoinFromEth(address, block, network);
     }
     if (block - priceDTO.getBlock() > 1000) {

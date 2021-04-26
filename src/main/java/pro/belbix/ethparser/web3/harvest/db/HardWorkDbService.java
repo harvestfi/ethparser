@@ -71,7 +71,7 @@ public class HardWorkDbService {
         .ifPresentOrElse(harvestDTO -> {
           dto.setTvl(harvestDTO.getLastUsdTvl());
           if (dto.getTvl() != 0.0) {
-            dto.setPerc(((dto.getFullRewardUsd() * 0.7) / dto.getTvl()) * 100);
+            dto.setPerc(((dto.getFullRewardUsd() * (1 - dto.getProfitSharingRate())) / dto.getTvl()) * 100);
           } else {
             dto.setPerc(0.0);
           }

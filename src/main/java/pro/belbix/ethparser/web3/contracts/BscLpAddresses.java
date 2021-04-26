@@ -29,7 +29,11 @@ public class BscLpAddresses {
           "0xe3f6509818ccf031370bB4cb398EB37C21622ac4"),
       new LpContract(3411917, "PC_BDO_WBNB", "", "0x74690f829fec83ea424ee1F1654041b2491A7bE9"),
       new LpContract(4739700, "PC_WBNB_EGG", "", "0xd1B59D11316E87C3a0A069E80F590BA35cD8D8D3"),
-      new LpContract(5937786, "PC_EPS_BNB", "", "0xf9045866e7b372def1eff3712ce55fac1a98daf0")
+      new LpContract(5937786, "PC_EPS_BNB", "", "0xf9045866e7b372def1eff3712ce55fac1a98daf0"),
+      new LpContract(5247858, "PC_WBNB_BELT", "BELT", "0x83b92d283cd279ff2e057bd86a95bdefffed6faa"),
+      new LpContract(5798918, "PC_WBNB_SWIRL", "SWIRL", "0x135AeDCFb35b0b5dCf61Db7891a21253452Eb970"),
+      new LpContract(5908129, "PC_WBNB_SPACE", "SPACE", "0x78D9a0c50F6484291b4122f61888Bb9EE71879Ff"),
+      new LpContract(6114220, "PC_WBNB_ICE", "ICE", "0xFE3171B9c20d002376D4B0097207EDf54b02EA3B")
   );
 
 }

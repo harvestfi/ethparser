@@ -2,9 +2,10 @@ package pro.belbix.ethparser.web3.harvest.downloader;
 
 import static java.util.Collections.singletonList;
 
+import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
@@ -21,8 +22,9 @@ import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 
 @SuppressWarnings("rawtypes")
 @Service
+@Log4j2
 public class VaultActionsDownloader {
-  private static final Logger logger = LoggerFactory.getLogger(VaultActionsDownloader.class);
+
   private final Web3Functions web3Functions;
   private final VaultActionsDBService vaultActionsDBService;
   private final VaultActionsParser vaultActionsParser;
@@ -31,6 +33,8 @@ public class VaultActionsDownloader {
 
   @Value("${harvest-download.contract:}")
   private String vaultName;
+  @Value("${harvest-download.contracts:}")
+  private String[] contracts;
   @Value("${harvest-download.from:}")
   private Integer from;
   @Value("${harvest-download.to:}")
@@ -49,17 +53,33 @@ public class VaultActionsDownloader {
   }
 
   public void start() {
-    String vaultAddress = ContractUtils.getInstance(appProperties.getNetwork())
-        .getAddressByName(vaultName, ContractType.VAULT)
-        .orElseThrow(() -> new IllegalStateException("Not found address for " + vaultName));
-    LoopUtils.handleLoop(from, to, (start, end) -> parse(vaultAddress, start, end));
+    if (contracts != null) {
+      LoopUtils
+          .handleLoop(from, to, (start, end) ->
+              parse(Arrays.stream(contracts)
+                      .map(this::nameToAddress)
+                      .collect(Collectors.toList()),
+                  start, end));
+    } else {
+      log.info("Start load vault actions for {} on network {} from {} to {}",
+          vaultName, appProperties.getNetwork(), from, to);
+      String vaultAddress = nameToAddress(vaultName);
+      LoopUtils
+          .handleLoop(from, to, (start, end) -> parse(singletonList(vaultAddress), start, end));
+    }
   }
 
-  private void parse(String vaultHash, Integer start, Integer end) {
+  private String nameToAddress(String name) {
+    return ContractUtils.getInstance(appProperties.getNetwork())
+        .getAddressByName(name, ContractType.VAULT)
+        .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
+  }
+
+  private void parse(List<String> addresses, Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(vaultHash), start, end, appProperties.getNetwork());
+        .fetchContractLogs(addresses, start, end, appProperties.getNetwork());
     if (logResults.isEmpty()) {
-      logger.info("Empty log {} {} {}", start, end, vaultHash);
+      log.info("Empty log {} {} {}", start, end, addresses);
       return;
     }
     for (LogResult logResult : logResults) {
@@ -71,7 +91,7 @@ public class VaultActionsDownloader {
           vaultActionsDBService.saveHarvestDTO(dto);
         }
       } catch (Exception e) {
-        logger.error("error with " + logResult.get(), e);
+        log.error("error with " + logResult.get(), e);
       }
     }
   }
@@ -86,5 +106,9 @@ public class VaultActionsDownloader {
 
   public void setTo(Integer to) {
     this.to = to;
+  }
+
+  public void setContracts(String[] contracts) {
+    this.contracts = contracts;
   }
 }

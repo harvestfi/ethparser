@@ -8,9 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
@@ -25,9 +24,9 @@ import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 
 @Service
 @SuppressWarnings("rawtypes")
+@Log4j2
 public class RewardDownloader {
 
-  private static final Logger logger = LoggerFactory.getLogger(HardWorkDownloader.class);
   private final Web3Functions web3Functions;
   private final RewardParser rewardParser;
   private final RewardsDBService rewardsDBService;
@@ -35,6 +34,8 @@ public class RewardDownloader {
 
   @Value("${reward-download.contract:}")
   private String contractName;
+  @Value("${reward-download.vaults:}")
+  private String[] vaultNames;
   @Value("${reward-download.exclude:}")
   private String[] exclude;
   @Value("${reward-download.from:}")
@@ -53,37 +54,46 @@ public class RewardDownloader {
   }
 
   public void start() {
-    if (!Strings.isBlank(contractName)) {
-      String adr = ContractUtils.getInstance(appProperties.getNetwork())
+    ContractUtils cu = ContractUtils.getInstance(appProperties.getNetwork());
+    if (vaultNames != null) {
+      handleLoop(from, to, (from, end) -> parseContracts(from, end,
+          Arrays.stream(vaultNames)
+              .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
+              .map(p -> p.getContract().getName())
+              .collect(Collectors.toList())
+          )
+      );
+    } else if (!Strings.isBlank(contractName)) {
+      log.info("Start parse rewards for " + contractName);
+      String adr = cu
           .getAddressByName(contractName, ContractType.POOL)
-          .orElseThrow();
-      handleLoop(from, to, (from, end) -> parse(from, end, adr));
+          .orElseThrow(() -> new IllegalStateException("Not found pool for " + contractName));
+      handleLoop(from, to, (from, end) -> parseContracts(from, end, singletonList(adr)));
     } else {
       Set<String> excludeSet = new HashSet<>();
       if (exclude != null && exclude.length != 0) {
-        excludeSet = new HashSet<>(Arrays.asList(exclude));
+        excludeSet.addAll(new HashSet<>(Arrays.asList(exclude)));
       }
-      for (String contractAddress : ContractUtils.getInstance(appProperties.getNetwork())
-          .getAllPools().stream()
-          .map(v -> v.getContract().getAddress())
-          .collect(Collectors.toList())) {
-        if (excludeSet.contains(
-            ContractUtils.getInstance(appProperties.getNetwork()).getNameByAddress(contractAddress)
-                .orElseThrow())) {
-          continue;
-        }
-        logger.info("Start parse rewards for " + contractName);
-        handleLoop(from, to, (from, end) -> parse(from, end, contractAddress));
-      }
+      handleLoop(from, to, (from, end) -> parseContracts(from, end,
+          cu
+              .getAllPools().stream()
+              .map(v -> v.getContract().getAddress())
+              .filter(c -> !excludeSet.contains(
+                  cu.getNameByAddress(c)
+                      .orElseThrow()))
+              .collect(Collectors.toList())));
     }
   }
 
-  private void parse(Integer start, Integer end, String contract) {
+  private void parseContracts(Integer start, Integer end, List<String> contracts) {
+    if (contracts.isEmpty()) {
+      throw new IllegalStateException("Empty contracts");
+    }
     List<LogResult> logResults =
         web3Functions.fetchContractLogs(
-            singletonList(contract), start, end, appProperties.getNetwork());
+            contracts, start, end, appProperties.getNetwork());
     if (logResults.isEmpty()) {
-      logger.info("Empty log {} {}", start, end);
+      log.info("Empty log {} {}", start, end);
       return;
     }
     for (LogResult logResult : logResults) {
@@ -93,12 +103,12 @@ public class RewardDownloader {
           try {
             rewardsDBService.saveRewardDTO(dto);
           } catch (Exception e) {
-            logger.error("error with {}", dto, e);
+            log.error("error with {}", dto, e);
             break;
           }
         }
       } catch (Exception e) {
-        logger.error("error with " + logResult.get(), e);
+        log.error("error with " + logResult.get(), e);
         break;
       }
     }
@@ -114,5 +124,9 @@ public class RewardDownloader {
 
   public void setTo(Integer to) {
     this.to = to;
+  }
+
+  public void setVaultNames(String[] vaultNames) {
+    this.vaultNames = vaultNames;
   }
 }

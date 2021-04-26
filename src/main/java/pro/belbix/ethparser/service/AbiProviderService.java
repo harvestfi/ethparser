@@ -113,10 +113,12 @@ public class AbiProviderService {
     long diff = Duration.between(lastRequest, Instant.now()).toMillis();
     if(diff < RATE_TIMEOUT) {
       try {
+        log.info("Wait rate limit " + (RATE_TIMEOUT - diff));
         Thread.sleep(RATE_TIMEOUT - diff);
       } catch (InterruptedException ignored) {
       }
     }
+    lastRequest = Instant.now();
   }
 
   private String getUrl(String network) {

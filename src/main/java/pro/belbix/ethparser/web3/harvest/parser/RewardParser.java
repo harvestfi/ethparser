@@ -1,10 +1,10 @@
 package pro.belbix.ethparser.web3.harvest.parser;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.NOTIFY_HELPER;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -18,16 +18,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -46,6 +47,7 @@ public class RewardParser implements Web3Parser {
   private final RewardsDBService rewardsDBService;
   private final AppProperties appProperties;
   private final ParserInfo parserInfo;
+  private final Web3Functions web3Functions;
   private Instant lastTx = Instant.now();
   private boolean waitNewBlock = true;
 
@@ -55,13 +57,14 @@ public class RewardParser implements Web3Parser {
       EthBlockService ethBlockService,
       RewardsDBService rewardsDBService,
       AppProperties appProperties,
-      ParserInfo parserInfo) {
+      ParserInfo parserInfo, Web3Functions web3Functions) {
     this.functionsUtils = functionsUtils;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.rewardsDBService = rewardsDBService;
     this.appProperties = appProperties;
     this.parserInfo = parserInfo;
+    this.web3Functions = web3Functions;
   }
 
   @Override
@@ -100,6 +103,23 @@ public class RewardParser implements Web3Parser {
     HarvestTx tx = vaultActionsLogDecoder.decode(ethLog);
     if (tx == null || !tx.getMethodName().startsWith("RewardAdded")) {
       return null;
+    }
+
+    Transaction transaction = web3Functions.findTransaction(tx.getHash(), network);
+    int isWeeklyReward = 1;
+    if (transaction == null ||
+        !NOTIFY_HELPER.get(network).equalsIgnoreCase(transaction.getTo())) {
+      isWeeklyReward = 0;
+    }
+
+    // TODO remove when we will have our own node
+    if (!notWaitNewBlock.contains(appProperties.getStartUtil())
+        && waitNewBlock
+        && tx.getBlock().longValue() > ethBlockService.getLastBlock(network)
+        && isWeeklyReward == 1
+    ) {
+      log.info("Wait new block for correct parsing rewards");
+      Thread.sleep(60 * 1000 * 5); //wait until new block created
     }
 
     long block = tx.getBlock().longValue();
@@ -151,16 +171,17 @@ public class RewardParser implements Web3Parser {
     dto.setReward(rewardsForPeriod);
     dto.setPeriodFinish(periodFinish);
     dto.setFarmBalance(rewardBalance);
+    dto.setIsWeeklyReward(isWeeklyReward);
     log.info("Parsed " + dto);
     return dto;
   }
 
-  public void setWaitNewBlock(boolean waitNewBlock) {
-    this.waitNewBlock = waitNewBlock;
-  }
-
   private static ContractUtils cu(String network) {
     return ContractUtils.getInstance(network);
+  }
+
+  public void setWaitNewBlock(boolean waitNewBlock) {
+    this.waitNewBlock = waitNewBlock;
   }
 
   @Override

@@ -34,12 +34,6 @@ public class UniswapRepositoryTest {
     }
 
     @Test
-    public void fetchAmountSum() {
-        assertNotNull(uniswapRepository.fetchAmountSum(
-            0, "0x0d089508d5fcdc92363fe84c84a44738863d9201", limitOne));
-    }
-
-    @Test
     public void fetchAmountSumUsd() {
         assertNotNull(uniswapRepository.fetchAmountSumUsd(
             0, "0x0d089508d5fcdc92363fe84c84a44738863d9201", limitOne));
