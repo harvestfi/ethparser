@@ -51,10 +51,10 @@ abstract class Web3Service {
         new HttpService(
             web3Url,
             new OkHttpClient.Builder()
-                .readTimeout(Duration.of(60, ChronoUnit.SECONDS))
-                .callTimeout(Duration.of(60, ChronoUnit.SECONDS))
-                .writeTimeout(Duration.of(60, ChronoUnit.SECONDS))
-                .connectTimeout(Duration.of(60, ChronoUnit.SECONDS))
+                .readTimeout(Duration.of(30, ChronoUnit.SECONDS))
+                .callTimeout(Duration.of(30, ChronoUnit.SECONDS))
+                .writeTimeout(Duration.of(30, ChronoUnit.SECONDS))
+                .connectTimeout(Duration.of(30, ChronoUnit.SECONDS))
                 .build(),
             false)
     );
