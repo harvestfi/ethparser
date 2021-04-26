@@ -17,7 +17,8 @@ import pro.belbix.ethparser.model.Web3Model;
 @Log4j2
 public class Web3LogFlowable implements Runnable {
 
-  public static final int DEFAULT_BLOCK_TIME = 5 * 1000;
+  public static final int BLOCKS_STEP = 1000;
+  public static final int WAIT_BETWEEN_BLOCKS = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
   private final List<String> addresses;
@@ -51,7 +52,7 @@ public class Web3LogFlowable implements Runnable {
       try {
         currentBlock = web3Functions.fetchCurrentBlock(network);
         if (lastBlock != null && lastBlock.intValue() >= currentBlock.intValue()) {
-          Thread.sleep(DEFAULT_BLOCK_TIME);
+          Thread.sleep(WAIT_BETWEEN_BLOCKS);
           continue;
         }
         lastBlock = currentBlock;
@@ -60,8 +61,8 @@ public class Web3LogFlowable implements Runnable {
           from = to;
         } else {
           int diff = to - from;
-          if (diff > 1000) {
-            to = from + 1000;
+          if (diff > BLOCKS_STEP) {
+            to = from + BLOCKS_STEP;
           }
         }
         //noinspection rawtypes
