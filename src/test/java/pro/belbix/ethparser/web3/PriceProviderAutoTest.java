@@ -37,7 +37,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 public class PriceProviderAutoTest {
 
   // todo create a tolerance for each token
-  private static final Double TOLERANCE_PCT = 0.1; // coingecko the has worst data for some tokens :(
+  private static final Double TOLERANCE_PCT = 0.3; // coingecko the has worst data for some tokens :(
   private static final String CG_URL = "https://api.coingecko.com/api/v3/";
 
   @Autowired
