@@ -28,6 +28,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -53,14 +54,17 @@ public class SimpleContractGenerator {
   private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
   private final Web3Functions web3Functions;
+  private final NetworkProperties networkProperties;
 
   private final Map<String, TreeMap<Long, GeneratedContract>> contracts = new HashMap<>();
 
   public SimpleContractGenerator(AppProperties appProperties, FunctionsUtils functionsUtils,
-      Web3Functions web3Functions) {
+      Web3Functions web3Functions,
+      NetworkProperties networkProperties) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
+    this.networkProperties = networkProperties;
     this.abiProviderService = new AbiProviderService();
   }
 
@@ -110,7 +114,8 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, getAbiProviderKey(network), network);
+        abiProviderService.contractSourceCode(
+            address, networkProperties.get(network).getAbiProviderKey(), network);
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -153,17 +158,6 @@ public class SimpleContractGenerator {
     contract.setProxy(isProxy);
 
     return Optional.of(contract);
-  }
-
-  private String getAbiProviderKey(String network) {
-    switch (network) {
-      case ETH_NETWORK:
-        return appProperties.getEtherscanApiKey();
-      case BSC_NETWORK:
-        return appProperties.getBscscanApiKey();
-      default:
-        throw new IllegalStateException("Unknown network " + network);
-    }
   }
 
   private String resolveAbi(String address, String abi) {

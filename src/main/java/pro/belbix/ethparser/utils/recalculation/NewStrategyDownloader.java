@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.VaultActionsDownloader;
+import pro.belbix.ethparser.utils.download.HardWorkDownloader;
+import pro.belbix.ethparser.utils.download.RewardDownloader;
+import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
 
 @Service
 @Log4j2
@@ -38,7 +38,7 @@ public class NewStrategyDownloader {
 
   public void start() {
     if (vaults == null) {
-      vaults = ContractUtils.getInstance(appProperties.getNetwork())
+      vaults = ContractUtils.getInstance(appProperties.getUtilNetwork())
           .vaultNames().toArray(new String[]{});
     }
     vaultActionsDownloader.setContracts(vaults);

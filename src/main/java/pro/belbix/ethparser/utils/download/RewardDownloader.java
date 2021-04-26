@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
@@ -54,7 +54,7 @@ public class RewardDownloader {
   }
 
   public void start() {
-    ContractUtils cu = ContractUtils.getInstance(appProperties.getNetwork());
+    ContractUtils cu = ContractUtils.getInstance(appProperties.getUtilNetwork());
     if (vaultNames != null) {
       handleLoop(from, to, (from, end) -> parseContracts(from, end,
           Arrays.stream(vaultNames)
@@ -91,14 +91,14 @@ public class RewardDownloader {
     }
     List<LogResult> logResults =
         web3Functions.fetchContractLogs(
-            contracts, start, end, appProperties.getNetwork());
+            contracts, start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;
     }
     for (LogResult logResult : logResults) {
       try {
-        RewardDTO dto = rewardParser.parseLog((Log) logResult.get(), appProperties.getNetwork());
+        RewardDTO dto = rewardParser.parseLog((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           try {
             rewardsDBService.saveRewardDTO(dto);

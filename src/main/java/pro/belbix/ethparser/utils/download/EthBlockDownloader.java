@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.layers.blocks.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -59,11 +59,11 @@ public class EthBlockDownloader {
     private void parseBlockAndSave(long block) {
       Instant timer = Instant.now();
 
-      EthBlock ethBlock = web3Functions.findBlockByNumber(block, true, appProperties.getNetwork());
+      EthBlock ethBlock = web3Functions.findBlockByNumber(block, true, appProperties.getUtilNetwork());
       log.debug("Fetched via web3 {} {}", block,
           Duration.between(timer, Instant.now()).toMillis());
       timer = Instant.now();
-      EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock, appProperties.getNetwork());
+      EthBlockEntity ethBlockEntity = ethBlockParser.parse(ethBlock, appProperties.getUtilNetwork());
       if (ethBlockEntity == null) {
         return;
       }

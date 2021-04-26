@@ -52,11 +52,11 @@ public class TvlRecalculate {
     List<HarvestDTO> harvestDTOList;
     if (from == null) {
       harvestDTOList = harvestRepository
-          .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
+          .findAllByNetworkOrderByBlockDate(appProperties.getUtilNetwork());
     } else {
       harvestDTOList = harvestRepository
           .findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(
-              from, appProperties.getNetwork());
+              from, appProperties.getUtilNetwork());
     }
     int count = 0;
     List<HarvestTvlEntity> tvls = new ArrayList<>();
@@ -75,9 +75,9 @@ public class TvlRecalculate {
 
   private void recalculate() {
     List<HarvestDTO> harvestDTOs = harvestRepository
-        .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
+        .findAllByNetworkOrderByBlockDate(appProperties.getUtilNetwork());
     List<HarvestTvlEntity> harvestTvlEntities =
-        harvestTvlRepository.findAllByNetworkOrderByCalculateTime(appProperties.getNetwork());
+        harvestTvlRepository.findAllByNetworkOrderByCalculateTime(appProperties.getUtilNetwork());
 
     Map<String, HarvestTvlEntity> harvestTvlEntitiesMap = new HashMap<>();
 

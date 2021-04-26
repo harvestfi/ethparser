@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;

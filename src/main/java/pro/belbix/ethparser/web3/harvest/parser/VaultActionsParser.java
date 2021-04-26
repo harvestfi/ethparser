@@ -29,8 +29,9 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
-import pro.belbix.ethparser.model.HarvestTx;
 import pro.belbix.ethparser.model.LpStat;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -56,7 +57,7 @@ public class VaultActionsParser implements Web3Parser {
   private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final VaultActionsDBService vaultActionsDBService;
   private final EthBlockService ethBlockService;
@@ -94,11 +95,14 @@ public class VaultActionsParser implements Web3Parser {
     web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          HarvestDTO dto = parseVaultLog(ethLog, appProperties.getNetwork());
-          handleDto(dto, appProperties.getNetwork());
+          if (ethLog == null) {
+            continue;
+          }
+          HarvestDTO dto = parseVaultLog(ethLog.getValue(), ethLog.getNetwork());
+          handleDto(dto, dto.getNetwork());
         } catch (Exception e) {
           log.error("Can't save " + ethLog, e);
           if (appProperties.isStopOnParseError()) {
@@ -461,10 +465,6 @@ public class VaultActionsParser implements Web3Parser {
   @Override
   public BlockingQueue<DtoI> getOutput() {
     return output;
-  }
-
-  public BlockingQueue<Log> getLogs() {
-    return logs;
   }
 
   @PreDestroy

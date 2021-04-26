@@ -41,7 +41,7 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "    last_value(lp_token1pooled) over w    as lp_token1pooled, "
         + "    last_value(lp_total_supply) over w    as lp_total_supply "
         + "from prices where network = :network"
-        + "    window w as (PARTITION BY source order by block_date desc)")
+        + "    window w as (PARTITION BY source order by block desc)")
     List<PriceDTO> fetchLastPrices(
         @Param("network") String network
     );

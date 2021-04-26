@@ -15,7 +15,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
-import pro.belbix.ethparser.model.TokenTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -36,7 +37,7 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 public class TransferParser implements Web3Parser {
   private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ERC20Decoder erc20Decoder = new ERC20Decoder();
   private final Web3Functions web3Functions;
@@ -72,10 +73,13 @@ public class TransferParser implements Web3Parser {
     web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          TransferDTO dto = parseLog(ethLog);
+          if (ethLog == null) {
+            continue;
+          }
+          TransferDTO dto = parseLog(ethLog.getValue());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = transferDBService.saveDto(dto);

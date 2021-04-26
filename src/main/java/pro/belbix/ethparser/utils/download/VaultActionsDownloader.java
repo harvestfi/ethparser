@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 
@@ -62,7 +62,7 @@ public class VaultActionsDownloader {
                   start, end));
     } else {
       log.info("Start load vault actions for {} on network {} from {} to {}",
-          vaultName, appProperties.getNetwork(), from, to);
+          vaultName, appProperties.getUtilNetwork(), from, to);
       String vaultAddress = nameToAddress(vaultName);
       LoopUtils
           .handleLoop(from, to, (start, end) -> parse(singletonList(vaultAddress), start, end));
@@ -70,14 +70,14 @@ public class VaultActionsDownloader {
   }
 
   private String nameToAddress(String name) {
-    return ContractUtils.getInstance(appProperties.getNetwork())
+    return ContractUtils.getInstance(appProperties.getUtilNetwork())
         .getAddressByName(name, ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
   }
 
   private void parse(List<String> addresses, Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(addresses, start, end, appProperties.getNetwork());
+        .fetchContractLogs(addresses, start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {} {}", start, end, addresses);
       return;
@@ -85,9 +85,9 @@ public class VaultActionsDownloader {
     for (LogResult logResult : logResults) {
       try {
         HarvestDTO dto = vaultActionsParser
-            .parseVaultLog((Log) logResult.get(), appProperties.getNetwork());
+            .parseVaultLog((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
-          harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getNetwork());
+          harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getUtilNetwork());
           vaultActionsDBService.saveHarvestDTO(dto);
         }
       } catch (Exception e) {

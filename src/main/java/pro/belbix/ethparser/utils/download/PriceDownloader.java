@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.prices.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
@@ -47,15 +47,15 @@ public class PriceDownloader {
 
   public void start() {
     if (contractNames.length == 0) {
-      contractNames = PARSABLE_UNI_PAIRS.get(appProperties.getNetwork()).stream()
-          .map(c -> ContractUtils.getInstance(appProperties.getNetwork())
+      contractNames = PARSABLE_UNI_PAIRS.get(appProperties.getUtilNetwork()).stream()
+          .map(c -> ContractUtils.getInstance(appProperties.getUtilNetwork())
               .getNameByAddress(c)
               .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
           .collect(Collectors.toSet())
           .toArray(contractNames);
     }
     for (String contractName : contractNames) {
-      String contractHash = ContractUtils.getInstance(appProperties.getNetwork())
+      String contractHash = ContractUtils.getInstance(appProperties.getUtilNetwork())
           .getAddressByName(contractName, ContractType.UNI_PAIR)
           .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
       LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
@@ -64,7 +64,7 @@ public class PriceDownloader {
 
   private void parse(Integer start, Integer end, String contractName) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(contractName), start, end, appProperties.getNetwork());
+        .fetchContractLogs(singletonList(contractName), start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;
@@ -72,7 +72,7 @@ public class PriceDownloader {
     List<PriceDTO> result = new ArrayList<>();
     for (LogResult logResult : logResults) {
       try {
-        PriceDTO dto = priceLogParser.parse((Log) logResult.get(), appProperties.getNetwork());
+        PriceDTO dto = priceLogParser.parse((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           result.add(dto);
         }

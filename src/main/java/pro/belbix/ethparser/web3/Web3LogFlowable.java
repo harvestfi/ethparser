@@ -12,6 +12,7 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
+import pro.belbix.ethparser.model.Web3Model;
 
 @Log4j2
 public class Web3LogFlowable implements Runnable {
@@ -20,7 +21,7 @@ public class Web3LogFlowable implements Runnable {
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
   private final List<String> addresses;
-  private final List<BlockingQueue<Log>> logConsumers;
+  private final List<BlockingQueue<Web3Model<Log>>> logConsumers;
   private final String network;
   private Integer from;
   private BigInteger lastBlock;
@@ -28,7 +29,7 @@ public class Web3LogFlowable implements Runnable {
   public Web3LogFlowable(
       EthFilter filter,
       Web3Functions web3Functions,
-      List<BlockingQueue<Log>> logConsumers,
+      List<BlockingQueue<Web3Model<Log>>> logConsumers,
       String network) {
     this.web3Functions = web3Functions;
     this.addresses = filter.getAddress();
@@ -73,7 +74,7 @@ public class Web3LogFlowable implements Runnable {
           if (ethLog == null) {
             continue;
           }
-          for (BlockingQueue<Log> queue : logConsumers) {
+          for (BlockingQueue<Web3Model<Log>> queue : logConsumers) {
             writeInQueue(queue, ethLog);
           }
         }
@@ -84,12 +85,12 @@ public class Web3LogFlowable implements Runnable {
     }
   }
 
-  private <T> void writeInQueue(BlockingQueue<T> queue, T o) {
+  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o) {
     try {
-      while (!queue.offer(o, 60, SECONDS)) {
+      Web3Model<T> model = new Web3Model<>(o, network);
+      while (!queue.offer(model, 60, SECONDS)) {
         log.warn("The queue is full for {}", o.getClass().getSimpleName());
       }
-
     } catch (Exception e) {
       log.error("Error write in queue", e);
     }

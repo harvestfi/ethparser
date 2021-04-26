@@ -15,8 +15,8 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
+import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 

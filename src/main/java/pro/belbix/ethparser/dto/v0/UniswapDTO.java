@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.dto.v0;
 
-import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
-import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 
 import java.math.BigInteger;
 import java.time.Instant;

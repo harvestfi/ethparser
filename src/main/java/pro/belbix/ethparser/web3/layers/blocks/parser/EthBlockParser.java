@@ -14,8 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
@@ -28,6 +26,7 @@ import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.entity.a_layer.EthHashEntity;
 import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
+import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
@@ -38,7 +37,7 @@ import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 public class EthBlockParser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<EthBlock> input = new ArrayBlockingQueue<>(1);
+  private final BlockingQueue<Web3Model<EthBlock>> input = new ArrayBlockingQueue<>(1);
   private final BlockingQueue<EthBlockEntity> output = new ArrayBlockingQueue<>(10);
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
@@ -61,14 +60,17 @@ public class EthBlockParser {
     web3Subscriber.subscribeOnBlocks(input);
     new Thread(() -> {
       while (run.get()) {
-        EthBlock ethBlock = null;
+        Web3Model<EthBlock> ethBlock = null;
         try {
           ethBlock = input.poll(1, TimeUnit.SECONDS);
+          if (ethBlock == null) {
+            continue;
+          }
           count++;
           if (count % 100 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
-          EthBlockEntity entity = parse(ethBlock, appProperties.getNetwork());
+          EthBlockEntity entity = parse(ethBlock.getValue(), ethBlock.getNetwork());
           if (entity != null) {
             lastTx = Instant.now();
             var persistedBlock = ethBlockDbService.save(entity);

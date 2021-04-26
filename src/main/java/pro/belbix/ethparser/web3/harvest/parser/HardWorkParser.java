@@ -34,7 +34,8 @@ import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.model.HardWorkTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -56,7 +57,7 @@ public class HardWorkParser implements Web3Parser {
   private final static String REWARD_ADDED_HASH =
       "0xde88a922e0d3b88b24e9623efeb464919c6bf9f66857a65e2bfcf2ce87a9433d";
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
   private final PriceProvider priceProvider;
@@ -88,15 +89,18 @@ public class HardWorkParser implements Web3Parser {
 
   @Override
   public void startParse() {
-    log.info("Start parse HardWork logs on {}", appProperties.getNetwork());
+    log.info("Start parse HardWork logs");
     web3Subscriber.subscribeOnLogs(logs);
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          HardWorkDTO dto = parseLog(ethLog, appProperties.getNetwork());
+          if (ethLog == null) {
+            continue;
+          }
+          HardWorkDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = hardWorkDbService.save(dto);

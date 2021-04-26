@@ -7,8 +7,8 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.model.HardWorkTx;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
+import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})

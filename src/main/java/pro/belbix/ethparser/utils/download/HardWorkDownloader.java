@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
@@ -49,8 +49,8 @@ public class HardWorkDownloader {
 
   private void parse(Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(CONTROLLERS.get(appProperties.getNetwork())),
-            start, end, appProperties.getNetwork());
+        .fetchContractLogs(singletonList(CONTROLLERS.get(appProperties.getUtilNetwork())),
+            start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;
@@ -58,7 +58,7 @@ public class HardWorkDownloader {
     for (LogResult logResult : logResults) {
       try {
         HardWorkDTO dto = hardWorkParser
-            .parseLog((Log) logResult.get(), appProperties.getNetwork());
+            .parseLog((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           hardWorkDbService.save(dto);
         }

@@ -344,8 +344,7 @@ public class Web3Functions {
           BigInteger.valueOf(lastBlockSupplier.get().orElse(0L)));
 
     } else {
-      startBlockP = DefaultBlockParameter.valueOf(
-          new BigInteger(appProperties.getParseBlocksFrom()));
+      startBlockP = DefaultBlockParameter.valueOf(new BigInteger(startBlock));
     }
     Flowable<EthBlock> flowable =
         getWeb3Service(network).callWithRetry(() ->

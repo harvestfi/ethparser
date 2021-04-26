@@ -66,6 +66,7 @@ public class EthBlockEntity implements DtoI {
     private long gasLimit;
     private long gasUsed;
     private long timestamp;
+    private int network;
 
     @ManyToOne
     @JoinColumn(name = "hash", referencedColumnName = "idx", unique = true)
@@ -88,5 +89,16 @@ public class EthBlockEntity implements DtoI {
         fetch = FetchType.LAZY, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ContractEventEntity> contractEvents;
+
+    public String network() {
+        switch (network) {
+            case 0:
+                return "eth";
+            case 1:
+                return "bsc";
+            default:
+                throw new IllegalStateException("Unknown network " + network);
+        }
+    }
 
 }

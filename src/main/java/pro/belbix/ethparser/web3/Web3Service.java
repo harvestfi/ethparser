@@ -13,6 +13,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 
 @Log4j2
 abstract class Web3Service {
@@ -20,14 +21,18 @@ abstract class Web3Service {
   public final static int RETRY_COUNT = 5000;
   private final String network;
   final AppProperties appProperties;
+  final NetworkProperties networkProperties;
 
   private Web3j web3;
   private boolean init = false;
   private transient boolean initStarted = false;
 
-  public Web3Service(String network, AppProperties appProperties) {
+  public Web3Service(String network,
+      AppProperties appProperties,
+      NetworkProperties networkProperties) {
     this.network = network;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
   }
 
   void init() {
@@ -35,14 +40,7 @@ abstract class Web3Service {
       return;
     }
     log.info("{} web3 service connecting ...", network);
-    String web3Url;
-    if (ETH_NETWORK.equals(network)) {
-      web3Url = appProperties.getWeb3Url();
-    } else if (BSC_NETWORK.equals(network)) {
-      web3Url = appProperties.getWeb3BscUrl();
-    } else {
-      throw new IllegalStateException("Unknown network " + network);
-    }
+    String web3Url = networkProperties.get(network).getWeb3Url();
     if (Strings.isBlank(web3Url)) {
       throw new IllegalStateException("Web3 url not defined");
     }

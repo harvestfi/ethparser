@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.model;
+package pro.belbix.ethparser.model.tx;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 

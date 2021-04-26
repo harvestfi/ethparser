@@ -4,14 +4,14 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.deployer.downloader.DeployerTransactionsDownloader;
-import pro.belbix.ethparser.web3.erc20.downloader.TransferDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.HardWorkDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.VaultActionsDownloader;
-import pro.belbix.ethparser.web3.harvest.downloader.RewardDownloader;
-import pro.belbix.ethparser.web3.layers.blocks.downloader.EthBlockDownloader;
-import pro.belbix.ethparser.web3.prices.downloader.PriceDownloader;
-import pro.belbix.ethparser.web3.uniswap.downloader.UniswapLpDownloader;
+import pro.belbix.ethparser.utils.download.DeployerTransactionsDownloader;
+import pro.belbix.ethparser.utils.download.TransferDownloader;
+import pro.belbix.ethparser.utils.download.HardWorkDownloader;
+import pro.belbix.ethparser.utils.download.RewardDownloader;
+import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
+import pro.belbix.ethparser.utils.download.EthBlockDownloader;
+import pro.belbix.ethparser.utils.download.PriceDownloader;
+import pro.belbix.ethparser.utils.download.UniswapLpDownloader;
 
 @Service
 @Log4j2
@@ -24,7 +24,6 @@ public class UtilsStarter {
   private final HardWorkDownloader hardWorkDownloader;
   private final HardWorkRecalculate hardWorkRecalculate;
   private final RewardDownloader rewardDownloader;
-  private final BlockCacher blockCacher;
   private final LpTvlRecalculate lpTvlRecalculate;
   private final OwnerBalanceRecalculate ownerBalanceRecalculate;
   private final OwnerCountRecalculate ownerCountRecalculate;
@@ -45,7 +44,7 @@ public class UtilsStarter {
       TvlRecalculate tvlRecalculate,
       HardWorkDownloader hardWorkDownloader,
       HardWorkRecalculate hardWorkRecalculate,
-      RewardDownloader rewardDownloader, BlockCacher blockCacher,
+      RewardDownloader rewardDownloader,
       LpTvlRecalculate lpTvlRecalculate,
       OwnerBalanceRecalculate ownerBalanceRecalculate,
       OwnerCountRecalculate ownerCountRecalculate,
@@ -66,7 +65,6 @@ public class UtilsStarter {
     this.hardWorkDownloader = hardWorkDownloader;
     this.hardWorkRecalculate = hardWorkRecalculate;
     this.rewardDownloader = rewardDownloader;
-    this.blockCacher = blockCacher;
     this.lpTvlRecalculate = lpTvlRecalculate;
     this.ownerBalanceRecalculate = ownerBalanceRecalculate;
     this.ownerCountRecalculate = ownerCountRecalculate;
@@ -84,10 +82,8 @@ public class UtilsStarter {
 
   public void startUtils() {
     log.info("Start utils {}", appProperties.getStartUtil());
-    contractLoader.load(appProperties.getNetwork());
-    if ("cache-blocks".equals(appProperties.getStartUtil())) {
-      blockCacher.cacheBlocks();
-    } else if ("uniswap-download".equals(appProperties.getStartUtil())) {
+    contractLoader.load(appProperties.getUtilNetwork());
+    if ("uniswap-download".equals(appProperties.getStartUtil())) {
       uniswapLpDownloader.start();
     } else if ("harvest-download".equals(appProperties.getStartUtil())) {
       vaultActionsDownloader.start();
