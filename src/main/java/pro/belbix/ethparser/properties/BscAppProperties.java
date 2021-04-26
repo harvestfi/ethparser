@@ -17,13 +17,13 @@ public class BscAppProperties implements NetworkPropertiesI {
   // log parsing
   private boolean parseLog = true;
   private String startLogBlock = "";
-  private boolean parseUniswapLog = true;
+  private boolean parseUniswapLog = false;
   private boolean parseHarvestLog = true;
   private boolean parseHardWorkLog = true;
   private boolean parseRewardsLog = true;
-  private boolean parseImportantEvents = true;
-  private boolean convertUniToHarvest = true;
-  private boolean parseTransfers = true;
+  private boolean parseImportantEvents = false;
+  private boolean convertUniToHarvest = false;
+  private boolean parseTransfers = false;
   private boolean parsePrices = true;
 
   // transaction parsing

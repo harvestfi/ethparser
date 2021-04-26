@@ -1,16 +1,17 @@
 ethparser:
-  #  onlyParse: true
-  startLogBlock: 5993660
-  overrideDuplicates: false
-  stopOnParseError: true
+  bsc:
+    #  onlyParse: true
+    startLogBlock: 5993660
+    overrideDuplicates: false
+    stopOnParseError: true
 
-  # not implemented
-  parseUniswapLog: false
-  parseImportantEvents: false
-  convertUniToHarvest: false
-  parseTransfers: false
+    # not implemented
+    parseUniswapLog: false
+    parseImportantEvents: false
+    convertUniToHarvest: false
+    parseTransfers: false
 
-  # disabled for optimisation
-  parsePrices: false
-  parseTransactions: false
-  parseDeployerTransactions: false
+    # disabled for optimisation
+    parsePrices: false
+    parseTransactions: false
+    parseDeployerTransactions: false

@@ -102,7 +102,7 @@ public class VaultActionsParser implements Web3Parser {
             continue;
           }
           HarvestDTO dto = parseVaultLog(ethLog.getValue(), ethLog.getNetwork());
-          handleDto(dto, dto.getNetwork());
+          handleDto(dto, ethLog.getNetwork());
         } catch (Exception e) {
           log.error("Can't save " + ethLog, e);
           if (appProperties.isStopOnParseError()) {
