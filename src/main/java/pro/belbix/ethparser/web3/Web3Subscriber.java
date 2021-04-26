@@ -59,7 +59,6 @@ public class Web3Subscriber {
     if (!appProperties.isParseLog()) {
       return;
     }
-    web3Functions.waitInit(network);
     DefaultBlockParameter from;
     if (Strings.isBlank(appProperties.getStartLogBlock())) {
       from = new DefaultBlockParameterNumber(

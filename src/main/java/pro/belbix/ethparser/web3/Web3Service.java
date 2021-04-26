@@ -5,22 +5,25 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.Callable;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.util.Strings;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.protocol.http.HttpService;
 import pro.belbix.ethparser.properties.AppProperties;
 
 @Log4j2
 abstract class Web3Service {
 
+  public final static int RETRY_COUNT = 5000;
   private final String network;
   final AppProperties appProperties;
 
   private Web3j web3;
   private boolean init = false;
-  private boolean initStarted = false;
+  private transient boolean initStarted = false;
 
   public Web3Service(String network, AppProperties appProperties) {
     this.network = network;
@@ -89,5 +92,46 @@ abstract class Web3Service {
     }
     init = false;
     initStarted = false;
+  }
+
+  public <T> T callWithRetry(Callable<T> callable) {
+    int count = 0;
+    while (true) {
+      waitInit();
+      T result = null;
+      Exception lastError = null;
+      try {
+        result = callable.call();
+      } catch (IllegalStateException e) {
+        if (e.getMessage().startsWith("Not retryable response")) {
+          return null;
+        }
+      } catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
+        log.error("Connection exception, reconnect...\n{}", e.getMessage());
+        close();
+        waitInit();
+        lastError = e;
+      } catch (Exception e) { //by default all errors, but can be filtered by type
+        log.warn("Retryable error", e);
+        lastError = e;
+      }
+
+      if (result != null) {
+        return result;
+      }
+      count++;
+      if (count > RETRY_COUNT) {
+        if (lastError != null) {
+          lastError.printStackTrace();
+        }
+        return null;
+      }
+      log.warn("Fail call web3, retry " + count);
+      try {
+        //noinspection BusyWait
+        Thread.sleep(1000);
+      } catch (InterruptedException ignore) {
+      }
+    }
   }
 }
