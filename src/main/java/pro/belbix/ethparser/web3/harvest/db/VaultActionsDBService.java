@@ -79,7 +79,7 @@ public class VaultActionsDBService {
     dto.setOwnerCount(ownerCount);
 
     Integer allOwnersCount = harvestRepository
-        .fetchAllUsersQuantity(dto.getBlockDate());
+        .fetchAllUsersQuantity(dto.getBlockDate(), dto.getNetwork());
     if (allOwnersCount == null) {
       allOwnersCount = 0;
     }

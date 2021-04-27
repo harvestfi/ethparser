@@ -66,13 +66,16 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "         select distinct owner from ( "
         + "                  select owner from harvest_tx "
         + "                   where harvest_tx.block_date <= :block_date "
+        + "                         and harvest_tx.network = :network"
         + "                  union all "
         + "                  select owner from uni_tx "
         + "                   where uni_tx.block_date <= :block_date "
+        + "                         and 'eth' = :network "
         + "              ) t "
         + "     ) t2")
     Integer fetchAllUsersQuantity(
-        @Param("block_date") long blockDate
+        @Param("block_date") long blockDate,
+        @Param("network") String network
     );
 
     @Query(nativeQuery = true, value = ""
