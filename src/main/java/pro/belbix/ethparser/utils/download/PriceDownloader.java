@@ -60,7 +60,7 @@ public class PriceDownloader {
           .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
       new LoopHandler(appProperties.getHandleLoopStep(),
           (start, end) -> parse(start, end, contractHash))
-          .handleLoop(from, to);
+          .start(from, to);
     }
   }
 

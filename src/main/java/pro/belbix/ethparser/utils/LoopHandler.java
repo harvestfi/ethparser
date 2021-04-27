@@ -13,7 +13,7 @@ public class LoopHandler {
         this.handler = handler;
     }
 
-    public void handleLoop(Integer from, Integer to) {
+    public void start(Integer from, Integer to) {
         while (true) {
             Integer end = null;
             if (to != null) {

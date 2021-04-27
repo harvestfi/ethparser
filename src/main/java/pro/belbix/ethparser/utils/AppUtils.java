@@ -1,8 +1,9 @@
-package pro.belbix.ethparser.utils.recalculation;
+package pro.belbix.ethparser.utils;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.utils.UtilsStarter;
 
 @SpringBootApplication
 public class AppUtils {

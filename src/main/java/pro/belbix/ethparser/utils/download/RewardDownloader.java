@@ -63,7 +63,7 @@ public class RewardDownloader {
                   .map(p -> p.getContract().getName())
                   .collect(Collectors.toList())
           )
-      ).handleLoop(from, to);
+      ).start(from, to);
     } else if (!Strings.isBlank(contractName)) {
       log.info("Start parse rewards for " + contractName);
       String adr = cu
@@ -71,7 +71,7 @@ public class RewardDownloader {
           .orElseThrow(() -> new IllegalStateException("Not found pool for " + contractName));
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end, singletonList(adr)))
-          .handleLoop(from, to);
+          .start(from, to);
     } else {
       Set<String> excludeSet = new HashSet<>();
       if (exclude != null && exclude.length != 0) {
@@ -86,7 +86,7 @@ public class RewardDownloader {
                       cu.getNameByAddress(c)
                           .orElseThrow()))
                   .collect(Collectors.toList()))
-      ).handleLoop(from, to);
+      ).start(from, to);
     }
   }
 
@@ -101,6 +101,10 @@ public class RewardDownloader {
       log.info("Empty log {} {}", start, end);
       return;
     }
+    handleLogs(logResults);
+  }
+
+  public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
         RewardDTO dto = rewardParser.parseLog((Log) logResult.get(), appProperties.getUtilNetwork());

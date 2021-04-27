@@ -46,7 +46,7 @@ public class UniswapLpDownloader {
   }
 
   public void start() {
-    new LoopHandler(appProperties.getHandleLoopStep(), this::load).handleLoop(from, to);
+    new LoopHandler(appProperties.getHandleLoopStep(), this::load).start(from, to);
   }
 
   private void load(Integer from, Integer to) {

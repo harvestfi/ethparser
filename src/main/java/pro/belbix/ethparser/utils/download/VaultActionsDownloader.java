@@ -59,14 +59,14 @@ public class VaultActionsDownloader {
               parse(Arrays.stream(contracts)
                       .map(this::nameToAddress)
                       .collect(Collectors.toList()),
-                  start, end)).handleLoop(from, to);
+                  start, end)).start(from, to);
     } else {
       log.info("Start load vault actions for {} on network {} from {} to {}",
           vaultName, appProperties.getUtilNetwork(), from, to);
       String vaultAddress = nameToAddress(vaultName);
       new LoopHandler(appProperties.getHandleLoopStep(),
           (start, end) -> parse(singletonList(vaultAddress), start, end))
-          .handleLoop(from, to);
+          .start(from, to);
     }
   }
 
@@ -83,6 +83,10 @@ public class VaultActionsDownloader {
       log.info("Empty log {} {} {}", start, end, addresses);
       return;
     }
+    handleLogs(logResults);
+  }
+
+  public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
         HarvestDTO dto = vaultActionsParser

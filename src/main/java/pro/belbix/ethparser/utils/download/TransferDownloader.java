@@ -55,7 +55,7 @@ public class TransferDownloader {
         (from, end) -> parse(from, end,
             contractUtils.getAddressByName(contractName, ContractType.TOKEN)
                 .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
-        )).handleLoop(from, to);
+        )).start(from, to);
   }
 
   private void parse(Integer start, Integer end, String contract) {

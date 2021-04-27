@@ -1,8 +1,18 @@
-package pro.belbix.ethparser.utils.recalculation;
+package pro.belbix.ethparser.utils;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.download.NewStrategyDownloader;
+import pro.belbix.ethparser.utils.recalculation.HardWorkRecalculate;
+import pro.belbix.ethparser.utils.recalculation.HarvestProfitRecalculate;
+import pro.belbix.ethparser.utils.recalculation.LpTvlRecalculate;
+import pro.belbix.ethparser.utils.recalculation.MigrationRecalculate;
+import pro.belbix.ethparser.utils.recalculation.OwnerBalanceRecalculate;
+import pro.belbix.ethparser.utils.recalculation.OwnerCountRecalculate;
+import pro.belbix.ethparser.utils.recalculation.RewardRecalculate;
+import pro.belbix.ethparser.utils.recalculation.TransfersRecalculate;
+import pro.belbix.ethparser.utils.recalculation.TvlRecalculate;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.utils.download.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.utils.download.TransferDownloader;

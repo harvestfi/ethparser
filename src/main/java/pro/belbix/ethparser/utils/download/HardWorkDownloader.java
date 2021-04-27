@@ -43,7 +43,7 @@ public class HardWorkDownloader {
 
   public void start() {
     log.info("HardWorkDownloader start");
-    new LoopHandler(appProperties.getHandleLoopStep(), this::parse).handleLoop(from, to);
+    new LoopHandler(appProperties.getHandleLoopStep(), this::parse).start(from, to);
 
   }
 
@@ -55,6 +55,10 @@ public class HardWorkDownloader {
       log.info("Empty log {} {}", start, end);
       return;
     }
+    handleLogs(logResults);
+  }
+
+  public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
         HardWorkDTO dto = hardWorkParser
