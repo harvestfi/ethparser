@@ -65,6 +65,7 @@ public class HarvestDTO implements DtoI {
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
+        + network + " "
         + methodName + " "
         + "usd: " + usdAmount + " "
         + "f: " + amount + " "

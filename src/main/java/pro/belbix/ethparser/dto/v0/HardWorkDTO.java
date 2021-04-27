@@ -73,6 +73,7 @@ public class HardWorkDTO implements DtoI {
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
+        + network + " "
         + vault + " "
         + fullRewardUsd + " "
         + fullRewardUsdTotal + " "

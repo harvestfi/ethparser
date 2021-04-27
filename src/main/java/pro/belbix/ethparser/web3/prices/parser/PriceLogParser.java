@@ -19,6 +19,7 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -42,6 +43,7 @@ public class PriceLogParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private final FunctionsUtils functionsUtils;
   private Instant lastTx = Instant.now();
   private long count = 0;
@@ -52,12 +54,14 @@ public class PriceLogParser implements Web3Parser {
       ParserInfo parserInfo,
       PriceDBService priceDBService,
       AppProperties appProperties,
+      NetworkProperties networkProperties,
       FunctionsUtils functionsUtils) {
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
     this.functionsUtils = functionsUtils;
   }
 
@@ -75,7 +79,9 @@ public class PriceLogParser implements Web3Parser {
           if (count % 100 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParsePrices()) {
             continue;
           }
           PriceDTO dto = parse(ethLog.getValue(), ethLog.getNetwork());

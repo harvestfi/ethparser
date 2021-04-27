@@ -33,6 +33,7 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -65,6 +66,7 @@ public class VaultActionsParser implements Web3Parser {
   private final FunctionsUtils functionsUtils;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   private Instant lastTx = Instant.now();
   private long count = 0;
@@ -76,6 +78,7 @@ public class VaultActionsParser implements Web3Parser {
       FunctionsUtils functionsUtils,
       ParserInfo parserInfo,
       AppProperties appProperties,
+      NetworkProperties networkProperties,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
@@ -85,6 +88,7 @@ public class VaultActionsParser implements Web3Parser {
     this.functionsUtils = functionsUtils;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
   }
 
@@ -98,7 +102,9 @@ public class VaultActionsParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseHarvestLog()) {
             continue;
           }
           HarvestDTO dto = parseVaultLog(ethLog.getValue(), ethLog.getNetwork());

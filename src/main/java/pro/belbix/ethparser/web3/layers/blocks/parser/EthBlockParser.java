@@ -28,6 +28,7 @@ import pro.belbix.ethparser.entity.a_layer.EthLogEntity;
 import pro.belbix.ethparser.entity.a_layer.EthTxEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
@@ -43,16 +44,19 @@ public class EthBlockParser {
   private final Web3Subscriber web3Subscriber;
   private final AppProperties appProperties;
   private final EthBlockDbService ethBlockDbService;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
   private long count = 0;
 
   public EthBlockParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, AppProperties appProperties,
-      EthBlockDbService ethBlockDbService) {
+      EthBlockDbService ethBlockDbService,
+      NetworkProperties networkProperties) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.appProperties = appProperties;
     this.ethBlockDbService = ethBlockDbService;
+    this.networkProperties = networkProperties;
   }
 
   public void startParse() {
@@ -71,7 +75,8 @@ public class EthBlockParser {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
           EthBlockEntity entity = parse(ethBlock.getValue(), ethBlock.getNetwork());
-          if (entity != null) {
+          if (entity != null
+              && networkProperties.get(entity.network()).isParseBlocks()) {
             lastTx = Instant.now();
             var persistedBlock = ethBlockDbService.save(entity);
             log.info("Persisted block {} by {}",

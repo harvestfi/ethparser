@@ -24,6 +24,7 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -49,6 +50,7 @@ public class RewardParser implements Web3Parser {
   private final AppProperties appProperties;
   private final ParserInfo parserInfo;
   private final Web3Functions web3Functions;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
   private boolean waitNewBlock = true;
 
@@ -58,7 +60,8 @@ public class RewardParser implements Web3Parser {
       EthBlockService ethBlockService,
       RewardsDBService rewardsDBService,
       AppProperties appProperties,
-      ParserInfo parserInfo, Web3Functions web3Functions) {
+      ParserInfo parserInfo, Web3Functions web3Functions,
+      NetworkProperties networkProperties) {
     this.functionsUtils = functionsUtils;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -66,6 +69,7 @@ public class RewardParser implements Web3Parser {
     this.appProperties = appProperties;
     this.parserInfo = parserInfo;
     this.web3Functions = web3Functions;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -78,7 +82,9 @@ public class RewardParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseRewardsLog()) {
             continue;
           }
           RewardDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());

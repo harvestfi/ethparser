@@ -106,46 +106,17 @@ public class AppStarter {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
             contractLoader.load(conf.getNetworks());
-
-            for(String network : conf.getNetworks()) {
-
-                if (networkProperties.get(network).isParseUniswapLog()) {
-                    startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
-                }
-
-                if (networkProperties.get(network).isParseHarvestLog()) {
-                    startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-                }
-
-                if (networkProperties.get(network).isParseHardWorkLog()) {
-                    startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
-                }
-
-                if (networkProperties.get(network).isParseRewardsLog()) {
-                    startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
-                }
-
-                if (networkProperties.get(network).isParseImportantEvents()) {
-                    startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
-                }
-
-                if (networkProperties.get(network).isConvertUniToHarvest()) {
-                    startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-                }
-                if (networkProperties.get(network).isParseTransfers()) {
-                    startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
-                }
-                if (networkProperties.get(network).isParsePrices()) {
-                    startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
-                }
-                if (networkProperties.get(network).isParseDeployerTransactions()) {
-                    startParse(deployerTransactionsParser, ws,
-                        DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
-                }
-                if (networkProperties.get(network).isParseBlocks()) {
-                    startParseBlocks();
-                }
-            }
+            startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+            startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
+            startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+            startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+            startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
+            startParse(deployerTransactionsParser, ws,
+                DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+            startParseBlocks();
         }
     }
 
@@ -179,6 +150,8 @@ public class AppStarter {
         parser.startParse();
 
         new Thread(() -> {
+            Thread.currentThread().setName("ParserToWsSender"
+                + parser.getClass().getSimpleName());
             while (run.get()) {
                 DtoI dto = null;
                 try {

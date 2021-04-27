@@ -67,7 +67,7 @@ public class Web3LogFlowable implements Runnable {
         }
         //noinspection rawtypes
         List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addresses, from, to, network);
-        log.info("Parse log from {} to {} on block: {} - {}", from, to,
+        log.info("Parse {} log from {} to {} on block: {} - {}", network, from, to,
             currentBlock, logResults.size());
         //noinspection rawtypes
         for (LogResult logResult : logResults) {

@@ -21,9 +21,9 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -46,6 +46,7 @@ public class ImportantEventsParser implements Web3Parser {
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
@@ -53,13 +54,15 @@ public class ImportantEventsParser implements Web3Parser {
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
-      FunctionsUtils functionsUtils, AppProperties appProperties) {
+      FunctionsUtils functionsUtils, AppProperties appProperties,
+      NetworkProperties networkProperties) {
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
     this.ethBlockService = ethBlockService;
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -72,7 +75,9 @@ public class ImportantEventsParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseImportantEvents()) {
             continue;
           }
           ImportantEventsDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());

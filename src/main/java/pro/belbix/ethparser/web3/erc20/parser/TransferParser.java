@@ -18,6 +18,7 @@ import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -48,6 +49,7 @@ public class TransferParser implements Web3Parser {
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
 
   public TransferParser(Web3Functions web3Functions,
@@ -55,7 +57,8 @@ public class TransferParser implements Web3Parser {
       ParserInfo parserInfo,
       TransferDBService transferDBService,
       PriceProvider priceProvider,
-      FunctionsUtils functionsUtils, AppProperties appProperties) {
+      FunctionsUtils functionsUtils, AppProperties appProperties,
+      NetworkProperties networkProperties) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -64,6 +67,7 @@ public class TransferParser implements Web3Parser {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -76,7 +80,9 @@ public class TransferParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseTransfers()) {
             continue;
           }
           TransferDTO dto = parseLog(ethLog.getValue());

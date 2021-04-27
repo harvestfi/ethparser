@@ -17,6 +17,7 @@ import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -45,6 +46,7 @@ public class UniswapLpLogParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
   private long count = 0;
 
@@ -55,7 +57,8 @@ public class UniswapLpLogParser implements Web3Parser {
       UniToHarvestConverter uniToHarvestConverter,
       ParserInfo parserInfo,
       UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      NetworkProperties networkProperties) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
@@ -65,6 +68,7 @@ public class UniswapLpLogParser implements Web3Parser {
     this.parserInfo = parserInfo;
     this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -81,7 +85,9 @@ public class UniswapLpLogParser implements Web3Parser {
           if (count % 100 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseUniswapLog()) {
             continue;
           }
           UniswapDTO dto = parseUniswapLog(ethLog.getValue());

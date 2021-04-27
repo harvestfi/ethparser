@@ -20,6 +20,7 @@ import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.DeployerTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -44,6 +45,7 @@ public class DeployerTransactionsParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final SimpleContractGenerator simpleContractGenerator;
   private final Web3Functions web3Functions;
+  private final NetworkProperties networkProperties;
   private long parsedTxCount = 0;
   private Instant lastTx = Instant.now();
 
@@ -53,7 +55,8 @@ public class DeployerTransactionsParser implements Web3Parser {
       EthBlockService ethBlockService,
       AppProperties appProperties, ParserInfo parserInfo,
       SimpleContractGenerator simpleContractGenerator,
-      Web3Functions web3Functions) {
+      Web3Functions web3Functions,
+      NetworkProperties networkProperties) {
     this.web3Subscriber = web3Subscriber;
     this.deployerDbService = deployerDbService;
     this.ethBlockService = ethBlockService;
@@ -61,6 +64,7 @@ public class DeployerTransactionsParser implements Web3Parser {
     this.parserInfo = parserInfo;
     this.simpleContractGenerator = simpleContractGenerator;
     this.web3Functions = web3Functions;
+    this.networkProperties = networkProperties;
   }
 
   public void startParse() {
@@ -75,7 +79,9 @@ public class DeployerTransactionsParser implements Web3Parser {
               transaction = transactions.poll(1, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             }
-            if (transaction == null) {
+            if (transaction == null
+            || !networkProperties.get(transaction.getNetwork())
+                .isParseDeployerTransactions()) {
               continue;
             }
             DeployerDTO dto = parseDeployerTransaction(

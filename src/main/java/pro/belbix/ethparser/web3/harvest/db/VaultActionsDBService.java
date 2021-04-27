@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -207,7 +209,13 @@ public class VaultActionsDBService {
   public BigInteger lastBlock(String network) {
     HarvestDTO dto = harvestRepository.findFirstByNetworkOrderByBlockDesc(network);
     if (dto == null) {
-      return new BigInteger("0");
+      if (ETH_NETWORK.equals(network)) {
+        return BigInteger.valueOf(10765094L);
+      } else if (BSC_NETWORK.equals(network)) {
+        return BigInteger.valueOf(5993570L);
+      } else {
+        return new BigInteger("0");
+      }
     }
     return BigInteger.valueOf(dto.getBlock());
   }

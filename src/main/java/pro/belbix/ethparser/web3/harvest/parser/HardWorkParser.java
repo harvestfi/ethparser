@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -37,6 +36,7 @@ import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -67,7 +67,7 @@ public class HardWorkParser implements Web3Parser {
   private final HardWorkDbService hardWorkDbService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
-  private final SimpleContractGenerator simpleContractGenerator;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
 
   public HardWorkParser(PriceProvider priceProvider,
@@ -76,7 +76,7 @@ public class HardWorkParser implements Web3Parser {
       Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
       ParserInfo parserInfo,
       AppProperties appProperties,
-      SimpleContractGenerator simpleContractGenerator) {
+      NetworkProperties networkProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
@@ -84,7 +84,7 @@ public class HardWorkParser implements Web3Parser {
     this.hardWorkDbService = hardWorkDbService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
-    this.simpleContractGenerator = simpleContractGenerator;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -97,7 +97,9 @@ public class HardWorkParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null) {
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseHardWorkLog()) {
             continue;
           }
           HardWorkDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());

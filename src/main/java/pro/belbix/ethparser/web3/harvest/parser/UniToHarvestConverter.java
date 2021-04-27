@@ -19,6 +19,7 @@ import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -40,16 +41,19 @@ public class UniToHarvestConverter implements Web3Parser {
   private final VaultActionsDBService vaultActionsDBService;
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private Instant lastTx = Instant.now();
 
   public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
       VaultActionsDBService vaultActionsDBService, ParserInfo parserInfo,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      NetworkProperties networkProperties) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.vaultActionsDBService = vaultActionsDBService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
   }
 
   @Override
@@ -61,6 +65,9 @@ public class UniToHarvestConverter implements Web3Parser {
         UniswapDTO uniswapDTO = null;
         try {
           uniswapDTO = uniswapDTOS.poll(1, TimeUnit.SECONDS);
+          if (!networkProperties.get(ETH_NETWORK).isConvertUniToHarvest()) {
+            continue;
+          }
           HarvestDTO dto = convert(uniswapDTO);
           if (dto != null) {
             lastTx = Instant.now();

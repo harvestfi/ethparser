@@ -45,7 +45,7 @@ public class UniswapDbService {
   public BigInteger lastBlock() {
     UniswapDTO dto = uniswapRepository.findFirstByCoinOrderByBlockDesc("FARM");
     if (dto == null) {
-      return BigInteger.ONE;
+      return BigInteger.valueOf(10765094L);
     }
     return dto.getBlock();
   }

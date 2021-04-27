@@ -46,6 +46,7 @@ public class DeployerDTO implements DtoI {
   public String print() {
     return "Deployer tx "
         + Instant.ofEpochSecond(blockDate)
+        + " " + network
         + " " + methodName
         + " " + type
         + " " + name
