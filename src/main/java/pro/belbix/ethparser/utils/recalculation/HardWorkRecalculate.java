@@ -38,7 +38,7 @@ public class HardWorkRecalculate {
       to = Integer.MAX_VALUE;
     }
     List<HardWorkDTO> dtos = hardWorkRepository
-        .fetchAllInRange(from, to, appProperties.getNetwork());
+        .fetchAllInRange(from, to, appProperties.getUtilNetwork());
     for (HardWorkDTO dto : dtos) {
       hardWorkDbService.enrich(dto);
       hardWorkRepository.saveAndFlush(dto);

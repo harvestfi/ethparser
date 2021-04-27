@@ -69,10 +69,10 @@ jobs:
       - name: Build with Maven
         run: >
           mvn
-          -Dethparser.web3Url="${{secrets.ETH_WEB3}}"
-          -Dethparser.etherscanApiKey=${{secrets.ETHERSCAN_TOKEN}}
-          -Dethparser.web3BscUrl="${{secrets.BSC_WEB3}}"
-          -Dethparser.bscscanApiKey=${{secrets.BSCSCAN_TOKEN}}
+          -Dethparser.eth.web3Url="${{secrets.ETH_WEB3}}"
+          -Dethparser.bsc.web3Url="${{secrets.BSC_WEB3}}"
+          -Dethparser.eth.abiProviderKey=${{secrets.ETHERSCAN_TOKEN}}
+          -Dethparser.bsc.abiProviderKey=${{secrets.BSCSCAN_TOKEN}}
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest
@@ -167,13 +167,6 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_KEY }}
         if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
 
-      - name: Deploy to BSC server
-        run: |
-          export SERVER=ethparser_bsc
-          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
-          
       - name: Deploy to ETH server
         run: |
           export SERVER=ethparser_eth

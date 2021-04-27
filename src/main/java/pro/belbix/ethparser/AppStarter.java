@@ -14,6 +14,7 @@ import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,16 +22,17 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 import pro.belbix.ethparser.web3.layers.detector.ContractDetector;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
@@ -56,6 +58,7 @@ public class AppStarter {
     private final DeployerTransactionsParser deployerTransactionsParser;
     private final EthBlockParser ethBlockParser;
     private final ContractDetector contractDetector;
+    private final NetworkProperties networkProperties;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
@@ -74,7 +77,8 @@ public class AppStarter {
         PriceLogParser priceLogParser, ContractLoader contractLoader,
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
-        ContractDetector contractDetector) {
+        ContractDetector contractDetector,
+        NetworkProperties networkProperties) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.vaultActionsParser = vaultActionsParser;
@@ -90,6 +94,7 @@ public class AppStarter {
         this.deployerTransactionsParser = deployerTransactionsParser;
         this.ethBlockParser = ethBlockParser;
         this.contractDetector = contractDetector;
+        this.networkProperties = networkProperties;
     }
 
     public void start() {
@@ -100,49 +105,52 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            contractLoader.load(conf.getNetwork());
+            contractLoader.load(conf.getNetworks());
 
-            if (conf.isParseUniswapLog()) {
-                startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
-            }
+            for(String network : conf.getNetworks()) {
 
-            if (conf.isParseHarvestLog()) {
-                startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            }
+                if (networkProperties.get(network).isParseUniswapLog()) {
+                    startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+                }
 
-            if (conf.isParseHardWorkLog()) {
-                startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
-            }
+                if (networkProperties.get(network).isParseHarvestLog()) {
+                    startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                }
 
-            if (conf.isParseRewardsLog()) {
-                startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
-            }
+                if (networkProperties.get(network).isParseHardWorkLog()) {
+                    startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+                }
 
-            if (conf.isParseImportantEvents()) {
-                startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
-            }
+                if (networkProperties.get(network).isParseRewardsLog()) {
+                    startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
+                }
 
-            if (conf.isConvertUniToHarvest()) {
-                startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            }
-            if (conf.isParseTransfers()) {
-                startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
-            }
-            if (conf.isParsePrices()) {
-                startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
-            }
-            if (conf.isParseDeployerTransactions()) {
-                startParse(deployerTransactionsParser, ws,
-                    DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
-            }
-            if (conf.isParseBlocks()) {
-                startParseBlocks();
+                if (networkProperties.get(network).isParseImportantEvents()) {
+                    startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+                }
+
+                if (networkProperties.get(network).isConvertUniToHarvest()) {
+                    startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+                }
+                if (networkProperties.get(network).isParseTransfers()) {
+                    startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+                }
+                if (networkProperties.get(network).isParsePrices()) {
+                    startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
+                }
+                if (networkProperties.get(network).isParseDeployerTransactions()) {
+                    startParse(deployerTransactionsParser, ws,
+                        DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+                }
+                if (networkProperties.get(network).isParseBlocks()) {
+                    startParseBlocks();
+                }
             }
         }
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
-        contractLoader.load(conf.getNetwork());
+        contractLoader.load(conf.getNetworks());
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
@@ -188,21 +196,24 @@ public class AppStarter {
 
     private void startWeb3SubscribeLog() {
         if (!web3LogsStarted) {
-            web3Subscriber.subscribeLogFlowable(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeLogFlowable);
             web3LogsStarted = true;
         }
     }
 
     private void startWeb3SubscribeTx() {
         if (!web3TransactionsStarted) {
-            web3Subscriber.subscribeTransactionFlowable(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeTransactionFlowable);
             web3TransactionsStarted = true;
         }
     }
 
     private void startParseBlocks() {
         if (!web3BlocksStarted) {
-            web3Subscriber.subscribeOnBlocks(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeOnBlocks);
             web3BlocksStarted = true;
         }
         ethBlockParser.startParse();

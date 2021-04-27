@@ -18,7 +18,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
-import pro.belbix.ethparser.model.ImportantEventsTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -36,10 +37,9 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 public class ImportantEventsParser implements Web3Parser {
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
-  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
   private final ParserInfo parserInfo;
@@ -49,13 +49,11 @@ public class ImportantEventsParser implements Web3Parser {
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
-      Web3Functions web3Functions,
       Web3Subscriber web3Subscriber,
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
       FunctionsUtils functionsUtils, AppProperties appProperties) {
-    this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
@@ -71,10 +69,13 @@ public class ImportantEventsParser implements Web3Parser {
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          ImportantEventsDTO dto = parseLog(ethLog, appProperties.getNetwork());
+          if (ethLog == null) {
+            continue;
+          }
+          ImportantEventsDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = importantEventsDbService.save(dto);

@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.uniswap.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.utils.LoopUtils;
+import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -25,6 +26,7 @@ public class UniswapLpDownloader {
   private final Web3Functions web3Functions;
   private final UniswapDbService saveHarvestDTO;
   private final UniswapLpLogParser uniswapLpLogParser;
+  private final AppProperties appProperties;
 
   @Value("${uniswap-download.contract:}")
   private String contractName;
@@ -35,14 +37,16 @@ public class UniswapLpDownloader {
 
   public UniswapLpDownloader(Web3Functions web3Functions,
       UniswapDbService saveHarvestDTO,
-      UniswapLpLogParser uniswapLpLogParser) {
+      UniswapLpLogParser uniswapLpLogParser,
+      AppProperties appProperties) {
     this.web3Functions = web3Functions;
     this.saveHarvestDTO = saveHarvestDTO;
     this.uniswapLpLogParser = uniswapLpLogParser;
+    this.appProperties = appProperties;
   }
 
   public void start() {
-    LoopUtils.handleLoop(from, to, this::load);
+    new LoopHandler(appProperties.getHandleLoopStep(), this::load).start(from, to);
   }
 
   private void load(Integer from, Integer to) {

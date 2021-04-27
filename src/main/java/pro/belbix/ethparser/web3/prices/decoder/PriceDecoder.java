@@ -10,8 +10,8 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.model.PriceTx;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
+import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"rawtypes"})

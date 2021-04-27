@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.utils;
 
-import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
-import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 

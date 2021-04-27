@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.deployer.downloader;
+package pro.belbix.ethparser.utils.download;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 
 import io.reactivex.disposables.Disposable;
@@ -13,6 +13,7 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
+import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
@@ -26,7 +27,8 @@ public class DeployerTransactionsDownloader {
   private final DeployerDbService deployerDbService;
   private final DeployerTransactionsParser parser;
   private final AppProperties appProperties;
-  private final BlockingQueue<Transaction> transactionQueue = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Transaction>> transactionQueue = new ArrayBlockingQueue<>(
+      100);
 
   @Value("${deployer-download.from:}")
   private Integer from;
@@ -67,14 +69,18 @@ public class DeployerTransactionsDownloader {
   private void parse(DefaultBlockParameter start, DefaultBlockParameter end) {
     Disposable subscription =
         web3Subscriber.getTransactionFlowableRangeSubscription(
-            transactionQueue, start, end, appProperties.getNetwork());
+            transactionQueue, start, end, appProperties.getUtilNetwork());
     while (!subscription.isDisposed()) {
-      Transaction transaction = null;
+      Web3Model<Transaction> transaction = null;
       try {
         transaction = transactionQueue.poll(1, TimeUnit.SECONDS);
       } catch (InterruptedException ignored) {
       }
-      DeployerDTO dto = parser.parseDeployerTransaction(transaction, appProperties.getNetwork());
+      if (transaction == null) {
+        continue;
+      }
+      DeployerDTO dto = parser
+          .parseDeployerTransaction(transaction.getValue(), transaction.getNetwork());
       if (dto != null) {
         try {
           deployerDbService.save(dto);

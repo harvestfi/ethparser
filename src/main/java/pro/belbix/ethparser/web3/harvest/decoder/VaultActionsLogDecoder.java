@@ -8,8 +8,8 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.model.EthTransactionI;
-import pro.belbix.ethparser.model.HarvestTx;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
+import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})

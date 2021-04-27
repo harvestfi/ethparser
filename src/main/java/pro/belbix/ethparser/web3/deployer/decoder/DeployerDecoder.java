@@ -7,8 +7,8 @@ import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Convert;
-import pro.belbix.ethparser.model.DeployerTx;
-import pro.belbix.ethparser.model.EthTransactionI;
+import pro.belbix.ethparser.model.tx.DeployerTx;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
 import pro.belbix.ethparser.web3.MethodDecoder;
 
 @SuppressWarnings({"rawtypes"})

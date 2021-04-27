@@ -79,13 +79,16 @@ public class ContractDetector {
                 EthBlockEntity block = null;
                 try {
                     block = input.poll(1, TimeUnit.SECONDS);
+                    if (block == null) {
+                        continue;
+                    }
                     List<ContractEventEntity> events = handleBlock(block,
-                        appProperties.getNetwork());
+                        block.network());
                     for (ContractEventEntity event : events) {
                         ContractEventEntity eventPersisted =
                             contractEventsDbService.save(event);
                         if (eventPersisted != null) {
-                            viewRouter.route(eventPersisted, appProperties.getNetwork());
+                            viewRouter.route(eventPersisted, eventPersisted.getBlock().network());
                         }
                     }
                 } catch (Exception e) {

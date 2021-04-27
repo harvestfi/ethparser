@@ -31,10 +31,10 @@ public class OwnerBalanceRecalculate {
   }
 
   public void start() {
-    harvestRepository.fetchAllWithoutOwnerBalance(appProperties.getNetwork())
+    harvestRepository.fetchAllWithoutOwnerBalance(appProperties.getUtilNetwork())
         .forEach(dto -> {
           boolean success = harvestOwnerBalanceCalculator
-              .fillBalance(dto, appProperties.getNetwork());
+              .fillBalance(dto, appProperties.getUtilNetwork());
           if (success) {
             harvestRepository.save(dto);
             log.info("HARVEST Balance recalculated for  " + dto.print());

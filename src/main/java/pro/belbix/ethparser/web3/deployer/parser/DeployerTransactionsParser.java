@@ -17,7 +17,8 @@ import pro.belbix.ethparser.codegen.GeneratedContract;
 import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
-import pro.belbix.ethparser.model.DeployerTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.DeployerTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -35,7 +36,7 @@ public class DeployerTransactionsParser implements Web3Parser {
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final DeployerDecoder deployerDecoder = new DeployerDecoder();
   private final Web3Subscriber web3Subscriber;
-  private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Transaction>> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final DeployerDbService deployerDbService;
   private final EthBlockService ethBlockService;
@@ -69,12 +70,16 @@ public class DeployerTransactionsParser implements Web3Parser {
     new Thread(
         () -> {
           while (run.get()) {
-            Transaction transaction = null;
+            Web3Model<Transaction> transaction = null;
             try {
               transaction = transactions.poll(1, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             }
-            DeployerDTO dto = parseDeployerTransaction(transaction, appProperties.getNetwork());
+            if (transaction == null) {
+              continue;
+            }
+            DeployerDTO dto = parseDeployerTransaction(
+                transaction.getValue(), transaction.getNetwork());
             if (dto != null) {
               lastTx = Instant.now();
               try {

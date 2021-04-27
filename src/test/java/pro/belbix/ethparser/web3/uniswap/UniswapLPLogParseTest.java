@@ -18,7 +18,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.model.UniswapTx;
+import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;

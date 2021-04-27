@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 
@@ -12,7 +12,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.utils.LoopUtils;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -54,40 +54,45 @@ public class VaultActionsDownloader {
 
   public void start() {
     if (contracts != null) {
-      LoopUtils
-          .handleLoop(from, to, (start, end) ->
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (start, end) ->
               parse(Arrays.stream(contracts)
                       .map(this::nameToAddress)
                       .collect(Collectors.toList()),
-                  start, end));
+                  start, end)).start(from, to);
     } else {
       log.info("Start load vault actions for {} on network {} from {} to {}",
-          vaultName, appProperties.getNetwork(), from, to);
+          vaultName, appProperties.getUtilNetwork(), from, to);
       String vaultAddress = nameToAddress(vaultName);
-      LoopUtils
-          .handleLoop(from, to, (start, end) -> parse(singletonList(vaultAddress), start, end));
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (start, end) -> parse(singletonList(vaultAddress), start, end))
+          .start(from, to);
     }
   }
 
   private String nameToAddress(String name) {
-    return ContractUtils.getInstance(appProperties.getNetwork())
+    return ContractUtils.getInstance(appProperties.getUtilNetwork())
         .getAddressByName(name, ContractType.VAULT)
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
   }
 
   private void parse(List<String> addresses, Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(addresses, start, end, appProperties.getNetwork());
+        .fetchContractLogs(addresses, start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
-      log.info("Empty log {} {} {}", start, end, addresses);
+      log.info("Empty log {} {}", start, end);
       return;
     }
+    handleLogs(logResults);
+  }
+
+  public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
         HarvestDTO dto = vaultActionsParser
-            .parseVaultLog((Log) logResult.get(), appProperties.getNetwork());
+            .parseVaultLog((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
-          harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getNetwork());
+          harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getUtilNetwork());
           vaultActionsDBService.saveHarvestDTO(dto);
         }
       } catch (Exception e) {

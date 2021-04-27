@@ -48,13 +48,13 @@ public class OwnerCountRecalculate {
     if (hv) {
       List<HarvestDTO> harvestDTOList;
       if (empty != null) {
-        harvestDTOList = harvestRepository.fetchAllWithoutCounts(appProperties.getNetwork());
+        harvestDTOList = harvestRepository.fetchAllWithoutCounts(appProperties.getUtilNetwork());
       } else if (from == null) {
         harvestDTOList = harvestRepository
-            .findAllByNetworkOrderByBlockDate(appProperties.getNetwork());
+            .findAllByNetworkOrderByBlockDate(appProperties.getUtilNetwork());
       } else {
         harvestDTOList = harvestRepository
-            .findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(from, appProperties.getNetwork());
+            .findAllByBlockDateGreaterThanAndNetworkOrderByBlockDate(from, appProperties.getUtilNetwork());
       }
       for (HarvestDTO harvestDTO : harvestDTOList) {
         vaultActionsDBService.fillOwnersCount(harvestDTO);

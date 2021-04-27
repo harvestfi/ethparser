@@ -2,15 +2,22 @@ package pro.belbix.ethparser.utils;
 
 import java.util.function.BiConsumer;
 
-public class LoopUtils {
+public class LoopHandler {
 
-    private static final int LOOP_BATCH = 5000;
+    private final int loopStep;
+    private final BiConsumer<Integer, Integer> handler;
 
-    public static void handleLoop(Integer from, Integer to, BiConsumer<Integer, Integer> handler) {
+    public LoopHandler(int loopStep,
+        BiConsumer<Integer, Integer> handler) {
+        this.loopStep = loopStep;
+        this.handler = handler;
+    }
+
+    public void start(Integer from, Integer to) {
         while (true) {
             Integer end = null;
             if (to != null) {
-                end = from + LOOP_BATCH;
+                end = from + loopStep;
             }
             handler.accept(from, end);
             from = end;

@@ -68,7 +68,7 @@ public class HardWorkCalculator {
 
           List<HardWorkDTO> allHardWorksByVaultAndPeriod = hardworkRepository
               .findAllByVaultOrderByBlockDate(
-                  vault, appProperties.getNetwork(), period[0], period[1]);
+                  vault, network, period[0], period[1]);
           return blockPeriods
               .stream()
               .map(blockPeriod -> allHardWorksByVaultAndPeriod

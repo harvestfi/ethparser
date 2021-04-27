@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.harvest.downloader;
+package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
@@ -11,7 +11,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.utils.LoopUtils;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -43,22 +43,26 @@ public class HardWorkDownloader {
 
   public void start() {
     log.info("HardWorkDownloader start");
-    LoopUtils.handleLoop(from, to, this::parse);
+    new LoopHandler(appProperties.getHandleLoopStep(), this::parse).start(from, to);
 
   }
 
   private void parse(Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(singletonList(CONTROLLERS.get(appProperties.getNetwork())),
-            start, end, appProperties.getNetwork());
+        .fetchContractLogs(singletonList(CONTROLLERS.get(appProperties.getUtilNetwork())),
+            start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);
       return;
     }
+    handleLogs(logResults);
+  }
+
+  public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
         HardWorkDTO dto = hardWorkParser
-            .parseLog((Log) logResult.get(), appProperties.getNetwork());
+            .parseLog((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           hardWorkDbService.save(dto);
         }

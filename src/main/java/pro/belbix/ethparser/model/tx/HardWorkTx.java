@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.model;
+package pro.belbix.ethparser.model.tx;
 
 import java.math.BigInteger;
 import lombok.Data;
