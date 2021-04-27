@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3;
 
 import static org.junit.Assert.assertEquals;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,7 @@ public class PriceProviderTest {
 
    @BeforeEach
   public void setUp() throws Exception {
-    contractLoader.load();
+    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
   }
 
   @Test
@@ -48,5 +49,11 @@ public class PriceProviderTest {
   public void priceForFARM() {
     double price = priceProvider.getPriceForCoin("FARM", 12113876, ETH_NETWORK);
     assertEquals(numberFormat("243.24"), String.format("%.2f", price));
+  }
+
+  @Test
+  public void priceForBNB() {
+    double price = priceProvider.getPriceForCoin("WBNB", 6905123, BSC_NETWORK);
+    assertEquals(numberFormat("536.67"), String.format("%.2f", price));
   }
 }

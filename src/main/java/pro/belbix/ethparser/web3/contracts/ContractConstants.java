@@ -31,11 +31,12 @@ public class ContractConstants {
       BSC_NETWORK, "0xf71042c88458ff1702c3870f62f4c764712cc9f0".toLowerCase()
   );
 
-  public final static Map<String, Tuple2<Long, String>> ORACLES = Map.of(
+  final static Map<String, Map<Long, String>> ORACLES = Map.of(
       ETH_NETWORK,
-      new Tuple2<>(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
+      Map.of(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
       BSC_NETWORK,
-      new Tuple2<>(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase())
+      Map.of(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(),
+          6926221L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase())
   );
 
   static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"

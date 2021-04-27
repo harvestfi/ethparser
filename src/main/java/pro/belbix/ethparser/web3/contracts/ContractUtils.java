@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -17,8 +18,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -532,6 +536,14 @@ public class ContractUtils {
     return getCache().getPoolByAddress(address)
         .map(PoolEntity::getRewardToken)
         .map(ContractEntity::getAddress);
+  }
+
+  public String getPriceOracle(long block) {
+    Entry<Long, String> entry = new TreeMap<>(ORACLES.get(network)).floorEntry(block);
+    if(entry == null) {
+      return null;
+    }
+    return entry.getValue();
   }
 
   public Collection<PoolEntity> getAllPools() {

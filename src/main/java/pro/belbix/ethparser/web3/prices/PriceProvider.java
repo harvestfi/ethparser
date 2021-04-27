@@ -3,7 +3,6 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.HashMap;
@@ -75,10 +74,10 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (block > ORACLES.get(network).component1()) {
+    if (PriceOracle.isAvailable(block, network)) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
-
+    log.info("Oracle not deployed yet, use direct calculation for prices");
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         lpAddress, block, network);
     if (lpPooled == null) {
@@ -202,9 +201,10 @@ public class PriceProvider {
     if (appProperties.isOnlyApi()) {
       return 0.0;
     }
-    if (block > ORACLES.get(network).component1()) {
+    if (PriceOracle.isAvailable(block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
+    log.info("Oracle not deployed yet, use direct calculation for prices");
     //LEGACY PART
     //for compatibility with CRV prices without oracle
     String tokenName = cu(network).getNameByAddress(address)
