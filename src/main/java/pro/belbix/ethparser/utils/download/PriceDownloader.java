@@ -14,7 +14,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
-import pro.belbix.ethparser.utils.LoopUtils;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -58,7 +58,9 @@ public class PriceDownloader {
       String contractHash = ContractUtils.getInstance(appProperties.getUtilNetwork())
           .getAddressByName(contractName, ContractType.UNI_PAIR)
           .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
-      LoopUtils.handleLoop(from, to, (start, end) -> parse(start, end, contractHash));
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (start, end) -> parse(start, end, contractHash))
+          .handleLoop(from, to);
     }
   }
 

@@ -12,7 +12,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.utils.LoopUtils;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -54,18 +54,19 @@ public class VaultActionsDownloader {
 
   public void start() {
     if (contracts != null) {
-      LoopUtils
-          .handleLoop(from, to, (start, end) ->
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (start, end) ->
               parse(Arrays.stream(contracts)
                       .map(this::nameToAddress)
                       .collect(Collectors.toList()),
-                  start, end));
+                  start, end)).handleLoop(from, to);
     } else {
       log.info("Start load vault actions for {} on network {} from {} to {}",
           vaultName, appProperties.getUtilNetwork(), from, to);
       String vaultAddress = nameToAddress(vaultName);
-      LoopUtils
-          .handleLoop(from, to, (start, end) -> parse(singletonList(vaultAddress), start, end));
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (start, end) -> parse(singletonList(vaultAddress), start, end))
+          .handleLoop(from, to);
     }
   }
 

@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,6 +15,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -56,32 +56,37 @@ public class RewardDownloader {
   public void start() {
     ContractUtils cu = ContractUtils.getInstance(appProperties.getUtilNetwork());
     if (vaultNames != null) {
-      handleLoop(from, to, (from, end) -> parseContracts(from, end,
-          Arrays.stream(vaultNames)
-              .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
-              .map(p -> p.getContract().getName())
-              .collect(Collectors.toList())
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (from, end) -> parseContracts(from, end,
+              Arrays.stream(vaultNames)
+                  .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
+                  .map(p -> p.getContract().getName())
+                  .collect(Collectors.toList())
           )
-      );
+      ).handleLoop(from, to);
     } else if (!Strings.isBlank(contractName)) {
       log.info("Start parse rewards for " + contractName);
       String adr = cu
           .getAddressByName(contractName, ContractType.POOL)
           .orElseThrow(() -> new IllegalStateException("Not found pool for " + contractName));
-      handleLoop(from, to, (from, end) -> parseContracts(from, end, singletonList(adr)));
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (from, end) -> parseContracts(from, end, singletonList(adr)))
+          .handleLoop(from, to);
     } else {
       Set<String> excludeSet = new HashSet<>();
       if (exclude != null && exclude.length != 0) {
         excludeSet.addAll(new HashSet<>(Arrays.asList(exclude)));
       }
-      handleLoop(from, to, (from, end) -> parseContracts(from, end,
-          cu
-              .getAllPools().stream()
-              .map(v -> v.getContract().getAddress())
-              .filter(c -> !excludeSet.contains(
-                  cu.getNameByAddress(c)
-                      .orElseThrow()))
-              .collect(Collectors.toList())));
+      new LoopHandler(appProperties.getHandleLoopStep(),
+          (from, end) -> parseContracts(from, end,
+              cu
+                  .getAllPools().stream()
+                  .map(v -> v.getContract().getAddress())
+                  .filter(c -> !excludeSet.contains(
+                      cu.getNameByAddress(c)
+                          .orElseThrow()))
+                  .collect(Collectors.toList()))
+      ).handleLoop(from, to);
     }
   }
 

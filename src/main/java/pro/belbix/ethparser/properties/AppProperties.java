@@ -24,4 +24,5 @@ public class AppProperties {
     private boolean stopOnParseError = false;
     private boolean reconnectSubscriptions = true;
     private boolean skipSimilarPrices = false;
+    private int handleLoopStep = 1000;
 }

@@ -2,7 +2,6 @@ package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.utils.LoopUtils.handleLoop;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
+import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -26,6 +27,7 @@ public class TransferDownloader {
   private final PriceProvider priceProvider;
   private final TransferDBService transferDBService;
   private final TransferParser transferParser;
+  private final AppProperties appProperties;
 
   @Value("${transfer-download.contract:}")
   private String contractName;
@@ -37,21 +39,23 @@ public class TransferDownloader {
   public TransferDownloader(Web3Functions web3Functions,
       PriceProvider priceProvider,
       TransferDBService transferDBService,
-      TransferParser transferParser) {
+      TransferParser transferParser, AppProperties appProperties) {
     this.web3Functions = web3Functions;
     this.priceProvider = priceProvider;
     this.transferDBService = transferDBService;
     this.transferParser = transferParser;
+    this.appProperties = appProperties;
   }
 
   public void start() {
     if (contractName == null || contractName.isEmpty()) {
       throw new IllegalStateException("Empty contract");
     }
-    handleLoop(from, to, (from, end) -> parse(from, end,
-        contractUtils.getAddressByName(contractName, ContractType.TOKEN)
-            .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
-    ));
+    new LoopHandler(appProperties.getHandleLoopStep(),
+        (from, end) -> parse(from, end,
+            contractUtils.getAddressByName(contractName, ContractType.TOKEN)
+                .orElseThrow(() -> new IllegalStateException("Not found adr for " + contractName))
+        )).handleLoop(from, to);
   }
 
   private void parse(Integer start, Integer end, String contract) {
