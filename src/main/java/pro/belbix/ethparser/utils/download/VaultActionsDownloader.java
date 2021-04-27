@@ -80,7 +80,7 @@ public class VaultActionsDownloader {
     List<LogResult> logResults = web3Functions
         .fetchContractLogs(addresses, start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
-      log.info("Empty log {} {} {}", start, end, addresses);
+      log.info("Empty log {} {}", start, end);
       return;
     }
     handleLogs(logResults);

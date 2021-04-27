@@ -1,5 +1,8 @@
 package pro.belbix.ethparser.entity.a_layer;
 
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Set;
@@ -93,12 +96,24 @@ public class EthBlockEntity implements DtoI {
     public String network() {
         switch (network) {
             case 0:
-                return "eth";
+                return ETH_NETWORK;
             case 1:
-                return "bsc";
+                return BSC_NETWORK;
             default:
                 throw new IllegalStateException("Unknown network " + network);
         }
     }
 
+    public void defineNetwork(String network) {
+        switch (network) {
+            case ETH_NETWORK:
+                this.network = 0;
+                break;
+            case BSC_NETWORK:
+                this.network = 1;
+                break;
+            default:
+                throw new IllegalStateException("Unknown network " + network);
+        }
+    }
 }
