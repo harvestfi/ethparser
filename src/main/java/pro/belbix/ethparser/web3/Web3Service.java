@@ -104,12 +104,14 @@ abstract class Web3Service {
         if (e.getMessage().startsWith("Not retryable response")) {
           return null;
         }
-      } catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
-        log.error("Connection exception, reconnect...\n{}", e.getMessage());
-        close();
-        waitInit();
-        lastError = e;
-      } catch (Exception e) { //by default all errors, but can be filtered by type
+      }
+//      catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
+//        log.error("Connection exception, reconnect...", e);
+//        close();
+//        waitInit();
+//        lastError = e;
+//      }
+      catch (Exception e) { //by default all errors, but can be filtered by type
         log.warn("Retryable error", e);
         lastError = e;
       }

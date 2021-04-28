@@ -47,15 +47,9 @@ public class UniOwnerBalanceCalculator {
     String lpHash;
     if (dto.getLp() == null) {
       lpHash = contractUtils.findUniPairForTokens(
-          contractUtils.getAddressByName(dto.getCoin(), ContractType.TOKEN)
-              .orElseThrow(
-                  () -> new IllegalStateException("Not found address for " + dto.getCoin())),
-          contractUtils.getAddressByName(dto.getOtherCoin(), ContractType.TOKEN)
-              .orElseThrow(
-                  () -> new IllegalStateException("Not found address for " + dto.getOtherCoin()))
-      );
+          dto.getCoinAddress(), dto.getOtherCoinAddress());
     } else {
-      lpHash = contractUtils.getAddressByName(dto.getLp(), ContractType.UNI_PAIR).orElse(null);
+      lpHash = dto.getLpAddress();
     }
     if (lpHash == null) {
       log.error("Not found vault/lp hash for " + dto.getLp());

@@ -22,6 +22,7 @@ public class TransferDTO implements DtoI {
   @Id
   private String id;
   private String name;
+  private String tokenAddress;
   private long block;
   private long blockDate;
   private String network;

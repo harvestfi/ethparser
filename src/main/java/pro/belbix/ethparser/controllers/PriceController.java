@@ -18,6 +18,7 @@ import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @RestController
@@ -27,13 +28,16 @@ public class PriceController {
     private final PriceProvider priceProvider;
     private final EthBlockService ethBlockService;
     private final PriceRepository priceRepository;
+    private final ContractDbService contractDbService;
 
     public PriceController(PriceProvider priceProvider,
-                           EthBlockService ethBlockService,
-                           PriceRepository priceRepository) {
+        EthBlockService ethBlockService,
+        PriceRepository priceRepository,
+        ContractDbService contractDbService) {
         this.priceProvider = priceProvider;
         this.ethBlockService = ethBlockService;
         this.priceRepository = priceRepository;
+        this.contractDbService = contractDbService;
     }
 
     @GetMapping(value = "/lp/{lp}")
@@ -50,7 +54,8 @@ public class PriceController {
                 if (!contractUtils.isUniPairName(lp)) {
                     return RestResponse.error("Not UniPair address");
                 }
-                lpAddress = contractUtils.getAddressByName(lp, ContractType.UNI_PAIR).orElse(null);
+                lpAddress = contractDbService.getAddressByName(lp, ContractType.UNI_PAIR, network)
+                    .orElse(null);
                 if (lpAddress == null) {
                     return RestResponse.error("LP " + lp + " not supported");
                 }

@@ -30,6 +30,7 @@ public class BscAppProperties implements NetworkPropertiesI {
   private boolean parseTransactions = true;
   private String startTransactionBlock = "";
   private boolean parseDeployerTransactions = true;
+  private boolean parseDeployerEvents = true;
 
   // block parsing
   private boolean parseBlocks = false;

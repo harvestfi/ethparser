@@ -43,6 +43,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -68,6 +69,7 @@ public class VaultActionsParser implements Web3Parser {
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
   private long count = 0;
 
@@ -79,7 +81,8 @@ public class VaultActionsParser implements Web3Parser {
       ParserInfo parserInfo,
       AppProperties appProperties,
       NetworkProperties networkProperties,
-      HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator) {
+      HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.vaultActionsDBService = vaultActionsDBService;
@@ -90,6 +93,7 @@ public class VaultActionsParser implements Web3Parser {
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -220,8 +224,7 @@ public class VaultActionsParser implements Web3Parser {
       TransactionReceipt receipt = web3Functions
           .fetchTransactionReceipt(harvestTx.getHash(), network);
       String vault = receipt.getTo();
-      if (vault.equalsIgnoreCase(
-          ContractUtils.getInstance(network).getAddressByName("iPS", ContractType.VAULT).get())) {
+      if (vault.equalsIgnoreCase("0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651")) {
         return false; //not count deposit from iPS
       }
       harvestTx.setMethodName("Deposit");
@@ -273,8 +276,8 @@ public class VaultActionsParser implements Web3Parser {
   public void parseMigration(HarvestDTO dto, String network) {
     int onBlock = dto.getBlock().intValue();
     String newVault = dto.getVault().replace("_V0", "");
-    String newVaultHash = ContractUtils.getInstance(network)
-        .getAddressByName(newVault, ContractType.VAULT)
+    String newVaultHash = contractDbService
+        .getAddressByName(newVault, ContractType.VAULT, network)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + newVault));
     String poolAddress = ContractUtils.getInstance(network).poolByVaultAddress(newVaultHash)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
@@ -304,12 +307,16 @@ public class VaultActionsParser implements Web3Parser {
         ethBlockService.getTimestampSecForBlock(migrationTx.getBlock().longValue(), network));
     migrationDto.setMethodName("Deposit");
     migrationDto.setVault(dto.getVault().replace("_V0", ""));
+    migrationDto.setVaultAddress(
+        contractDbService.getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
+            .orElseThrow()
+    );
 
     migrationDto
         .setAmount(
             ContractUtils.getInstance(network).parseAmount(migrationTx.getIntFromArgs()[1],
-                ContractUtils.getInstance(network)
-                    .getAddressByName(migrationDto.getVault(), ContractType.VAULT)
+                contractDbService
+                    .getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
                     .orElseThrow(() -> new IllegalStateException(
                         "Not found address by " + migrationDto.getVault()))
             )
@@ -333,17 +340,16 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private void fillSharePrice(HarvestDTO dto, String network) {
-    String vaultHash = ContractUtils.getInstance(network)
-        .getAddressByName(dto.getVault(), ContractType.VAULT)
-        .orElseThrow(() -> new IllegalStateException("Not found address for " + dto.getVault()));
     BigInteger sharePriceInt =
-        functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultHash, dto.getBlock(), network)
+        functionsUtils.callIntByName(
+            GET_PRICE_PER_FULL_SHARE, dto.getVaultAddress(), dto.getBlock(), network)
             .orElse(BigInteger.ZERO);
     double sharePrice;
     if (BigInteger.ONE.equals(sharePriceInt)) {
       sharePrice = 0.0;
     } else {
-      sharePrice = ContractUtils.getInstance(network).parseAmount(sharePriceInt, vaultHash);
+      sharePrice = ContractUtils.getInstance(network)
+          .parseAmount(sharePriceInt, dto.getVaultAddress());
     }
     dto.setSharePrice(sharePrice);
   }
@@ -354,17 +360,15 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private void fillUsdPrice(HarvestDTO dto, String network) {
-    String vaultHash = ContractUtils.getInstance(network)
-        .getAddressByName(dto.getVault(), ContractType.VAULT)
-        .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
     String underlyingToken = functionsUtils
-        .callAddressByName(UNDERLYING, vaultHash, dto.getBlock(), network)
+        .callAddressByName(UNDERLYING, dto.getVaultAddress(), dto.getBlock(), network)
         .orElseThrow(
-            () -> new IllegalStateException("Can't fetch underlying token for " + vaultHash));
+            () -> new IllegalStateException(
+                "Can't fetch underlying token for " + dto.getVaultAddress()));
     if (ContractUtils.getInstance(network).isLp(underlyingToken)) {
-      fillUsdValuesForLP(dto, vaultHash, underlyingToken, network);
+      fillUsdValuesForLP(dto, dto.getVaultAddress(), underlyingToken, network);
     } else {
-      fillUsdValues(dto, vaultHash, network);
+      fillUsdValues(dto, dto.getVaultAddress(), network);
     }
   }
 

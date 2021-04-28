@@ -26,7 +26,6 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
@@ -123,6 +122,7 @@ public class TransferParser implements Web3Parser {
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);
     dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
+    dto.setTokenAddress(tx.getTokenAddress());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
     dto.setValue(
@@ -168,10 +168,8 @@ public class TransferParser implements Web3Parser {
   }
 
   public void fillBalance(TransferDTO dto) {
-    String tokenAddress = contractUtils.getAddressByName(dto.getName(), ContractType.TOKEN)
-        .orElseThrow(() -> new IllegalStateException("Not found adr for " + dto.getName()));
-    dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
-    dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
+    dto.setBalanceOwner(getBalance(dto.getOwner(), dto.getTokenAddress(), dto.getBlock()));
+    dto.setBalanceRecipient(getBalance(dto.getRecipient(), dto.getTokenAddress(), dto.getBlock()));
   }
 
   public void fillPrice(TransferDTO dto) {

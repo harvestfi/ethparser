@@ -23,7 +23,6 @@ import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -91,13 +90,7 @@ public class UniToHarvestConverter implements Web3Parser {
       return null;
     }
     String lpHash = contractUtils.findUniPairForTokens(
-        contractUtils.getAddressByName(uniswapDTO.getCoin(), ContractType.TOKEN)
-            .orElseThrow(
-                () -> new IllegalStateException("Not found address for " + uniswapDTO.getCoin())),
-        contractUtils.getAddressByName(uniswapDTO.getOtherCoin(), ContractType.TOKEN)
-            .orElseThrow(() -> new IllegalStateException(
-                "Not found address for " + uniswapDTO.getOtherCoin()))
-    );
+        uniswapDTO.getCoinAddress(), uniswapDTO.getOtherCoinAddress());
     if (!PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(lpHash)) {
       return null;
     }
@@ -120,6 +113,7 @@ public class UniToHarvestConverter implements Web3Parser {
     harvestDTO.setOwner(uniswapDTO.getOwner());
     harvestDTO.setVault(contractUtils.getNameByAddress(lpHash)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
+    harvestDTO.setVaultAddress(lpHash);
     harvestDTO.setLastGas(uniswapDTO.getLastGas());
     harvestDTO.setSharePrice(1.0);
     harvestDTO.setOwnerBalance(uniswapDTO.getOwnerBalance());

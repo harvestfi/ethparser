@@ -14,4 +14,22 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         @Param("network") String network
     );
 
+    @Query("select t from ContractEntity t "
+        + "where t.name = :name and t.type = :type and t.network = :network")
+    ContractEntity findFirstByName(
+        @Param("name") String name,
+        @Param("type") int type,
+        @Param("network") String network
+    );
+
+    @Query("select p_ctr from VaultEntity v, PoolEntity p "
+        + "join p.contract p_ctr "
+        + "where v.contract.address = :address "
+        + "and v.contract.network = :network "
+        + "and p.lpToken.address = v.contract.address")
+    ContractEntity findPoolByVaultAddress(
+        @Param("address") String address,
+        @Param("network") String network
+    );
+
 }

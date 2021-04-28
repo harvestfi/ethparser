@@ -18,6 +18,7 @@ import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 
 @Service
@@ -28,6 +29,7 @@ public class PriceDownloader {
   private final PriceRepository priceRepository;
   private final PriceLogParser priceLogParser;
   private final AppProperties appProperties;
+  private final ContractDbService contractDbService;
 
   @Value("${price-download.contracts:}")
   private String[] contractNames;
@@ -38,11 +40,13 @@ public class PriceDownloader {
 
   public PriceDownloader(Web3Functions web3Functions,
       PriceRepository priceRepository,
-      PriceLogParser priceLogParser, AppProperties appProperties) {
+      PriceLogParser priceLogParser, AppProperties appProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.priceRepository = priceRepository;
     this.priceLogParser = priceLogParser;
     this.appProperties = appProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void start() {
@@ -55,8 +59,8 @@ public class PriceDownloader {
           .toArray(contractNames);
     }
     for (String contractName : contractNames) {
-      String contractHash = ContractUtils.getInstance(appProperties.getUtilNetwork())
-          .getAddressByName(contractName, ContractType.UNI_PAIR)
+      String contractHash = contractDbService
+          .getAddressByName(contractName, ContractType.UNI_PAIR, appProperties.getUtilNetwork())
           .orElseThrow(() -> new IllegalStateException("Not found hash for " + contractName));
       new LoopHandler(appProperties.getHandleLoopStep(),
           (start, end) -> parse(start, end, contractHash))

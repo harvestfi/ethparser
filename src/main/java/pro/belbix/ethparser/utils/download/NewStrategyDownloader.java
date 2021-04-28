@@ -12,6 +12,7 @@ import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
@@ -22,6 +23,7 @@ public class NewStrategyDownloader {
   private final RewardDownloader rewardDownloader;
   private final HardWorkDownloader hardWorkDownloader;
   private final AppProperties appProperties;
+  private final ContractDbService contractDbService;
 
   @Value("${new-strategy-download.vaults:}")
   private String[] vaults;
@@ -37,12 +39,14 @@ public class NewStrategyDownloader {
       VaultActionsDownloader vaultActionsDownloader,
       RewardDownloader rewardDownloader,
       HardWorkDownloader hardWorkDownloader,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.vaultActionsDownloader = vaultActionsDownloader;
     this.rewardDownloader = rewardDownloader;
     this.hardWorkDownloader = hardWorkDownloader;
     this.appProperties = appProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void start() {
@@ -52,7 +56,9 @@ public class NewStrategyDownloader {
     }
     log.info("Start new vault downloading {}", Arrays.toString(vaults));
     contracts = Arrays.stream(vaults)
-        .map(vName -> cu.getAddressByName(vName, ContractType.VAULT).orElseThrow())
+        .map(vName -> contractDbService
+            .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
+            .orElseThrow())
         .collect(Collectors.toList());
 
     new LoopHandler(appProperties.getHandleLoopStep(), this::handle)

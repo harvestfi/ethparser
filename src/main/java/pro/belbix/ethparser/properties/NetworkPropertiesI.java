@@ -19,4 +19,5 @@ public interface NetworkPropertiesI {
   boolean isParseTransfers();
   boolean isParsePrices();
   boolean isParseDeployerTransactions();
+  boolean isParseDeployerEvents();
 }

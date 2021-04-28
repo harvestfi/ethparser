@@ -67,16 +67,20 @@ public class UniswapTx implements EthTransactionI {
     uniswapDTO.setOwner(owner);
     uniswapDTO.setBlock(block);
     uniswapDTO.setCoin(contractUtils.getNameByAddress(coinAddress).orElseThrow());
+    uniswapDTO.setCoinAddress(coinAddress);
     uniswapDTO.setConfirmed(success);
     uniswapDTO.setLp(contractUtils.getNameByAddress(lpAddress)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + lpAddress)));
+    uniswapDTO.setLpAddress(lpAddress);
     uniswapDTO.setMethodName(methodName);
 
     if (coinAddress.equals(coinIn.getValue().toLowerCase())) {
       assertBuy(false);
       uniswapDTO.setAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountIn, coinIn.getValue()));
       uniswapDTO.setOtherCoin(addrToStr(coinOut));
-      uniswapDTO.setOtherAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountOut, coinOut.getValue()));
+      uniswapDTO.setOtherCoinAddress(coinOut.getValue());
+      uniswapDTO.setOtherAmount(
+          ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountOut, coinOut.getValue()));
       if (type.equals(SWAP)) {
         uniswapDTO.setType("SELL");
       } else {
@@ -86,7 +90,9 @@ public class UniswapTx implements EthTransactionI {
       assertBuy(true);
       uniswapDTO.setAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountOut, coinOut.getValue()));
       uniswapDTO.setOtherCoin(addrToStr(coinIn));
-      uniswapDTO.setOtherAmount(ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountIn, coinIn.getValue()));
+      uniswapDTO.setOtherCoinAddress(coinIn.getValue());
+      uniswapDTO.setOtherAmount(
+          ContractUtils.getInstance(ETH_NETWORK).parseAmount(amountIn, coinIn.getValue()));
       if (type.equals(SWAP)) {
         uniswapDTO.setType("BUY");
       } else {

@@ -76,30 +76,6 @@ public class ContractUtils {
     return name;
   }
 
-  public Optional<String> getAddressByName(String name, ContractType type) {
-    if (type == ContractType.VAULT) {
-      return getCache().getVaultByName(name)
-          .map(VaultEntity::getContract)
-          .map(ContractEntity::getAddress);
-    }
-    if (type == ContractType.POOL) {
-      return getCache().getPoolByName(name)
-          .map(PoolEntity::getContract)
-          .map(ContractEntity::getAddress);
-    }
-    if (type == ContractType.UNI_PAIR) {
-      return getCache().getUniPairByName(name)
-          .map(UniPairEntity::getContract)
-          .map(ContractEntity::getAddress);
-    }
-    if (type == ContractType.TOKEN) {
-      return getCache().getTokenByName(name)
-          .map(TokenEntity::getContract)
-          .map(ContractEntity::getAddress);
-    }
-    throw new IllegalStateException("unknown type" + type);
-  }
-
   public boolean isLp(String address) {
     return getCache().getUniPairByAddress(address).isPresent();
   }
@@ -171,8 +147,11 @@ public class ContractUtils {
   }
 
   public boolean isPsName(String name) {
-    return isPsAddress(getAddressByName(name, ContractType.POOL).orElse(""))
-        || isPsAddress(getAddressByName(name, ContractType.VAULT).orElse(""));
+    return name.equals("PS")
+        || name.equals("PS_V0")
+        || name.equals("ST_PS")
+        || name.equals("FARM")
+        ;
   }
 
   public boolean isPsAddress(String address) {
@@ -242,11 +221,6 @@ public class ContractUtils {
     } else if (isPoolAddress(address)) {
       String vaultAddress = getCache().getPoolByAddress(address)
           .orElseThrow().getLpToken().getAddress();
-      String vaultName = getNameByAddress(vaultAddress).orElseThrow();
-      if (vaultName.endsWith("_V0")) {
-        vaultAddress = getAddressByName(vaultName.replace("_V0", ""), ContractType.VAULT)
-            .orElseThrow(() -> new IllegalStateException("Not found address for " + vaultName));
-      }
       decimals = getCache().getVaultByAddress(vaultAddress)
           .orElseThrow().getDecimals();
     } else if (isVaultAddress(address)) {
@@ -544,6 +518,15 @@ public class ContractUtils {
       return null;
     }
     return entry.getValue();
+  }
+
+  public String getEthAddress() {
+    if(ETH_NETWORK.equals(network)) {
+      return "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase();
+    } else if(BSC_NETWORK.equals(network)) {
+      return "0x2170Ed0880ac9A755fd29B2688956BD959F933F8".toLowerCase();
+    }
+    return null;
   }
 
   public Collection<PoolEntity> getAllPools() {

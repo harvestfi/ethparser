@@ -9,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -41,8 +40,7 @@ public class HarvestOwnerBalanceCalculator {
   }
 
   private boolean balanceForPs(HarvestDTO dto, String network) {
-    String psHash = ContractUtils.getInstance(network).getAddressByName(dto.getVault(), ContractType.VAULT)
-        .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
+    String psHash = dto.getVaultAddress();
     BigInteger balanceI = functionsUtils.callIntByName(
         BALANCE_OF, dto.getOwner(), psHash, dto.getBlock(), network)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + psHash));
@@ -60,8 +58,7 @@ public class HarvestOwnerBalanceCalculator {
 
   private boolean balanceForVault(HarvestDTO dto, String network) {
     long block = dto.getBlock();
-    String vaultHash = ContractUtils.getInstance(network).getAddressByName(dto.getVault(), ContractType.VAULT)
-        .orElseThrow(() -> new IllegalStateException("Not found address by " + dto.getVault()));
+    String vaultHash = dto.getVaultAddress();
     BigInteger balanceI;
     if (dto.isMigrated()) {
       //migration process broken UnderlyingBalance for vault
@@ -115,7 +112,7 @@ public class HarvestOwnerBalanceCalculator {
   }
 
   private boolean balanceForNonVaultLp(HarvestDTO dto, String network) {
-    String lpHash = ContractUtils.getInstance(network).getAddressByName(dto.getVault(), ContractType.VAULT).orElse(null);
+    String lpHash = dto.getVaultAddress();
     if (lpHash == null) {
       log.error("Not found vault/lp hash for " + dto.getVault());
       return false;

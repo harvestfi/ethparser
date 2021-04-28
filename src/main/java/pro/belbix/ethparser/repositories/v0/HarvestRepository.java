@@ -186,6 +186,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "    last_value(amount) over w                 as amount, "
         + "    last_value(amount_in) over w              as amount_in, "
         + "    vault, "
+        + "    last_value(vault_address) over w          as vault_address, "
         + "    last_value(last_gas) over w               as last_gas, "
         + "    last_value(last_tvl) over w               as last_tvl, "
         + "    last_value(last_usd_tvl) over w           as last_usd_tvl, "

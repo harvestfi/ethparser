@@ -42,8 +42,8 @@ import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -68,6 +68,7 @@ public class HardWorkParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public HardWorkParser(PriceProvider priceProvider,
@@ -76,7 +77,8 @@ public class HardWorkParser implements Web3Parser {
       Web3Subscriber web3Subscriber, HardWorkDbService hardWorkDbService,
       ParserInfo parserInfo,
       AppProperties appProperties,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
@@ -85,6 +87,7 @@ public class HardWorkParser implements Web3Parser {
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -142,7 +145,7 @@ public class HardWorkParser implements Web3Parser {
       log.error("DoHardWork catch Unknown vault " + tx.getVault());
       return null;
     }
-    String vaultName = cu(network).getNameByAddress(tx.getVault())
+    String vaultName = contractDbService.getNameByAddress(tx.getVault(), network)
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
     if (vaultName.endsWith("_V0")) {
       // skip old strategies
@@ -154,6 +157,7 @@ public class HardWorkParser implements Web3Parser {
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);
+    dto.setVaultAddress(tx.getVault());
     dto.setShareChange(cu(network).parseAmount(
         tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
 
@@ -185,9 +189,7 @@ public class HardWorkParser implements Web3Parser {
     }
     double ethPrice =
         priceProvider.getPriceForCoin(
-            cu(network).getAddressByName("ETH", ContractType.TOKEN)
-                .orElseThrow(),
-            dto.getBlock(), network);
+            cu(network).getEthAddress(), dto.getBlock(), network);
     dto.setEthPrice(ethPrice);
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);
@@ -207,9 +209,7 @@ public class HardWorkParser implements Web3Parser {
     }
 
     HardWorkTx profitLog = hardWorkLogDecoder.decode(ethLog);
-    String strategyAddress = cu(network).getVaultEntityByAddress(
-        cu(network).getAddressByName(dto.getVault(), ContractType.VAULT)
-            .orElseThrow())
+    String strategyAddress = cu(network).getVaultEntityByAddress(dto.getVaultAddress())
         .map(VaultEntity::getStrategy)
         .map(ContractEntity::getAddress)
         .orElseThrow();
@@ -353,23 +353,21 @@ public class HardWorkParser implements Web3Parser {
   }
 
   private void parseVaultInvestedFunds(HardWorkDTO dto, String network) {
-    String vaultHash = cu(network).getAddressByName(dto.getVault(), ContractType.VAULT)
-        .orElseThrow();
     double underlyingBalanceInVault = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_IN_VAULT,
-        vaultHash,
+        dto.getVaultAddress(),
         dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double underlyingBalanceWithInvestment = functionsUtils.callIntByName(
         UNDERLYING_BALANCE_WITH_INVESTMENT,
-        vaultHash,
+        dto.getVaultAddress(),
         dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestNumerator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_NUMERATOR,
-        vaultHash,
+        dto.getVaultAddress(),
         dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
     double vaultFractionToInvestDenominator = functionsUtils.callIntByName(
         VAULT_FRACTION_TO_INVEST_DENOMINATOR,
-        vaultHash,
+        dto.getVaultAddress(),
         dto.getBlock(), network).orElse(BigInteger.ZERO).doubleValue();
 
     double invested =

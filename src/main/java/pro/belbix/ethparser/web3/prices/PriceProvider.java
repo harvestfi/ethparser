@@ -21,6 +21,7 @@ import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
@@ -33,13 +34,16 @@ public class PriceProvider {
   private final PriceRepository priceRepository;
   private final AppProperties appProperties;
   private final PriceOracle priceOracle;
+  private final ContractDbService contractDbService;
 
   public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
-      AppProperties appProperties, PriceOracle priceOracle) {
+      AppProperties appProperties, PriceOracle priceOracle,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.priceRepository = priceRepository;
     this.appProperties = appProperties;
     this.priceOracle = priceOracle;
+    this.contractDbService = contractDbService;
   }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
@@ -122,7 +126,8 @@ public class PriceProvider {
     }
     String coinAddress = coinNameOrAddress;
     if (!coinNameOrAddress.startsWith("0x")) {
-      coinAddress = cu(network).getAddressByName(coinNameOrAddress, ContractType.TOKEN)
+      coinAddress = contractDbService
+          .getAddressByName(coinNameOrAddress, ContractType.TOKEN, network)
           .orElseThrow(
               () -> new IllegalStateException("Not found address for " + coinNameOrAddress));
     }
@@ -190,9 +195,7 @@ public class PriceProvider {
         && !priceDTO.getOtherToken().equalsIgnoreCase(tokenName)) {
       throw new IllegalStateException("Wrong source for " + tokenName);
     }
-    String otherTokenAddress =
-        cu(network).getAddressByName(priceDTO.getOtherToken(), ContractType.TOKEN)
-            .orElse("");
+    String otherTokenAddress = priceDTO.getOtherTokenAddress();
     double otherTokenPrice = getPriceForCoin(otherTokenAddress, block, network);
     return priceDTO.getPrice() * otherTokenPrice;
   }
@@ -210,7 +213,7 @@ public class PriceProvider {
     String tokenName = cu(network).getNameByAddress(address)
         .map(n -> cu(network).getSimilarAssetForPrice(n))
         .orElseThrow(() -> new IllegalStateException("Not found name for " + address));
-    String similarAdr = cu(network).getAddressByName(tokenName, ContractType.TOKEN)
+    String similarAdr = contractDbService.getAddressByName(tokenName, ContractType.TOKEN, network)
         .orElseThrow();
     if (cu(network).isStableCoin(similarAdr)) {
       return 1.0;
@@ -220,8 +223,8 @@ public class PriceProvider {
     if (!cu(network).isUniPairCreated(lpName, block)) {
       return 0.0;
     }
-    String lpHash = cu(network)
-        .getAddressByName(lpName, ContractType.UNI_PAIR)
+    String lpHash = contractDbService
+        .getAddressByName(lpName, ContractType.UNI_PAIR, network)
         .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
 
     Tuple2<Double, Double> reserves = functionsUtils.callReserves(
