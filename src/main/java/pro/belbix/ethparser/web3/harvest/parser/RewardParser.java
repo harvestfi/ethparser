@@ -32,6 +32,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
@@ -51,6 +52,7 @@ public class RewardParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final Web3Functions web3Functions;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
   private boolean waitNewBlock = true;
 
@@ -61,7 +63,8 @@ public class RewardParser implements Web3Parser {
       RewardsDBService rewardsDBService,
       AppProperties appProperties,
       ParserInfo parserInfo, Web3Functions web3Functions,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -70,6 +73,7 @@ public class RewardParser implements Web3Parser {
     this.parserInfo = parserInfo;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -158,7 +162,7 @@ public class RewardParser implements Web3Parser {
     String rewardTokenAdr = ContractUtils.getInstance(network).getPoolRewardToken(poolAddress)
         .orElseThrow(() -> new IllegalStateException("Reward token not found for " + poolAddress));
 
-    double rewardBalance = ContractUtils.getInstance(network).parseAmount(
+    double rewardBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(
             BALANCE_OF,
             poolAddress,
@@ -167,14 +171,14 @@ public class RewardParser implements Web3Parser {
             network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get balance from " + rewardTokenAdr)),
-        rewardTokenAdr);
+        rewardTokenAdr, network);
 
     RewardDTO dto = new RewardDTO();
     dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
     dto.setBlockDate(blockTime);
-    dto.setVault(cu(network).getNameByAddress(poolAddress)
+    dto.setVault(contractDbService.getNameByAddress(poolAddress, network)
         .orElseThrow(() -> new IllegalStateException("Pool name not found for " + poolAddress))
         .replaceFirst("ST__", "")
         .replaceFirst("ST_", ""));

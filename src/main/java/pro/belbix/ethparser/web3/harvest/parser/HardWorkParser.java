@@ -141,7 +141,7 @@ public class HardWorkParser implements Web3Parser {
       throw new IllegalStateException("Unknown method " + tx.getMethodName());
     }
 
-    if (cu(network).getNameByAddress(tx.getVault()).isEmpty()) {
+    if (contractDbService.getNameByAddress(tx.getVault(), network).isEmpty()) {
       log.error("DoHardWork catch Unknown vault " + tx.getVault());
       return null;
     }
@@ -158,8 +158,8 @@ public class HardWorkParser implements Web3Parser {
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);
     dto.setVaultAddress(tx.getVault());
-    dto.setShareChange(cu(network).parseAmount(
-        tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault()));
+    dto.setShareChange(contractDbService.parseAmount(
+        tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault(), network));
 
     parseRates(dto, tx.getStrategy(), network);
     parseRewards(dto, tx.getHash(), tx.getStrategy(), network);
@@ -219,10 +219,10 @@ public class HardWorkParser implements Web3Parser {
             .orElseThrow();
     double rewardTokenPrice =
         priceProvider.getPriceForCoin(rewardTokenAdr, dto.getBlock(), network);
-    double rewardBalance = cu(network)
-        .parseAmount(profitLog.getProfitAmount(), rewardTokenAdr);
-    double feeAmount = cu(network)
-        .parseAmount(profitLog.getFeeAmount(), rewardTokenAdr);
+    double rewardBalance = contractDbService
+        .parseAmount(profitLog.getProfitAmount(), rewardTokenAdr, network);
+    double feeAmount = contractDbService
+        .parseAmount(profitLog.getFeeAmount(), rewardTokenAdr, network);
 
     dto.setFullRewardUsd(rewardTokenPrice * rewardBalance);
     dto.setFarmBuyback(rewardTokenPrice * feeAmount);

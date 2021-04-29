@@ -24,6 +24,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -41,18 +42,21 @@ public class UniToHarvestConverter implements Web3Parser {
   private final ParserInfo parserInfo;
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
       VaultActionsDBService vaultActionsDBService, ParserInfo parserInfo,
       AppProperties appProperties,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.vaultActionsDBService = vaultActionsDBService;
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -111,7 +115,7 @@ public class UniToHarvestConverter implements Web3Parser {
     harvestDTO.setConfirmed(1);
     harvestDTO.setBlockDate(uniswapDTO.getBlockDate());
     harvestDTO.setOwner(uniswapDTO.getOwner());
-    harvestDTO.setVault(contractUtils.getNameByAddress(lpHash)
+    harvestDTO.setVault(contractDbService.getNameByAddress(lpHash, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + lpHash)));
     harvestDTO.setVaultAddress(lpHash);
     harvestDTO.setLastGas(uniswapDTO.getLastGas());
@@ -128,9 +132,9 @@ public class UniToHarvestConverter implements Web3Parser {
 
   public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
     long block = harvestDTO.getBlock();
-    ContractEntity poolContract = contractUtils.poolByVaultAddress(lpHash)
-        .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash))
-        .getContract();
+    ContractEntity poolContract = contractDbService
+        .getPoolContractByVaultAddress(lpHash, ETH_NETWORK)
+        .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash));
     if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
       log.warn("Pool not created yet {} ", poolContract.getName());
       harvestDTO.setLastTvl(0.0);
@@ -142,14 +146,14 @@ public class UniToHarvestConverter implements Web3Parser {
     }
     String poolAddress = poolContract.getAddress();
 
-    double lpBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
+    double lpBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
-        lpHash);
-    double stBalance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(
+        lpHash, ETH_NETWORK);
+    double stBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
-        lpHash);
+        lpHash, ETH_NETWORK);
     harvestDTO.setLastTvl(stBalance);
     double stFraction = stBalance / lpBalance;
     if (Double.isNaN(stFraction) || Double.isInfinite(stFraction)) {
@@ -163,13 +167,16 @@ public class UniToHarvestConverter implements Web3Parser {
 
     Tuple2<Double, Double> uniPrices = priceProvider
         .getPairPriceForLpHash(lpHash, block, ETH_NETWORK);
+
+    Tuple2<String, String> lpTokens = contractUtils.tokenAddressesByUniPairAddress(lpHash);
+
     harvestDTO.setLpStat(LpStat.createJson(
-        lpHash,
+        contractDbService.getNameByAddress(lpTokens.component1(), ETH_NETWORK).orElse("unknown"),
+        contractDbService.getNameByAddress(lpTokens.component2(), ETH_NETWORK).orElse("unknown"),
         firstCoinBalance,
         secondCoinBalance,
         uniPrices.component1(),
-        uniPrices.component2(),
-        ETH_NETWORK
+        uniPrices.component2()
     ));
     double firstCoinUsdAmount = firstCoinBalance * uniPrices.component1();
     double secondCoinUsdAmount = secondCoinBalance * uniPrices.component2();

@@ -29,6 +29,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 
@@ -47,6 +48,7 @@ public class ImportantEventsParser implements Web3Parser {
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
@@ -55,7 +57,8 @@ public class ImportantEventsParser implements Web3Parser {
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
       FunctionsUtils functionsUtils, AppProperties appProperties,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
@@ -63,6 +66,7 @@ public class ImportantEventsParser implements Web3Parser {
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -101,8 +105,8 @@ public class ImportantEventsParser implements Web3Parser {
   public ImportantEventsDTO parseLog(Log ethLog, String network) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-            && ContractUtils.getInstance(network)
-            .getNameByAddress(ethLog.getAddress()).isEmpty())
+            && contractDbService
+            .getNameByAddress(ethLog.getAddress(), network).isEmpty())
     ) {
       return null;
     }
@@ -143,8 +147,8 @@ public class ImportantEventsParser implements Web3Parser {
   }
 
   private void parseVault(ImportantEventsDTO dto, String vault, String network) {
-    dto.setVault(ContractUtils.getInstance(network)
-        .getNameByAddress(vault)
+    dto.setVault(contractDbService
+        .getNameByAddress(vault, network)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
     );
   }

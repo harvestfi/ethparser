@@ -47,7 +47,7 @@ public class PriceProvider {
   }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
-    String lpName = cu(network).getNameByAddress(lpAddress)
+    String lpName = contractDbService.getNameByAddress(lpAddress, network)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository
         .fetchLastPrice(lpName, block, network, limitOne))
@@ -87,10 +87,10 @@ public class PriceProvider {
     if (lpPooled == null) {
       throw new IllegalStateException("Can't reach reserves for " + lpAddress);
     }
-    double lpBalance = cu(network).parseAmount(
+    double lpBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
-        lpAddress);
+        lpAddress, network);
     double usdValue = calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block, network);
     log.info("{} USD value fetched {} for {} at block {}",
         lpAddress, amount, usdValue, block);
@@ -190,7 +190,8 @@ public class PriceProvider {
       return getPriceForCoinFromEth(address, block, network);
     }
 
-    String tokenName = cu(network).getNameByAddress(address).orElse("");
+    String tokenName = contractDbService.getNameByAddress(address, network)
+        .orElse("");
     if (!priceDTO.getToken().equalsIgnoreCase(tokenName)
         && !priceDTO.getOtherToken().equalsIgnoreCase(tokenName)) {
       throw new IllegalStateException("Wrong source for " + tokenName);
@@ -210,7 +211,7 @@ public class PriceProvider {
     log.info("Oracle not deployed yet, use direct calculation for prices");
     //LEGACY PART
     //for compatibility with CRV prices without oracle
-    String tokenName = cu(network).getNameByAddress(address)
+    String tokenName = contractDbService.getNameByAddress(address, network)
         .map(n -> cu(network).getSimilarAssetForPrice(n))
         .orElseThrow(() -> new IllegalStateException("Not found name for " + address));
     String similarAdr = contractDbService.getAddressByName(tokenName, ContractType.TOKEN, network)

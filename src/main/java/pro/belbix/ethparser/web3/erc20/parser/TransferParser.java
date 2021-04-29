@@ -27,6 +27,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -49,6 +50,7 @@ public class TransferParser implements Web3Parser {
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public TransferParser(Web3Functions web3Functions,
@@ -57,7 +59,8 @@ public class TransferParser implements Web3Parser {
       TransferDBService transferDBService,
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils, AppProperties appProperties,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -67,6 +70,7 @@ public class TransferParser implements Web3Parser {
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -121,12 +125,14 @@ public class TransferParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);
-    dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
+    dto.setName(contractDbService
+        .getNameByAddress(tx.getTokenAddress(), ETH_NETWORK)
+        .orElseThrow());
     dto.setTokenAddress(tx.getTokenAddress());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
     dto.setValue(
-        ContractUtils.getInstance(ETH_NETWORK).parseAmount(tx.getValue(), tx.getTokenAddress()));
+        contractDbService.parseAmount(tx.getValue(), tx.getTokenAddress(), ETH_NETWORK));
 
     fillMethodName(dto);
     fillTransferType(dto);
@@ -180,7 +186,7 @@ public class TransferParser implements Web3Parser {
     BigInteger balanceI = functionsUtils.callIntByName(
         BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
-    return ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, tokenAddress);
+    return contractDbService.parseAmount(balanceI, tokenAddress, ETH_NETWORK);
   }
 
   @Override

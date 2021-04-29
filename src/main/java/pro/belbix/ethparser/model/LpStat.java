@@ -3,8 +3,6 @@ package pro.belbix.ethparser.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class LpStat {
@@ -18,19 +16,18 @@ public class LpStat {
   private Double price1;
   private Double price2;
 
-  public static String createJson(String lpHash,
+  public static String createJson(
+      String firstCoinName,
+      String secondCoinName,
       double firstCoinAmount,
       double secondCoinAmount,
       double firstCoinPrice,
-      double secondCoinPrice,
-      String network
+      double secondCoinPrice
   ) {
-    ContractUtils contractUtils = ContractUtils.getInstance(network);
     try {
-      Tuple2<String, String> lpTokens = contractUtils.tokenAddressesByUniPairAddress(lpHash);
       LpStat lpStat = new LpStat();
-      lpStat.setCoin1(contractUtils.getNameByAddress(lpTokens.component1()).orElse("unknown"));
-      lpStat.setCoin2(contractUtils.getNameByAddress(lpTokens.component2()).orElse("unknown"));
+      lpStat.setCoin1(firstCoinName);
+      lpStat.setCoin2(secondCoinName);
       lpStat.setAmount1(firstCoinAmount);
       lpStat.setAmount2(secondCoinAmount);
       lpStat.setPrice1(firstCoinPrice);

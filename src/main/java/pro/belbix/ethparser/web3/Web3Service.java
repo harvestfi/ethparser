@@ -92,7 +92,7 @@ abstract class Web3Service {
     initStarted = false;
   }
 
-  public <T> T callWithRetry(Callable<T> callable) {
+  public <T> T callWithRetry(Callable<T> callable, String logMessage) {
     int count = 0;
     while (true) {
       waitInit();
@@ -112,7 +112,7 @@ abstract class Web3Service {
 //        lastError = e;
 //      }
       catch (Exception e) { //by default all errors, but can be filtered by type
-        log.warn("Retryable error", e);
+        log.warn(logMessage+ " Retryable error", e);
         lastError = e;
       }
 

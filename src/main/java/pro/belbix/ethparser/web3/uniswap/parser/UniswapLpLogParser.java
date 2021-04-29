@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.parser;
 
+import static pro.belbix.ethparser.model.tx.UniswapTx.SWAP;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Instant;
@@ -10,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
@@ -23,6 +25,8 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
@@ -47,6 +51,7 @@ public class UniswapLpLogParser implements Web3Parser {
   private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
   private long count = 0;
 
@@ -58,7 +63,8 @@ public class UniswapLpLogParser implements Web3Parser {
       ParserInfo parserInfo,
       UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
       AppProperties appProperties,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
@@ -69,6 +75,7 @@ public class UniswapLpLogParser implements Web3Parser {
     this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -118,7 +125,7 @@ public class UniswapLpLogParser implements Web3Parser {
       return null;
     }
 
-    UniswapDTO dto = tx.toDto();
+    UniswapDTO dto = createDto(tx);
 
     //enrich owner
     TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(dto.getHash(), ETH_NETWORK);
@@ -146,6 +153,78 @@ public class UniswapLpLogParser implements Web3Parser {
 
   private void enrichDto(UniswapDTO dto) {
     dto.setLastGas(web3Functions.fetchAverageGasPrice(ETH_NETWORK));
+  }
+
+  private UniswapDTO createDto(UniswapTx tx) {
+    String coinName = contractDbService
+        .getNameByAddress(tx.getCoinAddress(), ETH_NETWORK)
+        .orElseThrow();
+    String lpName = contractDbService
+        .getNameByAddress(tx.getLpAddress(), ETH_NETWORK)
+        .orElseThrow();
+
+    UniswapDTO uniswapDTO = new UniswapDTO();
+    uniswapDTO.setId(tx.getHash() + "_" + tx.getLogId());
+    uniswapDTO.setHash(tx.getHash());
+    uniswapDTO.setOwner(tx.getOwner());
+    uniswapDTO.setBlock(tx.getBlock());
+    uniswapDTO.setCoin(coinName);
+    uniswapDTO.setCoinAddress(tx.getCoinAddress());
+    uniswapDTO.setConfirmed(tx.isSuccess());
+    uniswapDTO.setLp(lpName);
+    uniswapDTO.setLpAddress(tx.getLpAddress());
+    uniswapDTO.setMethodName(tx.getMethodName());
+
+    if (tx.getCoinAddress().equalsIgnoreCase(tx.getCoinIn().getValue())) {
+      assertBuy(false, tx.getBuy());
+      uniswapDTO.setAmount(contractDbService
+          .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
+      uniswapDTO.setOtherCoin(addrToStr(tx.getCoinOut()));
+      uniswapDTO.setOtherCoinAddress(tx.getCoinOut().getValue());
+      uniswapDTO.setOtherAmount(
+          contractDbService
+              .parseAmount(tx.getAmountOut(), tx.getCoinOut().getValue(), ETH_NETWORK));
+      if (tx.getType().equals(SWAP)) {
+        uniswapDTO.setType("SELL");
+      } else {
+        uniswapDTO.setType(tx.getType());
+      }
+    } else if (tx.getCoinAddress().equalsIgnoreCase(tx.getCoinOut().getValue())) {
+      assertBuy(true, tx.getBuy());
+      uniswapDTO.setAmount(contractDbService
+          .parseAmount(tx.getAmountOut(), tx.getCoinOut().getValue(), ETH_NETWORK));
+      uniswapDTO.setOtherCoin(addrToStr(tx.getCoinIn()));
+      uniswapDTO.setOtherCoinAddress(tx.getCoinIn().getValue());
+      uniswapDTO.setOtherAmount(contractDbService
+              .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
+      if (tx.getType().equals(SWAP)) {
+        uniswapDTO.setType("BUY");
+      } else {
+        uniswapDTO.setType(tx.getType());
+      }
+    } else {
+      throw new IllegalStateException("Contract can't identified " + toString());
+    }
+
+    if (uniswapDTO.getOtherCoin().equals("USDC")) {
+      double price = (uniswapDTO.getOtherAmount() / uniswapDTO.getAmount());
+      uniswapDTO.setPrice(price);
+    }
+    return uniswapDTO;
+  }
+
+  public void assertBuy(boolean expected, Boolean actual) {
+    if (actual == null) {
+      throw new IllegalStateException("Buy now is null");
+    }
+    if (actual != expected) {
+      throw new IllegalStateException("Unexpected setup");
+    }
+  }
+
+  private String addrToStr(Address adr) {
+    return contractDbService.getNameByAddress(adr.getValue(), ETH_NETWORK)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
   }
 
   @Override

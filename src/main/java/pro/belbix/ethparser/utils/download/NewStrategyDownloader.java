@@ -60,6 +60,15 @@ public class NewStrategyDownloader {
             .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
             .orElseThrow())
         .collect(Collectors.toList());
+    contracts.addAll(Arrays.stream(vaults)
+        .map(vName -> contractDbService
+            .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
+            .orElseThrow())
+        .map(vName -> contractDbService
+            .getPoolContractByVaultAddress(vName, appProperties.getUtilNetwork())
+            .orElseThrow()
+            .getAddress())
+        .collect(Collectors.toList()));
 
     new LoopHandler(appProperties.getHandleLoopStep(), this::handle)
         .start(from, to);

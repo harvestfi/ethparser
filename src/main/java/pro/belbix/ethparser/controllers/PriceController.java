@@ -3,7 +3,6 @@ package pro.belbix.ethparser.controllers;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
-import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -51,8 +49,9 @@ public class PriceController {
             ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
-                if (!contractUtils.isUniPairName(lp)) {
-                    return RestResponse.error("Not UniPair address");
+                if (contractDbService.getAddressByName(lp, ContractType.UNI_PAIR, network)
+                    .isEmpty()) {
+                    return RestResponse.error("Not LP name");
                 }
                 lpAddress = contractDbService.getAddressByName(lp, ContractType.UNI_PAIR, network)
                     .orElse(null);
@@ -89,20 +88,6 @@ public class PriceController {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getLpTokenUsdPrice(
                             token.toLowerCase(), 1, block, network)
-                        )
-                    ).addBlock(block);
-                }
-
-                //shortcut for fTokens tokens for the dashboard
-                if (contractUtils.isPoolAddress(token)) {
-                    Optional<VaultEntity> vaultO = contractUtils.vaultByPoolAddress(token);
-                    if (vaultO.isEmpty()) {
-                        return RestResponse.error("Not found underlying token");
-                    }
-                    return RestResponse.ok(String.format("%.8f",
-                        priceProvider.getPriceForCoin(
-                            vaultO.get().getContract().getName(),
-                            block, ETH_NETWORK)
                         )
                     ).addBlock(block);
                 }

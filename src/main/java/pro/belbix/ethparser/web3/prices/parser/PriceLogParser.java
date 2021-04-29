@@ -26,6 +26,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
@@ -44,6 +45,7 @@ public class PriceLogParser implements Web3Parser {
   private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final FunctionsUtils functionsUtils;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
   private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
@@ -54,7 +56,8 @@ public class PriceLogParser implements Web3Parser {
       PriceDBService priceDBService,
       AppProperties appProperties,
       NetworkProperties networkProperties,
-      FunctionsUtils functionsUtils) {
+      FunctionsUtils functionsUtils,
+      ContractDbService contractDbService) {
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
@@ -62,6 +65,7 @@ public class PriceLogParser implements Web3Parser {
     this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.functionsUtils = functionsUtils;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -111,7 +115,7 @@ public class PriceLogParser implements Web3Parser {
     if (tx == null) {
       return null;
     }
-    String sourceName = cu(network).getNameByAddress(tx.getSource())
+    String sourceName = contractDbService.getNameByAddress(tx.getSource(), network)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
     PriceDTO dto = new PriceDTO();
 
@@ -153,11 +157,11 @@ public class PriceLogParser implements Web3Parser {
   private void fillLpStats(PriceDTO dto, String network) {
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         dto.getSourceAddress(), dto.getBlock(), network);
-    double lpBalance = cu(network).parseAmount(
+    double lpBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, dto.getSourceAddress(), dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get supply from " + dto.getSourceAddress())),
-        dto.getSourceAddress());
+        dto.getSourceAddress(), network);
     dto.setLpTotalSupply(lpBalance);
     dto.setLpToken0Pooled(lpPooled.component1());
     dto.setLpToken1Pooled(lpPooled.component2());
@@ -187,19 +191,19 @@ public class PriceLogParser implements Web3Parser {
     return false;
   }
 
-  private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
+  private boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
     String lp = tx.getSource().toLowerCase();
 
     String keyCoinHash = cu(network).findKeyTokenForUniPair(lp)
         .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-    String keyCoinName = cu(network).getNameByAddress(keyCoinHash)
+    String keyCoinName = contractDbService.getNameByAddress(keyCoinHash, network)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
     Tuple2<String, String> tokensAdr = cu(network).tokenAddressesByUniPairAddress(lp);
     Tuple2<String, String> tokensNames = new Tuple2<>(
-        cu(network).getNameByAddress(tokensAdr.component1())
+        contractDbService.getNameByAddress(tokensAdr.component1(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component1())),
-        cu(network).getNameByAddress(tokensAdr.component2())
+        contractDbService.getNameByAddress(tokensAdr.component2(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component2()))
     );
@@ -241,7 +245,7 @@ public class PriceLogParser implements Web3Parser {
     }
   }
 
-  private static void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
+  private void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
       boolean buy, String network) {
     if (keyCoinFirst) {
       if (buy) {
@@ -264,8 +268,8 @@ public class PriceLogParser implements Web3Parser {
     dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
   }
 
-  private static double parseAmountFromTx(PriceTx tx, int i, String address, String network) {
-    return cu(network).parseAmount(tx.getIntegers()[i], address);
+  private double parseAmountFromTx(PriceTx tx, int i, String address, String network) {
+    return contractDbService.parseAmount(tx.getIntegers()[i], address, network);
   }
 
   private static boolean isZero(PriceTx tx, int i) {

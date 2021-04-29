@@ -31,7 +31,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -41,8 +41,10 @@ public class Web3FunctionsTest {
   private Web3Functions web3Functions;
   @Autowired
   private ContractLoader contractLoader;
+  @Autowired
+  private ContractDbService contractDbService;
 
-   @BeforeEach
+  @BeforeEach
   public void setUp() throws Exception {
     contractLoader.load();
   }
@@ -105,8 +107,8 @@ public class Web3FunctionsTest {
         })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST, ETH_NETWORK);
     assertNotNull(types);
     assertFalse(types.isEmpty());
-    assertTrue(ContractUtils.getInstance(ETH_NETWORK).parseAmount((BigInteger) types.get(0).getValue(),
-        "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB") > 0);
+    assertTrue(contractDbService.parseAmount((BigInteger) types.get(0).getValue(),
+        "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", ETH_NETWORK) > 0);
   }
 
   @Test

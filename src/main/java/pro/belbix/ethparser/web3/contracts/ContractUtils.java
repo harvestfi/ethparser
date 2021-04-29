@@ -12,14 +12,11 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -53,77 +50,11 @@ public class ContractUtils {
     }
   }
 
-  public Optional<String> getNameByAddress(String address) {
-    Optional<String> name = getCache().getVaultByAddress(address)
-        .map(VaultEntity::getContract)
-        .map(ContractEntity::getName);
-
-    if (name.isEmpty()) {
-      name = getCache().getPoolByAddress(address)
-          .map(PoolEntity::getContract)
-          .map(ContractEntity::getName);
+  public static String getPsPool(String address) {
+    if ("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equalsIgnoreCase(address)) {
+      return "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase();
     }
-    if (name.isEmpty()) {
-      name = getCache().getUniPairByAddress(address)
-          .map(UniPairEntity::getContract)
-          .map(ContractEntity::getName);
-    }
-    if (name.isEmpty()) {
-      name = getCache().getTokenByAddress(address)
-          .map(TokenEntity::getContract)
-          .map(ContractEntity::getName);
-    }
-    return name;
-  }
-
-  public boolean isLp(String address) {
-    return getCache().getUniPairByAddress(address).isPresent();
-  }
-
-  public Optional<PoolEntity> poolByVaultName(String name) {
-    if (name.endsWith("_V0")) {
-      name = name.replace("_V0", "");
-    }
-    return getCache().getVaultByName(name)
-        .map(VaultEntity::getContract)
-        .map(ContractEntity::getAddress)
-        .flatMap(adr -> getCache().getPoolEntities().stream()
-            .filter(pool -> pool.getLpToken().getAddress().equals(adr))
-            .findFirst());
-  }
-
-  public Optional<PoolEntity> poolByVaultAddress(String address) {
-    // PS_V0 doesn't have pool
-    if ("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equals(address)) {
-      return getCache()
-          .getPoolByAddress("0x59258f4e15a5fc74a7284055a8094f58108dbd4f");
-    }
-    Optional<PoolEntity> poolEntity = getCache()
-        .getPoolEntities().stream()
-        .filter(pool -> pool.getLpToken() != null
-            && pool.getLpToken().getAddress().equalsIgnoreCase(address))
-        .findFirst();
-    if (poolEntity.isPresent()) {
-      return poolEntity;
-    }
-    // try to find pool by name, it should work for old vaults and PS pools
-    String vaultName = getNameByAddress(address)
-        .orElseThrow(() -> new IllegalStateException("Vault not found for " + address));
-    return getCache().getPoolByName("ST_" + vaultName);
-  }
-
-  public Optional<VaultEntity> vaultByPoolAddress(String address) {
-    return getCache().getPoolByAddress(address.toLowerCase())
-        .map(PoolEntity::getLpToken)
-        .flatMap(c -> getCache().getVaultByAddress(c.getAddress()));
-  }
-
-  public boolean isVaultName(String name) {
-    return getCache().getVaultByName(name).isPresent();
-  }
-
-  public boolean isUniPairName(String name) {
-    return getCache().getUniPairByName(name).isPresent();
+    return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase();
   }
 
   public boolean isVaultAddress(String address) {
@@ -146,7 +77,7 @@ public class ContractUtils {
         .getTokenByAddress(address.toLowerCase()).isPresent();
   }
 
-  public boolean isPsName(String name) {
+  public static boolean isPsName(String name) {
     return name.equals("PS")
         || name.equals("PS_V0")
         || name.equals("ST_PS")
@@ -154,7 +85,7 @@ public class ContractUtils {
         ;
   }
 
-  public boolean isPsAddress(String address) {
+  public static boolean isPsAddress(String address) {
     return PS_ADDRESSES.contains(address);
   }
 
@@ -408,15 +339,6 @@ public class ContractUtils {
         .collect(Collectors.toList()));
 
     return new ArrayList<>(contracts);
-  }
-
-  public double parseAmount(BigInteger amount, String address) {
-    if (amount == null) {
-      return 0.0;
-    }
-    return new BigDecimal(amount)
-        .divide(getDividerByAddress(address), 99, RoundingMode.HALF_UP)
-        .doubleValue();
   }
 
   public boolean isOneInch(String factoryAdr) {

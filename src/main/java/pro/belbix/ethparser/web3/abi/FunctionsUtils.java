@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -40,6 +38,7 @@ import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -56,9 +55,12 @@ public class FunctionsUtils {
   private final Map<String, Function> functionsCache = new HashMap<>();
 
   private final Web3Functions web3Functions;
+  private final ContractDbService contractDbService;
 
-  public FunctionsUtils(Web3Functions web3Functions) {
+  public FunctionsUtils(Web3Functions web3Functions,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
+    this.contractDbService = contractDbService;
   }
 
   // todo complex functions should be decomposed and use simple calls ************************
@@ -82,17 +84,17 @@ public class FunctionsUtils {
     double coin0Balance = 0;
     double coin1Balance = 0;
     String baseAdr = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
-    double baseBalance = ContractUtils.getInstance(network).parseAmount(
-        web3Functions.fetchBalance(lpAddress, block, network), baseAdr);
+    double baseBalance = contractDbService.parseAmount(
+        web3Functions.fetchBalance(lpAddress, block, network), baseAdr, network);
     if (!ZERO_ADDRESS.equals(coin0)) {
-      coin0Balance = ContractUtils.getInstance(network).parseAmount(
+      coin0Balance = contractDbService.parseAmount(
           callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
-              .orElse(ZERO), coin0);
+              .orElse(ZERO), coin0, network);
       coin1Balance = baseBalance;
     } else if (!ZERO_ADDRESS.equals(coin1)) {
-      coin1Balance = ContractUtils.getInstance(network).parseAmount(
+      coin1Balance = contractDbService.parseAmount(
           callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
-              .orElse(ZERO), coin1);
+              .orElse(ZERO), coin1, network);
       coin0Balance = baseBalance;
     }
     return new Tuple2<>(coin0Balance, coin1Balance);

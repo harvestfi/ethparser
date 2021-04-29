@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -28,7 +29,6 @@ import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
-import pro.belbix.ethparser.entity.contracts.PoolEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HarvestTx;
@@ -165,8 +165,10 @@ public class VaultActionsParser implements Web3Parser {
         return null;
       }
     }
-
-    HarvestDTO dto = harvestTx.toDto(network);
+    String vaultName = contractDbService
+        .getNameByAddress(harvestTx.getVault().getValue(), network)
+        .orElseThrow();
+    HarvestDTO dto = createDto(harvestTx, network);
     //enrich date
     dto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), network));
@@ -193,14 +195,12 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash, String network) {
-    String poolAddress = ContractUtils.getInstance(network).poolByVaultAddress(vaultHash)
-        .orElseThrow(() -> new IllegalStateException("Not found pool for " + vaultHash))
-        .getContract().getAddress();
+    String poolAddress = ContractUtils.getPsPool(vaultHash);
     Double price = priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
-    double vaultBalance = ContractUtils.getInstance(network).parseAmount(
+    double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock(), network)
             .orElse(BigInteger.ZERO),
-        vaultHash);
+        vaultHash, network);
 
     dto.setLastUsdTvl(price * vaultBalance);
     dto.setLastTvl(vaultBalance);
@@ -210,10 +210,10 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private double farmTotalAmount(long block, String network) {
-    return ContractUtils.getInstance(network).parseAmount(
+    return contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, block, network)
             .orElse(BigInteger.ZERO),
-        ContractConstants.FARM_TOKEN)
+        ContractConstants.FARM_TOKEN, network)
         - BURNED_FARM;
   }
 
@@ -256,9 +256,8 @@ public class VaultActionsParser implements Web3Parser {
       harvestTx.setMethodName("Withdraw");
       harvestTx.setOwner(receipt.getFrom());
     } else {
-      String poolAddress = ContractUtils.getInstance(network)
-          .poolByVaultAddress(ethLog.getAddress())
-          .map(PoolEntity::getContract)
+      String poolAddress = contractDbService
+          .getPoolContractByVaultAddress(ethLog.getAddress(), network)
           .map(ContractEntity::getAddress)
           .orElse(""); // if we don't have a pool assume that it was migration
       if (isMigration(harvestTx, poolAddress, network)) {
@@ -279,9 +278,9 @@ public class VaultActionsParser implements Web3Parser {
     String newVaultHash = contractDbService
         .getAddressByName(newVault, ContractType.VAULT, network)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + newVault));
-    String poolAddress = ContractUtils.getInstance(network).poolByVaultAddress(newVaultHash)
+    String poolAddress = contractDbService.getPoolContractByVaultAddress(newVaultHash, network)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
-        .getContract().getAddress();
+        .getAddress();
 
     List<LogResult> logResults = web3Functions
         .fetchContractLogs(singletonList(poolAddress), onBlock, onBlock, network);
@@ -302,7 +301,7 @@ public class VaultActionsParser implements Web3Parser {
   }
 
   private void createHarvestFromMigration(HarvestDTO dto, HarvestTx migrationTx, String network) {
-    HarvestDTO migrationDto = migrationTx.toDto(network);
+    HarvestDTO migrationDto = createDto(migrationTx, network);
     migrationDto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(migrationTx.getBlock().longValue(), network));
     migrationDto.setMethodName("Deposit");
@@ -312,13 +311,14 @@ public class VaultActionsParser implements Web3Parser {
             .orElseThrow()
     );
 
-    migrationDto
-        .setAmount(
-            ContractUtils.getInstance(network).parseAmount(migrationTx.getIntFromArgs()[1],
+    migrationDto.setAmount(
+            contractDbService.parseAmount(
+                migrationTx.getIntFromArgs()[1],
                 contractDbService
                     .getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
                     .orElseThrow(() -> new IllegalStateException(
-                        "Not found address by " + migrationDto.getVault()))
+                        "Not found address by " + migrationDto.getVault())),
+                network
             )
         );
 
@@ -348,8 +348,8 @@ public class VaultActionsParser implements Web3Parser {
     if (BigInteger.ONE.equals(sharePriceInt)) {
       sharePrice = 0.0;
     } else {
-      sharePrice = ContractUtils.getInstance(network)
-          .parseAmount(sharePriceInt, dto.getVaultAddress());
+      sharePrice = contractDbService
+          .parseAmount(sharePriceInt, dto.getVaultAddress(), network);
     }
     dto.setSharePrice(sharePrice);
   }
@@ -365,7 +365,9 @@ public class VaultActionsParser implements Web3Parser {
         .orElseThrow(
             () -> new IllegalStateException(
                 "Can't fetch underlying token for " + dto.getVaultAddress()));
-    if (ContractUtils.getInstance(network).isLp(underlyingToken)) {
+    if (contractDbService
+        .getContractByAddressAndType(underlyingToken, UNI_PAIR, network)
+        .isPresent()) {
       fillUsdValuesForLP(dto, dto.getVaultAddress(), underlyingToken, network);
     } else {
       fillUsdValues(dto, dto.getVaultAddress(), network);
@@ -384,10 +386,10 @@ public class VaultActionsParser implements Web3Parser {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }
     dto.setUnderlyingPrice(priceUnderlying);
-    double vaultBalance = ContractUtils.getInstance(network).parseAmount(
+    double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
-        vaultHash);
+        vaultHash, network);
     double sharePrice = dto.getSharePrice();
 
     double vault = (vaultBalance * sharePrice);
@@ -401,15 +403,15 @@ public class VaultActionsParser implements Web3Parser {
 
   public void fillUsdValuesForLP(HarvestDTO dto, String vaultHash, String lpHash, String network) {
     long dtoBlock = dto.getBlock();
-    double vaultBalance = ContractUtils.getInstance(network).parseAmount(
+    double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
-        vaultHash);
+        vaultHash, network);
     double sharePrice = dto.getSharePrice();
-    double lpTotalSupply = ContractUtils.getInstance(network).parseAmount(
+    double lpTotalSupply = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
-        lpHash);
+        lpHash, network);
 
     Tuple2<Double, Double> lpUnderlyingBalances = functionsUtils.callReserves(
         lpHash, dtoBlock, network);
@@ -444,13 +446,16 @@ public class VaultActionsParser implements Web3Parser {
     double firstVault = vaultFraction * lpUnderlyingBalance1;
     double secondVault = vaultFraction * lpUnderlyingBalance2;
 
+    Tuple2<String, String> lpTokens = ContractUtils.getInstance(network)
+        .tokenAddressesByUniPairAddress(lpHash);
+
     dto.setLpStat(LpStat.createJson(
-        lpHash,
+        contractDbService.getNameByAddress(lpTokens.component1(), network).orElse("unknown"),
+        contractDbService.getNameByAddress(lpTokens.component2(), network).orElse("unknown"),
         firstVault,
         secondVault,
         uniPrices.component1(),
-        uniPrices.component2(),
-        network
+        uniPrices.component2()
     ));
 
     Long firstVaultUsdAmount = Math.round(firstVault * uniPrices.component1());
@@ -470,6 +475,28 @@ public class VaultActionsParser implements Web3Parser {
           || "withdrawn".equalsIgnoreCase(harvestTx.getMethodName());
     }
     return allowedMethods.contains(harvestTx.getMethodName().toLowerCase());
+  }
+
+  public HarvestDTO createDto(HarvestTx tx, String network) {
+    String vaultName = contractDbService
+        .getNameByAddress(tx.getVault().getValue(), network)
+        .orElseThrow();
+    HarvestDTO dto = new HarvestDTO();
+    dto.setId(tx.getHash() + "_" + tx.getLogId());
+    dto.setHash(tx.getHash());
+    dto.setBlock(tx.getBlock().longValue());
+    dto.setNetwork(network);
+    dto.setVault(vaultName);
+    dto.setVaultAddress(tx.getVault().getValue());
+    dto.setConfirmed(1);
+    dto.setMethodName(tx.getMethodName());
+    dto.setAmount(contractDbService.parseAmount(tx.getAmount(), tx.getVault().getValue(), network));
+    if (tx.getAmountIn() != null) {
+      dto.setAmountIn(contractDbService
+          .parseAmount(tx.getAmountIn(), tx.getFToken().getValue(), network));
+    }
+    dto.setOwner(tx.getOwner());
+    return dto;
   }
 
   @Override

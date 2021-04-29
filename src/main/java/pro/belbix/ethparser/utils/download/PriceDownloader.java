@@ -17,7 +17,6 @@ import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
 
@@ -52,8 +51,8 @@ public class PriceDownloader {
   public void start() {
     if (contractNames.length == 0) {
       contractNames = PARSABLE_UNI_PAIRS.get(appProperties.getUtilNetwork()).stream()
-          .map(c -> ContractUtils.getInstance(appProperties.getUtilNetwork())
-              .getNameByAddress(c)
+          .map(c -> contractDbService
+              .getNameByAddress(c, appProperties.getUtilNetwork())
               .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
           .collect(Collectors.toSet())
           .toArray(contractNames);

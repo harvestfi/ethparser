@@ -63,8 +63,13 @@ public class RewardDownloader {
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
               Arrays.stream(vaultNames)
-                  .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
-                  .map(p -> p.getContract().getName())
+                  .map(vName -> contractDbService
+                      .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
+                      .orElseThrow())
+                  .map(vName -> contractDbService
+                      .getPoolContractByVaultAddress(vName, appProperties.getUtilNetwork())
+                      .orElseThrow()
+                      .getAddress())
                   .collect(Collectors.toList())
           )
       ).start(from, to);
@@ -87,7 +92,7 @@ public class RewardDownloader {
                   .getAllPools().stream()
                   .map(v -> v.getContract().getAddress())
                   .filter(c -> !excludeSet.contains(
-                      cu.getNameByAddress(c)
+                      contractDbService.getNameByAddress(c, appProperties.getUtilNetwork())
                           .orElseThrow()))
                   .collect(Collectors.toList()))
       ).start(from, to);

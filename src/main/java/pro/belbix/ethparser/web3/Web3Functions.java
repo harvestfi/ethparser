@@ -92,7 +92,7 @@ public class Web3Functions {
             return null;
           }
           return ethGetTransactionReceipt;
-        });
+        }, "fetchTransactionReceipt " + hash + " " + network);
     if (result == null) {
       return null;
     }
@@ -108,7 +108,7 @@ public class Web3Functions {
           batchRequest.add(getWeb3(network).ethGetTransactionReceipt(h))
       );
       return batchRequest.send();
-    });
+    }, "fetchTransactionReceiptBatch " + hashes + " " + network);
 
     if (batchResponse == null) {
       return Stream.of();
@@ -120,7 +120,8 @@ public class Web3Functions {
 
   public Transaction findTransaction(String hash, String network) {
     return getWeb3Service(network).callWithRetry(
-        () -> getWeb3(network).ethGetTransactionByHash(hash).send().getTransaction().orElse(null));
+        () -> getWeb3(network).ethGetTransactionByHash(hash).send().getTransaction().orElse(null),
+        "findTransaction " + hash + " " + network);
   }
 
   public EthBlock findBlockByHash(
@@ -140,7 +141,7 @@ public class Web3Functions {
         return null;
       }
       return ethBlock;
-    });
+    }, "findBlockByHash " + blockHash + " " + network);
   }
 
   public EthBlock findBlockByNumber(
@@ -160,7 +161,7 @@ public class Web3Functions {
         return null;
       }
       return ethBlock;
-    });
+    }, "findBlockByNumber " + number + " " + network);
   }
 
   public double fetchAverageGasPrice(String network) {
@@ -175,7 +176,7 @@ public class Web3Functions {
         return null;
       }
       return gasPrice;
-    });
+    }, "fetchAverageGasPrice " + network);
     if (result == null) {
       return 0.0;
     }
@@ -221,7 +222,7 @@ public class Web3Functions {
         return null;
       }
       return ethLog;
-    });
+    }, "fetchContractLogs " + addresses + " " + start + " " + end + " " + network);
     if (result == null) {
       return List.of();
     }
@@ -246,7 +247,7 @@ public class Web3Functions {
         return null;
       }
       return ethGetBalance;
-    });
+    }, "fetchBalance " + hash + " " + block + " " + network);
     if (result == null) {
       return BigInteger.ZERO;
     }
@@ -265,7 +266,7 @@ public class Web3Functions {
         return null;
       }
       return ethBlockNumber;
-    });
+    }, "fetchCurrentBlock " + network);
     if (result == null) {
       return BigInteger.ZERO;
     }
@@ -295,7 +296,8 @@ public class Web3Functions {
             "Not retryable response: " + ethCall.getError().getMessage());
       }
       return ethCall;
-    });
+    }, "callFunction " + function.getName() + " " + contractAddress
+        + " " + block.getValue() + " " + network);
     if (result == null) {
       return null;
     }
@@ -307,12 +309,14 @@ public class Web3Functions {
     Flowable<Transaction> flowable;
     if (Strings.isBlank(startBlock)) {
       flowable = getWeb3Service(network)
-          .callWithRetry(() -> getWeb3(network).transactionFlowable());
+          .callWithRetry(() -> getWeb3(network).transactionFlowable(),
+              "transactionFlowable " + startBlock + " " + network);
     } else {
       log.info("Start flow from block " + startBlock);
       flowable = getWeb3Service(network)
           .callWithRetry(() -> getWeb3(network).replayPastAndFutureTransactionsFlowable(
-              DefaultBlockParameter.valueOf(new BigInteger(startBlock))));
+              DefaultBlockParameter.valueOf(new BigInteger(startBlock))),
+              "transactionFlowable " + startBlock + " " + network);
     }
     if (flowable == null) {
       return Flowable.empty();
@@ -327,7 +331,8 @@ public class Web3Functions {
   ) {
     Flowable<Transaction> flowable =
         getWeb3Service(network)
-            .callWithRetry(() -> getWeb3(network).replayPastTransactionsFlowable(start, end));
+            .callWithRetry(() -> getWeb3(network).replayPastTransactionsFlowable(start, end),
+                "transactionsFlowable " + start + " " + end);
     if (flowable == null) {
       return Flowable.empty();
     }
@@ -348,7 +353,8 @@ public class Web3Functions {
     }
     Flowable<EthBlock> flowable =
         getWeb3Service(network).callWithRetry(() ->
-            getWeb3(network).replayPastAndFutureBlocksFlowable(startBlockP, true));
+                getWeb3(network).replayPastAndFutureBlocksFlowable(startBlockP, true),
+            "blockFlowable " + startBlock + " " + network);
     if (flowable == null) {
       return Flowable.empty();
     }
