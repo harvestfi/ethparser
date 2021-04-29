@@ -63,7 +63,7 @@ class VaultActionsViewRepositoryBscTest {
             PageRequest.of(0, 1, Sort.by("blockNumber"))
         );
     assertNotNull(results);
-    assertEquals(results.size(), 1);
+    assertEquals(1, results.size());
     VaultActionsViewEntity vaultActionsViewEntity = results.get(0);
     assertVaultActions(
         VaultActionsViewEntity.builder()

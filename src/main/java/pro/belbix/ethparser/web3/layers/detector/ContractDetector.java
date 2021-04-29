@@ -38,7 +38,7 @@ import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.layers.SubscriptionRouter;
 import pro.belbix.ethparser.web3.layers.ViewRouter;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -57,18 +57,21 @@ public class ContractDetector {
     private final SimpleContractGenerator simpleContractGenerator;
     private final FunctionsUtils functionsUtils;
     private final ViewRouter viewRouter;
+    private final ContractDbService contractDbService;
 
     public ContractDetector(AppProperties appProperties,
         SubscriptionRouter subscriptionRouter,
         ContractEventsDbService contractEventsDbService,
         SimpleContractGenerator simpleContractGenerator,
-        FunctionsUtils functionsUtils, ViewRouter viewRouter) {
+        FunctionsUtils functionsUtils, ViewRouter viewRouter,
+        ContractDbService contractDbService) {
         this.appProperties = appProperties;
         this.subscriptionRouter = subscriptionRouter;
         this.contractEventsDbService = contractEventsDbService;
         this.simpleContractGenerator = simpleContractGenerator;
         this.functionsUtils = functionsUtils;
         this.viewRouter = viewRouter;
+        this.contractDbService = contractDbService;
     }
 
     public void start() {
@@ -128,8 +131,8 @@ public class ContractDetector {
         List<ContractEventEntity> eventEntities = new ArrayList<>();
         for (EthAddressEntity address : addresses) {
             ContractEventEntity eventEntity = new ContractEventEntity();
-            ContractEntity contract = ContractUtils.getInstance(network)
-                .getContractByAddress(address.getAddress())
+            ContractEntity contract = contractDbService
+                .getContractByAddress(address.getAddress(), network)
                 .orElse(null);
             if (contract == null) {
                 log.error("Not found contract for {}", address.getAddress());
@@ -377,7 +380,6 @@ public class ContractDetector {
         if (address == null || ZERO_ADDRESS.equalsIgnoreCase(address.getAddress())) {
             return false;
         }
-        return ContractUtils.getInstance(network).getAllContractAddresses()
-            .contains(address.getAddress().toLowerCase());
+        return contractDbService.getContractByAddress(address.getAddress(), network).isPresent();
     }
 }

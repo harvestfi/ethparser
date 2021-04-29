@@ -17,7 +17,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class UniOwnerBalanceCalculator {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
   private final UniswapRepository uniswapRepository;
@@ -49,8 +48,10 @@ public class UniOwnerBalanceCalculator {
   private boolean balanceForLp(UniswapDTO dto) {
     String lpHash;
     if (dto.getLp() == null) {
-      lpHash = contractUtils.findUniPairForTokens(
-          dto.getCoinAddress(), dto.getOtherCoinAddress());
+      lpHash = contractDbService.findLpForTokens(
+          dto.getCoinAddress(), dto.getOtherCoinAddress(), ETH_NETWORK)
+          .map(lp -> lp.getContract().getAddress())
+          .orElseThrow();
     } else {
       lpHash = dto.getLpAddress();
     }

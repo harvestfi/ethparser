@@ -23,7 +23,6 @@ import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -31,8 +30,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class UniToHarvestConverter implements Web3Parser {
-
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -93,8 +90,10 @@ public class UniToHarvestConverter implements Web3Parser {
     if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
       return null;
     }
-    String lpHash = contractUtils.findUniPairForTokens(
-        uniswapDTO.getCoinAddress(), uniswapDTO.getOtherCoinAddress());
+    String lpHash = contractDbService.findLpForTokens(
+        uniswapDTO.getCoinAddress(), uniswapDTO.getOtherCoinAddress(), ETH_NETWORK)
+        .map(lp -> lp.getContract().getAddress())
+        .orElseThrow();
     if (!PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(lpHash)) {
       return null;
     }
@@ -168,7 +167,8 @@ public class UniToHarvestConverter implements Web3Parser {
     Tuple2<Double, Double> uniPrices = priceProvider
         .getPairPriceForLpHash(lpHash, block, ETH_NETWORK);
 
-    Tuple2<String, String> lpTokens = contractUtils.tokenAddressesByUniPairAddress(lpHash);
+    Tuple2<String, String> lpTokens = contractDbService
+        .tokenAddressesByUniPairAddress(lpHash, ETH_NETWORK);
 
     harvestDTO.setLpStat(LpStat.createJson(
         contractDbService.getNameByAddress(lpTokens.component1(), ETH_NETWORK).orElse("unknown"),

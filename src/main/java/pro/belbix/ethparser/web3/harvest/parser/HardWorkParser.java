@@ -8,6 +8,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.LIQUIDATE_REWARD_TO_W
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.STRATEGY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_IN_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_BALANCE_WITH_INVESTMENT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNIVERSAL_LIQUIDATOR;
@@ -16,6 +17,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INV
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -189,7 +191,7 @@ public class HardWorkParser implements Web3Parser {
     }
     double ethPrice =
         priceProvider.getPriceForCoin(
-            cu(network).getEthAddress(), dto.getBlock(), network);
+            ContractUtils.getEthAddress(network), dto.getBlock(), network);
     dto.setEthPrice(ethPrice);
     double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
     dto.setFarmBuybackEth(farmBuybackEth);
@@ -209,9 +211,9 @@ public class HardWorkParser implements Web3Parser {
     }
 
     HardWorkTx profitLog = hardWorkLogDecoder.decode(ethLog);
-    String strategyAddress = cu(network).getVaultEntityByAddress(dto.getVaultAddress())
-        .map(VaultEntity::getStrategy)
-        .map(ContractEntity::getAddress)
+
+    String strategyAddress = functionsUtils
+        .callAddressByName(STRATEGY, dto.getVaultAddress(), dto.getBlock(), network)
         .orElseThrow();
     String rewardTokenAdr =
         functionsUtils.callAddressByName(
@@ -334,7 +336,9 @@ public class HardWorkParser implements Web3Parser {
 
   private boolean isAllowedLog(Log ethLog, String network) {
     return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".equalsIgnoreCase(ethLog.getAddress())
-        || cu(network).isPoolAddress(ethLog.getAddress().toLowerCase());
+        || contractDbService
+        .getContractByAddressAndType(ethLog.getAddress(), POOL, network)
+        .isPresent();
   }
 
   private void fillFeeInfo(
@@ -343,7 +347,7 @@ public class HardWorkParser implements Web3Parser {
     double gas = (tr.getGasUsed().doubleValue());
     double gasPrice = transaction.getGasPrice().doubleValue() / D18;
     double ethPrice =
-        priceProvider.getPriceForCoin(cu(network).getBaseNetworkWrappedTokenAddress()
+        priceProvider.getPriceForCoin(ContractUtils.getBaseNetworkWrappedTokenAddress(network)
             , dto.getBlock(), network);
     double feeUsd = gas * gasPrice * ethPrice;
     dto.setFee(feeUsd);
@@ -376,10 +380,6 @@ public class HardWorkParser implements Web3Parser {
     dto.setInvested(invested);
     double target = 100.0 * (vaultFractionToInvestNumerator / vaultFractionToInvestDenominator);
     dto.setInvestmentTarget(target);
-  }
-
-  private static ContractUtils cu(String network) {
-    return ContractUtils.getInstance(network);
   }
 
   @Override

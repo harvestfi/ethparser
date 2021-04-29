@@ -9,8 +9,6 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public class CommonTests {
 
-    private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
-
     @Test
     public void testAprToApy() {
         double apr = 0.743;

@@ -21,6 +21,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACT
 
 import java.math.BigInteger;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import lombok.extern.log4j.Log4j2;
@@ -94,8 +95,7 @@ public class ContractLoader {
         log.info("Contracts for {} already loaded", network);
         continue;
       }
-      loaded.add(
-          network); // on the first line for avoiding hundreds attempts to loading broken config
+      loaded.add(network); // on the first line for avoiding hundreds attempts to loading broken config
       long block = ethBlockService.getLastBlock(network);
       log.info("Start load contracts for {} on block {}", network, block);
       loadNetwork(network, block);
@@ -192,7 +192,7 @@ public class ContractLoader {
               pool.getCreatedOnBlock(),
               true,
               network);
-      PoolEntity poolEntity = poolRepository.findFirst(poolContract.getAddress(), network);
+      PoolEntity poolEntity = poolRepository.findFirstByAddress(poolContract.getAddress(), network);
       if (poolEntity == null) {
         poolEntity = new PoolEntity();
         poolEntity.setContract(poolContract);
@@ -219,7 +219,7 @@ public class ContractLoader {
           true,
           network);
       UniPairEntity uniPairEntity = uniPairRepository
-          .findFirstByContract(poolContract.getAddress(), network);
+          .findFirstByAddress(poolContract.getAddress(), network);
       if (uniPairEntity == null) {
         uniPairEntity = new UniPairEntity();
         uniPairEntity.setContract(poolContract);
@@ -403,7 +403,7 @@ public class ContractLoader {
       } catch (Exception ignored) {
       }
 
-      if (ContractUtils.getInstance(network).isOneInch(factoryAdr)) {
+      if (ContractUtils.isOneInch(factoryAdr, network)) {
         type = PAIR_TYPE_ONEINCHE;
       }
     }
@@ -482,12 +482,14 @@ public class ContractLoader {
       return tokenToUniPairEntity;
     }
     if (tokenToUniPairEntity == null) {
-      if (tokenToUniPairRepository
-          .findFirstByToken(token.getContract().getAddress(), network) != null) {
+      List<TokenToUniPairEntity> pairByToken =
+          tokenToUniPairRepository.findByToken(token.getContract().getAddress(), network);
+      if (pairByToken != null && !pairByToken.isEmpty()) {
         log.info("We already had linked " + token.getContract().getName());
       }
-      if (tokenToUniPairRepository
-          .findFirstByUniPair(uniPair.getContract().getAddress(), network) != null) {
+      List<TokenToUniPairEntity> pairByLp =
+          tokenToUniPairRepository.findByUniPair(uniPair.getContract().getAddress(), network);
+      if (pairByLp != null && !pairByLp.isEmpty()) {
         log.info("We already had linked " + uniPair.getContract().getName());
       }
       tokenToUniPairEntity = new TokenToUniPairEntity();

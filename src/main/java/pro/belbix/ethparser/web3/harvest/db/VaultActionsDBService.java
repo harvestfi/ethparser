@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -90,8 +89,9 @@ public class VaultActionsDBService {
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames().stream()
-            .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
+        contractDbService.getAllVaults(dto.getNetwork()).stream()
+            .map(v -> v.getContract().getName())
+            .filter(v -> !ContractUtils.isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
@@ -146,8 +146,9 @@ public class VaultActionsDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames());
+    List<String> contracts = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList());
 
     PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
         .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())

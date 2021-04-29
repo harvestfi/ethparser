@@ -75,10 +75,10 @@ public class TransfersRecalculate {
     for (TransferDTO dto : dtos) {
       try {
         if (onlyType) {
-          TransferParser.fillTransferType(dto);
+          transferParser.fillTransferType(dto);
         } else {
           transferParser.fillMethodName(dto);
-          TransferParser.fillTransferType(dto);
+          transferParser.fillTransferType(dto);
           transferDBService.fillBalances(dto);
           transferDBService.fillProfit(dto);
         }

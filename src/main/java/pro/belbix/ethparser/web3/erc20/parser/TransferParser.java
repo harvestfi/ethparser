@@ -15,6 +15,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -36,7 +37,6 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class TransferParser implements Web3Parser {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
@@ -168,8 +168,16 @@ public class TransferParser implements Web3Parser {
     dto.setMethodName(methodName);
   }
 
-  public static void fillTransferType(TransferDTO dto) {
-    TransferType type = TransferType.getType(dto);
+  public void fillTransferType(TransferDTO dto) {
+    int ownerContractType = contractDbService
+        .getContractByAddress(dto.getOwner(), dto.getNetwork())
+        .map(ContractEntity::getType)
+        .orElse(-1);
+    int recipientContractType = contractDbService
+        .getContractByAddress(dto.getRecipient(), dto.getNetwork())
+        .map(ContractEntity::getType)
+        .orElse(-1);
+    TransferType type = TransferType.getType(dto, ownerContractType, recipientContractType);
     dto.setType(type.name());
   }
 

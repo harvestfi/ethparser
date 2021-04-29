@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.contracts;
 
 public enum ContractType {
+  UNKNOWN(-1),
   VAULT(0),
   POOL(1),
   UNI_PAIR(2),

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -15,7 +16,6 @@ import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -46,7 +46,6 @@ public class PriceController {
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
-            ContractUtils contractUtils = ContractUtils.getInstance(network);
             String lpAddress = lp;
             if (!lp.startsWith("0x")) {
                 if (contractDbService.getAddressByName(lp, ContractType.UNI_PAIR, network)
@@ -81,10 +80,11 @@ public class PriceController {
             if (block == null) {
                 block = ethBlockService.getLastBlock(network);
             }
-            ContractUtils contractUtils = ContractUtils.getInstance(network);
             if (token.startsWith("0x")) {
                 //shortcut for LP tokens from the dashboard
-                if (contractUtils.isUniPairAddress(token)) {
+                if (contractDbService
+                    .getContractByAddressAndType(token, UNI_PAIR, network)
+                    .isPresent()) {
                     return RestResponse.ok(String.format("%.8f",
                         priceProvider.getLpTokenUsdPrice(
                             token.toLowerCase(), 1, block, network)

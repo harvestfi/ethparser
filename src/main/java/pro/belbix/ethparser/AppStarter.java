@@ -1,10 +1,5 @@
 package pro.belbix.ethparser;
 
-import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createImportantEventsDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createPriceDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.DEPLOYER_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
@@ -23,6 +18,7 @@ import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.utils.MockUtils;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
@@ -59,6 +55,7 @@ public class AppStarter {
     private final EthBlockParser ethBlockParser;
     private final ContractDetector contractDetector;
     private final NetworkProperties networkProperties;
+    private final MockUtils mockUtils;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
@@ -78,7 +75,7 @@ public class AppStarter {
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
         ContractDetector contractDetector,
-        NetworkProperties networkProperties) {
+        NetworkProperties networkProperties, MockUtils mockUtils) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.vaultActionsParser = vaultActionsParser;
@@ -95,6 +92,7 @@ public class AppStarter {
         this.ethBlockParser = ethBlockParser;
         this.contractDetector = contractDetector;
         this.networkProperties = networkProperties;
+        this.mockUtils = mockUtils;
     }
 
     public void start() {
@@ -125,11 +123,11 @@ public class AppStarter {
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
-            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, createUniswapDTO(count));
-            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, createHarvestDTO(count));
-            ws.send(HARDWORK_TOPIC_NAME, createHardWorkDTO(count));
-            ws.send(IMPORTANT_EVENTS_TOPIC_NAME, createImportantEventsDTO(count));
-            ws.send(PRICES_TOPIC_NAME, createPriceDTO(count));
+            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, mockUtils.createUniswapDTO(count));
+            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, mockUtils.createHarvestDTO(count));
+            ws.send(HARDWORK_TOPIC_NAME, mockUtils.createHardWorkDTO(count));
+            ws.send(IMPORTANT_EVENTS_TOPIC_NAME, mockUtils.createImportantEventsDTO(count));
+            ws.send(PRICES_TOPIC_NAME, mockUtils.createPriceDTO(count));
             log.info("Msg sent " + currentCount);
             count++;
             try {

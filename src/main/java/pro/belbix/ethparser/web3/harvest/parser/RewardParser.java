@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.PERIOD_FINISH;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_RATE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.NOTIFY_HELPER;
+import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,7 +32,6 @@ import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -110,7 +110,10 @@ public class RewardParser implements Web3Parser {
   }
 
   public RewardDTO parseLog(Log ethLog, String network) throws InterruptedException {
-    if (ethLog == null || !cu(network).isPoolAddress(ethLog.getAddress())) {
+    if (ethLog == null
+        || contractDbService
+        .getContractByAddressAndType(ethLog.getAddress(), POOL, network)
+        .isEmpty()) {
       return null;
     }
 
@@ -159,7 +162,9 @@ public class RewardParser implements Web3Parser {
           .doubleValue();
     }
 
-    String rewardTokenAdr = ContractUtils.getInstance(network).getPoolRewardToken(poolAddress)
+    String rewardTokenAdr = contractDbService
+        .getPoolByAddress(poolAddress, network)
+        .map(p -> p.getRewardToken().getAddress())
         .orElseThrow(() -> new IllegalStateException("Reward token not found for " + poolAddress));
 
     double rewardBalance = contractDbService.parseAmount(
@@ -188,10 +193,6 @@ public class RewardParser implements Web3Parser {
     dto.setIsWeeklyReward(isWeeklyReward);
     log.info("Parsed " + dto);
     return dto;
-  }
-
-  private static ContractUtils cu(String network) {
-    return ContractUtils.getInstance(network);
   }
 
   public void setWaitNewBlock(boolean waitNewBlock) {

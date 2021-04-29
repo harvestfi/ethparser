@@ -6,7 +6,9 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
+import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -152,11 +154,11 @@ public class VaultActionsParser implements Web3Parser {
       return null;
     }
 
-    if (!isAllowedMethod(harvestTx, network)) {
+    if (!isAllowedMethod(harvestTx)) {
       return null;
     }
 
-    if (ContractUtils.getInstance(network).isPsAddress(harvestTx.getVault().getValue())) {
+    if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
       if (!parsePs(harvestTx, network)) {
         return null;
       }
@@ -173,7 +175,7 @@ public class VaultActionsParser implements Web3Parser {
     dto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), network));
 
-    if (ContractUtils.getInstance(network).isPsAddress(harvestTx.getVault().getValue())) {
+    if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
       fillPsTvlAndUsdValue(dto, harvestTx.getVault().getValue(), network);
     } else {
       //share price
@@ -191,7 +193,9 @@ public class VaultActionsParser implements Web3Parser {
 
   private boolean isValidLog(Log ethLog, String network) {
     return ethLog != null
-        && ContractUtils.getInstance(network).isVaultAddress(ethLog.getAddress());
+        && contractDbService
+        .getContractByAddressAndType(ethLog.getAddress(), VAULT, network)
+        .isPresent();
   }
 
   private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash, String network) {
@@ -331,7 +335,9 @@ public class VaultActionsParser implements Web3Parser {
 
   private boolean isMigration(HarvestTx harvestTx, String currentPool, String network) {
     String v = harvestTx.getAddressFromArgs2().getValue();
-    return ContractUtils.getInstance(network).isPoolAddress(v)
+    return  contractDbService
+        .getContractByAddressAndType(v, POOL, network)
+        .isPresent()
         //it is transfer to stacking
         && !v.equalsIgnoreCase(currentPool) // and it is not current contract
         && !"0x153C544f72329c1ba521DDf5086cf2fA98C86676"
@@ -446,8 +452,8 @@ public class VaultActionsParser implements Web3Parser {
     double firstVault = vaultFraction * lpUnderlyingBalance1;
     double secondVault = vaultFraction * lpUnderlyingBalance2;
 
-    Tuple2<String, String> lpTokens = ContractUtils.getInstance(network)
-        .tokenAddressesByUniPairAddress(lpHash);
+    Tuple2<String, String> lpTokens = contractDbService
+        .tokenAddressesByUniPairAddress(lpHash, network);
 
     dto.setLpStat(LpStat.createJson(
         contractDbService.getNameByAddress(lpTokens.component1(), network).orElse("unknown"),
@@ -468,8 +474,8 @@ public class VaultActionsParser implements Web3Parser {
     dto.setUsdAmount(txUsdAmount);
   }
 
-  private boolean isAllowedMethod(HarvestTx harvestTx, String network) {
-    if (ContractUtils.getInstance(network).isPsAddress(harvestTx.getVault().getValue())) {
+  private boolean isAllowedMethod(HarvestTx harvestTx) {
+    if (ContractUtils.isPsAddress(harvestTx.getVault().getValue())) {
       return "staked".equalsIgnoreCase(harvestTx.getMethodName())
           || "Staked#V2".equalsIgnoreCase(harvestTx.getMethodName())
           || "withdrawn".equalsIgnoreCase(harvestTx.getMethodName());

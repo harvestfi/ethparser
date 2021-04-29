@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -16,6 +17,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -25,7 +27,6 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
@@ -151,7 +152,9 @@ public class PriceLogParser implements Web3Parser {
     if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return cu(network).isUniPairAddress(log.getAddress());
+    return contractDbService
+        .getContractByAddressAndType(log.getAddress(), UNI_PAIR, network)
+        .isPresent();
   }
 
   private void fillLpStats(PriceDTO dto, String network) {
@@ -177,28 +180,30 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private boolean isValidSource(PriceDTO dto, String network) {
-    String currentLpName = cu(network).findUniPairNameForTokenName(
-        dto.getToken(), dto.getBlock()).orElse(null);
-    if (currentLpName == null) {
+    var pair = contractDbService
+        .findPairByToken(dto.getTokenAddress(), dto.getBlock(), network);
+    if (pair.isEmpty()) {
       return false;
     }
-    boolean result = currentLpName.equals(dto.getSource());
-    if (result) {
+
+    if (pair.filter(p -> p.getUniPair().getContract().getAddress()
+        .equalsIgnoreCase(dto.getSourceAddress()))
+        .isPresent()) {
       return true;
     }
-    log.warn("{} price from not actual LP {}, should be {}",
-        dto.getToken(), dto.getSource(), currentLpName);
+    log.warn("{} price from not actual LP {}", dto.getToken(), dto.getSource());
     return false;
   }
 
   private boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
     String lp = tx.getSource().toLowerCase();
 
-    String keyCoinHash = cu(network).findKeyTokenForUniPair(lp)
-        .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-    String keyCoinName = contractDbService.getNameByAddress(keyCoinHash, network)
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
-    Tuple2<String, String> tokensAdr = cu(network).tokenAddressesByUniPairAddress(lp);
+    UniPairEntity lpEntity = contractDbService.findLpByAddress(lp, network)
+        .orElseThrow();
+
+    String keyCoinName = lpEntity.getKeyToken().getContract().getName();
+    Tuple2<String, String> tokensAdr = contractDbService
+        .tokenAddressesByUniPairAddress(lp, network);
     Tuple2<String, String> tokensNames = new Tuple2<>(
         contractDbService.getNameByAddress(tokensAdr.component1(), network)
             .orElseThrow(() -> new IllegalStateException(
@@ -274,10 +279,6 @@ public class PriceLogParser implements Web3Parser {
 
   private static boolean isZero(PriceTx tx, int i) {
     return BigInteger.ZERO.equals(tx.getIntegers()[i]);
-  }
-
-  private static ContractUtils cu(String network) {
-    return ContractUtils.getInstance(network);
   }
 
   @Override

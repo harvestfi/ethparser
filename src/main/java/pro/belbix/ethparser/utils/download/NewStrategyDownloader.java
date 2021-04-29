@@ -11,7 +11,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
@@ -50,9 +49,11 @@ public class NewStrategyDownloader {
   }
 
   public void start() {
-    ContractUtils cu = ContractUtils.getInstance(appProperties.getUtilNetwork());
     if (vaults == null) {
-      vaults = cu.vaultNames().toArray(new String[]{});
+      vaults = contractDbService.getAllVaults(appProperties.getUtilNetwork()).stream()
+          .map(v -> v.getContract().getName())
+          .collect(Collectors.toList())
+          .toArray(new String[]{});
     }
     log.info("Start new vault downloading {}", Arrays.toString(vaults));
     contracts = Arrays.stream(vaults)

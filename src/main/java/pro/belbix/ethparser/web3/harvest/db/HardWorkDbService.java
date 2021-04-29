@@ -202,7 +202,7 @@ public class HardWorkDbService {
     dto.setPoolUsers(owners);
 
     double baseTokenPrice = priceProvider.getPriceForCoin(
-        ContractUtils.getInstance(dto.getNetwork()).getBaseNetworkWrappedTokenAddress(),
+        ContractUtils.getBaseNetworkWrappedTokenAddress(dto.getNetwork()),
         dto.getBlock(), dto.getNetwork());
 
     dto.setSavedGasFees(((double) owners) * dto.getFeeEth() * baseTokenPrice);

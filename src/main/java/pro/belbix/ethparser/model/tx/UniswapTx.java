@@ -29,4 +29,7 @@ public class UniswapTx implements EthTransactionI {
   private String coinAddress;
   private String lpAddress;
   private String methodName;
+  private boolean firstTokenIsKey;
+  private String coin;
+  private String otherCoin;
 }

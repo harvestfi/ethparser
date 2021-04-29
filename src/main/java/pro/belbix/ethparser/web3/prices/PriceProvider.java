@@ -4,10 +4,12 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
@@ -104,8 +106,8 @@ public class PriceProvider {
       long block,
       String network
   ) {
-    Tuple2<String, String> tokensAdr = cu(network)
-        .tokenAddressesByUniPairAddress(lpAddress);
+    Tuple2<String, String> tokensAdr = contractDbService
+        .tokenAddressesByUniPairAddress(lpAddress, network);
 
     double positionFraction = amount / lpBalance;
 
@@ -138,16 +140,16 @@ public class PriceProvider {
 
   public Tuple2<Double, Double> getPairPriceForLpHash(
       String lpHash, Long block, String network) {
-    Tuple2<String, String> tokensAdr = cu(network)
-        .tokenAddressesByUniPairAddress(lpHash);
+    Tuple2<String, String> tokensAdr = contractDbService
+        .tokenAddressesByUniPairAddress(lpHash, network);
     String token0 = tokensAdr.component1();
     String token1 = tokensAdr.component2();
     // zero address in 1inch should be replaced with ETH
     if (ZERO_ADDRESS.equalsIgnoreCase(token0)) {
-      token0 = cu(network).getBaseNetworkWrappedTokenAddress();
+      token0 = getBaseNetworkWrappedTokenAddress(network);
     }
     if (ZERO_ADDRESS.equalsIgnoreCase(token1)) {
-      token1 = cu(network).getBaseNetworkWrappedTokenAddress();
+      token1 = getBaseNetworkWrappedTokenAddress(network);
     }
     return new Tuple2<>(
         getPriceForCoin(token0, block, network),
@@ -156,11 +158,13 @@ public class PriceProvider {
   }
 
   private void updateUSDPrice(String address, long block, String network) {
-    if (!cu(network).isTokenCreated(address, block)) {
+    if (contractDbService.getContractByAddress(address, network)
+        .filter(c -> c.getCreated() < block)
+        .isEmpty()) {
       savePrice(0.0, address, block);
       return;
     }
-    if (cu(network).isStableCoin(address)) {
+    if (ContractUtils.isStableCoin(address)) {
       savePrice(1.0, address, block);
       return;
     }
@@ -174,17 +178,18 @@ public class PriceProvider {
   }
 
   private double getPriceForCoinWithoutCache(String address, Long block, String network) {
-    String lpName = cu(network).findUniPairNameForTokenAddress(address, block)
-        .orElse(null);
-    PriceDTO priceDTO = silentCall(() -> priceRepository
-        .fetchLastPrice(lpName, block, network, limitOne))
-        .filter(Caller::isNotEmptyList)
-        .map(l -> l.get(0))
-        .orElse(null);
-    if (priceDTO == null) {
+    Optional<PriceDTO> lastDbPrice = contractDbService
+        .findPairByToken(address, block, network)
+        .map(p -> p.getUniPair().getContract().getAddress())
+        .flatMap(a -> silentCall(() -> priceRepository
+            .fetchLastPriceByAddress(a, block, network, limitOne))
+            .filter(Caller::isNotEmptyList)
+            .map(l -> l.get(0)));
+    if (lastDbPrice.isEmpty()) {
       log.debug("Saved price not found for " + address + " at block " + block);
       return getPriceForCoinFromEth(address, block, network);
     }
+    PriceDTO priceDTO = lastDbPrice.orElseThrow();
     if (block - priceDTO.getBlock() > 1000) {
       log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), address);
       return getPriceForCoinFromEth(address, block, network);
@@ -208,40 +213,45 @@ public class PriceProvider {
     if (PriceOracle.isAvailable(block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
-    log.info("Oracle not deployed yet, use direct calculation for prices");
-    //LEGACY PART
-    //for compatibility with CRV prices without oracle
+    log.debug("Oracle not deployed yet, use direct calculation for prices");
+    return getPriceForCoinFromEthLegacy(address, block, network);
+  }
+
+  //for compatibility with CRV prices without oracle
+  private double getPriceForCoinFromEthLegacy(String address, Long block, String network) {
     String tokenName = contractDbService.getNameByAddress(address, network)
-        .map(n -> cu(network).getSimilarAssetForPrice(n))
+        .map(n -> ContractUtils.getSimilarAssetForPrice(n, network))
         .orElseThrow(() -> new IllegalStateException("Not found name for " + address));
     String similarAdr = contractDbService.getAddressByName(tokenName, ContractType.TOKEN, network)
         .orElseThrow();
-    if (cu(network).isStableCoin(similarAdr)) {
+    if (ContractUtils.isStableCoin(similarAdr)) {
       return 1.0;
     }
-    String lpName = cu(network).findUniPairNameForTokenName(tokenName, block)
-        .orElseThrow(() -> new IllegalStateException("Not found LP for " + tokenName));
-    if (!cu(network).isUniPairCreated(lpName, block)) {
+    if (contractDbService.getContractByAddress(similarAdr, network)
+        .filter(c -> c.getCreated() < block)
+        .isEmpty()) {
       return 0.0;
     }
     String lpHash = contractDbService
-        .getAddressByName(lpName, ContractType.UNI_PAIR, network)
-        .orElseThrow(() -> new IllegalStateException("Not found hash for " + lpName));
+        .findPairByToken(similarAdr, block, network)
+        .map(p -> p.getUniPair().getContract().getAddress())
+        .orElseThrow(() -> new IllegalStateException("Not found pair for " + address));
 
-    Tuple2<Double, Double> reserves = functionsUtils.callReserves(
-        lpHash, block, network);
+    Tuple2<Double, Double> reserves = functionsUtils
+        .callReserves(lpHash, block, network);
     if (reserves == null) {
-      throw new IllegalStateException("Can't reach reserves for " + lpName);
+      log.error("Can't reach reserves for " + lpHash);
+      return 0.0;
     }
     double price;
-    if (cu(network).isDivisionSequenceSecondDividesFirst(lpHash, similarAdr)) {
+    if (isDivisionSequenceSecondDividesFirst(lpHash, similarAdr, network)) {
       price = reserves.component2() / reserves.component1();
     } else {
       price = reserves.component1() / reserves.component2();
     }
 
-    Tuple2<String, String> lpTokenAdr = cu(network)
-        .tokenAddressesByUniPairAddress(lpHash);
+    Tuple2<String, String> lpTokenAdr = contractDbService
+        .tokenAddressesByUniPairAddress(lpHash, network);
     String otherTokenAddress;
     if (lpTokenAdr.component1().equalsIgnoreCase(similarAdr)) {
       otherTokenAddress = lpTokenAdr.component2();
@@ -284,9 +294,22 @@ public class PriceProvider {
     }
     return 0.0;
   }
-  
-  private ContractUtils cu(String _network) {
-    return ContractUtils.getInstance(_network);
+
+  public boolean isDivisionSequenceSecondDividesFirst(
+      String uniPairAddress,
+      String tokenAddress,
+      String network
+  ) {
+    Tuple2<String, String> tokens = contractDbService
+        .tokenAddressesByUniPairAddress(uniPairAddress, network);
+    if (tokens.component1().equalsIgnoreCase(tokenAddress)) {
+      return true;
+    } else if (tokens.component2().equalsIgnoreCase(tokenAddress)) {
+      return false;
+    } else {
+      throw new IllegalStateException(
+          "UniPair " + uniPairAddress + "doesn't contain " + tokenAddress);
+    }
   }
 
 }

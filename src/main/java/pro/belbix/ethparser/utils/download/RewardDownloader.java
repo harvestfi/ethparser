@@ -18,7 +18,6 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
@@ -58,7 +57,6 @@ public class RewardDownloader {
   }
 
   public void start() {
-    ContractUtils cu = ContractUtils.getInstance(appProperties.getUtilNetwork());
     if (vaultNames != null) {
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
@@ -88,8 +86,7 @@ public class RewardDownloader {
       }
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
-              cu
-                  .getAllPools().stream()
+              contractDbService.getAllPools(appProperties.getUtilNetwork()).stream()
                   .map(v -> v.getContract().getAddress())
                   .filter(c -> !excludeSet.contains(
                       contractDbService.getNameByAddress(c, appProperties.getUtilNetwork())

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.model.Web3Model;
@@ -25,7 +26,6 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -120,6 +120,13 @@ public class UniswapLpLogParser implements Web3Parser {
 
   public UniswapDTO parseUniswapLog(Log ethLog) {
     UniswapTx tx = new UniswapTx();
+    tx.setFirstTokenIsKey(firstTokenIsKey(ethLog.getAddress()));
+    tx.setCoin(mapLpAddress(ethLog.getAddress(), true));
+    tx.setOtherCoin(mapLpAddress(ethLog.getAddress(), false));
+    tx.setCoinAddress(contractDbService.findLpByAddress(ethLog.getAddress(), ETH_NETWORK)
+        .map(lp -> lp.getKeyToken().getContract().getAddress())
+        .orElseThrow(
+            () -> new IllegalStateException("Not found key token for " + ethLog.getAddress())));
     uniswapLpLogDecoder.decode(tx, ethLog);
     if (tx.getHash() == null) {
       return null;
@@ -225,6 +232,61 @@ public class UniswapLpLogParser implements Web3Parser {
   private String addrToStr(Address adr) {
     return contractDbService.getNameByAddress(adr.getValue(), ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
+  }
+
+  public boolean firstTokenIsKey(String lpAddress) {
+    Tuple2<String, String> tokens = contractDbService
+        .tokenAddressesByUniPairAddress(lpAddress, ETH_NETWORK);
+    String keyCoin = contractDbService.findLpByAddress(lpAddress, ETH_NETWORK)
+        .map(lp -> lp.getKeyToken().getContract().getAddress())
+        .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
+    if (tokens.component1().equalsIgnoreCase(keyCoin)) {
+      return true;
+    } else if (tokens.component2().equalsIgnoreCase(keyCoin)) {
+      return false;
+    } else {
+      throw new IllegalStateException("Not found key name in lp " + lpAddress);
+    }
+  }
+
+  private String mapLpAddress(String address, boolean isKeyCoin) {
+    String keyCoinAdr = contractDbService.findLpByAddress(address, ETH_NETWORK)
+        .map(lp -> lp.getKeyToken().getContract().getAddress())
+        .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
+    Tuple2<String, String> tokensAdr = contractDbService
+        .tokenAddressesByUniPairAddress(address, ETH_NETWORK);
+
+    int i;
+    if (tokensAdr.component1().equalsIgnoreCase(keyCoinAdr)) {
+      i = 1;
+    } else if (tokensAdr.component2().equalsIgnoreCase(keyCoinAdr)) {
+      i = 2;
+    } else {
+      throw new IllegalStateException("Key coin not found in " + tokensAdr);
+    }
+    if (isKeyCoin) {
+      return getStringFromPair(tokensAdr, i, false);
+    } else {
+      return getStringFromPair(tokensAdr, i, true);
+    }
+  }
+
+  private static String getStringFromPair(Tuple2<String, String> pair, int i, boolean inverse) {
+    if (i == 1) {
+      if (inverse) {
+        return pair.component2();
+      } else {
+        return pair.component1();
+      }
+    } else if (i == 2) {
+      if (inverse) {
+        return pair.component1();
+      } else {
+        return pair.component2();
+      }
+    } else {
+      throw new IllegalStateException("Wrong index for pair " + i);
+    }
   }
 
   @Override

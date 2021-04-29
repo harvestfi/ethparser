@@ -31,6 +31,7 @@ import pro.belbix.ethparser.controllers.PriceController;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -51,6 +52,9 @@ public class PriceProviderAutoTest {
 
   @Autowired
   private Web3Functions web3Functions;
+
+  @Autowired
+  private ContractDbService contractDbService;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -84,7 +88,7 @@ public class PriceProviderAutoTest {
   }
 
   private Stream<DynamicTest> runTests(HashMap<String, Double> cgPrices, long block, String network) {
-    return ContractUtils.getInstance(network).getAllTokens().stream()
+    return contractDbService.getAllTokens(network).stream()
         .filter(token -> !exclude.contains(token.getContract().getName()))
         .filter(t -> network.equals(t.getContract().getNetwork()))
         .map(token -> {
@@ -113,14 +117,13 @@ public class PriceProviderAutoTest {
 
   private HashMap<String, Double> fetchPrices(String network) throws Exception {
     HashMap<String, Double> result = new HashMap<>();
-    ContractUtils contractUtils = ContractUtils.getInstance(network);
-    String coins = contractUtils.getAllTokens().stream()
+    String coins = contractDbService.getAllTokens(network).stream()
         .map(t -> t.getContract().getAddress())
         .collect(Collectors.joining(","));
     JSONObject json = new JSONObject(this.callCoinGeckoAPI(
         getCoinPriceAPIUri(network, coins)).get());
 
-    contractUtils.getAllTokens().forEach(t -> {
+    contractDbService.getAllTokens(network).forEach(t -> {
       String adr = t.getContract().getAddress();
       try {
         double price = json.getJSONObject(adr).getDouble("usd");
