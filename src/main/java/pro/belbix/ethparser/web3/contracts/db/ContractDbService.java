@@ -125,7 +125,7 @@ public class ContractDbService {
       } else if (contract.getType() == ContractType.UNI_PAIR.getId()) {
         decimals = uniPairRepository.findFirstByAddress(address, network).getDecimals();
       } else if (contract.getType() == ContractType.TOKEN.getId()) {
-        decimals = tokenRepository.findFirstByContract(address, network).getDecimals();
+        decimals = tokenRepository.findFirstByAddress(address, network).getDecimals();
       } else {
         throw new IllegalStateException("Unknown address " + address);
       }

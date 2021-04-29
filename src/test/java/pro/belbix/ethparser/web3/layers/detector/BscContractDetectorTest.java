@@ -6,13 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +23,6 @@ import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -41,18 +38,11 @@ class BscContractDetectorTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private ContractLoader contractLoader;
-  @Autowired
   private ContractEventsDbService contractEventsDbService;
   @Autowired
   private EthBlockDbService ethBlockDbService;
   @Autowired
   private EthBlockRepository ethBlockRepository;
-
-  @BeforeEach
-  void setUp() {
-    contractLoader.load(BSC_NETWORK);
-  }
 
   @Test
   void handleBlock_6101208_PC_BUSD_BNB() {

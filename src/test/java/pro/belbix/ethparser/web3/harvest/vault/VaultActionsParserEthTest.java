@@ -10,7 +10,6 @@ import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +20,6 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
@@ -40,13 +38,6 @@ public class VaultActionsParserEthTest {
     private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
     @Autowired
     private VaultActionsDBService vaultActionsDBService;
-    @Autowired
-    private ContractLoader contractLoader;
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        contractLoader.load();
-    }
 
     @Test
     public void shouldNotParseDoHardWork_iPS() {

@@ -10,7 +10,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,8 +19,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -38,13 +35,6 @@ public class DoHardWorkEthTest {
     private PriceProvider priceProvider;
     @Autowired
     private HardWorkDbService hardWorkDbService;
-    @Autowired
-    private ContractLoader contractLoader;
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        contractLoader.load();
-    }
 
     @Test
     public void parseSUSHI_MIC_USDT() {

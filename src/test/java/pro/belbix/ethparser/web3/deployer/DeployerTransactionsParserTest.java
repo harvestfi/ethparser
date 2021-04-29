@@ -1,15 +1,10 @@
 package pro.belbix.ethparser.web3.deployer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +13,6 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
@@ -30,13 +24,6 @@ public class DeployerTransactionsParserTest {
   private Web3Functions web3Functions;
   @Autowired
   private DeployerTransactionsParser parser;
-  @Autowired
-  private ContractLoader contractLoader;
-
-   @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load();
-  }
 
   @Test
   public void testParseDeployerTransaction_SetFeeTx() throws Exception {

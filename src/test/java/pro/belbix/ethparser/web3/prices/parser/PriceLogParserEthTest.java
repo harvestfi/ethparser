@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +17,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -28,32 +26,8 @@ public class PriceLogParserEthTest {
   private PriceLogParser priceLogParser;
   @Autowired
   private Web3Functions web3Functions;
-  @Autowired
-  private ContractLoader contractLoader;
 
-   @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load();
-  }
-
-  //    @Test
-//    public void priceParseUNI_LP_USDC_IDX() {
-//        assertOnBlock(
-//            "0xc372089019614e5791b08b5036f298d002a8cbef",
-//            11856484,
-//            1,
-//            "0x6107429ff8cbd2f7e6b54f1d337201aa89f2a234a632ea4b0c888ce50d05c250",
-//            "",
-//            1,
-//            "",
-//            9.95014151163403E-4,
-//            "",
-//            200.16815759936367,
-//            201171.166626445
-//        );
-//    }
-
-    @Test
+  @Test
     public void priceParseUNI_LP_ETH_DAI() {
         assertOnBlock(
             "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11",

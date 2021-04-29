@@ -7,7 +7,6 @@ import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +16,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
@@ -39,13 +37,6 @@ public class VaulActionstParserBscTest {
   private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   @Autowired
   private VaultActionsDBService vaultActionsDBService;
-  @Autowired
-  private ContractLoader contractLoader;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load(BSC_NETWORK);
-  }
 
   @Test
   void test_EPS_BNB() throws Exception {

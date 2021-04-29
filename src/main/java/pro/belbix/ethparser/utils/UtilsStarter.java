@@ -3,7 +3,15 @@ package pro.belbix.ethparser.utils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.download.DeployerTransactionsDownloader;
+import pro.belbix.ethparser.utils.download.EthBlockDownloader;
+import pro.belbix.ethparser.utils.download.HardWorkDownloader;
 import pro.belbix.ethparser.utils.download.NewStrategyDownloader;
+import pro.belbix.ethparser.utils.download.PriceDownloader;
+import pro.belbix.ethparser.utils.download.RewardDownloader;
+import pro.belbix.ethparser.utils.download.TransferDownloader;
+import pro.belbix.ethparser.utils.download.UniswapLpDownloader;
+import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
 import pro.belbix.ethparser.utils.recalculation.HardWorkRecalculate;
 import pro.belbix.ethparser.utils.recalculation.HarvestProfitRecalculate;
 import pro.belbix.ethparser.utils.recalculation.LpTvlRecalculate;
@@ -13,15 +21,6 @@ import pro.belbix.ethparser.utils.recalculation.OwnerCountRecalculate;
 import pro.belbix.ethparser.utils.recalculation.RewardRecalculate;
 import pro.belbix.ethparser.utils.recalculation.TransfersRecalculate;
 import pro.belbix.ethparser.utils.recalculation.TvlRecalculate;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.utils.download.DeployerTransactionsDownloader;
-import pro.belbix.ethparser.utils.download.TransferDownloader;
-import pro.belbix.ethparser.utils.download.HardWorkDownloader;
-import pro.belbix.ethparser.utils.download.RewardDownloader;
-import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
-import pro.belbix.ethparser.utils.download.EthBlockDownloader;
-import pro.belbix.ethparser.utils.download.PriceDownloader;
-import pro.belbix.ethparser.utils.download.UniswapLpDownloader;
 
 @Service
 @Log4j2
@@ -46,7 +45,6 @@ public class UtilsStarter {
   private final HarvestProfitRecalculate harvestProfitRecalculate;
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
-  private final ContractLoader contractLoader;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -66,8 +64,7 @@ public class UtilsStarter {
       HarvestProfitRecalculate harvestProfitRecalculate,
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
-      EthBlockDownloader ethBlockDownloader,
-      ContractLoader contractLoader) {
+      EthBlockDownloader ethBlockDownloader) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.vaultActionsDownloader = vaultActionsDownloader;
@@ -87,12 +84,10 @@ public class UtilsStarter {
     this.priceDownloader = priceDownloader;
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
-    this.contractLoader = contractLoader;
   }
 
   public void startUtils() {
     log.info("Start utils {}", appProperties.getStartUtil());
-    contractLoader.load(appProperties.getUtilNetwork());
     if ("uniswap-download".equals(appProperties.getStartUtil())) {
       uniswapLpDownloader.start();
     } else if ("harvest-download".equals(appProperties.getStartUtil())) {

@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,10 +18,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -34,8 +31,6 @@ public class DoHardWorkBscTest {
     private Web3Functions web3Functions;
     @Autowired
     private HardWorkDbService hardWorkDbService;
-    @Autowired
-    private ContractLoader contractLoader;
 
     private final Set<String> excludeFields = Set.of(
         "fullRewardUsdTotal",
@@ -49,11 +44,6 @@ public class DoHardWorkBscTest {
         "savedGasFeesSum",
         "weeklyAverageTvl"
     );
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        contractLoader.load(BSC_NETWORK);
-    }
 
     @Test
     public void parse_ONEINCH_BNB() throws Exception {

@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +29,6 @@ import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SpringBootTest(classes = Application.class)
@@ -40,14 +38,7 @@ public class Web3FunctionsTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private ContractLoader contractLoader;
-  @Autowired
   private ContractDbService contractDbService;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load();
-  }
 
   @Test
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {

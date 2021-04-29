@@ -10,7 +10,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.time.Instant;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,8 +20,6 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -32,16 +29,6 @@ public class ImportantEventsParserTest {
   private ImportantEventsParser importantEventsParser;
   @Autowired
   private Web3Functions web3Functions;
-  @Autowired
-  private PriceProvider priceProvider;
-
-  @Autowired
-  private ContractLoader contractLoader;
-
-   @BeforeEach
-  public void setUp() {
-    contractLoader.load();
-  }
 
   @Test
   public void shouldParseStrategyChange() {

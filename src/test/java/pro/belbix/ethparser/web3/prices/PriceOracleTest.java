@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -22,13 +20,6 @@ public class PriceOracleTest {
 
     @Autowired
     private PriceProvider priceProvider;
-    @Autowired
-    private ContractLoader contractLoader;
-
-    @Before
-    public void load() {
-        contractLoader.load();
-    }
 
     @Test
     public void getTokenPrice() {

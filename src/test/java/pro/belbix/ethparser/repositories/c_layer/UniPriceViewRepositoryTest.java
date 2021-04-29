@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +19,6 @@ import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 import pro.belbix.ethparser.entity.c_layer.UniPriceViewEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 import pro.belbix.ethparser.web3.layers.detector.ContractDetector;
@@ -44,13 +42,6 @@ class UniPriceViewRepositoryTest {
   private ContractDetector contractDetector;
   @Autowired
   private ContractEventsDbService contractEventsDbService;
-  @Autowired
-  private ContractLoader contractLoader;
-
-  @BeforeEach
-  void setUp() {
-    contractLoader.load();
-  }
 
   @Test
   void testUniPriceView_UNI_LP_ETH_USDT() {

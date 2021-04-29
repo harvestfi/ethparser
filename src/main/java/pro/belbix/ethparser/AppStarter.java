@@ -17,11 +17,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.utils.MockUtils;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -50,11 +48,9 @@ public class AppStarter {
     private final WsService ws;
     private final AppProperties conf;
     private final PriceLogParser priceLogParser;
-    private final ContractLoader contractLoader;
     private final DeployerTransactionsParser deployerTransactionsParser;
     private final EthBlockParser ethBlockParser;
     private final ContractDetector contractDetector;
-    private final NetworkProperties networkProperties;
     private final MockUtils mockUtils;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
@@ -71,11 +67,11 @@ public class AppStarter {
         UniToHarvestConverter uniToHarvestConverter,
         TransferParser transferParser, WsService wsService,
         AppProperties appProperties,
-        PriceLogParser priceLogParser, ContractLoader contractLoader,
+        PriceLogParser priceLogParser,
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
         ContractDetector contractDetector,
-        NetworkProperties networkProperties, MockUtils mockUtils) {
+        MockUtils mockUtils) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.vaultActionsParser = vaultActionsParser;
@@ -87,11 +83,9 @@ public class AppStarter {
         this.ws = wsService;
         this.conf = appProperties;
         this.priceLogParser = priceLogParser;
-        this.contractLoader = contractLoader;
         this.deployerTransactionsParser = deployerTransactionsParser;
         this.ethBlockParser = ethBlockParser;
         this.contractDetector = contractDetector;
-        this.networkProperties = networkProperties;
         this.mockUtils = mockUtils;
     }
 
@@ -103,7 +97,6 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            contractLoader.load(conf.getNetworks());
             startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
             startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
@@ -119,7 +112,6 @@ public class AppStarter {
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
-        contractLoader.load(conf.getNetworks());
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();

@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -29,8 +28,6 @@ import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.controllers.PriceController;
 import pro.belbix.ethparser.model.RestResponse;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SpringBootTest(classes = Application.class)
@@ -45,9 +42,6 @@ public class PriceProviderAutoTest {
   private PriceController priceController;
 
   @Autowired
-  private ContractLoader contractLoader;
-
-  @Autowired
   private EthBlockService ethBlockService;
 
   @Autowired
@@ -55,11 +49,6 @@ public class PriceProviderAutoTest {
 
   @Autowired
   private ContractDbService contractDbService;
-
-  @BeforeEach
-  void setUp() throws Exception {
-    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
-  }
 
   private final Set<String> exclude = Set.of(
       "ZERO",
