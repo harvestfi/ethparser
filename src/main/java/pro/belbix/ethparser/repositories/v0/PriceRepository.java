@@ -21,6 +21,18 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         Pageable pageable
     );
 
+    @Query("select t from PriceDTO t where "
+        + "t.sourceAddress = :sourceAddress "
+        + "and t.block <= :block "
+        + "and t.network = :network "
+        + "order by t.block desc")
+    List<PriceDTO> fetchLastPriceByAddress(
+        @Param("sourceAddress") String sourceAddress,
+        @Param("block") long block,
+        @Param("network") String network,
+        Pageable pageable
+    );
+
     @Query(nativeQuery = true, value = "" +
         "select distinct on (source) "
         + "    last_value(id) over w                 as id, "

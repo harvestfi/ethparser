@@ -23,7 +23,7 @@ class UniPairRepositoryTest {
     List<UniPairEntity> uniPairs = uniPairRepository.findAll();
     assertNotNull(uniPairs);
     assertFalse(uniPairs.isEmpty());
-    assertNotNull(uniPairRepository.findFirstByContract(
+    assertNotNull(uniPairRepository.findFirstByAddress(
         uniPairs.get(0).getContract().getAddress(),
         uniPairs.get(0).getContract().getNetwork()));
   }

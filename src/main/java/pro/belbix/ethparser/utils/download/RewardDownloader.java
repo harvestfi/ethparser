@@ -18,7 +18,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 
@@ -31,6 +31,7 @@ public class RewardDownloader {
   private final RewardParser rewardParser;
   private final RewardsDBService rewardsDBService;
   private final AppProperties appProperties;
+  private final ContractDbService contractDbService;
 
   @Value("${reward-download.contract:}")
   private String contractName;
@@ -46,28 +47,34 @@ public class RewardDownloader {
   public RewardDownloader(Web3Functions web3Functions,
       RewardParser rewardParser,
       RewardsDBService rewardsDBService,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.rewardParser = rewardParser;
     this.rewardsDBService = rewardsDBService;
     this.appProperties = appProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void start() {
-    ContractUtils cu = ContractUtils.getInstance(appProperties.getUtilNetwork());
     if (vaultNames != null) {
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
               Arrays.stream(vaultNames)
-                  .map(vaultName -> cu.poolByVaultName(vaultName).orElseThrow())
-                  .map(p -> p.getContract().getName())
+                  .map(vName -> contractDbService
+                      .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
+                      .orElseThrow())
+                  .map(vName -> contractDbService
+                      .getPoolContractByVaultAddress(vName, appProperties.getUtilNetwork())
+                      .orElseThrow()
+                      .getAddress())
                   .collect(Collectors.toList())
           )
       ).start(from, to);
     } else if (!Strings.isBlank(contractName)) {
       log.info("Start parse rewards for " + contractName);
-      String adr = cu
-          .getAddressByName(contractName, ContractType.POOL)
+      String adr = contractDbService
+          .getAddressByName(contractName, ContractType.POOL, appProperties.getUtilNetwork())
           .orElseThrow(() -> new IllegalStateException("Not found pool for " + contractName));
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end, singletonList(adr)))
@@ -79,11 +86,10 @@ public class RewardDownloader {
       }
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
-              cu
-                  .getAllPools().stream()
+              contractDbService.getAllPools(appProperties.getUtilNetwork()).stream()
                   .map(v -> v.getContract().getAddress())
                   .filter(c -> !excludeSet.contains(
-                      cu.getNameByAddress(c)
+                      contractDbService.getNameByAddress(c, appProperties.getUtilNetwork())
                           .orElseThrow()))
                   .collect(Collectors.toList()))
       ).start(from, to);

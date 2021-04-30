@@ -3,8 +3,6 @@ package pro.belbix.ethparser.model.tx;
 import java.math.BigInteger;
 import lombok.Data;
 import org.web3j.abi.datatypes.Address;
-import pro.belbix.ethparser.dto.v0.HarvestDTO;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Data
 public class HarvestTx implements EthTransactionI {
@@ -29,50 +27,4 @@ public class HarvestTx implements EthTransactionI {
   private boolean enriched;
   private boolean migration = false;
 
-  public HarvestDTO toDto(String network) {
-    HarvestDTO dto = new HarvestDTO();
-    dto.setId(hash + "_" + logId);
-    dto.setHash(hash);
-    dto.setBlock(block.longValue());
-    dto.setNetwork(network);
-    dto.setVault(ContractUtils.getInstance(network).getNameByAddress(vault.getValue())
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + vault.getValue()))
-    );
-    dto.setConfirmed(1);
-    dto.setMethodName(methodName);
-    dto.setAmount(ContractUtils.getInstance(network).parseAmount(amount, vault.getValue()));
-    if (amountIn != null) {
-      dto.setAmountIn(ContractUtils.getInstance(network).parseAmount(amountIn, fToken.getValue()));
-    }
-    dto.setOwner(owner);
-
-    enrichMethodDepend(dto);
-    return dto;
-  }
-
-  private void enrichMethodDepend(HarvestDTO dto) {
-    switch (methodName) {
-      case "deposit":
-      case "withdraw":
-        break;
-      case "underlyingBalanceWithInvestmentForHolder":
-      case "setStrategy":
-        break;
-      case "setVaultFractionToInvest":
-        break;
-      case "depositFor":
-        break;
-      case "withdrawAll":
-      case "underlyingBalanceInVault":
-      case "underlyingBalanceWithInvestment":
-      case "governance":
-      case "controller":
-      case "underlying":
-      case "strategy":
-      case "getPricePerFullShare":
-      case "doHardWork":
-      case "rebalance":
-        break;
-    }
-  }
 }

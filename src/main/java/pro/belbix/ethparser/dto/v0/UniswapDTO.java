@@ -30,12 +30,15 @@ public class UniswapDTO implements DtoI {
   private boolean confirmed = false;
   private String type;
   private String coin;
+  private String coinAddress;
   private double amount;
   private String otherCoin;
+  private String otherCoinAddress;
   private double otherAmount;
   private Double lastPrice;
   private Double lastGas;
   private String lp;
+  private String lpAddress;
   private String methodName;
   // ---- ADDITIONAL STATISTIC INFO ----
   private Integer ownerCount;

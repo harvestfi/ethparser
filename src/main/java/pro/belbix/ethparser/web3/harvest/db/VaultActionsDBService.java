@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -23,6 +22,7 @@ import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
@@ -33,15 +33,18 @@ public class VaultActionsDBService {
   private final AppProperties appProperties;
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
+  private final ContractDbService contractDbService;
 
   public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
-      UniswapRepository uniswapRepository) {
+      UniswapRepository uniswapRepository,
+      ContractDbService contractDbService) {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.harvestTvlRepository = harvestTvlRepository;
     this.uniswapRepository = uniswapRepository;
+    this.contractDbService = contractDbService;
   }
 
   public static double aprToApy(double apr, double period) {
@@ -86,8 +89,9 @@ public class VaultActionsDBService {
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames().stream()
-            .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
+        contractDbService.getAllVaults(dto.getNetwork()).stream()
+            .map(v -> v.getContract().getName())
+            .filter(v -> !ContractUtils.isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
@@ -142,11 +146,12 @@ public class VaultActionsDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames());
+    List<String> contracts = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getAddress())
+        .collect(Collectors.toList());
 
     PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
-        .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
+        .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())
             .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
         .forEach(contracts::add);
 

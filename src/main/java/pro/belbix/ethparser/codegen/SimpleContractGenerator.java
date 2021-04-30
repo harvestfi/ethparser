@@ -2,7 +2,6 @@ package pro.belbix.ethparser.codegen;
 
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,13 +26,13 @@ import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
-import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Log4j2
 @Service
@@ -51,20 +50,21 @@ public class SimpleContractGenerator {
   private static final String VIEW = "view";
 
   private final AbiProviderService abiProviderService;
-  private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
   private final Web3Functions web3Functions;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
 
   private final Map<String, TreeMap<Long, GeneratedContract>> contracts = new HashMap<>();
 
-  public SimpleContractGenerator(AppProperties appProperties, FunctionsUtils functionsUtils,
+  public SimpleContractGenerator(FunctionsUtils functionsUtils,
       Web3Functions web3Functions,
-      NetworkProperties networkProperties) {
-    this.appProperties = appProperties;
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
     this.abiProviderService = new AbiProviderService();
   }
 
@@ -222,7 +222,8 @@ public class SimpleContractGenerator {
     }
     // bsc has an odd bug with latest/earliest block fetching
     if (BSC_NETWORK.equals(network)) {
-      Long created = ContractUtils.getInstance(network).getTokenCreated(address)
+      Long created = contractDbService.getContractByAddress(address, network)
+          .map(ContractEntity::getCreated)
           .orElse(null);
       if (created == null) {
         return null;

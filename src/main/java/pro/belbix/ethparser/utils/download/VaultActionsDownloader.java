@@ -15,7 +15,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
@@ -30,6 +30,7 @@ public class VaultActionsDownloader {
   private final VaultActionsParser vaultActionsParser;
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   private final AppProperties appProperties;
+  private final ContractDbService contractDbService;
 
   @Value("${harvest-download.contract:}")
   private String vaultName;
@@ -44,12 +45,14 @@ public class VaultActionsDownloader {
       VaultActionsDBService vaultActionsDBService,
       VaultActionsParser vaultActionsParser,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.vaultActionsDBService = vaultActionsDBService;
     this.vaultActionsParser = vaultActionsParser;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     this.appProperties = appProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void start() {
@@ -71,8 +74,8 @@ public class VaultActionsDownloader {
   }
 
   private String nameToAddress(String name) {
-    return ContractUtils.getInstance(appProperties.getUtilNetwork())
-        .getAddressByName(name, ContractType.VAULT)
+    return contractDbService
+        .getAddressByName(name, ContractType.VAULT, appProperties.getUtilNetwork())
         .orElseThrow(() -> new IllegalStateException("Not found address for " + name));
   }
 

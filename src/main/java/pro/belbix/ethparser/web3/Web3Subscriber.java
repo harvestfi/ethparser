@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
@@ -11,13 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Supplier;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -27,6 +25,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
@@ -40,6 +39,7 @@ public class Web3Subscriber {
   private final VaultActionsDBService vaultActionsDBService;
   private final EthBlockRepository ethBlockRepository;
   private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
 
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers = new ArrayList<>();
   private final List<BlockingQueue<Web3Model<Log>>> logConsumers = new ArrayList<>();
@@ -51,39 +51,32 @@ public class Web3Subscriber {
       UniswapDbService uniswapDbService,
       VaultActionsDBService vaultActionsDBService,
       EthBlockRepository ethBlockRepository,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.appProperties = appProperties;
     this.uniswapDbService = uniswapDbService;
     this.vaultActionsDBService = vaultActionsDBService;
     this.ethBlockRepository = ethBlockRepository;
     this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void subscribeLogFlowable(String network) {
     if (!networkProperties.get(network).isParseLog()) {
       return;
     }
-    DefaultBlockParameter from;
+    int from;
     if (Strings.isBlank(networkProperties.get(network).getStartLogBlock())) {
-      from = new DefaultBlockParameterNumber(
-          findEarliestLastBlock(network).subtract(BigInteger.TEN));
+      from = findEarliestLastBlock(network).subtract(BigInteger.TEN).intValue();
+      if (from < 1_000_000) {
+        from = ContractUtils.getStartBlock(network);
+      }
     } else {
-      from = DefaultBlockParameter.valueOf(
-          new BigInteger(networkProperties.get(network).getStartLogBlock()));
+      from = new BigInteger(networkProperties.get(network).getStartLogBlock()).intValue();
     }
-    EthFilter filter = new EthFilter(
-        from, LATEST, ContractUtils.getInstance(network).getSubscriptions());
-    startLogFlowableThread(filter, network);
-    //NPE https://github.com/web3j/web3j/issues/1264
-    /*
-        Disposable subscription = web3.ethLogFlowable(filter)
-            .subscribe(log -> logConsumers.forEach(queue ->
-                    writeInQueue(queue, log)),
-                e -> log.error("Log flowable error", e));
-        subscriptions.add(subscription);
-     */
-    log.info("Subscribe to Log Flowable from {}", from.getValue());
+    startLogFlowableThread(contractDbService::getSubscriptions, from, network);
+    log.info("Subscribe to Log Flowable from {}", from);
   }
 
   public void subscribeTransactionFlowable(String network) {
@@ -180,8 +173,10 @@ public class Web3Subscriber {
     }
   }
 
-  public void startLogFlowableThread(EthFilter filter, String network) {
-    Web3LogFlowable logFlowable = new Web3LogFlowable(filter, web3Functions, logConsumers, network);
+  public void startLogFlowableThread(Supplier<List<String>> addressesSupplier, Integer from,
+      String network) {
+    Web3LogFlowable logFlowable = new Web3LogFlowable(addressesSupplier, from, web3Functions,
+        logConsumers, network);
     new Thread(logFlowable).start();
   }
 

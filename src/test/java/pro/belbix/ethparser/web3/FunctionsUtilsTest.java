@@ -8,14 +8,12 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERAT
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_UNIT;
 
 import java.math.BigInteger;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -23,13 +21,6 @@ public class FunctionsUtilsTest {
 
   @Autowired
   private FunctionsUtils functionsUtils;
-  @Autowired
-  private ContractLoader contractLoader;
-
-   @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load(ETH_NETWORK, BSC_NETWORK);
-  }
 
   @Test
   public void testRewardToken() {

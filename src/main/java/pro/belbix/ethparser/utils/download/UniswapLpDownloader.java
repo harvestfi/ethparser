@@ -14,7 +14,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 
@@ -22,11 +22,11 @@ import pro.belbix.ethparser.web3.uniswap.parser.UniswapLpLogParser;
 @Service
 @Log4j2
 public class UniswapLpDownloader {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final Web3Functions web3Functions;
   private final UniswapDbService saveHarvestDTO;
   private final UniswapLpLogParser uniswapLpLogParser;
   private final AppProperties appProperties;
+  private final ContractDbService contractDbService;
 
   @Value("${uniswap-download.contract:}")
   private String contractName;
@@ -38,11 +38,13 @@ public class UniswapLpDownloader {
   public UniswapLpDownloader(Web3Functions web3Functions,
       UniswapDbService saveHarvestDTO,
       UniswapLpLogParser uniswapLpLogParser,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.saveHarvestDTO = saveHarvestDTO;
     this.uniswapLpLogParser = uniswapLpLogParser;
     this.appProperties = appProperties;
+    this.contractDbService = contractDbService;
   }
 
   public void start() {
@@ -52,7 +54,10 @@ public class UniswapLpDownloader {
   private void load(Integer from, Integer to) {
     List<LogResult> logResults = web3Functions.fetchContractLogs(
         singletonList(
-            contractUtils.getAddressByName(contractName, ContractType.UNI_PAIR).orElseThrow()),
+            contractDbService
+                .getAddressByName(contractName, ContractType.UNI_PAIR,
+                    appProperties.getUtilNetwork())
+                .orElseThrow()),
         from,
         to, ETH_NETWORK
     );

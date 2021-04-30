@@ -10,23 +10,25 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
 public class UniOwnerBalanceCalculator {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
   private final UniswapRepository uniswapRepository;
+  private final ContractDbService contractDbService;
 
   public UniOwnerBalanceCalculator(FunctionsUtils functionsUtils, PriceProvider priceProvider,
-      UniswapRepository uniswapRepository) {
+      UniswapRepository uniswapRepository,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.priceProvider = priceProvider;
     this.uniswapRepository = uniswapRepository;
+    this.contractDbService = contractDbService;
   }
 
   public boolean fillBalance(UniswapDTO dto) {
@@ -46,16 +48,12 @@ public class UniOwnerBalanceCalculator {
   private boolean balanceForLp(UniswapDTO dto) {
     String lpHash;
     if (dto.getLp() == null) {
-      lpHash = contractUtils.findUniPairForTokens(
-          contractUtils.getAddressByName(dto.getCoin(), ContractType.TOKEN)
-              .orElseThrow(
-                  () -> new IllegalStateException("Not found address for " + dto.getCoin())),
-          contractUtils.getAddressByName(dto.getOtherCoin(), ContractType.TOKEN)
-              .orElseThrow(
-                  () -> new IllegalStateException("Not found address for " + dto.getOtherCoin()))
-      );
+      lpHash = contractDbService.findLpForTokens(
+          dto.getCoinAddress(), dto.getOtherCoinAddress(), ETH_NETWORK)
+          .map(lp -> lp.getContract().getAddress())
+          .orElseThrow();
     } else {
-      lpHash = contractUtils.getAddressByName(dto.getLp(), ContractType.UNI_PAIR).orElse(null);
+      lpHash = dto.getLpAddress();
     }
     if (lpHash == null) {
       log.error("Not found vault/lp hash for " + dto.getLp());
@@ -68,7 +66,7 @@ public class UniOwnerBalanceCalculator {
       log.warn("Can reach lp balance for " + dto.print());
       return false;
     }
-    double balance = ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, lpHash);
+    double balance = contractDbService.parseAmount(balanceI, lpHash, ETH_NETWORK);
     dto.setOwnerBalance(balance);
 
     //fill USD value

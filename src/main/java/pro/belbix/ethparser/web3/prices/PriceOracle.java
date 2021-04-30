@@ -27,7 +27,7 @@ public class PriceOracle {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
-        String oracleAddress = ContractUtils.getInstance(network).getPriceOracle(block);
+        String oracleAddress = ContractUtils.getPriceOracle(block, network);
         if (oracleAddress == null) {
             throw new IllegalStateException("Oracle price smart contract  not deployed yet");
         }
@@ -41,6 +41,6 @@ public class PriceOracle {
     }
 
     public static boolean isAvailable(long block, String network) {
-        return ContractUtils.getInstance(network).getPriceOracle(block) != null;
+        return ContractUtils.getPriceOracle(block, network) != null;
     }
 }

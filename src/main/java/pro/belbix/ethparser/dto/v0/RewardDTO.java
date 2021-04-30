@@ -18,6 +18,7 @@ public class RewardDTO implements DtoI {
   @Id
   private String id;
   private String vault;
+  private String vaultAddress;
   private long block;
   private long blockDate;
   private String network;

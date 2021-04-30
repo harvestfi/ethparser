@@ -92,7 +92,7 @@ abstract class Web3Service {
     initStarted = false;
   }
 
-  public <T> T callWithRetry(Callable<T> callable) {
+  public <T> T callWithRetry(Callable<T> callable, String logMessage) {
     int count = 0;
     while (true) {
       waitInit();
@@ -104,13 +104,15 @@ abstract class Web3Service {
         if (e.getMessage().startsWith("Not retryable response")) {
           return null;
         }
-      } catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
-        log.error("Connection exception, reconnect...\n{}", e.getMessage());
-        close();
-        waitInit();
-        lastError = e;
-      } catch (Exception e) { //by default all errors, but can be filtered by type
-        log.warn("Retryable error", e);
+      }
+//      catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
+//        log.error("Connection exception, reconnect...", e);
+//        close();
+//        waitInit();
+//        lastError = e;
+//      }
+      catch (Exception e) { //by default all errors, but can be filtered by type
+        log.warn(logMessage+ " Retryable error", e);
         lastError = e;
       }
 

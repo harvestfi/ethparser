@@ -9,7 +9,6 @@ import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,8 +19,6 @@ import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -30,17 +27,7 @@ public class TransferParserTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private PriceProvider priceProvider;
-  @Autowired
   private TransferParser transferParser;
-
-  @Autowired
-  private ContractLoader contractLoader;
-
-   @BeforeEach
-  public void setUp() {
-    contractLoader.load();
-  }
 
   // it is a self destructed contract
   @Test
