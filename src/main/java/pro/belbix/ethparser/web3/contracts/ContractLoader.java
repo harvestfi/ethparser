@@ -38,6 +38,9 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
+import pro.belbix.ethparser.web3.contracts.models.LpContract;
+import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 
 @Service
 @Log4j2
@@ -90,7 +93,7 @@ public class ContractLoader {
     }
   }
 
-  private void loadToken(TokenContract contract, String network, long block) {
+  public void loadToken(TokenContract contract, String network, long block) {
     log.debug("Load {}", contract.getName());
     ContractEntity tokenContract = findOrCreateContract(
         contract.getAddress(),
@@ -114,7 +117,7 @@ public class ContractLoader {
 
   private void loadVaults(String network, long block) {
     log.info("Start load vaults on block {}", block);
-    for (Contract vault : sourceResolver.getVaults(network)) {
+    for (SimpleContract vault : sourceResolver.getVaults(network)) {
       if (vault.getCreatedOnBlock() > block) {
         log.info("Vault {} not created yet, skip", vault.getName());
         continue;
@@ -123,7 +126,7 @@ public class ContractLoader {
     }
   }
 
-  public void loadVault(Contract vault, String network, long block) {
+  public void loadVault(SimpleContract vault, String network, long block) {
     log.debug("Load {}", vault.getName());
     ContractEntity vaultContract =
         findOrCreateContract(
@@ -148,7 +151,7 @@ public class ContractLoader {
 
   private void loadPools(String network, long block) {
     log.info("Start load pools on block {}", block);
-    for (Contract pool : sourceResolver.getPools(network)) {
+    for (SimpleContract pool : sourceResolver.getPools(network)) {
       if (pool.getCreatedOnBlock() > block) {
         log.info("Pool {} not created yet, skip", pool.getName());
         continue;
@@ -157,7 +160,7 @@ public class ContractLoader {
     }
   }
 
-  public void loadPool(Contract pool, String network, long block) {
+  public void loadPool(SimpleContract pool, String network, long block) {
     String name = pool.getName();
     String hash = pool.getAddress();
     log.debug("Load {}", name);

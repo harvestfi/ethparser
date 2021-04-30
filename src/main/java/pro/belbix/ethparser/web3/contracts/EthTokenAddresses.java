@@ -1,8 +1,9 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.contracts.TokenContract.createTokenContracts;
+import static pro.belbix.ethparser.web3.contracts.models.TokenContract.createTokenContracts;
 
 import java.util.List;
+import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 
 class EthTokenAddresses {
 

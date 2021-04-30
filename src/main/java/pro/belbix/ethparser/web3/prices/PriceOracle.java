@@ -32,7 +32,7 @@ public class PriceOracle {
             throw new IllegalStateException("Oracle price smart contract  not deployed yet");
         }
         double price = functionsUtils
-            .callIntByName(GET_PRICE, tokenAdr, oracleAddress, block, network)
+            .callIntByNameWithAddressArg(GET_PRICE, tokenAdr, oracleAddress, block, network)
             .orElseThrow(() -> new IllegalStateException(
                 "Can't fetch price for " + tokenAdr))
             .doubleValue();

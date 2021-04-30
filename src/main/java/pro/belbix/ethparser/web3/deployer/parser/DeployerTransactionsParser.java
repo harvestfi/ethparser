@@ -46,6 +46,7 @@ public class DeployerTransactionsParser implements Web3Parser {
   private final SimpleContractGenerator simpleContractGenerator;
   private final Web3Functions web3Functions;
   private final NetworkProperties networkProperties;
+  private final DeployerEventToContractTransformer deployerEventToContractTransformer;
   private long parsedTxCount = 0;
   private Instant lastTx = Instant.now();
 
@@ -56,7 +57,8 @@ public class DeployerTransactionsParser implements Web3Parser {
       AppProperties appProperties, ParserInfo parserInfo,
       SimpleContractGenerator simpleContractGenerator,
       Web3Functions web3Functions,
-      NetworkProperties networkProperties) {
+      NetworkProperties networkProperties,
+      DeployerEventToContractTransformer deployerEventToContractTransformer) {
     this.web3Subscriber = web3Subscriber;
     this.deployerDbService = deployerDbService;
     this.ethBlockService = ethBlockService;
@@ -65,6 +67,7 @@ public class DeployerTransactionsParser implements Web3Parser {
     this.simpleContractGenerator = simpleContractGenerator;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
+    this.deployerEventToContractTransformer = deployerEventToContractTransformer;
   }
 
   public void startParse() {
@@ -89,6 +92,7 @@ public class DeployerTransactionsParser implements Web3Parser {
             if (dto != null) {
               lastTx = Instant.now();
               try {
+                deployerEventToContractTransformer.handleAndSave(dto);
                 boolean success = deployerDbService.save(dto);
                 if (success) {
                   output.put(dto);

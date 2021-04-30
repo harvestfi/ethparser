@@ -3,6 +3,7 @@ package pro.belbix.ethparser.codegen;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.IMPLEMENTATION;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -39,7 +40,6 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 public class SimpleContractGenerator {
 
   private static final String UPGRADED_EVENT = "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b";
-  private static final String IMPLEMENTATION = "implementation";
   private static final String IMPLEMENTATION_HASH = "0x5c60da1b";
   private static final String IMPLEMENTATION_0X = "getFunctionImplementation";
   private static final String IMPLEMENTATION_0X_HASH = "0x972fdd26";

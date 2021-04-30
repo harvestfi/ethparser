@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -59,7 +58,7 @@ public class UniOwnerBalanceCalculator {
       log.error("Not found vault/lp hash for " + dto.getLp());
       return false;
     }
-    BigInteger balanceI = functionsUtils.callIntByName(
+    BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock().longValue(), ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
     if (balanceI == null) {

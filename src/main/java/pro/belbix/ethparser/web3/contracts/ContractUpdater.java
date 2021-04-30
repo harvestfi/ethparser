@@ -21,6 +21,7 @@ public class ContractUpdater {
   private final VaultRepository vaultRepository;
   private final EthBlockService ethBlockService;
 
+  private boolean started = false;
 
   public ContractUpdater(AppProperties appProperties,
       ContractLoader contractLoader,
@@ -36,12 +37,19 @@ public class ContractUpdater {
     this.ethBlockService = ethBlockService;
   }
 
-  public void updateContracts() {
-    for (String network : appProperties.getNetworks()) {
-      long block = ethBlockService.getLastBlock(network);
-      updateVaults(block, network);
-      updatePools(block, network);
+  public synchronized void updateContracts() {
+    if (started) {
+      return;
     }
+    started = true;
+    new Thread(() -> {
+      for (String network : appProperties.getNetworks()) {
+        long block = ethBlockService.getLastBlock(network);
+        updateVaults(block, network);
+        updatePools(block, network);
+      }
+      started = false;
+    }).start();
   }
 
 
