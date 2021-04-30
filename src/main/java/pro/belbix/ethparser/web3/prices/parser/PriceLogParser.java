@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -17,6 +16,8 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.PriceTx;
@@ -152,8 +153,9 @@ public class PriceLogParser implements Web3Parser {
     if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return contractDbService
-        .getContractByAddressAndType(log.getAddress(), UNI_PAIR, network)
+
+    return contractDbService.findLpByAddress(log.getAddress(), network)
+        .filter(u -> u.getKeyToken() != null)
         .isPresent();
   }
 
@@ -198,10 +200,12 @@ public class PriceLogParser implements Web3Parser {
   private boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
     String lp = tx.getSource().toLowerCase();
 
-    UniPairEntity lpEntity = contractDbService.findLpByAddress(lp, network)
-        .orElseThrow();
+    String keyCoinName = contractDbService.findLpByAddress(lp, network)
+        .map(UniPairEntity::getKeyToken)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getName)
+        .orElse("");
 
-    String keyCoinName = lpEntity.getKeyToken().getContract().getName();
     Tuple2<String, String> tokensAdr = contractDbService
         .tokenAddressesByUniPairAddress(lp, network);
     Tuple2<String, String> tokensNames = new Tuple2<>(
