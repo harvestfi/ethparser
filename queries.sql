@@ -180,8 +180,8 @@ where block_date <= 99999999999
 
 -- assets under control
 select t.owner, count(t.vault) assets from (select owner, vault,
-                                              SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) b
-                                       from harvest_tx
+                                              cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', owner_balance_usd)), '_', -1) as DOUBLE PRECISION) b
+                                       from harvest_tx where owner_balance_usd is not null and network = 'bsc'
 group by owner,vault) t
 where b > 10
 group by t.owner

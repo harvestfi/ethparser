@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.uniswap.parser;
 
 import static pro.belbix.ethparser.model.tx.UniswapTx.SWAP;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -119,6 +120,9 @@ public class UniswapLpLogParser implements Web3Parser {
   }
 
   public UniswapDTO parseUniswapLog(Log ethLog) {
+    if (!isValidLog(ethLog)) {
+      return null;
+    }
     UniswapTx tx = new UniswapTx();
     tx.setFirstTokenIsKey(firstTokenIsKey(ethLog.getAddress()));
     tx.setCoin(mapLpAddress(ethLog.getAddress(), true));
@@ -156,6 +160,13 @@ public class UniswapLpLogParser implements Web3Parser {
     log.info(dto.print());
 
     return dto;
+  }
+
+  private boolean isValidLog(Log log) {
+    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+      return false;
+    }
+    return PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(log.getAddress());
   }
 
   private void enrichDto(UniswapDTO dto) {
