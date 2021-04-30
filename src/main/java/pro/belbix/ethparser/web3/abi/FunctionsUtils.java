@@ -88,12 +88,12 @@ public class FunctionsUtils {
         web3Functions.fetchBalance(lpAddress, block, network), baseAdr, network);
     if (!ZERO_ADDRESS.equals(coin0)) {
       coin0Balance = contractDbService.parseAmount(
-          callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
+          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin0, block, network)
               .orElse(ZERO), coin0, network);
       coin1Balance = baseBalance;
     } else if (!ZERO_ADDRESS.equals(coin1)) {
       coin1Balance = contractDbService.parseAmount(
-          callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
+          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin1, block, network)
               .orElse(ZERO), coin1, network);
       coin0Balance = baseBalance;
     }
@@ -134,6 +134,23 @@ public class FunctionsUtils {
     return callStringFunction(findSimpleFunction(functionName, TYPE_ADR), hash, block, network);
   }
 
+  public Optional<String> callAddressByNameWithArg(
+      String functionName,
+      String arg,
+      String hash,
+      Long block,
+      String network) {
+    return callStringFunction(
+        new Function(
+            functionName,
+            Collections.singletonList(new Address(arg)),
+            Collections.singletonList(new TypeReference<Address>() {
+            })),
+        hash,
+        block,
+        network);
+  }
+
   public Optional<String> callAddressByNameBytes4(
       String functionName,
       byte[] arg,
@@ -158,11 +175,12 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block, network);
   }
 
-  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block, String network) {
+  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block,
+      String network) {
     return callBoolFunction(findSimpleFunction(functionName, TYPE_BOOL), hash, block, network);
   }
 
-  public Optional<BigInteger> callIntByName(
+  public Optional<BigInteger> callIntByNameWithAddressArg(
       String functionName,
       String arg,
       String hash,
@@ -176,7 +194,7 @@ public class FunctionsUtils {
         })), hash, block, network);
   }
 
-  public Optional<Boolean> callBoolByName(
+  public Optional<Boolean> callBoolByNameWithAddressArg(
       String functionName,
       String arg,
       String hash,

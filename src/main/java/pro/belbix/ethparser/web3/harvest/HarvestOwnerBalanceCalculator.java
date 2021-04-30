@@ -48,7 +48,7 @@ public class HarvestOwnerBalanceCalculator {
 
   private boolean balanceForPs(HarvestDTO dto, String network) {
     String psHash = dto.getVaultAddress();
-    BigInteger balanceI = functionsUtils.callIntByName(
+    BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, dto.getOwner(), psHash, dto.getBlock(), network)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + psHash));
     if (balanceI == null) {
@@ -73,17 +73,17 @@ public class HarvestOwnerBalanceCalculator {
       String stHash = contractDbService.getPoolContractByVaultAddress(
           vaultHash, network
       ).orElseThrow().getAddress();
-      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), stHash, block, network)
+      balanceI = functionsUtils.callIntByNameWithAddressArg(BALANCE_OF, dto.getOwner(), stHash, block, network)
           .orElse(null);
     } else {
-      balanceI = functionsUtils.callIntByName("underlyingBalanceWithInvestmentForHolder",
+      balanceI = functionsUtils.callIntByNameWithAddressArg("underlyingBalanceWithInvestmentForHolder",
           dto.getOwner(), vaultHash, block, network)
           .orElse(null);
     }
     if (balanceI == null) {
       log.warn("Can reach vault balance for " + dto.print());
       //maybe strategy disabled? try balanceOf
-      balanceI = functionsUtils.callIntByName(BALANCE_OF, dto.getOwner(), vaultHash, block, network)
+      balanceI = functionsUtils.callIntByNameWithAddressArg(BALANCE_OF, dto.getOwner(), vaultHash, block, network)
           .orElseThrow(() -> new IllegalStateException("Error get balance from " + vaultHash));
       if (balanceI == null) {
         return false;
@@ -126,7 +126,7 @@ public class HarvestOwnerBalanceCalculator {
       log.error("Not found vault/lp hash for " + dto.getVault());
       return false;
     }
-    BigInteger balanceI = functionsUtils.callIntByName(
+    BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, dto.getOwner(), lpHash, dto.getBlock(), network)
         .orElseThrow(() -> new IllegalStateException("Error get balance from " + lpHash));
     if (balanceI == null) {

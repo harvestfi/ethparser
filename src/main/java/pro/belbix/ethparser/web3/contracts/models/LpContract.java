@@ -1,24 +1,19 @@
-package pro.belbix.ethparser.web3.contracts;
+package pro.belbix.ethparser.web3.contracts.models;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@Data
-@EqualsAndHashCode
-class LpContract {
+public class LpContract extends SimpleContract {
 
-  private final int createdOnBlock;
-  private final String name;
   private final String keyToken;
-  private final String address;
 
   public LpContract(int createdOnBlock, String name, String keyToken, String address) {
-    this.createdOnBlock = createdOnBlock;
-    this.name = name;
+    super(createdOnBlock, name, address);
     this.keyToken = keyToken;
-    this.address = address.toLowerCase();
+  }
+
+  public String getKeyToken() {
+    return keyToken;
   }
 
   public static List<LpContract> createLpContracts(LpContract... contracts) {

@@ -27,7 +27,6 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
@@ -191,7 +190,7 @@ public class TransferParser implements Web3Parser {
   }
 
   private double getBalance(String holder, String tokenAddress, long block) {
-    BigInteger balanceI = functionsUtils.callIntByName(
+    BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
     return contractDbService.parseAmount(balanceI, tokenAddress, ETH_NETWORK);

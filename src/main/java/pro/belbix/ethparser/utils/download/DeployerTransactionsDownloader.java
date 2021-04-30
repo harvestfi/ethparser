@@ -1,5 +1,4 @@
 package pro.belbix.ethparser.utils.download;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 
 import io.reactivex.disposables.Disposable;
 import java.math.BigInteger;
@@ -16,6 +15,7 @@ import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
@@ -51,7 +51,11 @@ public class DeployerTransactionsDownloader {
     DefaultBlockParameter blockTo;
 
     if (from == null) {
-      blockFrom = ETH_BLOCK_NUMBER_30_AUGUST_2020;
+      blockFrom = DefaultBlockParameter.valueOf(
+          BigInteger.valueOf(
+              ContractUtils.getStartBlock(appProperties.getUtilNetwork())
+          )
+      );
     } else {
       blockFrom = DefaultBlockParameter.valueOf(new BigInteger(from.toString()));
     }

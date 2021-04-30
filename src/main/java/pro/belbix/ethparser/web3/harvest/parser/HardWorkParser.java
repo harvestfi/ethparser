@@ -33,8 +33,6 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
-import pro.belbix.ethparser.entity.contracts.ContractEntity;
-import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;

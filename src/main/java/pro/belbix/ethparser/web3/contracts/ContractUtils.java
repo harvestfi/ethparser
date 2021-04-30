@@ -18,7 +18,7 @@ public class ContractUtils {
 
   private ContractUtils() {
   }
-  
+
   public static String getPsPool(String address) {
     if ("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equalsIgnoreCase(address)) {
       return "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase();
@@ -73,7 +73,16 @@ public class ContractUtils {
     } else if (BSC_NETWORK.equals(network)) {
       return "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
     }
-    return null;
+    return "";
+  }
+
+  public static String getBaseNetworkWrappedTokenName(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return "ETH";
+    } else if (BSC_NETWORK.equals(network)) {
+      return "WBNB";
+    }
+    return "";
   }
 
   public static String getSimilarAssetForPrice(String name, String network) {
