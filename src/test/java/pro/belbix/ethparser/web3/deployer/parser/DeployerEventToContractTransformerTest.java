@@ -109,6 +109,23 @@ class DeployerEventToContractTransformerTest {
     );
   }
 
+  @Test
+  public void testCreateVault_ST_MASK20_ETH() {
+    String address = "0xc5fc56779b5925218d2cdac093d0bfc6de7cc2d1";
+    long block = 12044260;
+
+    DeployerDTO dto = createDeployerDto(address, block);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("ST_UNI_WETH_MASK20", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
+    );
+  }
+
   private DeployerDTO createDeployerDto(String toAddress, long block) {
     return DeployerDTO.builder()
         .type(CONTRACT_CREATION.name())

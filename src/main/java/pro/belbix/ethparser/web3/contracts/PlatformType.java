@@ -22,11 +22,4 @@ public enum PlatformType {
   public boolean isUnknown() {
     return UNKNOWN == this;
   }
-
-  public boolean isLp() {
-    return UNISWAP == this
-        || SUSHISWAP == this
-        || PANCAKESWAP == this
-        ;
-  }
 }
