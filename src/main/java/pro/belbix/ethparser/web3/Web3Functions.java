@@ -28,6 +28,7 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
@@ -69,7 +70,6 @@ public class Web3Functions {
   }
 
   public TransactionReceipt fetchTransactionReceipt(String hash, String network) {
-
     EthGetTransactionReceipt result =
         getWeb3Service(network).callWithRetry(() -> {
           EthGetTransactionReceipt ethGetTransactionReceipt
@@ -122,6 +122,23 @@ public class Web3Functions {
     return getWeb3Service(network).callWithRetry(
         () -> getWeb3(network).ethGetTransactionByHash(hash).send().getTransaction().orElse(null),
         "findTransaction " + hash + " " + network);
+  }
+
+  public Stream<Block> findBlocksByBlockBatch(int start, int end, String network) {
+    BatchResponse batchResponse = getWeb3Service(network).callWithRetry(() -> {
+          BatchRequest batchRequest = getWeb3(network).newBatch();
+          for (int block = start; block < end; block++) {
+            batchRequest.add(getWeb3(network).ethGetBlockByNumber(
+                DefaultBlockParameter.valueOf(BigInteger.valueOf(block)), true));
+          }
+          return batchRequest.send();
+        },
+        "findBlocksByBlockBatch " + start + " " + end + " " + network);
+    if (batchResponse == null) {
+      return Stream.of();
+    }
+    return batchResponse.getResponses().stream()
+        .map(r -> ((EthBlock) r).getBlock());
   }
 
   public EthBlock findBlockByHash(

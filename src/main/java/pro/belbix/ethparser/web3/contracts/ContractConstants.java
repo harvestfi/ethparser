@@ -7,14 +7,15 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
 
 public class ContractConstants {
 
-  public static final DefaultBlockParameter ETH_BLOCK_NUMBER_30_AUGUST_2020 =
-      DefaultBlockParameter.valueOf(new BigInteger("10765094"));
-  public static final DefaultBlockParameter BSC_BLOCK_NUMBER_25_MARCH_2021 =
-      DefaultBlockParameter.valueOf(new BigInteger("5993570"));
+  public static final DefaultBlockParameterNumber ETH_BLOCK_NUMBER_30_AUGUST_2020 =
+      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("10765094"));
+  public static final DefaultBlockParameterNumber BSC_BLOCK_NUMBER_25_MARCH_2021 =
+      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("5993570"));
 
   public final static Map<String, String> DEPLOYERS = Map.of(
       ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),

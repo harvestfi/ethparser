@@ -1,6 +1,7 @@
 ethparser:
-  startUtil: reward-download
+  startUtil: deployer-download
   overrideDuplicates: false
+  utilNetwork: eth
 
 uniswap-download:
   contract:
@@ -45,3 +46,5 @@ price-download:
   to: 11739000
 block-download:
   from: 10765094
+deployer-download:
+#  from:

@@ -138,21 +138,6 @@ public class Web3Subscriber {
     log.info("Subscribe to Block Flowable");
   }
 
-  public Disposable getTransactionFlowableRangeSubscription(
-      BlockingQueue<Web3Model<Transaction>> transactionQueue,
-      DefaultBlockParameter start,
-      DefaultBlockParameter end,
-      String network) {
-    log.info("Start flow for block range " + start.getValue() + " - " + end.getValue());
-    Disposable subscription =
-        web3Functions.transactionsFlowable(start, end, network).subscribe(
-            tx -> writeInQueue(transactionQueue, tx, network),
-            e -> log.error("Transaction flowable error", e)
-        );
-    log.info("Subscribed to Transaction Flowable Range");
-    return subscription;
-  }
-
   private BigInteger findEarliestLastBlock(String network) {
     BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
     BigInteger lastBlocHarvest = vaultActionsDBService.lastBlock(network);

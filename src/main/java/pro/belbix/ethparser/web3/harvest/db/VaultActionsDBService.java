@@ -146,16 +146,16 @@ public class VaultActionsDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = contractDbService.getAllVaults(dto.getNetwork())
-        .stream().map(v -> v.getContract().getAddress())
+    List<String> contractNames = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getName())
         .collect(Collectors.toList());
 
     PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
         .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())
             .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-        .forEach(contracts::add);
+        .forEach(contractNames::add);
 
-    for (String vaultName : contracts) {
+    for (String vaultName : contractNames) {
       HarvestDTO lastHarvest = harvestRepository
           .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {

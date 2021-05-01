@@ -1,32 +1,30 @@
 package pro.belbix.ethparser.utils.download;
 
-import io.reactivex.disposables.Disposable;
-import java.math.BigInteger;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.utils.LoopHandler;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
+import pro.belbix.ethparser.web3.deployer.parser.DeployerEventToContractTransformer;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
 @Service
 @Log4j2
 public class DeployerTransactionsDownloader {
 
-  private final Web3Subscriber web3Subscriber;
+  private final Web3Functions web3Functions;
   private final DeployerDbService deployerDbService;
   private final DeployerTransactionsParser parser;
   private final AppProperties appProperties;
+  private final DeployerEventToContractTransformer deployerEventToContractTransformer;
   private final BlockingQueue<Web3Model<Transaction>> transactionQueue = new ArrayBlockingQueue<>(
       100);
 
@@ -37,63 +35,45 @@ public class DeployerTransactionsDownloader {
   private Integer to;
 
   public DeployerTransactionsDownloader(
-      Web3Subscriber web3Subscriber, DeployerDbService deployerDbService,
+      Web3Functions web3Functions,
+      DeployerDbService deployerDbService,
       DeployerTransactionsParser parser,
-      AppProperties appProperties) {
-    this.web3Subscriber = web3Subscriber;
+      AppProperties appProperties,
+      DeployerEventToContractTransformer deployerEventToContractTransformer) {
+    this.web3Functions = web3Functions;
     this.deployerDbService = deployerDbService;
     this.parser = parser;
     this.appProperties = appProperties;
+    this.deployerEventToContractTransformer = deployerEventToContractTransformer;
   }
 
   public void start() {
-    DefaultBlockParameter blockFrom;
-    DefaultBlockParameter blockTo;
-
     if (from == null) {
-      blockFrom = DefaultBlockParameter.valueOf(
-          BigInteger.valueOf(
-              ContractUtils.getStartBlock(appProperties.getUtilNetwork())
-          )
-      );
-    } else {
-      blockFrom = DefaultBlockParameter.valueOf(new BigInteger(from.toString()));
+      from = ContractUtils.getStartBlock(appProperties.getUtilNetwork());
     }
-
     if (to == null) {
-      blockTo = DefaultBlockParameterName.LATEST;
-    } else {
-      blockTo = DefaultBlockParameter.valueOf(new BigInteger(to.toString()));
+      to = Integer.MAX_VALUE;
     }
 
     log.info("DeployerTransactionsDownloader start");
-    parse(blockFrom, blockTo);
+    new LoopHandler(300, this::parse).start(from, to);
   }
 
-  private void parse(DefaultBlockParameter start, DefaultBlockParameter end) {
-    Disposable subscription =
-        web3Subscriber.getTransactionFlowableRangeSubscription(
-            transactionQueue, start, end, appProperties.getUtilNetwork());
-    while (!subscription.isDisposed()) {
-      Web3Model<Transaction> transaction = null;
-      try {
-        transaction = transactionQueue.poll(1, TimeUnit.SECONDS);
-      } catch (InterruptedException ignored) {
-      }
-      if (transaction == null) {
-        continue;
-      }
-      DeployerDTO dto = parser
-          .parseDeployerTransaction(transaction.getValue(), transaction.getNetwork());
-      if (dto != null) {
-        try {
-          deployerDbService.save(dto);
-        } catch (Exception e) {
-          log.error("Can't save " + dto.toString(), e);
-          break;
-        }
-      }
-    }
+  private void parse(Integer start, Integer end) {
+    web3Functions.findBlocksByBlockBatch(start, end, appProperties.getUtilNetwork())
+        .forEach(block -> block.getTransactions().forEach(transactionResult -> {
+              DeployerDTO dto = parser.parseDeployerTransaction(
+                  (Transaction) transactionResult.get(), appProperties.getUtilNetwork());
+              if (dto != null) {
+                try {
+                  deployerEventToContractTransformer.handleAndSave(dto);
+                  deployerDbService.save(dto);
+                } catch (Exception e) {
+                  log.error("Can't save " + dto, e);
+                }
+              }
+            }
+        ));
   }
 
   public void setFrom(Integer from) {

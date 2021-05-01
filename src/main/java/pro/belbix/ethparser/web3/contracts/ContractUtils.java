@@ -50,9 +50,9 @@ public class ContractUtils {
 
   public static int getStartBlock(String network) {
     if (ETH_NETWORK.equals(network)) {
-      return Integer.parseInt(ETH_BLOCK_NUMBER_30_AUGUST_2020.getValue());
+      return ETH_BLOCK_NUMBER_30_AUGUST_2020.getBlockNumber().intValue();
     } else if (BSC_NETWORK.equals(network)) {
-      return Integer.parseInt(BSC_BLOCK_NUMBER_25_MARCH_2021.getValue());
+      return BSC_BLOCK_NUMBER_25_MARCH_2021.getBlockNumber().intValue();
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }

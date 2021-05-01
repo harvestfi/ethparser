@@ -50,6 +50,7 @@ public class DeployerEventToContractTransformer {
   public void handleAndSave(DeployerDTO dto) {
     var contracts = transform(dto);
     for (PureEthContractInfo contract : contracts) {
+      log.info("Save {}", contract);
       if (ContractType.VAULT == contract.getContractType()) {
         contractLoader.loadVault((SimpleContract) contract,
             contract.getNetwork(), contract.getCreatedOnBlock());
@@ -100,6 +101,7 @@ public class DeployerEventToContractTransformer {
         contractInfo.getName(),
         dto.getToAddress());
     contract.setContractType(type);
+    contract.setNetwork(dto.getNetwork());
 
     List<PureEthContractInfo> result = collectUnderlingContracts(contractInfo);
     result.add(contract);

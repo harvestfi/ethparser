@@ -62,4 +62,15 @@ public abstract class PureEthContractInfo {
   public int hashCode() {
     return Objects.hash(createdOnBlock, name, address);
   }
+
+  @Override
+  public String toString() {
+    return "PureEthContractInfo{" +
+        "createdOnBlock=" + createdOnBlock +
+        ", name='" + name + '\'' +
+        ", address='" + address + '\'' +
+        ", contractType=" + contractType +
+        ", network='" + network + '\'' +
+        '}';
+  }
 }
