@@ -28,6 +28,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
@@ -173,6 +174,9 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private boolean skipSimilar(PriceDTO dto) {
+    if (ContractUtils.isParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+      return true;
+    }
     PriceDTO lastPrice = lastPrices.get(dto.getToken());
     if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
       return true;

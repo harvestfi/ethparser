@@ -8,6 +8,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FA
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -165,5 +166,9 @@ public class ContractUtils {
       return "0x2170Ed0880ac9A755fd29B2688956BD959F933F8".toLowerCase();
     }
     return null;
+  }
+
+  public static boolean isParsableLp(String address, String network) {
+    return PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
   }
 }

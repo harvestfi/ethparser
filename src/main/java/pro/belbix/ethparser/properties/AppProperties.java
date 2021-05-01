@@ -23,6 +23,6 @@ public class AppProperties {
     private boolean updateContracts = false;
     private boolean stopOnParseError = false;
     private boolean reconnectSubscriptions = true;
-    private boolean skipSimilarPrices = false;
+    private boolean skipSimilarPrices = true;
     private int handleLoopStep = 1000;
 }
