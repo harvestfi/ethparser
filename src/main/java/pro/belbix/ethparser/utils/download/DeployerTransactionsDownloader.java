@@ -69,7 +69,8 @@ public class DeployerTransactionsDownloader {
                   deployerEventToContractTransformer.handleAndSave(dto);
                   deployerDbService.save(dto);
                 } catch (Exception e) {
-                  log.error("Can't save " + dto, e);
+                  log.error("Error with " + dto, e);
+                  System.exit(-1);
                 }
               }
             }

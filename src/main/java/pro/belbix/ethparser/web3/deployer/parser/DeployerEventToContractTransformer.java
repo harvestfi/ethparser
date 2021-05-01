@@ -84,6 +84,10 @@ public class DeployerEventToContractTransformer {
       return List.of();
     }
 
+    if (ZERO_ADDRESS.equalsIgnoreCase(dto.getToAddress())) {
+      throw new IllegalStateException("Zero <to> address " + dto);
+    }
+
     ContractType type = detectContractType(dto);
     // detect only vaults and pools
     if (VAULT != type && POOL != type) {
@@ -137,13 +141,17 @@ public class DeployerEventToContractTransformer {
       address = functionsUtils.callAddressByName(
           LP_TOKEN, address, block, network)
           .orElseThrow(
-              () -> new IllegalStateException("Can't fetch vault for pool")
+              () -> new IllegalStateException("Can't fetch vault for pool " + contractInfo)
           ); // use only vault address for name creation
     }
 
     String underlyingAddress = functionsUtils.callAddressByName(
         UNDERLYING, address, block, network)
-        .orElseThrow();
+        .orElse(null);
+    if (underlyingAddress == null) {
+      // some pools (PS/LP) have not vault as underlying
+      underlyingAddress = address;
+    }
     contractInfo.setUnderlyingAddress(underlyingAddress);
 
     String underlyingName = functionsUtils.callStrByName(

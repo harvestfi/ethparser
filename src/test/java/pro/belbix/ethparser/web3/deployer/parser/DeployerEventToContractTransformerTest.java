@@ -126,6 +126,23 @@ class DeployerEventToContractTransformerTest {
     );
   }
 
+  @Test
+  public void testCreateVault_PS_V0() {
+    String address = "0xae024f29c26d6f71ec71658b1980189956b0546d";
+    long block = 10770203;
+
+    DeployerDTO dto = createDeployerDto(address, block);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("ST_FARM", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
+    );
+  }
+
   private DeployerDTO createDeployerDto(String toAddress, long block) {
     return DeployerDTO.builder()
         .type(CONTRACT_CREATION.name())
