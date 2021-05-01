@@ -1,8 +1,10 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.v0.PriceDTO;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -27,6 +30,8 @@ public class PriceRepositoryTest {
 
     @Test
     public void fetchLastPrices() {
-        assertNotNull(priceRepository.fetchLastPrices(ETH_NETWORK));
+        List<PriceDTO> prices = priceRepository.fetchLastPrices(ETH_NETWORK);
+        assertNotNull(prices);
+        assertTrue(prices.size() >= 1);
     }
 }
