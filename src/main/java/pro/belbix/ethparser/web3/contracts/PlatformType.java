@@ -7,7 +7,8 @@ public enum PlatformType {
   UNISWAP("UNI"),
   SUSHISWAP("SUSHI"),
   PANCAKESWAP("PCS"),
-  ONEINCH("1INCH");
+  ONEINCH("1INCH"),
+  BALANCER("BPT");
 
   private final String prettyName;
 

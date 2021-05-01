@@ -143,6 +143,40 @@ class DeployerEventToContractTransformerTest {
     );
   }
 
+  @Test
+  public void testCreateVault_BPT() {
+    String address = "0x158edb94d0bfc093952fb3009deeed613042907c";
+    long block = 10816127;
+
+    DeployerDTO dto = createDeployerDto(address, block);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("ST_BPT_YFV_FARM", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
+    );
+  }
+
+  @Test
+  public void testCreateVault_ST_UNI() {
+    String address = "0xb492faeda6c9ffb9b9854a58f28d5333ff7a11bc";
+    long block = 10817095;
+
+    DeployerDTO dto = createDeployerDto(address, block);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("ST_UNI_DAI_fDAI", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
+    );
+  }
+
   private DeployerDTO createDeployerDto(String toAddress, long block) {
     return DeployerDTO.builder()
         .type(CONTRACT_CREATION.name())

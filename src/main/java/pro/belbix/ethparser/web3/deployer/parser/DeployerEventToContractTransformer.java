@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_CURRENT_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
@@ -13,10 +14,16 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.UNKNOWN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -160,6 +167,7 @@ public class DeployerEventToContractTransformer {
     contractInfo.setUnderlyingName(underlyingName);
 
     PlatformType platformType = detectPlatformType(underlyingName);
+    contractInfo.setPlatformType(platformType);
 
     String tokenNames = tokenNames(contractInfo);
     String prefix;
@@ -241,12 +249,51 @@ public class DeployerEventToContractTransformer {
       return PlatformType.SUSHISWAP;
     } else if (name.startsWith("1inch")) {
       return PlatformType.ONEINCH;
+    } else if (name.startsWith("Balancer")) {
+      return PlatformType.BALANCER;
     }
     return PlatformType.UNKNOWN;
   }
 
   private String tokenNames(ContractInfo contractInfo) {
-    String address = contractInfo.getAddress();
+    if (PlatformType.BALANCER == contractInfo.getPlatformType()) {
+      try {
+        return bptTokenNames(contractInfo);
+      } catch (IOException | ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return uniTokenNames(contractInfo);
+  }
+
+  private String bptTokenNames(ContractInfo contractInfo)
+      throws IOException, ClassNotFoundException {
+    String address = contractInfo.getUnderlyingAddress();
+    long block = contractInfo.getBlock();
+    String network = contractInfo.getNetwork();
+
+    //noinspection unchecked
+    String tokens = functionsUtils.callViewFunction(new Function(
+            GET_CURRENT_TOKENS,
+            List.of(),
+            Collections.singletonList(TypeReference.makeTypeReference("address[]"))
+        ),
+        address, block, network)
+        .orElse("");
+
+    //noinspection unchecked
+    List<String> tokenAddresses = ObjectMapperFactory.getObjectMapper().readValue(
+        (String) ObjectMapperFactory.getObjectMapper().readValue(tokens, List.class).get(0)
+        , List.class);
+    return tokenAddresses.stream()
+        .map(adr -> functionsUtils.callStrByName(
+            SYMBOL, adr, block, network)
+            .orElse(""))
+        .collect(Collectors.joining("_"));
+  }
+
+  private String uniTokenNames(ContractInfo contractInfo) {
+    String address = contractInfo.getUnderlyingAddress();
     long block = contractInfo.getBlock();
     String network = contractInfo.getNetwork();
 
