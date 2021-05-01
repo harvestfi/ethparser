@@ -251,6 +251,10 @@ public class DeployerEventToContractTransformer {
       return PlatformType.ONEINCH;
     } else if (name.startsWith("Balancer")) {
       return PlatformType.BALANCER;
+    } else if (name.startsWith("Ellipsis")) {
+      return PlatformType.ELLIPSIS;
+    } else if (name.startsWith("Pancake")) {
+      return PlatformType.PANCAKESWAP;
     }
     return PlatformType.UNKNOWN;
   }
@@ -288,7 +292,7 @@ public class DeployerEventToContractTransformer {
     return tokenAddresses.stream()
         .map(adr -> functionsUtils.callStrByName(
             SYMBOL, adr, block, network)
-            .orElse(""))
+            .orElse("?"))
         .collect(Collectors.joining("_"));
   }
 
@@ -319,7 +323,7 @@ public class DeployerEventToContractTransformer {
     } else {
       token0Name = functionsUtils.callStrByName(
           FunctionsNames.SYMBOL, token0Adr, block, network)
-          .orElse("");
+          .orElse("?");
     }
 
     String token1Name;
@@ -328,7 +332,7 @@ public class DeployerEventToContractTransformer {
     } else {
       token1Name = functionsUtils.callStrByName(
           FunctionsNames.SYMBOL, token1Adr, block, network)
-          .orElse("");
+          .orElse("?");
     }
     return token0Name + "_" + token1Name;
   }

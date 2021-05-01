@@ -322,7 +322,7 @@ public class ContractLoader {
     ));
     poolEntity.setLpToken(findOrCreateContract(
         functionsUtils.callAddressByName(LP_TOKEN, address, block, network).orElse(""),
-        AddressType.UNKNOWN_VAULT.name(),
+        AddressType.UNKNOWN_POOL_LP.name(),
         ContractType.INFRASTRUCTURE.getId(),
         0,
         false,

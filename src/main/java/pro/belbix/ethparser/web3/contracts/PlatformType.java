@@ -8,6 +8,8 @@ public enum PlatformType {
   SUSHISWAP("SUSHI"),
   PANCAKESWAP("PCS"),
   ONEINCH("1INCH"),
+  VENUS("VENUS"),
+  ELLIPSIS("EPS"),
   BALANCER("BPT");
 
   private final String prettyName;
