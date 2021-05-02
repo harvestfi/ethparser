@@ -17,7 +17,7 @@ import pro.belbix.ethparser.model.Web3Model;
 @Log4j2
 public class Web3LogFlowable implements Runnable {
 
-  public static final int BLOCKS_STEP = 1000;
+  public static final int BLOCKS_STEP = 100;
   public static final int WAIT_BETWEEN_BLOCKS = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
