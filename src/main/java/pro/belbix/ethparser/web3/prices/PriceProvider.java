@@ -135,7 +135,11 @@ public class PriceProvider {
     }
 //    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinAddress);
     updateUSDPrice(coinAddress, block, network);
-    return getLastPrice(coinAddress, block);
+    Double price = getLastPrice(coinAddress, block);
+    if (price.isInfinite() || price.isNaN()) {
+      return 0.0;
+    }
+    return price;
   }
 
   public Tuple2<Double, Double> getPairPriceForLpHash(
