@@ -9,6 +9,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
@@ -88,7 +89,7 @@ public class TransferParser implements Web3Parser {
             continue;
           }
           TransferDTO dto = parseLog(ethLog.getValue());
-          if (dto != null) {
+          if (dto != null  && run.get()) {
             lastTx = Instant.now();
             boolean saved = transferDBService.saveDto(dto);
             if (saved) {
@@ -204,5 +205,10 @@ public class TransferParser implements Web3Parser {
   @Override
   public Instant getLastTx() {
     return lastTx;
+  }
+
+  @PreDestroy
+  public void stop() {
+    run.set(false);
   }
 }

@@ -99,7 +99,7 @@ public class UniswapLpLogParser implements Web3Parser {
             continue;
           }
           UniswapDTO dto = parseUniswapLog(ethLog.getValue());
-          if (dto != null) {
+          if (dto != null && run.get()) {
             lastTx = Instant.now();
             enrichDto(dto);
             uniOwnerBalanceCalculator.fillBalance(dto);

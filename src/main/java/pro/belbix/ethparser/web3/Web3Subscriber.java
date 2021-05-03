@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -26,6 +26,7 @@ import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
@@ -33,6 +34,7 @@ import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 @Log4j2
 public class Web3Subscriber {
 
+  private static final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
   private final AppProperties appProperties;
   private final UniswapDbService uniswapDbService;
@@ -40,6 +42,7 @@ public class Web3Subscriber {
   private final EthBlockRepository ethBlockRepository;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
+  private final DeployerDbService deployerDbService;
 
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers = new ArrayList<>();
   private final List<BlockingQueue<Web3Model<Log>>> logConsumers = new ArrayList<>();
@@ -52,7 +55,8 @@ public class Web3Subscriber {
       VaultActionsDBService vaultActionsDBService,
       EthBlockRepository ethBlockRepository,
       NetworkProperties networkProperties,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      DeployerDbService deployerDbService) {
     this.web3Functions = web3Functions;
     this.appProperties = appProperties;
     this.uniswapDbService = uniswapDbService;
@@ -60,6 +64,7 @@ public class Web3Subscriber {
     this.ethBlockRepository = ethBlockRepository;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
+    this.deployerDbService = deployerDbService;
   }
 
   public void subscribeLogFlowable(String network) {
@@ -88,24 +93,13 @@ public class Web3Subscriber {
       d.dispose();
       return null;
     });
-    subscriptions.put(name,
-        web3Functions.transactionFlowable(
-            networkProperties.get(network).getStartTransactionBlock(), network)
-            .subscribe(tx -> transactionConsumers.forEach(queue ->
-                    writeInQueue(queue, tx, network)),
-                e -> {
-                  log.error("Transaction flowable error", e);
-                  if (appProperties.isReconnectSubscriptions()) {
-                    Thread.sleep(10000);
-                    subscribeTransactionFlowable(network);
-                  } else {
-                    if (appProperties.isStopOnParseError()) {
-                      System.exit(-1);
-                    }
-                  }
-                })
-    );
-    log.info("Subscribe to Transaction Flowable");
+    int from;
+    if (networkProperties.get(network).getStartTransactionBlock().isBlank()) {
+      from = deployerDbService.getLastBlock(network);
+    } else {
+      from = Integer.parseInt(networkProperties.get(network).getStartTransactionBlock());
+    }
+    startTransactionFlowableThread(from, network);
   }
 
   public void subscribeOnBlocks(String network) {
@@ -165,6 +159,11 @@ public class Web3Subscriber {
     new Thread(logFlowable).start();
   }
 
+  public void startTransactionFlowableThread(Integer from, String network) {
+    new Thread(new Web3TransactionFlowable(from, web3Functions, transactionConsumers, network))
+        .start();
+  }
+
   public void subscribeOnTransactions(BlockingQueue<Web3Model<Transaction>> queue) {
     transactionConsumers.add(queue);
   }
@@ -180,14 +179,14 @@ public class Web3Subscriber {
   private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o, String network) {
     int count = 0;
     Web3Model<T> model = new Web3Model<>(o, network);
-    while (true) {
+    while (run.get()) {
       try {
-        boolean result = queue.offer(model, 60, SECONDS);
+        boolean result = queue.offer(model, 5, SECONDS);
         if (result) {
           return;
         }
         count++;
-        log.warn("The queue is full for {}, retry {}",
+        log.info("The queue is full for {}, retry {}",
             o.getClass().getSimpleName(), count);
       } catch (Exception e) {
         log.error("Error write in queue", e);
@@ -198,6 +197,7 @@ public class Web3Subscriber {
   @PreDestroy
   private void close() {
     log.info("Close web3 subscriber");
+    run.set(false);
     subscriptions.forEach((s, disposable) -> {
       if (disposable != null && !disposable.isDisposed()) {
         disposable.dispose();

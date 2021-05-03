@@ -5,4 +5,6 @@ import pro.belbix.ethparser.dto.v0.DeployerDTO;
 
 public interface DeployerRepository extends JpaRepository<DeployerDTO, String> {
 
+  DeployerDTO findFirstByNetworkOrderByBlockDesc(String network);
+
 }

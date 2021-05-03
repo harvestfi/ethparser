@@ -33,7 +33,7 @@ import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
 @Log4j2
 public class DeployerTransactionsParser implements Web3Parser {
 
-  public static final int LOG_LAST_PARSED_COUNT = 1_000;
+  public static final int LOG_LAST_PARSED_COUNT = 100_000;
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final DeployerDecoder deployerDecoder = new DeployerDecoder();
   private final Web3Subscriber web3Subscriber;
@@ -89,7 +89,7 @@ public class DeployerTransactionsParser implements Web3Parser {
             }
             DeployerDTO dto = parseDeployerTransaction(
                 transaction.getValue(), transaction.getNetwork());
-            if (dto != null) {
+            if (dto != null  && run.get()) {
               lastTx = Instant.now();
               try {
                 deployerEventToContractTransformer.handleAndSave(dto);

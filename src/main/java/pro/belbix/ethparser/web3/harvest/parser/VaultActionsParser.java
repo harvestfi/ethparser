@@ -108,7 +108,7 @@ public class VaultActionsParser implements Web3Parser {
         Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null
+          if (ethLog == null  && run.get()
               || !networkProperties.get(ethLog.getNetwork())
               .isParseHarvestLog()) {
             continue;

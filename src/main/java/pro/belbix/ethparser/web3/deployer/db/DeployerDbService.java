@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.DeployerRepository;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
@@ -25,5 +26,13 @@ public class DeployerDbService {
     }
     deployerRepository.saveAndFlush(dto);
     return true;
+  }
+
+  public Integer getLastBlock(String network) {
+    DeployerDTO dto = deployerRepository.findFirstByNetworkOrderByBlockDesc(network);
+    if (dto == null) {
+      return ContractUtils.getStartBlock(network);
+    }
+    return (int) dto.getBlock();
   }
 }
