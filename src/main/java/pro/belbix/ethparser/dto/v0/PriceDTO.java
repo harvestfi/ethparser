@@ -28,6 +28,8 @@ public class PriceDTO implements DtoI {
   private Long block;
   private Long blockDate;
   private String network;
+  private String owner;
+  private String recipient;
   private String token;
   private String tokenAddress;
   private Double tokenAmount;
