@@ -1,8 +1,10 @@
 package pro.belbix.ethparser.web3.prices;
 
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 
+import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -27,9 +29,22 @@ public class PriceOracle {
         if (appProperties.isOnlyApi()) {
             return 0.0;
         }
-        String oracleAddress = ContractUtils.getPriceOracle(block, network);
+        String oracleAddress;
+        if (BSC_NETWORK.equals(network)) {
+            Optional<String> factory =
+                functionsUtils.callStrByName("factory", tokenAdr, block, network);
+            //noinspection OptionalIsPresent
+            if (factory.isPresent()) {
+                oracleAddress = ContractUtils.getPriceOracleByFactory(factory.get(), network);
+            } else {
+                oracleAddress = ContractUtils.getPriceOracle(block, network);
+            }
+        } else {
+            oracleAddress = ContractUtils.getPriceOracle(block, network);
+        }
+
         if (oracleAddress == null) {
-            throw new IllegalStateException("Oracle price smart contract  not deployed yet");
+            throw new IllegalStateException("Not found oracle for " + tokenAdr + " at " + block);
         }
         double price = functionsUtils
             .callIntByNameWithAddressArg(GET_PRICE, tokenAdr, oracleAddress, block, network)

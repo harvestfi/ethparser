@@ -8,6 +8,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FA
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MOONISWAP_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -157,6 +158,14 @@ public class ContractUtils {
       return null;
     }
     return entry.getValue();
+  }
+
+  public static String getPriceOracleByFactory(String factory, String network) {
+    String oracle = ORACLES_BY_FACTORY.get(network).get(factory);
+    if (oracle == null) {
+      throw new IllegalStateException("Factory " + factory + " not found");
+    }
+    return oracle;
   }
 
   public static String getEthAddress(String network) {

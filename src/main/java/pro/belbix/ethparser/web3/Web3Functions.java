@@ -318,8 +318,12 @@ public class Web3Functions {
     if (result == null) {
       return null;
     }
-
-    return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
+    try {
+      return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
+    } catch (Exception e) {
+      log.error("Error decode response {} for {}", function.getName(), contractAddress);
+    }
+    return List.of();
   }
 
   Flowable<Transaction> transactionFlowable(String startBlock, String network) {

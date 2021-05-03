@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.tuples.generated.Tuple2;
 
 public class ContractConstants {
 
@@ -38,6 +37,17 @@ public class ContractConstants {
       BSC_NETWORK,
       Map.of(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(),
           6952687L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase())
+  );
+
+  final static Map<String, Map<String, String>> ORACLES_BY_FACTORY = Map.of(
+      ETH_NETWORK,
+      Map.of("0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f".toLowerCase(),
+          "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
+      BSC_NETWORK,
+      Map.of("0xbcfccbde45ce874adcb698cc183debcf17952812".toLowerCase(),
+          "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(), // V1
+          "0xca143ce32fe78f1f7019d7d551a6402fc5350c73".toLowerCase(),
+          "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
   );
 
   static final String UNISWAP_FACTORY = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"
