@@ -1,12 +1,13 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +22,7 @@ import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
@@ -31,15 +33,18 @@ public class VaultActionsDBService {
   private final AppProperties appProperties;
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
+  private final ContractDbService contractDbService;
 
   public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
-      UniswapRepository uniswapRepository) {
+      UniswapRepository uniswapRepository,
+      ContractDbService contractDbService) {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.harvestTvlRepository = harvestTvlRepository;
     this.uniswapRepository = uniswapRepository;
+    this.contractDbService = contractDbService;
   }
 
   public static double aprToApy(double apr, double period) {
@@ -77,15 +82,16 @@ public class VaultActionsDBService {
     dto.setOwnerCount(ownerCount);
 
     Integer allOwnersCount = harvestRepository
-        .fetchAllUsersQuantity(dto.getBlockDate());
+        .fetchAllUsersQuantity(dto.getBlockDate(), dto.getNetwork());
     if (allOwnersCount == null) {
       allOwnersCount = 0;
     }
     dto.setAllOwnersCount(allOwnersCount);
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames().stream()
-            .filter(v -> !ContractUtils.getInstance(dto.getNetwork()).isPsName(v))
+        contractDbService.getAllVaults(dto.getNetwork()).stream()
+            .map(v -> v.getContract().getName())
+            .filter(v -> !ContractUtils.isPsName(v))
             .filter(v -> !v.equals("iPS"))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
@@ -140,15 +146,16 @@ public class VaultActionsDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contracts = new ArrayList<>(
-        ContractUtils.getInstance(dto.getNetwork()).vaultNames());
+    List<String> contractNames = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getName())
+        .collect(Collectors.toList());
 
     PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
-        .map(c -> ContractUtils.getInstance(dto.getNetwork()).getNameByAddress(c)
+        .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())
             .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-        .forEach(contracts::add);
+        .forEach(contractNames::add);
 
-    for (String vaultName : contracts) {
+    for (String vaultName : contractNames) {
       HarvestDTO lastHarvest = harvestRepository
           .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {
@@ -207,7 +214,13 @@ public class VaultActionsDBService {
   public BigInteger lastBlock(String network) {
     HarvestDTO dto = harvestRepository.findFirstByNetworkOrderByBlockDesc(network);
     if (dto == null) {
-      return new BigInteger("0");
+      if (ETH_NETWORK.equals(network)) {
+        return BigInteger.valueOf(10765094L);
+      } else if (BSC_NETWORK.equals(network)) {
+        return BigInteger.valueOf(5993570L);
+      } else {
+        return new BigInteger("0");
+      }
     }
     return BigInteger.valueOf(dto.getBlock());
   }

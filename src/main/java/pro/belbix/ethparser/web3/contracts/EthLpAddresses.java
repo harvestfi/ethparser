@@ -1,8 +1,9 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static pro.belbix.ethparser.web3.contracts.LpContract.createLpContracts;
+import static pro.belbix.ethparser.web3.contracts.models.LpContract.createLpContracts;
 
 import java.util.List;
+import pro.belbix.ethparser.web3.contracts.models.LpContract;
 
 class EthLpAddresses {
 

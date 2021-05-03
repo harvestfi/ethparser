@@ -37,7 +37,7 @@ public class HarvestProfitRecalculate {
     }
     harvestDTOList = harvestRepository
         .findAllByMethodNameAndBlockDateGreaterThanAndNetworkOrderByBlockDate(
-            "Withdraw", from, appProperties.getNetwork());
+            "Withdraw", from, appProperties.getUtilNetwork());
 
     log.info(
         "Loaded " + harvestDTOList.size() + " Withdraw transactions. Starting recalculation..");

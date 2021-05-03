@@ -18,16 +18,17 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
-import pro.belbix.ethparser.model.ImportantEventsTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
-import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 
@@ -36,32 +37,35 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 public class ImportantEventsParser implements Web3Parser {
   public static final String TOKEN_MINTED = "TokenMinted";
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
-  private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
   private final ParserInfo parserInfo;
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
-      Web3Functions web3Functions,
       Web3Subscriber web3Subscriber,
       ImportantEventsDbService importantEventsDbService,
       ParserInfo parserInfo,
       EthBlockService ethBlockService,
-      FunctionsUtils functionsUtils, AppProperties appProperties) {
-    this.web3Functions = web3Functions;
+      FunctionsUtils functionsUtils, AppProperties appProperties,
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.parserInfo = parserInfo;
     this.ethBlockService = ethBlockService;
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -71,10 +75,15 @@ public class ImportantEventsParser implements Web3Parser {
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          ImportantEventsDTO dto = parseLog(ethLog, appProperties.getNetwork());
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseImportantEvents()) {
+            continue;
+          }
+          ImportantEventsDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = importantEventsDbService.save(dto);
@@ -95,8 +104,8 @@ public class ImportantEventsParser implements Web3Parser {
   public ImportantEventsDTO parseLog(Log ethLog, String network) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
-            && ContractUtils.getInstance(network)
-            .getNameByAddress(ethLog.getAddress()).isEmpty())
+            && contractDbService
+            .getNameByAddress(ethLog.getAddress(), network).isEmpty())
     ) {
       return null;
     }
@@ -137,8 +146,8 @@ public class ImportantEventsParser implements Web3Parser {
   }
 
   private void parseVault(ImportantEventsDTO dto, String vault, String network) {
-    dto.setVault(ContractUtils.getInstance(network)
-        .getNameByAddress(vault)
+    dto.setVault(contractDbService
+        .getNameByAddress(vault, network)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
     );
   }

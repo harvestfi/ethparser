@@ -66,21 +66,24 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "         select distinct owner from ( "
         + "                  select owner from harvest_tx "
         + "                   where harvest_tx.block_date <= :block_date "
+        + "                         and harvest_tx.network = :network"
         + "                  union all "
         + "                  select owner from uni_tx "
         + "                   where uni_tx.block_date <= :block_date "
+        + "                         and 'eth' = :network "
         + "              ) t "
         + "     ) t2")
     Integer fetchAllUsersQuantity(
-        @Param("block_date") long blockDate
+        @Param("block_date") long blockDate,
+        @Param("network") String network
     );
 
     @Query(nativeQuery = true, value = ""
         + "select count(owner) from ( "
         + "    select t.owner, sum(t.b) balance "
         + "    from (select owner, "
-        + "      cast(SUBSTRING_INDEX(MAX(CONCAT(block_date, SUBSTRING_INDEX(id, '_', -1), '|', "
-        + "                 coalesce(owner_balance_usd, 0))), '|', -1) as DOUBLE PRECISION) b "
+        + "      cast(SUBSTRING_INDEX(cast(MAX(CONCAT(block_date, SUBSTRING_INDEX(cast(id as text), cast('_' as text), cast(-1 as integer)), '|', "
+        + "                 coalesce(owner_balance_usd, 0))) as text), '|', -1) as DOUBLE PRECISION) b "
         + "          from harvest_tx "
         + "          where vault in :vaults "
         + "          and block_date < :block_date "
@@ -183,6 +186,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "    last_value(amount) over w                 as amount, "
         + "    last_value(amount_in) over w              as amount_in, "
         + "    vault, "
+        + "    last_value(vault_address) over w          as vault_address, "
         + "    last_value(last_gas) over w               as last_gas, "
         + "    last_value(last_tvl) over w               as last_tvl, "
         + "    last_value(last_usd_tvl) over w           as last_usd_tvl, "

@@ -7,7 +7,6 @@ import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +16,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
@@ -39,12 +37,36 @@ public class VaulActionstParserBscTest {
   private HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   @Autowired
   private VaultActionsDBService vaultActionsDBService;
-  @Autowired
-  private ContractLoader contractLoader;
 
-  @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load(BSC_NETWORK);
+  @Test
+  void test_VENUS_ETH() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0x2ce34b1bb247f242f1d2a33811e01138968efbff",
+        7064815);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0x48368aa00419e27c7ef5b8a566f2278a2e9058edd0309430e650992c936310bc")
+        .block(7064815L)
+        .blockDate(1619935480L)
+        .confirmed(1)
+        .methodName("Withdraw")
+        .owner("0x3115ba406ad02d875ca84c0dc861b05e06ca684d")
+        .vault("VENUS_ETH")
+        .amount(2.9939447597876865)
+        .usdAmount(8768L)
+        .lastTvl(321.1753820777222)
+        .lastUsdTvl(938252.0)
+        .ownerBalance(0.0)
+        .ownerBalanceUsd(0.0)
+        .sharePrice(1.002514753768422)
+        .lpStat(null)
+        .migrated(false)
+        .underlyingPrice(null)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+    vaultActionsDBService.saveHarvestDTO(harvestDTO);
   }
 
   @Test

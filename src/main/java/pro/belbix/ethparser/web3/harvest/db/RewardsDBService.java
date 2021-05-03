@@ -52,7 +52,7 @@ public class RewardsDBService {
     }
     Double tvl;
     double reward;
-    if (ContractUtils.getInstance(dto.getNetwork()).isPsName(dto.getVault())) {
+    if (ContractUtils.isPsName(dto.getVault())) {
       tvl = harvest.getLastTvl();
       reward = dto.getReward();
     } else {

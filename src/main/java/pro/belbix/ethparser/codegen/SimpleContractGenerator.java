@@ -2,8 +2,8 @@ package pro.belbix.ethparser.codegen;
 
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.IMPLEMENTATION;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -27,19 +27,19 @@ import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
-import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Log4j2
 @Service
 public class SimpleContractGenerator {
 
   private static final String UPGRADED_EVENT = "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b";
-  private static final String IMPLEMENTATION = "implementation";
   private static final String IMPLEMENTATION_HASH = "0x5c60da1b";
   private static final String IMPLEMENTATION_0X = "getFunctionImplementation";
   private static final String IMPLEMENTATION_0X_HASH = "0x972fdd26";
@@ -50,17 +50,21 @@ public class SimpleContractGenerator {
   private static final String VIEW = "view";
 
   private final AbiProviderService abiProviderService;
-  private final AppProperties appProperties;
   private final FunctionsUtils functionsUtils;
   private final Web3Functions web3Functions;
+  private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
 
   private final Map<String, TreeMap<Long, GeneratedContract>> contracts = new HashMap<>();
 
-  public SimpleContractGenerator(AppProperties appProperties, FunctionsUtils functionsUtils,
-      Web3Functions web3Functions) {
-    this.appProperties = appProperties;
+  public SimpleContractGenerator(FunctionsUtils functionsUtils,
+      Web3Functions web3Functions,
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
+    this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
     this.abiProviderService = new AbiProviderService();
   }
 
@@ -110,7 +114,8 @@ public class SimpleContractGenerator {
     String etherscanProxyImpl = "";
 
     AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(address, getAbiProviderKey(network), network);
+        abiProviderService.contractSourceCode(
+            address, networkProperties.get(network).getAbiProviderKey(), network);
 
     if (sourceCode == null) {
       if (!isOverride) {
@@ -153,17 +158,6 @@ public class SimpleContractGenerator {
     contract.setProxy(isProxy);
 
     return Optional.of(contract);
-  }
-
-  private String getAbiProviderKey(String network) {
-    switch (network) {
-      case ETH_NETWORK:
-        return appProperties.getEtherscanApiKey();
-      case BSC_NETWORK:
-        return appProperties.getBscscanApiKey();
-      default:
-        throw new IllegalStateException("Unknown network " + network);
-    }
   }
 
   private String resolveAbi(String address, String abi) {
@@ -228,7 +222,8 @@ public class SimpleContractGenerator {
     }
     // bsc has an odd bug with latest/earliest block fetching
     if (BSC_NETWORK.equals(network)) {
-      Long created = ContractUtils.getInstance(network).getTokenCreated(address)
+      Long created = contractDbService.getContractByAddress(address, network)
+          .map(ContractEntity::getCreated)
           .orElse(null);
       if (created == null) {
         return null;

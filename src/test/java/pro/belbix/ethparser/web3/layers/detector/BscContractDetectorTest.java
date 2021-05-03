@@ -6,13 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +23,6 @@ import pro.belbix.ethparser.entity.b_layer.ContractStateEntity;
 import pro.belbix.ethparser.entity.b_layer.ContractTxEntity;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.layers.blocks.db.EthBlockDbService;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 import pro.belbix.ethparser.web3.layers.detector.db.ContractEventsDbService;
@@ -41,18 +38,11 @@ class BscContractDetectorTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private ContractLoader contractLoader;
-  @Autowired
   private ContractEventsDbService contractEventsDbService;
   @Autowired
   private EthBlockDbService ethBlockDbService;
   @Autowired
   private EthBlockRepository ethBlockRepository;
-
-  @BeforeEach
-  void setUp() {
-    contractLoader.load(BSC_NETWORK);
-  }
 
   @Test
   void handleBlock_6101208_PC_BUSD_BNB() {
@@ -79,11 +69,12 @@ class BscContractDetectorTest {
             "0x3ab77e40340ab084c3e23be8e5a6f7afed9d41dc",
             "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3",
             "0x0abd3e3502c15ec252f90f64341cba74a24fba06",
+            "0x6b936c5c1fd7de08e03684b0588a87dbd8ce6b63",
             "0xaf4de8e872131ae328ce21d909c74705d3aaf452"
         )));
 
     assertEvents(events, ContractEventAssertion.builder()
-        .eventSize(17)
+        .eventSize(18)
         .eventContractAddress("0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34")
         .txSize(1)
         .txAddress("0x2beda2c174968f2f7170d1a1722d29f0a15d29104cb1ff3ae8a63247a9656af2")

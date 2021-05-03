@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.layers;
 
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
+import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 import static pro.belbix.ethparser.ws.WsService.UNI_PRICES_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.VAULT_ACTIONS_TOPIC_NAME;
 
@@ -17,7 +19,7 @@ import pro.belbix.ethparser.entity.b_layer.LogHashEntity;
 import pro.belbix.ethparser.repositories.c_layer.UniPriceViewRepository;
 import pro.belbix.ethparser.repositories.c_layer.VaultActionsViewRepository;
 import pro.belbix.ethparser.repositories.c_layer.ViewI;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.ws.WsService;
 
 @Service
@@ -27,15 +29,18 @@ public class ViewRouter {
   private final WsService wsService;
   private final UniPriceViewRepository uniPriceViewRepository;
   private final VaultActionsViewRepository vaultActionsViewRepository;
+  private final ContractDbService contractDbService;
 
   private final static Sort DESC_SORT = Sort.by("blockNumber").descending();
 
   public ViewRouter(
       WsService wsService, UniPriceViewRepository uniPriceViewRepository,
-      VaultActionsViewRepository vaultActionsViewRepository) {
+      VaultActionsViewRepository vaultActionsViewRepository,
+      ContractDbService contractDbService) {
     this.wsService = wsService;
     this.uniPriceViewRepository = uniPriceViewRepository;
     this.vaultActionsViewRepository = vaultActionsViewRepository;
+    this.contractDbService = contractDbService;
   }
 
   public void route(ContractEventEntity event, String network) {
@@ -76,7 +81,9 @@ public class ViewRouter {
         .map(ContractTxEntity::getTx)
         .map(EthTxEntity::getNotNullToAddress)
         .map(EthAddressEntity::getAddress)
-        .anyMatch(ContractUtils.getInstance(network)::isUniPairAddress)
+        .anyMatch(a -> contractDbService
+            .getContractByAddressAndType(a, UNI_PAIR, network)
+            .isPresent())
         &&
         event.getTxs().stream()
             .anyMatch(tx -> tx.getLogs().stream()
@@ -91,7 +98,9 @@ public class ViewRouter {
         .map(ContractTxEntity::getTx)
         .map(EthTxEntity::getNotNullToAddress)
         .map(EthAddressEntity::getAddress)
-        .anyMatch(ContractUtils.getInstance(network)::isVaultAddress)
+        .anyMatch(a -> contractDbService
+            .getContractByAddressAndType(a, VAULT, network)
+            .isPresent())
         &&
         event.getTxs().stream()
             .anyMatch(tx -> tx.getLogs().stream()

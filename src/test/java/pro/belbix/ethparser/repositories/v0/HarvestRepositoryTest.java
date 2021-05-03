@@ -64,7 +64,7 @@ public class HarvestRepositoryTest {
 
     @Test
     public void fetchAllUsersQuantity() {
-        assertNotNull(harvestRepository.fetchAllUsersQuantity(Long.MAX_VALUE));
+        assertNotNull(harvestRepository.fetchAllUsersQuantity(Long.MAX_VALUE, ETH_NETWORK));
     }
 
     @Test

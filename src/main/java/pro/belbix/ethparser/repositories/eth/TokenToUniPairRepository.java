@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.repositories.eth;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,7 +40,7 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "where f1f1.address = :tokenAdr and f1f1.network = :network "
         + "order by t.blockStart desc"
     )
-    TokenToUniPairEntity findFirstByToken(
+    List<TokenToUniPairEntity> findByToken(
         @Param("tokenAdr") String tokenAdr,
         @Param("network") String network
     );
@@ -55,7 +56,7 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "where f2f1.address = :uniPairAdr and f2f1.network = :network "
         + "order by t.blockStart desc"
     )
-    TokenToUniPairEntity findFirstByUniPair(
+    List<TokenToUniPairEntity> findByUniPair(
         @Param("uniPairAdr") String uniPairAdr,
         @Param("network") String network
     );

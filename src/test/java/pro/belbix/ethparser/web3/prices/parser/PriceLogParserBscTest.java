@@ -7,7 +7,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +16,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -27,13 +25,6 @@ public class PriceLogParserBscTest {
   private PriceLogParser priceLogParser;
   @Autowired
   private Web3Functions web3Functions;
-  @Autowired
-  private ContractLoader contractLoader;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load(BSC_NETWORK);
-  }
 
   @Test
   public void priceParsePC_WBNB_BUSD() throws Exception {

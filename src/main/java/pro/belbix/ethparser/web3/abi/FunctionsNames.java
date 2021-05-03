@@ -38,4 +38,7 @@ public class FunctionsNames {
   public static final String BUYBACK_RATIO = "buybackRatio";
   public static final String UNIVERSAL_LIQUIDATOR = "universalLiquidator";
   public static final String LIQUIDATE_REWARD_TO_WETH_IN_SUSHI = "liquidateRewardToWethInSushi";
+  public static final String USER_REWARD_PER_TOKEN_PAID = "userRewardPerTokenPaid";
+  public static final String IMPLEMENTATION = "implementation";
+  public static final String GET_CURRENT_TOKENS = "getCurrentTokens";
 }

@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.web3.erc20;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.web3.MethodMapper;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 public enum TransferType {
@@ -49,7 +49,6 @@ public enum TransferType {
   REWARD,
   HARD_WORK;
 
-  private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   public static final Set<String> NOT_TRADE = new HashSet<>(Arrays.stream(TransferType.values())
       .filter(t -> t != LP_BUY && t != LP_SELL)
       .map(Enum::name)
@@ -67,7 +66,11 @@ public enum TransferType {
   private static final String FEE_REWARD_FORWARDER = "0x9397bd6fB1EC46B7860C8073D2cb83BE34270D94"
       .toLowerCase();
 
-  public static TransferType getType(TransferDTO dto) {
+  public static TransferType getType(
+      TransferDTO dto,
+      int ownerContractType,
+      int recipientContractType
+  ) {
     String recipient = dto.getRecipient().toLowerCase();
     String owner = dto.getOwner().toLowerCase();
     String methodName = dto.getMethodName();
@@ -92,35 +95,35 @@ public enum TransferType {
       return HARD_WORK;
     }
 
-    if (contractUtils.isPsAddress(recipient)) {
-      if (contractUtils.isPsAddress(owner)) {
+    if (ContractUtils.isPsAddress(recipient)) {
+      if (ContractUtils.isPsAddress(owner)) {
         return PS_INTERNAL;
       } else {
         return PS_STAKE;
       }
     }
 
-    if (contractUtils.isPsAddress(owner)) {
+    if (ContractUtils.isPsAddress(owner)) {
       // V0 reward
       if ("getReward".equalsIgnoreCase(methodName)) {
         return REWARD;
       }
-      if (contractUtils.isPsAddress(recipient)) {
+      if (ContractUtils.isPsAddress(recipient)) {
         return PS_INTERNAL;
       } else {
         return PS_EXIT;
       }
     }
 
-    if (contractUtils.isPoolAddress(recipient)) {
+    if (recipientContractType == ContractType.POOL.getId()) {
       return NOTIFY;
     }
 
-    if (contractUtils.isPoolAddress(owner) || MethodMapper.isReward(methodName)) {
+    if (ownerContractType == ContractType.POOL.getId() || MethodMapper.isReward(methodName)) {
       return REWARD;
     }
 
-    if (contractUtils.isUniPairAddress(owner)) {
+    if (ownerContractType == ContractType.UNI_PAIR.getId()) {
       if (MethodMapper.isLpTrade(methodName)) {
         return LP_BUY;
       } else if (MethodMapper.isLpLiq(methodName)) {
@@ -130,7 +133,7 @@ public enum TransferType {
       }
     }
 
-    if (contractUtils.isUniPairAddress(recipient)) {
+    if (recipientContractType == ContractType.UNI_PAIR.getId()) {
       if (MethodMapper.isLpTrade(methodName)) {
         return LP_SELL;
       } else if (MethodMapper.isLpLiq(methodName)) {

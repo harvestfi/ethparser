@@ -70,15 +70,15 @@ public class TransfersRecalculate {
 
   private void recalculateBalances() {
     List<TransferDTO> dtos = transferRepository
-        .fetchAllFromBlockDate(fromBlockDate, appProperties.getNetwork());
+        .fetchAllFromBlockDate(fromBlockDate, appProperties.getUtilNetwork());
     List<TransferDTO> result = new ArrayList<>();
     for (TransferDTO dto : dtos) {
       try {
         if (onlyType) {
-          TransferParser.fillTransferType(dto);
+          transferParser.fillTransferType(dto);
         } else {
           transferParser.fillMethodName(dto);
-          TransferParser.fillTransferType(dto);
+          transferParser.fillTransferType(dto);
           transferDBService.fillBalances(dto);
           transferDBService.fillProfit(dto);
         }
@@ -105,7 +105,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyMethods() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutMethods(appProperties.getNetwork());
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutMethods(appProperties.getUtilNetwork());
     log.info("Events for reparsing " + dtos.size());
     for (TransferDTO dto : dtos) {
       try {
@@ -121,7 +121,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyPrices() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutPrice(appProperties.getNetwork());
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutPrice(appProperties.getUtilNetwork());
     log.info("Events for reparsing " + dtos.size());
     List<TransferDTO> result = new ArrayList<>();
     int count = 0;
@@ -144,7 +144,7 @@ public class TransfersRecalculate {
   }
 
   private void reparseEmptyProfits() {
-    List<TransferDTO> dtos = transferRepository.fetchAllWithoutProfits(appProperties.getNetwork());
+    List<TransferDTO> dtos = transferRepository.fetchAllWithoutProfits(appProperties.getUtilNetwork());
     log.info("Events for reparsing " + dtos.size());
     for (TransferDTO dto : dtos) {
       try {

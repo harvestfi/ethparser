@@ -39,7 +39,7 @@ public class RewardRecalculate {
       to = Integer.MAX_VALUE;
     }
     List<RewardDTO> rewards = rewardsRepository
-        .fetchAllByRange(from, to, appProperties.getNetwork());
+        .fetchAllByRange(from, to, appProperties.getUtilNetwork());
     int count = 0;
     for (RewardDTO dto : rewards) {
       try {

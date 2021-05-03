@@ -10,9 +10,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ON
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -36,10 +32,11 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -56,9 +53,12 @@ public class FunctionsUtils {
   private final Map<String, Function> functionsCache = new HashMap<>();
 
   private final Web3Functions web3Functions;
+  private final ContractDbService contractDbService;
 
-  public FunctionsUtils(Web3Functions web3Functions) {
+  public FunctionsUtils(Web3Functions web3Functions,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
+    this.contractDbService = contractDbService;
   }
 
   // todo complex functions should be decomposed and use simple calls ************************
@@ -66,7 +66,9 @@ public class FunctionsUtils {
       String lpAddress,
       Long block,
       String network) {
-    if (ContractUtils.getInstance(network).getUniPairType(lpAddress) == PAIR_TYPE_ONEINCHE) {
+    if (contractDbService.findLpByAddress(lpAddress, network)
+        .filter(lp -> lp.getType() == PAIR_TYPE_ONEINCHE)
+        .isPresent()) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
       return callUniReserves(lpAddress, block, network);
@@ -81,18 +83,18 @@ public class FunctionsUtils {
 
     double coin0Balance = 0;
     double coin1Balance = 0;
-    String baseAdr = ContractUtils.getInstance(network).getBaseNetworkWrappedTokenAddress();
-    double baseBalance = ContractUtils.getInstance(network).parseAmount(
-        web3Functions.fetchBalance(lpAddress, block, network), baseAdr);
+    String baseAdr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    double baseBalance = contractDbService.parseAmount(
+        web3Functions.fetchBalance(lpAddress, block, network), baseAdr, network);
     if (!ZERO_ADDRESS.equals(coin0)) {
-      coin0Balance = ContractUtils.getInstance(network).parseAmount(
-          callIntByName(BALANCE_OF, lpAddress, coin0, block, network)
-              .orElse(ZERO), coin0);
+      coin0Balance = contractDbService.parseAmount(
+          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin0, block, network)
+              .orElse(ZERO), coin0, network);
       coin1Balance = baseBalance;
     } else if (!ZERO_ADDRESS.equals(coin1)) {
-      coin1Balance = ContractUtils.getInstance(network).parseAmount(
-          callIntByName(BALANCE_OF, lpAddress, coin1, block, network)
-              .orElse(ZERO), coin1);
+      coin1Balance = contractDbService.parseAmount(
+          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin1, block, network)
+              .orElse(ZERO), coin1, network);
       coin0Balance = baseBalance;
     }
     return new Tuple2<>(coin0Balance, coin1Balance);
@@ -114,15 +116,14 @@ public class FunctionsUtils {
       return null;
     }
 
-    Tuple2<TokenEntity, TokenEntity> tokens = ContractUtils.getInstance(network)
-        .getUniPairTokens(lpAddress);
-    BigDecimal v1 = new BigDecimal((BigInteger) types.get(0).getValue());
-    BigDecimal v2 = new BigDecimal((BigInteger) types.get(1).getValue());
+    UniPairEntity uniPairEntity = contractDbService
+        .findLpByAddress(lpAddress, network)
+        .orElseThrow();
+    BigInteger v1 = (BigInteger) types.get(0).getValue();
+    BigInteger v2 = (BigInteger) types.get(1).getValue();
     return new Tuple2<>(
-        v1.divide(new BigDecimal(10L).pow(tokens.component1().getDecimals().intValue())
-            , 99, RoundingMode.HALF_UP).doubleValue(),
-        v2.divide(new BigDecimal(10L).pow(tokens.component2().getDecimals().intValue())
-            , 99, RoundingMode.HALF_UP).doubleValue()
+        contractDbService.parseAmount(v1, uniPairEntity.getToken0().getAddress(), network),
+        contractDbService.parseAmount(v2, uniPairEntity.getToken1().getAddress(), network)
     );
   }
 
@@ -131,6 +132,23 @@ public class FunctionsUtils {
   public Optional<String> callAddressByName(String functionName, String hash, Long block,
       String network) {
     return callStringFunction(findSimpleFunction(functionName, TYPE_ADR), hash, block, network);
+  }
+
+  public Optional<String> callAddressByNameWithArg(
+      String functionName,
+      String arg,
+      String hash,
+      Long block,
+      String network) {
+    return callStringFunction(
+        new Function(
+            functionName,
+            Collections.singletonList(new Address(arg)),
+            Collections.singletonList(new TypeReference<Address>() {
+            })),
+        hash,
+        block,
+        network);
   }
 
   public Optional<String> callAddressByNameBytes4(
@@ -157,11 +175,12 @@ public class FunctionsUtils {
     return callUint256Function(findSimpleFunction(functionName, TYPE_INT), hash, block, network);
   }
 
-  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block, String network) {
+  public Optional<Boolean> callBoolByName(String functionName, String hash, Long block,
+      String network) {
     return callBoolFunction(findSimpleFunction(functionName, TYPE_BOOL), hash, block, network);
   }
 
-  public Optional<BigInteger> callIntByName(
+  public Optional<BigInteger> callIntByNameWithAddressArg(
       String functionName,
       String arg,
       String hash,
@@ -175,7 +194,7 @@ public class FunctionsUtils {
         })), hash, block, network);
   }
 
-  public Optional<Boolean> callBoolByName(
+  public Optional<Boolean> callBoolByNameWithAddressArg(
       String functionName,
       String arg,
       String hash,

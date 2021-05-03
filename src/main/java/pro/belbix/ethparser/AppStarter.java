@@ -1,10 +1,5 @@
 package pro.belbix.ethparser;
 
-import static pro.belbix.ethparser.utils.MockUtils.createHardWorkDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createHarvestDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createImportantEventsDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createPriceDTO;
-import static pro.belbix.ethparser.utils.MockUtils.createUniswapDTO;
 import static pro.belbix.ethparser.ws.WsService.DEPLOYER_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
@@ -14,6 +9,7 @@ import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,16 +17,16 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.MockUtils;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
-import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.harvest.parser.ImportantEventsParser;
 import pro.belbix.ethparser.web3.harvest.parser.RewardParser;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
+import pro.belbix.ethparser.web3.harvest.parser.VaultActionsParser;
 import pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockParser;
 import pro.belbix.ethparser.web3.layers.detector.ContractDetector;
 import pro.belbix.ethparser.web3.prices.parser.PriceLogParser;
@@ -52,10 +48,10 @@ public class AppStarter {
     private final WsService ws;
     private final AppProperties conf;
     private final PriceLogParser priceLogParser;
-    private final ContractLoader contractLoader;
     private final DeployerTransactionsParser deployerTransactionsParser;
     private final EthBlockParser ethBlockParser;
     private final ContractDetector contractDetector;
+    private final MockUtils mockUtils;
 
     public AtomicBoolean run = new AtomicBoolean(true); //for gentle stop
     private boolean web3TransactionsStarted = false;
@@ -71,10 +67,11 @@ public class AppStarter {
         UniToHarvestConverter uniToHarvestConverter,
         TransferParser transferParser, WsService wsService,
         AppProperties appProperties,
-        PriceLogParser priceLogParser, ContractLoader contractLoader,
+        PriceLogParser priceLogParser,
         DeployerTransactionsParser deployerTransactionsParser,
         EthBlockParser ethBlockParser,
-        ContractDetector contractDetector) {
+        ContractDetector contractDetector,
+        MockUtils mockUtils) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
         this.vaultActionsParser = vaultActionsParser;
@@ -86,10 +83,10 @@ public class AppStarter {
         this.ws = wsService;
         this.conf = appProperties;
         this.priceLogParser = priceLogParser;
-        this.contractLoader = contractLoader;
         this.deployerTransactionsParser = deployerTransactionsParser;
         this.ethBlockParser = ethBlockParser;
         this.contractDetector = contractDetector;
+        this.mockUtils = mockUtils;
     }
 
     public void start() {
@@ -100,57 +97,29 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            contractLoader.load(conf.getNetwork());
-
-            if (conf.isParseUniswapLog()) {
-                startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
-            }
-
-            if (conf.isParseHarvestLog()) {
-                startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            }
-
-            if (conf.isParseHardWorkLog()) {
-                startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
-            }
-
-            if (conf.isParseRewardsLog()) {
-                startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
-            }
-
-            if (conf.isParseImportantEvents()) {
-                startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
-            }
-
-            if (conf.isConvertUniToHarvest()) {
-                startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            }
-            if (conf.isParseTransfers()) {
-                startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
-            }
-            if (conf.isParsePrices()) {
-                startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
-            }
-            if (conf.isParseDeployerTransactions()) {
-                startParse(deployerTransactionsParser, ws,
-                    DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
-            }
-            if (conf.isParseBlocks()) {
-                startParseBlocks();
-            }
+            startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+            startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
+            startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+            startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+            startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+            startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
+            startParse(deployerTransactionsParser, ws,
+                DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+            startParseBlocks();
         }
     }
 
     private void startFakeDataForWebSocket(WsService ws, int rate) {
-        contractLoader.load(conf.getNetwork());
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
-            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, createUniswapDTO(count));
-            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, createHarvestDTO(count));
-            ws.send(HARDWORK_TOPIC_NAME, createHardWorkDTO(count));
-            ws.send(IMPORTANT_EVENTS_TOPIC_NAME, createImportantEventsDTO(count));
-            ws.send(PRICES_TOPIC_NAME, createPriceDTO(count));
+            ws.send(UNI_TRANSACTIONS_TOPIC_NAME, mockUtils.createUniswapDTO(count));
+            ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, mockUtils.createHarvestDTO(count));
+            ws.send(HARDWORK_TOPIC_NAME, mockUtils.createHardWorkDTO(count));
+            ws.send(IMPORTANT_EVENTS_TOPIC_NAME, mockUtils.createImportantEventsDTO(count));
+            ws.send(PRICES_TOPIC_NAME, mockUtils.createPriceDTO(count));
             log.info("Msg sent " + currentCount);
             count++;
             try {
@@ -171,6 +140,8 @@ public class AppStarter {
         parser.startParse();
 
         new Thread(() -> {
+            Thread.currentThread().setName("ParserToWsSender"
+                + parser.getClass().getSimpleName());
             while (run.get()) {
                 DtoI dto = null;
                 try {
@@ -188,21 +159,24 @@ public class AppStarter {
 
     private void startWeb3SubscribeLog() {
         if (!web3LogsStarted) {
-            web3Subscriber.subscribeLogFlowable(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeLogFlowable);
             web3LogsStarted = true;
         }
     }
 
     private void startWeb3SubscribeTx() {
         if (!web3TransactionsStarted) {
-            web3Subscriber.subscribeTransactionFlowable(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeTransactionFlowable);
             web3TransactionsStarted = true;
         }
     }
 
     private void startParseBlocks() {
         if (!web3BlocksStarted) {
-            web3Subscriber.subscribeOnBlocks(conf.getNetwork());
+            Arrays.stream(conf.getNetworks())
+                .forEach(web3Subscriber::subscribeOnBlocks);
             web3BlocksStarted = true;
         }
         ethBlockParser.startParse();

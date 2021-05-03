@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.dto.v0;
 
-import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
-import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -30,12 +30,15 @@ public class UniswapDTO implements DtoI {
   private boolean confirmed = false;
   private String type;
   private String coin;
+  private String coinAddress;
   private double amount;
   private String otherCoin;
+  private String otherCoinAddress;
   private double otherAmount;
   private Double lastPrice;
   private Double lastGas;
   private String lp;
+  private String lpAddress;
   private String methodName;
   // ---- ADDITIONAL STATISTIC INFO ----
   private Integer ownerCount;

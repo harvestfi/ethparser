@@ -16,15 +16,20 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
-import pro.belbix.ethparser.model.PriceTx;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.contracts.TokenEntity;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
@@ -34,14 +39,16 @@ public class PriceLogParser implements Web3Parser {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
   private final FunctionsUtils functionsUtils;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
   private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
@@ -51,13 +58,17 @@ public class PriceLogParser implements Web3Parser {
       ParserInfo parserInfo,
       PriceDBService priceDBService,
       AppProperties appProperties,
-      FunctionsUtils functionsUtils) {
+      NetworkProperties networkProperties,
+      FunctionsUtils functionsUtils,
+      ContractDbService contractDbService) {
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
     this.functionsUtils = functionsUtils;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -67,14 +78,19 @@ public class PriceLogParser implements Web3Parser {
     web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
           count++;
           if (count % 100 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
-          PriceDTO dto = parse(ethLog, appProperties.getNetwork());
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParsePrices()) {
+            continue;
+          }
+          PriceDTO dto = parse(ethLog.getValue(), ethLog.getNetwork());
           if (dto != null) {
             lastTx = Instant.now();
             boolean success = priceDBService.savePriceDto(dto);
@@ -102,7 +118,7 @@ public class PriceLogParser implements Web3Parser {
     if (tx == null) {
       return null;
     }
-    String sourceName = cu(network).getNameByAddress(tx.getSource())
+    String sourceName = contractDbService.getNameByAddress(tx.getSource(), network)
         .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
     PriceDTO dto = new PriceDTO();
 
@@ -138,25 +154,29 @@ public class PriceLogParser implements Web3Parser {
     if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
       return false;
     }
-    return cu(network).isUniPairAddress(log.getAddress());
+
+    return contractDbService.findLpByAddress(log.getAddress(), network)
+        .filter(u -> u.getKeyToken() != null)
+        .isPresent();
   }
 
   private void fillLpStats(PriceDTO dto, String network) {
-    String lpAddress = cu(network).getAddressByName(dto.getSource(), ContractType.UNI_PAIR)
-        .orElseThrow(
-            () -> new IllegalStateException("Lp address not found for " + dto.getSource()));
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
-        lpAddress, dto.getBlock(), network);
-    double lpBalance = cu(network).parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, dto.getBlock(), network)
-            .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
-        lpAddress);
+        dto.getSourceAddress(), dto.getBlock(), network);
+    double lpBalance = contractDbService.parseAmount(
+        functionsUtils.callIntByName(TOTAL_SUPPLY, dto.getSourceAddress(), dto.getBlock(), network)
+            .orElseThrow(() -> new IllegalStateException(
+                "Error get supply from " + dto.getSourceAddress())),
+        dto.getSourceAddress(), network);
     dto.setLpTotalSupply(lpBalance);
     dto.setLpToken0Pooled(lpPooled.component1());
     dto.setLpToken1Pooled(lpPooled.component2());
   }
 
   private boolean skipSimilar(PriceDTO dto) {
+    if (ContractUtils.isParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+      return true;
+    }
     PriceDTO lastPrice = lastPrices.get(dto.getToken());
     if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
       return true;
@@ -166,33 +186,37 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private boolean isValidSource(PriceDTO dto, String network) {
-    String currentLpName = cu(network).findUniPairNameForTokenName(
-        dto.getToken(), dto.getBlock()).orElse(null);
-    if (currentLpName == null) {
+    var pair = contractDbService
+        .findPairByToken(dto.getTokenAddress(), dto.getBlock(), network);
+    if (pair.isEmpty()) {
       return false;
     }
-    boolean result = currentLpName.equals(dto.getSource());
-    if (result) {
+
+    if (pair.filter(p -> p.getUniPair().getContract().getAddress()
+        .equalsIgnoreCase(dto.getSourceAddress()))
+        .isPresent()) {
       return true;
     }
-    log.warn("{} price from not actual LP {}, should be {}",
-        dto.getToken(), dto.getSource(), currentLpName);
+    log.warn("{} price from not actual LP {}", dto.getToken(), dto.getSource());
     return false;
   }
 
-  private static boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
+  private boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
     String lp = tx.getSource().toLowerCase();
 
-    String keyCoinHash = cu(network).findKeyTokenForUniPair(lp)
-        .orElseThrow(() -> new IllegalStateException("LP key coin not found for " + lp));
-    String keyCoinName = cu(network).getNameByAddress(keyCoinHash)
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + keyCoinHash));
-    Tuple2<String, String> tokensAdr = cu(network).tokenAddressesByUniPairAddress(lp);
+    String keyCoinName = contractDbService.findLpByAddress(lp, network)
+        .map(UniPairEntity::getKeyToken)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getName)
+        .orElse("");
+
+    Tuple2<String, String> tokensAdr = contractDbService
+        .tokenAddressesByUniPairAddress(lp, network);
     Tuple2<String, String> tokensNames = new Tuple2<>(
-        cu(network).getNameByAddress(tokensAdr.component1())
+        contractDbService.getNameByAddress(tokensAdr.component1(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component1())),
-        cu(network).getNameByAddress(tokensAdr.component2())
+        contractDbService.getNameByAddress(tokensAdr.component2(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Not found token name for " + tokensAdr.component2()))
     );
@@ -234,42 +258,35 @@ public class PriceLogParser implements Web3Parser {
     }
   }
 
-  private static void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
+  private void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
       boolean buy, String network) {
     if (keyCoinFirst) {
       if (buy) {
-        dto.setTokenAmount(parseAmountFromTx(tx, 2, dto.getToken(), network));
-        dto.setOtherTokenAmount(parseAmountFromTx(tx, 1, dto.getOtherToken(), network));
+        dto.setTokenAmount(parseAmountFromTx(tx, 2, dto.getTokenAddress(), network));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 1, dto.getOtherTokenAddress(), network));
       } else {
-        dto.setTokenAmount(parseAmountFromTx(tx, 0, dto.getToken(), network));
-        dto.setOtherTokenAmount(parseAmountFromTx(tx, 3, dto.getOtherToken(), network));
+        dto.setTokenAmount(parseAmountFromTx(tx, 0, dto.getTokenAddress(), network));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 3, dto.getOtherTokenAddress(), network));
       }
     } else {
       if (buy) {
-        dto.setTokenAmount(parseAmountFromTx(tx, 3, dto.getToken(), network));
-        dto.setOtherTokenAmount(parseAmountFromTx(tx, 0, dto.getOtherToken(), network));
+        dto.setTokenAmount(parseAmountFromTx(tx, 3, dto.getTokenAddress(), network));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 0, dto.getOtherTokenAddress(), network));
       } else {
-        dto.setTokenAmount(parseAmountFromTx(tx, 1, dto.getToken(), network));
-        dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherToken(), network));
+        dto.setTokenAmount(parseAmountFromTx(tx, 1, dto.getTokenAddress(), network));
+        dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherTokenAddress(), network));
       }
     }
 
     dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
   }
 
-  private static double parseAmountFromTx(PriceTx tx, int i, String name, String network) {
-    return cu(network).parseAmount(tx.getIntegers()[i],
-        cu(network).getAddressByName(name, ContractType.TOKEN)
-            .orElseThrow(() -> new IllegalStateException("Not found adr for " + name))
-    );
+  private double parseAmountFromTx(PriceTx tx, int i, String address, String network) {
+    return contractDbService.parseAmount(tx.getIntegers()[i], address, network);
   }
 
   private static boolean isZero(PriceTx tx, int i) {
     return BigInteger.ZERO.equals(tx.getIntegers()[i]);
-  }
-
-  private static ContractUtils cu(String network) {
-    return ContractUtils.getInstance(network);
   }
 
   @Override

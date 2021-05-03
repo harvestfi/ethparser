@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.utils;
 
-import static pro.belbix.ethparser.model.UniswapTx.ADD_LIQ;
-import static pro.belbix.ethparser.model.UniswapTx.REMOVE_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
@@ -11,20 +11,29 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.entity.contracts.VaultEntity;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
+@Service
 public class MockUtils {
-    private static final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
+
+    private final ContractDbService contractDbService;
+
     private static final List<String> harvestMethods =
         new ArrayList<>(new VaultActionsLogDecoder().getMethodNamesByMethodId().values());
 
-    public static UniswapDTO createUniswapDTO(long seed) {
+    public MockUtils(ContractDbService contractDbService) {
+        this.contractDbService = contractDbService;
+    }
+
+    public UniswapDTO createUniswapDTO(long seed) {
         double currentCount = seed * new Random().nextDouble();
         UniswapDTO uniswapDTO = new UniswapDTO();
         uniswapDTO.setId("0x" + (seed * 1000000));
@@ -44,18 +53,18 @@ public class MockUtils {
         return uniswapDTO;
     }
 
-    public static HarvestDTO createHarvestDTO(long seed) {
+    public HarvestDTO createHarvestDTO(long seed) {
         double currentCount = seed * new Random().nextDouble();
         HarvestDTO harvestDTO = new HarvestDTO();
         harvestDTO.setBlock(seed * 1000000);
         harvestDTO.setAmount(currentCount * 10000);
         harvestDTO.setNetwork("eth");
         harvestDTO.setUsdAmount((long) currentCount * 100);
-        harvestDTO.setVault(new ArrayList<>(contractUtils.vaultNames())
-            .get(new Random().nextInt(contractUtils.vaultNames().size() - 1)));
+        harvestDTO.setVault(getRandomVault().getName());
         harvestDTO.setId("0x" + (seed * 1000000));
         harvestDTO.setHash("0x" + seed);
-        harvestDTO.setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
+        harvestDTO
+            .setMethodName(harvestMethods.get(new Random().nextInt(harvestMethods.size() - 1)));
         harvestDTO.setLastUsdTvl(currentCount * 1000000);
         harvestDTO.setConfirmed(1);
         harvestDTO.setLastGas(currentCount / 6);
@@ -63,12 +72,11 @@ public class MockUtils {
         return harvestDTO;
     }
 
-    public static HardWorkDTO createHardWorkDTO(long seed) {
+    public HardWorkDTO createHardWorkDTO(long seed) {
         HardWorkDTO hardWorkDTO = new HardWorkDTO();
         hardWorkDTO.setId("0x" + (seed * 1000000));
         hardWorkDTO.setBlock(seed * 1000000);
-        hardWorkDTO.setVault(new ArrayList<>(contractUtils.vaultNames())
-            .get(new Random().nextInt(contractUtils.vaultNames().size() - 1)));
+        hardWorkDTO.setVault(getRandomVault().getName());
         hardWorkDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
         hardWorkDTO.setShareChange(seed / 1000.0);
         hardWorkDTO.setFullRewardUsd(seed / 69.0);
@@ -80,7 +88,7 @@ public class MockUtils {
         return hardWorkDTO;
     }
 
-    public static ImportantEventsDTO createImportantEventsDTO(long seed) {
+    public ImportantEventsDTO createImportantEventsDTO(long seed) {
         ImportantEventsDTO dto = new ImportantEventsDTO();
         dto.setId(seed + "id");
         dto.setHash(seed + "hash");
@@ -96,7 +104,7 @@ public class MockUtils {
         return dto;
     }
 
-    public static PriceDTO createPriceDTO(long seed) {
+    public PriceDTO createPriceDTO(long seed) {
         double randomDouble = seed * new Random().nextDouble();
         PriceDTO.PriceDTOBuilder dto = PriceDTO.builder()
             .id(seed + "id")
@@ -126,6 +134,11 @@ public class MockUtils {
                 .sourceAddress("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc");
         }
         return dto.build();
+    }
+
+    private VaultEntity getRandomVault() {
+        List<VaultEntity> vaults = contractDbService.getAllVaults(ETH_NETWORK);
+        return vaults.get(new Random().nextInt(vaults.size() - 1));
     }
 
 }

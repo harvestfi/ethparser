@@ -33,10 +33,10 @@ jobs:
       - name: Build with Maven
         run: >
           mvn
-          -Dethparser.web3Url="${{secrets.ETH_WEB3}}"
-          -Dethparser.etherscanApiKey=${{secrets.ETHERSCAN_TOKEN}}
-          -Dethparser.web3BscUrl="${{secrets.BSC_WEB3}}"
-          -Dethparser.bscscanApiKey=${{secrets.BSCSCAN_TOKEN}}
+          -Dethparser.eth.web3Url="${{secrets.ETH_WEB3}}"
+          -Dethparser.bsc.web3Url="${{secrets.BSC_WEB3}}"
+          -Dethparser.eth.abiProviderKey=${{secrets.ETHERSCAN_TOKEN}}
+          -Dethparser.bsc.abiProviderKey=${{secrets.BSCSCAN_TOKEN}}
           -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
@@ -44,12 +44,6 @@ jobs:
         uses: hughcube/deploy-action@1.0.0
         with: 
           ssh_private_key: ${{ secrets.SSH_KEY }}
-            
-      - name: Deploy to BSC server
-        run: |
-          export SERVER=ethparser_bsc
-          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
 
       - name: Deploy to ETH server
         run: |

@@ -28,7 +28,7 @@ import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
-import pro.belbix.ethparser.model.EthTransactionI;
+import pro.belbix.ethparser.model.tx.EthTransactionI;
 import pro.belbix.ethparser.web3.abi.CommonMethods;
 
 @SuppressWarnings({"rawtypes", "unchecked"})

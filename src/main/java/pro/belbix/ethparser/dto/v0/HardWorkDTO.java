@@ -27,6 +27,7 @@ public class HardWorkDTO implements DtoI {
   @Id
   private String id;
   private String vault;
+  private String vaultAddress;
   private long block;
   private long blockDate;
   private String network;
@@ -73,6 +74,7 @@ public class HardWorkDTO implements DtoI {
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
+        + network + " "
         + vault + " "
         + fullRewardUsd + " "
         + fullRewardUsdTotal + " "

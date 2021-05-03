@@ -15,8 +15,11 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
-import pro.belbix.ethparser.model.TokenTx;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -24,8 +27,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
-import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -34,9 +36,8 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 @Service
 @Log4j2
 public class TransferParser implements Web3Parser {
-  private final ContractUtils contractUtils = ContractUtils.getInstance(ETH_NETWORK);
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Log> logs = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ERC20Decoder erc20Decoder = new ERC20Decoder();
   private final Web3Functions web3Functions;
@@ -47,6 +48,8 @@ public class TransferParser implements Web3Parser {
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
+  private final NetworkProperties networkProperties;
+  private final ContractDbService contractDbService;
   private Instant lastTx = Instant.now();
 
   public TransferParser(Web3Functions web3Functions,
@@ -54,7 +57,9 @@ public class TransferParser implements Web3Parser {
       ParserInfo parserInfo,
       TransferDBService transferDBService,
       PriceProvider priceProvider,
-      FunctionsUtils functionsUtils, AppProperties appProperties) {
+      FunctionsUtils functionsUtils, AppProperties appProperties,
+      NetworkProperties networkProperties,
+      ContractDbService contractDbService) {
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -63,6 +68,8 @@ public class TransferParser implements Web3Parser {
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.appProperties = appProperties;
+    this.networkProperties = networkProperties;
+    this.contractDbService = contractDbService;
   }
 
   @Override
@@ -72,10 +79,15 @@ public class TransferParser implements Web3Parser {
     web3Subscriber.subscribeOnLogs(logs);
     new Thread(() -> {
       while (run.get()) {
-        Log ethLog = null;
+        Web3Model<Log> ethLog = null;
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
-          TransferDTO dto = parseLog(ethLog);
+          if (ethLog == null
+              || !networkProperties.get(ethLog.getNetwork())
+              .isParseTransfers()) {
+            continue;
+          }
+          TransferDTO dto = parseLog(ethLog.getValue());
           if (dto != null) {
             lastTx = Instant.now();
             boolean saved = transferDBService.saveDto(dto);
@@ -112,11 +124,14 @@ public class TransferParser implements Web3Parser {
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock());
     dto.setBlockDate(blockTime);
-    dto.setName(contractUtils.getNameByAddress(tx.getTokenAddress()).orElseThrow());
+    dto.setName(contractDbService
+        .getNameByAddress(tx.getTokenAddress(), ETH_NETWORK)
+        .orElseThrow());
+    dto.setTokenAddress(tx.getTokenAddress());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
     dto.setValue(
-        ContractUtils.getInstance(ETH_NETWORK).parseAmount(tx.getValue(), tx.getTokenAddress()));
+        contractDbService.parseAmount(tx.getValue(), tx.getTokenAddress(), ETH_NETWORK));
 
     fillMethodName(dto);
     fillTransferType(dto);
@@ -152,16 +167,22 @@ public class TransferParser implements Web3Parser {
     dto.setMethodName(methodName);
   }
 
-  public static void fillTransferType(TransferDTO dto) {
-    TransferType type = TransferType.getType(dto);
+  public void fillTransferType(TransferDTO dto) {
+    int ownerContractType = contractDbService
+        .getContractByAddress(dto.getOwner(), dto.getNetwork())
+        .map(ContractEntity::getType)
+        .orElse(-1);
+    int recipientContractType = contractDbService
+        .getContractByAddress(dto.getRecipient(), dto.getNetwork())
+        .map(ContractEntity::getType)
+        .orElse(-1);
+    TransferType type = TransferType.getType(dto, ownerContractType, recipientContractType);
     dto.setType(type.name());
   }
 
   public void fillBalance(TransferDTO dto) {
-    String tokenAddress = contractUtils.getAddressByName(dto.getName(), ContractType.TOKEN)
-        .orElseThrow(() -> new IllegalStateException("Not found adr for " + dto.getName()));
-    dto.setBalanceOwner(getBalance(dto.getOwner(), tokenAddress, dto.getBlock()));
-    dto.setBalanceRecipient(getBalance(dto.getRecipient(), tokenAddress, dto.getBlock()));
+    dto.setBalanceOwner(getBalance(dto.getOwner(), dto.getTokenAddress(), dto.getBlock()));
+    dto.setBalanceRecipient(getBalance(dto.getRecipient(), dto.getTokenAddress(), dto.getBlock()));
   }
 
   public void fillPrice(TransferDTO dto) {
@@ -169,10 +190,10 @@ public class TransferParser implements Web3Parser {
   }
 
   private double getBalance(String holder, String tokenAddress, long block) {
-    BigInteger balanceI = functionsUtils.callIntByName(
+    BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
-    return ContractUtils.getInstance(ETH_NETWORK).parseAmount(balanceI, tokenAddress);
+    return contractDbService.parseAmount(balanceI, tokenAddress, ETH_NETWORK);
   }
 
   @Override

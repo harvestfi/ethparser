@@ -48,10 +48,6 @@ server:
     min-spare-threads: 10 # Minimum amount of worker threads.
     uri-encoding: UTF-8 # Character encoding to use to decode the URI.
 
-ethparser:
-  web3Url:
-  stubPrice: true
-
 management:
   server:
     port: 8080 # on heroku use same port as tomcat server port

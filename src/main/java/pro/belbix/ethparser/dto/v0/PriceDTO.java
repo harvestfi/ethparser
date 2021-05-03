@@ -14,7 +14,8 @@ import pro.belbix.ethparser.dto.DtoI;
 @Entity
 @Table(name = "prices", indexes = {
     @Index(name = "idx_prices", columnList = "block"),
-    @Index(name = "idx_prices_network", columnList = "network")
+    @Index(name = "idx_prices_network", columnList = "network"),
+    @Index(name = "idx_prices_source", columnList = "source")
 })
 @Data
 @Builder
@@ -43,8 +44,9 @@ public class PriceDTO implements DtoI {
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
+        + network + " "
         + source + " "
-        + String.format("%.1f", price) + " "
+        + String.format("%.6f", price) + " "
         + buy + " "
         + id;
   }

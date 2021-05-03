@@ -35,6 +35,7 @@ public class ImportantEventsDTO implements DtoI {
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
+        + network + " "
         + event + " "
         + vault + " "
         + "old: " + oldStrategy + " "

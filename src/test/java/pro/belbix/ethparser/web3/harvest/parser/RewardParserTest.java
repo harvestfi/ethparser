@@ -19,8 +19,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractLoader;
-import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -30,15 +28,9 @@ public class RewardParserTest {
     private RewardParser rewardParser;
     @Autowired
     private Web3Functions web3Functions;
-    @Autowired
-    private PriceProvider priceProvider;
-
-    @Autowired
-    private ContractLoader contractLoader;
 
     @BeforeEach
     public void setUp() {
-        contractLoader.load();
         rewardParser.setWaitNewBlock(false);
     }
 

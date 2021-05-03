@@ -1,12 +1,9 @@
 package pro.belbix.ethparser.web3.contracts;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +14,6 @@ import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
 import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
@@ -27,11 +23,6 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class ContractLoaderTest {
-
-  @Autowired
-  private ContractLoader contractLoader;
-  @Autowired
-  private AppProperties appProperties;
   @Autowired
   private VaultRepository vaultRepository;
   @Autowired
@@ -44,11 +35,6 @@ public class ContractLoaderTest {
   private TokenToUniPairRepository tokenToUniPairRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    contractLoader.load(BSC_NETWORK, ETH_NETWORK);
-  }
 
   @Test
 //    @Disabled

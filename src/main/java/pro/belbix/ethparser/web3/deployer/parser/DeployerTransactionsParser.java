@@ -17,8 +17,10 @@ import pro.belbix.ethparser.codegen.GeneratedContract;
 import pro.belbix.ethparser.codegen.SimpleContractGenerator;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
-import pro.belbix.ethparser.model.DeployerTx;
+import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.model.tx.DeployerTx;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -35,7 +37,7 @@ public class DeployerTransactionsParser implements Web3Parser {
   private static final AtomicBoolean run = new AtomicBoolean(true);
   private final DeployerDecoder deployerDecoder = new DeployerDecoder();
   private final Web3Subscriber web3Subscriber;
-  private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
+  private final BlockingQueue<Web3Model<Transaction>> transactions = new ArrayBlockingQueue<>(100);
   private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final DeployerDbService deployerDbService;
   private final EthBlockService ethBlockService;
@@ -43,6 +45,8 @@ public class DeployerTransactionsParser implements Web3Parser {
   private final ParserInfo parserInfo;
   private final SimpleContractGenerator simpleContractGenerator;
   private final Web3Functions web3Functions;
+  private final NetworkProperties networkProperties;
+  private final DeployerEventToContractTransformer deployerEventToContractTransformer;
   private long parsedTxCount = 0;
   private Instant lastTx = Instant.now();
 
@@ -52,7 +56,9 @@ public class DeployerTransactionsParser implements Web3Parser {
       EthBlockService ethBlockService,
       AppProperties appProperties, ParserInfo parserInfo,
       SimpleContractGenerator simpleContractGenerator,
-      Web3Functions web3Functions) {
+      Web3Functions web3Functions,
+      NetworkProperties networkProperties,
+      DeployerEventToContractTransformer deployerEventToContractTransformer) {
     this.web3Subscriber = web3Subscriber;
     this.deployerDbService = deployerDbService;
     this.ethBlockService = ethBlockService;
@@ -60,6 +66,8 @@ public class DeployerTransactionsParser implements Web3Parser {
     this.parserInfo = parserInfo;
     this.simpleContractGenerator = simpleContractGenerator;
     this.web3Functions = web3Functions;
+    this.networkProperties = networkProperties;
+    this.deployerEventToContractTransformer = deployerEventToContractTransformer;
   }
 
   public void startParse() {
@@ -69,15 +77,22 @@ public class DeployerTransactionsParser implements Web3Parser {
     new Thread(
         () -> {
           while (run.get()) {
-            Transaction transaction = null;
+            Web3Model<Transaction> transaction = null;
             try {
               transaction = transactions.poll(1, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             }
-            DeployerDTO dto = parseDeployerTransaction(transaction, appProperties.getNetwork());
+            if (transaction == null
+            || !networkProperties.get(transaction.getNetwork())
+                .isParseDeployerTransactions()) {
+              continue;
+            }
+            DeployerDTO dto = parseDeployerTransaction(
+                transaction.getValue(), transaction.getNetwork());
             if (dto != null) {
               lastTx = Instant.now();
               try {
+                deployerEventToContractTransformer.handleAndSave(dto);
                 boolean success = deployerDbService.save(dto);
                 if (success) {
                   output.put(dto);

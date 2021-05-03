@@ -1,5 +1,0 @@
-ethparser:
-  startUtil: new-strategy-download
-
-new-strategy-download:
-  vaults: MUSE_ETH, DUDES20_ETH, MASK20_ETH, ROPE20_ETH
