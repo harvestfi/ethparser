@@ -7,7 +7,7 @@ import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 
 public interface EthBlockRepository extends JpaRepository<EthBlockEntity, Long> {
 
-    EthBlockEntity findFirstByOrderByNumberDesc();
+    EthBlockEntity findFirstByNetworkOrderByNumberDesc(int network);
 
 //    @EntityGraph(value = "block-graph.all", type = EntityGraphType.FETCH)
 //    EthBlockEntity getByNumber(long number);

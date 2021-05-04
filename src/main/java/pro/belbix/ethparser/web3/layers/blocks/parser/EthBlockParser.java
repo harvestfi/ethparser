@@ -103,7 +103,7 @@ public class EthBlockParser {
     Instant timer = Instant.now();
     Block block = ethBlock.getBlock();
     EthBlockEntity ethBlockEntity = blockToEntity(block);
-    ethBlockEntity.defineNetwork(network);
+    ethBlockEntity.setNetwork(EthBlockEntity.defineNetwork(network));
 
     Set<EthTxEntity> ethTxEntities = new LinkedHashSet<>();
     Map<String, EthTxEntity> txMap = new LinkedHashMap<>();

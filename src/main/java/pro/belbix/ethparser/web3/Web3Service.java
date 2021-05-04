@@ -1,13 +1,9 @@
 package pro.belbix.ethparser.web3;
 
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.util.Strings;
@@ -108,15 +104,14 @@ abstract class Web3Service {
         if (e.getMessage().startsWith("Not retryable response")) {
           return null;
         }
-      }
-//      catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
-//        log.error("Connection exception, reconnect...", e);
-//        close();
-//        waitInit();
-//        lastError = e;
-//      }
-      catch (Exception e) { //by default all errors, but can be filtered by type
-        log.warn(logMessage+ " Retryable error", e);
+      } catch (ClientConnectionException e) {
+        if (e.getMessage().contains("Invalid method parameter(s)")) {
+          return null;
+        }
+        log.warn(logMessage + " Retryable client error", e);
+        lastError = e;
+      } catch (Exception e) { //by default all errors, but can be filtered by type
+        log.warn(logMessage + " Retryable error", e);
         lastError = e;
       }
 

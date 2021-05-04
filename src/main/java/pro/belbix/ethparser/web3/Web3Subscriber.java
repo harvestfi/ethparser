@@ -113,8 +113,9 @@ public class Web3Subscriber {
     });
     subscriptions.put(name,
         web3Functions.blockFlowable(networkProperties.get(network).getParseBlocksFrom(), () ->
-            Optional.ofNullable(ethBlockRepository.findFirstByOrderByNumberDesc())
-                .map(EthBlockEntity::getNumber), network)
+            Optional.ofNullable(ethBlockRepository.findFirstByNetworkOrderByNumberDesc(
+                EthBlockEntity.defineNetwork(network)
+            )).map(EthBlockEntity::getNumber), network)
             .subscribe(tx -> blockConsumers.forEach(queue ->
                     writeInQueue(queue, tx, network)),
                 e -> {

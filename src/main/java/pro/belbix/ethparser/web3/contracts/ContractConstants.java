@@ -91,4 +91,46 @@ public class ContractConstants {
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", //USDC
       "0xe9e7cea3dedca5984780bafc599bd69add087d56" //BUSD
   );
+
+  //Key tokens are used to find liquidity for any given token on Uni, Sushi and Curve.
+  public static final Map<String, Set<String>> KEY_TOKENS = Map.of(
+      ETH_NETWORK, Set.of(
+          "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase(), //USDC
+          "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase(), //WETH
+          "0x6B175474E89094C44Da98b954EedeAC495271d0F".toLowerCase(), //DAI
+          "0xdAC17F958D2ee523a2206206994597C13D831ec7".toLowerCase(), //USDT
+          "0xa47c8bf37f92aBed4A126BDA807A7b7498661acD".toLowerCase(), //UST
+          "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599".toLowerCase(), //WBTC
+          "0xdB25f211AB05b1c97D595516F45794528a807ad8".toLowerCase(), //EURS
+          "0x514910771AF9Ca656af840dff83E8264EcF986CA".toLowerCase()  //LINK
+      )
+  );
+
+  //Pricing tokens are Key tokens with good liquidity with the defined output token on Uniswap.
+  public static final Map<String, Set<String>> PRISING_TOKENS = Map.of(
+      ETH_NETWORK, Set.of(
+          "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase(), //USDC
+          "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase(), //WETH
+          "0x6B175474E89094C44Da98b954EedeAC495271d0F".toLowerCase(), //DAI
+          "0xdAC17F958D2ee523a2206206994597C13D831ec7".toLowerCase(), //USDT
+          "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599".toLowerCase(), //WBTC
+          "0xdB25f211AB05b1c97D595516F45794528a807ad8".toLowerCase()  //EURS
+      )
+  );
+
+  public static final String UNISWAP_FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+      .toLowerCase();
+  public static final String SUSHISWAP_FACTORY_ADDRESS = "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"
+      .toLowerCase();
+  public static final String CURVE_REGISTRY_ADDRESS = "0x7D86446dDb609eD0F5f8684AcF30380a356b2B4c"
+      .toLowerCase();
+  public static final String ONE_INCH_FACTORY_ADDRESS = "0xbAF9A5d4b0052359326A6CDAb54BABAa3a3A9643"
+      .toLowerCase();
+
+  public static final Map<String, Map<String, Integer>> UNI_FACTORIES = Map.of(
+      ETH_NETWORK, Map.of(
+        UNISWAP_FACTORY_ADDRESS, 10000835,
+          SUSHISWAP_FACTORY_ADDRESS, 10794229
+      )
+  );
 }

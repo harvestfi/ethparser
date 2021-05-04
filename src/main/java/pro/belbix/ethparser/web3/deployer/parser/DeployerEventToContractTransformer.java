@@ -37,6 +37,7 @@ import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 import pro.belbix.ethparser.web3.deployer.ContractInfo;
+import pro.belbix.ethparser.web3.prices.LPSeeker;
 
 @Service
 @Log4j2
@@ -45,13 +46,17 @@ public class DeployerEventToContractTransformer {
   private final FunctionsUtils functionsUtils;
   private final ContractLoader contractLoader;
   private final ContractUpdater contractUpdater;
+  private final LPSeeker lpSeeker;
 
-  public DeployerEventToContractTransformer(FunctionsUtils functionsUtils,
+  public DeployerEventToContractTransformer(
+      FunctionsUtils functionsUtils,
       ContractLoader contractLoader,
-      ContractUpdater contractUpdater) {
+      ContractUpdater contractUpdater,
+      LPSeeker lpSeeker) {
     this.functionsUtils = functionsUtils;
     this.contractLoader = contractLoader;
     this.contractUpdater = contractUpdater;
+    this.lpSeeker = lpSeeker;
   }
 
   public void handleAndSave(DeployerDTO dto) {
@@ -159,14 +164,14 @@ public class DeployerEventToContractTransformer {
       // some pools (PS/LP) have not vault as underlying
       underlyingAddress = address;
     }
-    contractInfo.setUnderlyingAddress(underlyingAddress);
 
     String underlyingName = functionsUtils.callStrByName(
         FunctionsNames.NAME, underlyingAddress, block, network)
         .orElse("");
-    contractInfo.setUnderlyingName(underlyingName);
-
     PlatformType platformType = detectPlatformType(underlyingName);
+
+    contractInfo.setUnderlyingAddress(underlyingAddress);
+    contractInfo.setUnderlyingName(underlyingName);
     contractInfo.setPlatformType(platformType);
 
     String tokenNames = tokenNames(contractInfo);
@@ -256,18 +261,20 @@ public class DeployerEventToContractTransformer {
     } else if (name.startsWith("Pancake")) {
       return PlatformType.PANCAKESWAP;
     }
+    log.warn("Unknown platform for name {}", name);
     return PlatformType.UNKNOWN;
   }
 
   private String tokenNames(ContractInfo contractInfo) {
-    if (PlatformType.BALANCER == contractInfo.getPlatformType()) {
+    String tokenNames = uniTokenNames(contractInfo);
+    if (tokenNames.isBlank()) {
       try {
-        return bptTokenNames(contractInfo);
+        tokenNames = bptTokenNames(contractInfo);
       } catch (IOException | ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
     }
-    return uniTokenNames(contractInfo);
+    return tokenNames;
   }
 
   private String bptTokenNames(ContractInfo contractInfo)
@@ -284,11 +291,15 @@ public class DeployerEventToContractTransformer {
         ),
         address, block, network)
         .orElse("");
+    if (tokens.isBlank()) {
+      return "";
+    }
 
     //noinspection unchecked
     List<String> tokenAddresses = ObjectMapperFactory.getObjectMapper().readValue(
         (String) ObjectMapperFactory.getObjectMapper().readValue(tokens, List.class).get(0)
         , List.class);
+    contractInfo.getUnderlyingTokens().addAll(tokenAddresses);
     return tokenAddresses.stream()
         .map(adr -> functionsUtils.callStrByName(
             SYMBOL, adr, block, network)
@@ -314,8 +325,8 @@ public class DeployerEventToContractTransformer {
       return "";
     }
 
-    contractInfo.setToken0Adr(token0Adr);
-    contractInfo.setToken1Adr(token1Adr);
+    contractInfo.getUnderlyingTokens().add(token0Adr);
+    contractInfo.getUnderlyingTokens().add(token1Adr);
 
     String token0Name;
     if (ZERO_ADDRESS.equalsIgnoreCase(token0Adr)) {
@@ -338,17 +349,53 @@ public class DeployerEventToContractTransformer {
   }
 
   private List<PureEthContractInfo> collectUnderlingContracts(ContractInfo contractInfo) {
-    String address = contractInfo.getAddress();
     long block = contractInfo.getBlock();
     String network = contractInfo.getNetwork();
+    List<PureEthContractInfo> contracts = new ArrayList<>();
 
-    //todo detect crv underlying
+    if (contractInfo.getUnderlyingTokens().isEmpty()) {
+      contracts.addAll(createTokenContract(contractInfo.getUnderlyingAddress(), block, network));
+    } else {
+      contractInfo.getUnderlyingTokens().forEach(c ->
+          contracts.addAll(createTokenContract(c, block, network)));
+    }
 
-    //todo detect LP underlying
+    return contracts;
+  }
 
-    //todo detect simple underlying
+  private List<PureEthContractInfo> createTokenContract(
+      String address, long block, String network) {
+    if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
+      return List.of();
+    }
+    List<PureEthContractInfo> contracts = new ArrayList<>();
+    String name = functionsUtils.callStrByName(
+        FunctionsNames.SYMBOL, address, block, network)
+        .orElse("?");
+    TokenContract tokenContract = new TokenContract((int) block, name, address);
+    tokenContract.setNetwork(network);
+    contracts.add(tokenContract);
 
-    return new ArrayList<>();
+    String lpAddress = lpSeeker.findLargestLP(address, block, network);
+    if (lpAddress != null) {
+      tokenContract.addLp((int) block, lpAddress);
+
+      String lpName = functionsUtils.callStrByName(
+          FunctionsNames.NAME, lpAddress, block, network)
+          .orElse("");
+
+      PlatformType lpPlatformType = detectPlatformType(lpName);
+      ContractInfo lpContractInfo = new ContractInfo(lpAddress, block, network, UNKNOWN);
+      lpContractInfo.setUnderlyingAddress(lpAddress);
+      String tokenNames = uniTokenNames(lpContractInfo);
+      String lpFullName = lpPlatformType.getPrettyName() + "_LP_" + tokenNames;
+
+      LpContract lpContract = new LpContract((int) block, lpFullName, address, lpAddress);
+      lpContract.setNetwork(network);
+      contracts.add(lpContract);
+    }
+
+    return contracts;
   }
 
 

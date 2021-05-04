@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.deployer;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.PlatformType;
@@ -15,8 +17,7 @@ public class ContractInfo {
   private String name;
   private String underlyingAddress;
   private String underlyingName;
-  private String token0Adr;
-  private String token1Adr;
+  private List<String> underlyingTokens = new ArrayList<>();
   private PlatformType platformType;
 
   public ContractInfo(String address, long block, String network,

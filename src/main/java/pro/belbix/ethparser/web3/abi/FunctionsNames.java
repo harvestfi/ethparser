@@ -41,4 +41,6 @@ public class FunctionsNames {
   public static final String USER_REWARD_PER_TOKEN_PAID = "userRewardPerTokenPaid";
   public static final String IMPLEMENTATION = "implementation";
   public static final String GET_CURRENT_TOKENS = "getCurrentTokens";
+  public static final String GET_PAIR = "getPair";
+  public static final String GET_LARGEST_POOL = "getLargestPool";
 }
