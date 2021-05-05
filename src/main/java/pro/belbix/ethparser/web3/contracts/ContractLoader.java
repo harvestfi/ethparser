@@ -14,8 +14,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHI_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -38,8 +38,8 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
+import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 
 @Service
@@ -376,9 +376,9 @@ public class ContractLoader {
           .orElse("");
     } catch (Exception ignored) {
     }
-    if (UNISWAP_FACTORY.equalsIgnoreCase(factoryAdr)) {
+    if (UNISWAP_FACTORY_ADDRESS.equalsIgnoreCase(factoryAdr)) {
       type = PAIR_TYPE_UNISWAP;
-    } else if (SUSHI_FACTORY.equalsIgnoreCase(factoryAdr)) {
+    } else if (SUSHISWAP_FACTORY_ADDRESS.equalsIgnoreCase(factoryAdr)) {
       type = PAIR_TYPE_SUSHI;
     } else {
       try {

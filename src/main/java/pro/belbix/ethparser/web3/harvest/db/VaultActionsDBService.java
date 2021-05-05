@@ -4,6 +4,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -72,8 +73,7 @@ public class VaultActionsDBService {
 
   public void fillOwnersCount(HarvestDTO dto) {
     Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(
-        dto.getVault(),
-        dto.getVault() + "_V0",
+        dto.getVaultAddress(),
         dto.getNetwork(),
         dto.getBlockDate());
     if (ownerCount == null) {
@@ -90,9 +90,9 @@ public class VaultActionsDBService {
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
         contractDbService.getAllVaults(dto.getNetwork()).stream()
-            .map(v -> v.getContract().getName())
-            .filter(v -> !ContractUtils.isPsName(v))
-            .filter(v -> !v.equals("iPS"))
+            .map(v -> v.getContract().getAddress())
+            .filter(v -> !ContractUtils.isPsAddress(v))
+            .filter(v -> !v.equalsIgnoreCase(iPS_ADDRESS))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
         dto.getNetwork()
@@ -146,18 +146,15 @@ public class VaultActionsDBService {
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contractNames = contractDbService.getAllVaults(dto.getNetwork())
-        .stream().map(v -> v.getContract().getName())
+    List<String> contractAddresses = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getAddress())
         .collect(Collectors.toList());
 
-    PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
-        .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-        .forEach(contractNames::add);
+    contractAddresses.addAll(PARSABLE_UNI_PAIRS.get(dto.getNetwork()));
 
-    for (String vaultName : contractNames) {
+    for (String vaultAddress : contractAddresses) {
       HarvestDTO lastHarvest = harvestRepository
-          .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
+          .fetchLastByVaultAndDate(vaultAddress, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {
         continue;
       }
@@ -255,7 +252,7 @@ public class VaultActionsDBService {
     // find relevant transfers (from last full withdraw)
     List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
         dto.getOwner(),
-        dto.getVault(),
+        dto.getVaultAddress(),
         dto.getBlockDate(),
         dto.getNetwork()
     );

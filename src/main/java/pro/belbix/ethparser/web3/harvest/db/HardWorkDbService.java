@@ -3,6 +3,8 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -52,7 +54,7 @@ public class HardWorkDbService {
 
   public void enrich(HardWorkDTO dto) {
     Double all = hardWorkRepository
-        .getSumForVault(dto.getVault(), dto.getBlockDate(), dto.getNetwork());
+        .getSumForVault(dto.getVaultAddress(), dto.getBlockDate(), dto.getNetwork());
     if (all == null) {
       all = 0.0;
     }
@@ -67,7 +69,7 @@ public class HardWorkDbService {
   private void calculateVaultProfits(HardWorkDTO dto) {
     silentCall(
         () -> harvestRepository
-            .fetchLastByVaultAndDateNotZero(dto.getVault(), dto.getNetwork(), dto.getBlockDate()))
+            .fetchLastByVaultAndDateNotZero(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate()))
         .ifPresentOrElse(harvestDTO -> {
           dto.setTvl(harvestDTO.getLastUsdTvl());
           if (dto.getTvl() != 0.0) {
@@ -78,13 +80,13 @@ public class HardWorkDbService {
 
           silentCall(() -> hardWorkRepository
               .fetchPercentForPeriod(
-                  dto.getVault(), dto.getBlockDate() - 1, dto.getNetwork(), limitOne))
+                  dto.getVaultAddress(), dto.getBlockDate() - 1, dto.getNetwork(), limitOne))
               .filter(Caller::isNotEmptyList)
               .ifPresentOrElse(sumOfPercL -> {
                 final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
 
                 silentCall(() -> harvestRepository
-                    .fetchPeriodOfWork(dto.getVault(), dto.getBlockDate(), dto.getNetwork(), limitOne))
+                    .fetchPeriodOfWork(dto.getVaultAddress(), dto.getBlockDate(), dto.getNetwork(), limitOne))
                     .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
                     .ifPresentOrElse(periodL -> {
                       double period = (double) periodL.get(0);
@@ -98,7 +100,7 @@ public class HardWorkDbService {
 
           silentCall(() -> hardWorkRepository
               .fetchProfitForPeriod(
-                  dto.getVault(),
+                  dto.getVaultAddress(),
                   dto.getBlockDate() - (long) SECONDS_IN_WEEK,
                   dto.getBlockDate() - 1,
                   dto.getNetwork(),
@@ -111,7 +113,7 @@ public class HardWorkDbService {
 
           silentCall(() -> harvestRepository
               .fetchAverageTvl(
-                  dto.getVault(),
+                  dto.getVaultAddress(),
                   dto.getBlockDate() - (long) SECONDS_IN_WEEK,
                   dto.getBlockDate(),
                   dto.getNetwork(),
@@ -135,10 +137,10 @@ public class HardWorkDbService {
 
   private void calculatePsProfits(HardWorkDTO dto) {
     HarvestDTO harvestDTO = harvestRepository
-        .fetchLastByVaultAndDateNotZero("PS", dto.getNetwork(), dto.getBlockDate());
+        .fetchLastByVaultAndDateNotZero(PS_ADDRESS, dto.getNetwork(), dto.getBlockDate());
     if (harvestDTO == null) {
       harvestDTO = harvestRepository
-          .fetchLastByVaultAndDateNotZero("PS_V0", dto.getNetwork(), dto.getBlockDate());
+          .fetchLastByVaultAndDateNotZero(PS_V0_ADDRESS, dto.getNetwork(), dto.getBlockDate());
     }
     if (harvestDTO != null) {
       dto.setPsTvlUsd(harvestDTO.getLastUsdTvl());
@@ -155,13 +157,13 @@ public class HardWorkDbService {
         double period = 0.0;
         if (dto.getBlockDate() < PS_DEPLOYED) {
           List<Long> periodOldPsL = harvestRepository
-              .fetchPeriodOfWork("PS_V0", dto.getBlockDate(),dto.getNetwork(), limitOne);
+              .fetchPeriodOfWork(PS_V0_ADDRESS, dto.getBlockDate(),dto.getNetwork(), limitOne);
           if (periodOldPsL != null && !periodOldPsL.isEmpty() && periodOldPsL.get(0) != null) {
             period = (double) periodOldPsL.get(0);
           }
         } else {
           List<Long> periodNewPsL = harvestRepository
-              .fetchPeriodOfWork("PS", dto.getBlockDate(),dto.getNetwork(), limitOne);
+              .fetchPeriodOfWork(PS_ADDRESS, dto.getBlockDate(),dto.getNetwork(), limitOne);
           if (periodNewPsL != null && !periodNewPsL.isEmpty() && periodNewPsL.get(0) != null) {
             period = (double) periodNewPsL.get(0);
           }
@@ -192,11 +194,10 @@ public class HardWorkDbService {
 
   public void fillExtraInfo(HardWorkDTO dto) {
     int count = hardWorkRepository
-        .countAtBlockDate(dto.getVault(), dto.getNetwork(), dto.getBlockDate() - 1);
+        .countAtBlockDate(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate() - 1);
     dto.setCallsQuantity(count + 1);
     int owners = harvestRepository.fetchActualOwnerQuantity(
-        dto.getVault(),
-        dto.getVault() + "_V0",
+        dto.getVaultAddress(),
         dto.getNetwork(),
         dto.getBlockDate());
     dto.setPoolUsers(owners);
@@ -208,14 +209,14 @@ public class HardWorkDbService {
     dto.setSavedGasFees(((double) owners) * dto.getFeeEth() * baseTokenPrice);
 
     Double feesSum = hardWorkRepository
-        .sumSavedGasFees(dto.getVault(), dto.getNetwork(), dto.getBlockDate());
+        .sumSavedGasFees(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate());
     if (feesSum == null) {
       feesSum = 0.0;
     }
     dto.setSavedGasFeesSum(feesSum + dto.getSavedGasFees());
 
     Long lastHardWorkBlockDate = hardWorkRepository
-        .fetchPreviousBlockDateByVaultAndDate(dto.getVault(), dto.getNetwork(), dto.getBlockDate());
+        .fetchPreviousBlockDateByVaultAndDate(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate());
     if (lastHardWorkBlockDate != null) {
       dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
     }

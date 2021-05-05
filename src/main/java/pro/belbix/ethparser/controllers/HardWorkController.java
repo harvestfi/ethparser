@@ -21,6 +21,8 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
@@ -30,10 +32,14 @@ public class HardWorkController {
 
     private final HardWorkRepository hardWorkRepository;
     private final HardWorkCalculator hardWorkCalculator;
+    private final ContractDbService contractDbService;
 
-    public HardWorkController(HardWorkRepository hardWorkRepository, HardWorkCalculator hardWorkCalculator) {
+    public HardWorkController(HardWorkRepository hardWorkRepository,
+        HardWorkCalculator hardWorkCalculator,
+        ContractDbService contractDbService) {
         this.hardWorkRepository = hardWorkRepository;
         this.hardWorkCalculator = hardWorkCalculator;
+        this.contractDbService = contractDbService;
     }
 
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
@@ -45,13 +51,17 @@ public class HardWorkController {
 
     @RequestMapping(value = "api/transactions/history/hardwork/{name}", method = RequestMethod.GET)
     public List<HardWorkDTO> historyHardWorkByName(
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                .orElseThrow();
+        }
         return hardWorkRepository
-            .findAllByVaultOrderByBlockDate(name, network, parseLong(start, 0),
+            .findAllByVaultOrderByBlockDate(address, network, parseLong(start, 0),
                 parseLong(end, Long.MAX_VALUE));
     }
 
@@ -137,6 +147,10 @@ public class HardWorkController {
                 pages = hardWorkRepository
                     .fetchPages(minAmount, network, PageRequest.of(start, size, sorting));
             } else {
+                if (!vault.startsWith("0x")) {
+                    vault = contractDbService.getAddressByName(vault, ContractType.VAULT, network)
+                        .orElseThrow();
+                }
                 pages = hardWorkRepository
                     .fetchPagesByVault(vault, network, minAmount,
                         PageRequest.of(start, size, sorting));

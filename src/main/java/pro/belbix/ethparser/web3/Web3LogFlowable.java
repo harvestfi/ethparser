@@ -8,7 +8,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import lombok.extern.log4j.Log4j2;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -26,18 +25,22 @@ public class Web3LogFlowable implements Runnable {
   private Integer from;
   private BigInteger lastBlock;
   private final Supplier<List<String>> addressesSupplier;
+  private final Supplier<Long> blockLimitations;
 
   public Web3LogFlowable(
       Supplier<List<String>> addressesSupplier,
       Integer from,
       Web3Functions web3Functions,
       List<BlockingQueue<Web3Model<Log>>> logConsumers,
-      String network) {
+      String network,
+      Supplier<Long> blockLimitations
+  ) {
     this.addressesSupplier = addressesSupplier;
     this.web3Functions = web3Functions;
     this.from = from;
     this.logConsumers = logConsumers;
     this.network = network;
+    this.blockLimitations = blockLimitations;
   }
 
   public void stop() {
@@ -66,8 +69,20 @@ public class Web3LogFlowable implements Runnable {
             to = from + BLOCKS_STEP;
           }
         }
+
+        while (true) {
+          long blockLimit = blockLimitations.get();
+          if (to > blockLimit) {
+            log.info("Log flow wait limit... {} - {} = {}", to, blockLimit, to - blockLimit);
+            Thread.sleep(5000);
+          } else {
+            break;
+          }
+        }
+
         //noinspection rawtypes
-        List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addressesSupplier.get(), from, to, network);
+        List<EthLog.LogResult> logResults = web3Functions
+            .fetchContractLogs(addressesSupplier.get(), from, to, network);
         log.info("Parse {} log from {} to {} on block: {} - {}", network, from, to,
             currentBlock, logResults.size());
         //noinspection rawtypes

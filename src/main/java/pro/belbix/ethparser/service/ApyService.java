@@ -21,34 +21,34 @@ public class ApyService {
         this.rewardsRepository = rewardsRepository;
     }
 
-    public Double averageApyForPool(String pool, int days, String network) {
+    public Double averageApyForPool(String vaultAddress, int days, String network) {
         RewardDTO reward = rewardsRepository
-            .getFirstByVaultAndNetworkOrderByBlockDateDesc(pool, network);
-        RewardDTO cachedReward = lastRewards.get(pool);
+            .getFirstByVaultAddressAndNetworkOrderByBlockDateDesc(vaultAddress, network);
+        RewardDTO cachedReward = lastRewards.get(vaultAddress);
         if (cachedReward != null && reward.getId().equals(cachedReward.getId())) {
-            Double apy = getApyFromCache(pool, days);
+            Double apy = getApyFromCache(vaultAddress, days);
             if (apy != null) {
                 return apy;
             }
         }
-        lastRewards.put(pool, reward);
+        lastRewards.put(vaultAddress, reward);
         List<RewardDTO> rewards = rewardsRepository.fetchRewardsByVaultAfterBlockDate(
-            pool,
+            vaultAddress,
             Instant.now().minus(days, ChronoUnit.DAYS).getEpochSecond(),
             Long.MAX_VALUE,
             network);
         double averageApy = calculateAverageApy(rewards);
-        saveToCache(pool, days, averageApy);
+        saveToCache(vaultAddress, days, averageApy);
         return averageApy;
     }
 
-    private Double getApyFromCache(String pool, int days) {
-        Map<Integer, Double> poolApys = apyCache.get(pool);
-        if (poolApys == null) {
-            apyCache.put(pool, new HashMap<>());
+    private Double getApyFromCache(String address, int days) {
+        Map<Integer, Double> vaultApys = apyCache.get(address);
+        if (vaultApys == null) {
+            apyCache.put(address, new HashMap<>());
             return null;
         }
-        return poolApys.get(days);
+        return vaultApys.get(days);
     }
 
     public static double calculateAverageApy(List<RewardDTO> rewards) {

@@ -49,6 +49,24 @@ public class DoHardWorkEthTest {
     }
 
     @Test
+    public void parse_USDC_V0() {
+        HardWorkDTO dto = assertOnBlock(
+            10772976,
+            "0xc1b16dd8552046d08237d48d243f79308d1069b9f7c52ecf69088398f9dd673e_251",
+            "USDC_V0",
+            "-0.000405",
+            "0.000000",
+            "0.000000"
+        );
+        assertNotNull(dto);
+        hardWorkDbService.enrich(dto);
+        assertAll(
+            () -> assertEquals("Farm buyback sum", "",
+                String.format("%f", dto.getFarmBuybackSum()))
+        );
+    }
+
+    @Test
     public void parseSUSHI_ETH_DAI() {
         HardWorkDTO dto = assertOnBlock(
             12064923,

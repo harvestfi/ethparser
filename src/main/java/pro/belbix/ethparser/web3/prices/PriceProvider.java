@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
@@ -52,7 +53,7 @@ public class PriceProvider {
     String lpName = contractDbService.getNameByAddress(lpAddress, network)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository
-        .fetchLastPrice(lpName, block, network, limitOne))
+        .fetchLastPrice(lpAddress, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
@@ -223,23 +224,28 @@ public class PriceProvider {
 
   //for compatibility with CRV prices without oracle
   private double getPriceForCoinFromEthLegacy(String address, Long block, String network) {
-    String tokenName = contractDbService.getNameByAddress(address, network)
-        .map(n -> ContractUtils.getSimilarAssetForPrice(n, network))
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + address));
-    String similarAdr = contractDbService.getAddressByName(tokenName, ContractType.TOKEN, network)
-        .orElseThrow();
-    if (ContractUtils.isStableCoin(similarAdr)) {
+    if (ContractUtils.isStableCoin(address)) {
       return 1.0;
     }
-    if (contractDbService.getContractByAddress(similarAdr, network)
+
+    if (contractDbService.getContractByAddress(address, network)
         .filter(c -> c.getCreated() < block)
         .isEmpty()) {
       return 0.0;
     }
     String lpHash = contractDbService
-        .findPairByToken(similarAdr, block, network)
+        .findPairByToken(address, block, network)
         .map(p -> p.getUniPair().getContract().getAddress())
-        .orElseThrow(() -> new IllegalStateException("Not found pair for " + address));
+        .orElse(null);
+
+    if (lpHash == null) {
+      String similarToken = tryToFindSimilarToken(address, block, network);
+      if (similarToken.isBlank()) {
+        log.error("Not found similar token for {}, use 1$ price", address);
+        return 1;
+      }
+      return getPriceForCoinFromEthLegacy(similarToken, block, network);
+    }
 
     Tuple2<Double, Double> reserves = functionsUtils
         .callReserves(lpHash, block, network);
@@ -248,7 +254,7 @@ public class PriceProvider {
       return 0.0;
     }
     double price;
-    if (isDivisionSequenceSecondDividesFirst(lpHash, similarAdr, network)) {
+    if (isDivisionSequenceSecondDividesFirst(lpHash, address, network)) {
       price = reserves.component2() / reserves.component1();
     } else {
       price = reserves.component1() / reserves.component2();
@@ -257,16 +263,35 @@ public class PriceProvider {
     Tuple2<String, String> lpTokenAdr = contractDbService
         .tokenAddressesByUniPairAddress(lpHash, network);
     String otherTokenAddress;
-    if (lpTokenAdr.component1().equalsIgnoreCase(similarAdr)) {
+    if (lpTokenAdr.component1().equalsIgnoreCase(address)) {
       otherTokenAddress = lpTokenAdr.component2();
-    } else if (lpTokenAdr.component2().equalsIgnoreCase(similarAdr)) {
+    } else if (lpTokenAdr.component2().equalsIgnoreCase(address)) {
       otherTokenAddress = lpTokenAdr.component1();
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }
     price *= getPriceForCoin(otherTokenAddress, block, network);
-    log.info("Price {} fetched {} on block {}", tokenName, price, block);
+    log.info("Price {} fetched {} on block {}", address, price, block);
     return price;
+  }
+
+  //todo replace to Curve/Ellipses token determination
+  private String tryToFindSimilarToken(String address, Long block, String network) {
+    String tokenName = functionsUtils.callStrByName(NAME, address, block, network)
+        .orElse("").toUpperCase();
+    if (tokenName.contains("BTC")) {
+      return ContractUtils.getBtcAddress(network);
+    } else if (tokenName.contains("ETH")) {
+      return ContractUtils.getEthAddress(network);
+    } else if (
+        tokenName.contains("USD")
+        || tokenName.contains("EUR")
+        || tokenName.contains("UST")
+        || tokenName.contains("DAI")
+    ) {
+      ContractUtils.getUsdAddress(network);
+    }
+    return "";
   }
 
   private boolean hasFreshPrice(String address, long block) {

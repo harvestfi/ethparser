@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,6 +25,8 @@ import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 
 @RestController
@@ -39,13 +40,16 @@ public class CSVController {
     private final RewardsRepository rewardsRepository;
     private final HardWorkRepository hardWorkRepository;
     private final HarvestTvlDBService harvestTvlDBService;
+    private final ContractDbService contractDbService;
 
     public CSVController(HarvestRepository harvestRepository, RewardsRepository rewardsRepository,
-        HardWorkRepository hardWorkRepository, HarvestTvlDBService harvestTvlDBService) {
+        HardWorkRepository hardWorkRepository, HarvestTvlDBService harvestTvlDBService,
+        ContractDbService contractDbService) {
         this.harvestRepository = harvestRepository;
         this.rewardsRepository = rewardsRepository;
         this.hardWorkRepository = hardWorkRepository;
         this.harvestTvlDBService = harvestTvlDBService;
+        this.contractDbService = contractDbService;
     }
 
     @RequestMapping(
@@ -54,15 +58,19 @@ public class CSVController {
     )
     public void harvestHistoryDataForVault(
         HttpServletResponse response,
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
+            if (!address.startsWith("0x")) {
+                address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                    .orElseThrow();
+            }
             List<HarvestDTO> transactions = harvestRepository
                 .findAllByVaultOrderByBlockDate(
-                    name, parseLong(start, 0),
+                    address, parseLong(start, 0),
                     parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, HarvestDTO.class);
         } catch (Exception e) {
@@ -76,14 +84,18 @@ public class CSVController {
     )
     public void rewardHistoryDataForVault(
         HttpServletResponse response,
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
+            if (!address.startsWith("0x")) {
+                address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                    .orElseThrow();
+            }
             List<RewardDTO> transactions = rewardsRepository
-                .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+                .getAllByVaultOrderByBlockDate(address, parseLong(start, 0),
                     parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, RewardDTO.class);
         } catch (Exception e) {
@@ -103,6 +115,10 @@ public class CSVController {
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
+            if (!name.startsWith("0x")) {
+                name = contractDbService.getAddressByName(name, ContractType.VAULT, network)
+                    .orElseThrow();
+            }
             List<HardWorkDTO> transactions = hardWorkRepository
                 .findAllByVaultOrderByBlockDate(
                     name, network,
@@ -120,14 +136,18 @@ public class CSVController {
     )
     public void tvlHistoryDataForVault(
         HttpServletResponse response,
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         try {
+            if (!address.startsWith("0x")) {
+                address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                    .orElseThrow();
+            }
             List<TvlHistory> transactions = harvestTvlDBService
-                .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
+                .fetchTvlByVault(address, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
             writeCSV(response, transactions, TvlHistory.class);
         } catch (Exception e) {
             log.error("Error while converting to CSV Rewards", e);

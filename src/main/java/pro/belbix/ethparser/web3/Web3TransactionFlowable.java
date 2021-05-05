@@ -24,6 +24,7 @@ public class Web3TransactionFlowable implements Runnable {
   private final String network;
   private Integer from;
   private BigInteger lastBlock;
+  private int lastParsedBlock = Integer.MAX_VALUE;
 
   public Web3TransactionFlowable(
       Integer from,
@@ -73,6 +74,7 @@ public class Web3TransactionFlowable implements Runnable {
                     })
                 )
             );
+        lastParsedBlock = to;
         log.info("Parse {} transactions from {} to {} on block: {} - {}",
             network, from, to, currentBlock, counter.get());
         from = to + 1;
@@ -91,5 +93,9 @@ public class Web3TransactionFlowable implements Runnable {
     } catch (Exception e) {
       log.error("Error write in queue", e);
     }
+  }
+
+  public int getLastParsedBlock() {
+    return lastParsedBlock;
   }
 }

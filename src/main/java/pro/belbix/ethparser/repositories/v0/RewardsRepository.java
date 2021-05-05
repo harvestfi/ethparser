@@ -8,7 +8,7 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 
 public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
 
-    RewardDTO getFirstByVaultAndNetworkOrderByBlockDateDesc(String vault, String network);
+    RewardDTO getFirstByVaultAddressAndNetworkOrderByBlockDateDesc(String vaultAddress, String network);
 
     @Query("select t from RewardDTO t where "
         + "t.blockDate between :from and :to "
@@ -21,24 +21,24 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     );
 
     @Query("select t from RewardDTO t where "
-        + "t.vault = :vault "
+        + "t.vaultAddress = :vault "
         + "and t.blockDate between :startDate and :endDate "
         + "and t.network = :network")
     List<RewardDTO> fetchRewardsByVaultAfterBlockDate(
-        @Param("vault") String vault,
+        @Param("vault") String vaultAddress,
         @Param("startDate") long startDate,
         @Param("endDate") long endDate,
         @Param("network") String network
     );
 
     @Query(nativeQuery = true, value = "" +
-        "select distinct on (vault) "
+        "select distinct on (vault_address) "
         + "       last_value(id) over w            as id, "
         + "       last_value(block) over w         as block, "
         + "       last_value(block_date) over w    as block_date, "
         + "       last_value(network) over w       as network, "
-        + "       vault, "
-        + "       last_value(vault_address) over w as vault_address, "
+        + "       vault_address, "
+        + "       last_value(vault) over w         as vault, "
         + "       last_value(reward) over w        as reward, "
         + "       last_value(apy) over w           as apy, "
         + "       last_value(tvl) over w           as tvl, "
@@ -48,16 +48,16 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         + "       last_value(is_weekly_reward) over w as is_weekly_reward "
         + " "
         + "from rewards where network = :network "
-        + "    window w as (PARTITION BY vault order by block_date desc)")
+        + "    window w as (PARTITION BY vault_address order by block_date desc)")
     List<RewardDTO> fetchLastRewards(@Param("network") String network);
 
     @Query("select t from RewardDTO t where "
-        + "t.vault = :vault "
+        + "t.vaultAddress = :vault "
         + "and t.blockDate between :startTime and :endTime "
         + "and t.network = :network "
         + "order by t.blockDate")
     List<RewardDTO> getAllByVaultOrderByBlockDate(
-        @Param("vault") String vault,
+        @Param("vault") String vaultAddress,
         @Param("startTime") long startTime,
         @Param("endTime") long endTime,
         @Param("network") String network

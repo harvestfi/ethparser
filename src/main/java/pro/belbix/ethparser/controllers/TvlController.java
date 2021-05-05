@@ -13,6 +13,8 @@ import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.TvlHistory;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
@@ -20,22 +22,29 @@ public class TvlController {
 
     private final HarvestTvlDBService harvestTvlDBService;
     private final HarvestTvlRepository harvestTvlRepository;
+    private final ContractDbService contractDbService;
 
     public TvlController(HarvestTvlDBService harvestTvlDBService,
-                         HarvestTvlRepository harvestTvlRepository) {
+        HarvestTvlRepository harvestTvlRepository,
+        ContractDbService contractDbService) {
         this.harvestTvlDBService = harvestTvlDBService;
         this.harvestTvlRepository = harvestTvlRepository;
+        this.contractDbService = contractDbService;
     }
 
     @RequestMapping(value = "api/transactions/history/tvl/{name}", method = RequestMethod.GET)
     public Iterable<TvlHistory> tvlHistoryByVault(
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                .orElseThrow();
+        }
         return harvestTvlDBService
-            .fetchTvlByVault(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
+            .fetchTvlByVault(address, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
     }
 
     @RequestMapping(value = "api/transactions/history/alltvl", method = RequestMethod.GET)

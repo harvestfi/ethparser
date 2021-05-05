@@ -30,6 +30,7 @@ public class DeployerDbService {
 
   public Integer getLastBlock(String network) {
     DeployerDTO dto = deployerRepository.findFirstByNetworkOrderByBlockDesc(network);
+    log.info("Last deployer dto {}", dto);
     if (dto == null) {
       return ContractUtils.getStartBlock(network);
     }

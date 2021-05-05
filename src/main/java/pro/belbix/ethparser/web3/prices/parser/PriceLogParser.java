@@ -83,7 +83,7 @@ public class PriceLogParser implements Web3Parser {
         try {
           ethLog = logs.poll(1, TimeUnit.SECONDS);
           count++;
-          if (count % 100 == 0) {
+          if (count % 10_000 == 0) {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
           if (ethLog == null

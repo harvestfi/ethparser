@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository.UserBalance;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
@@ -22,11 +24,14 @@ public class HarvestController {
 
     private final HarvestRepository harvestRepository;
     private final VaultActionsDBService vaultActionsDBService;
+    private final ContractDbService contractDbService;
 
     public HarvestController(HarvestRepository harvestRepository,
-                             VaultActionsDBService vaultActionsDBService) {
+        VaultActionsDBService vaultActionsDBService,
+        ContractDbService contractDbService) {
         this.harvestRepository = harvestRepository;
         this.vaultActionsDBService = vaultActionsDBService;
+        this.contractDbService = contractDbService;
     }
 
     @RequestMapping(value = "api/transactions/last/harvest", method = RequestMethod.GET)
@@ -38,12 +43,16 @@ public class HarvestController {
 
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryDataForVault(
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return harvestRepository.findAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                .orElseThrow();
+        }
+        return harvestRepository.findAllByVaultOrderByBlockDate(address, parseLong(start, 0),
             parseLong(end, Long.MAX_VALUE), network);
     }
 

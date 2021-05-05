@@ -148,10 +148,10 @@ public class HardWorkParser implements Web3Parser {
     }
     String vaultName = contractDbService.getNameByAddress(tx.getVault(), network)
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
-    if (vaultName.endsWith("_V0")) {
-      // skip old strategies
-      return null;
-    }
+//    if (vaultName.endsWith("_V0")) {
+//      // skip old strategies
+//      return null;
+//    }
     HardWorkDTO dto = new HardWorkDTO();
     dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
@@ -234,10 +234,10 @@ public class HardWorkParser implements Web3Parser {
         functionsUtils
             .callIntByName(
                 PROFITSHARING_DENOMINATOR, strategyHash, dto.getBlock(), network)
-            .orElseThrow(() -> new IllegalStateException(
-                "Error get profitSharingDenominator from " + strategyHash))
+            .orElse(BigInteger.ZERO)
             .doubleValue();
-    double profitSharingRate = 0.0;
+    // old strategies don't have denominator, but all have 0.3 rate
+    Double profitSharingRate = null;
     if (profitSharingDenominator > 0) {
       double profitSharingNumerator =
           functionsUtils
@@ -304,12 +304,13 @@ public class HardWorkParser implements Web3Parser {
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
         double fullReward = (reward * dto.getFarmPrice())
-            / (1 - requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
+            / (1 - requireNonNullElse(dto.getProfitSharingRate(),
+            defaultPsDenominator(network))); // full reward
         dto.setFullRewardUsd(fullReward);
       } else {
         double farmBuybackMultiplier =
-            (1 - requireNonNullElse(dto.getProfitSharingRate(), 0.3))
-                / requireNonNullElse(dto.getProfitSharingRate(), 0.3)
+            (1 - requireNonNullElse(dto.getProfitSharingRate(), defaultPsDenominator(network)))
+                / requireNonNullElse(dto.getProfitSharingRate(), defaultPsDenominator(network))
                 * dto.getBuyBackRate();
 
         // PS pool reward
@@ -319,11 +320,20 @@ public class HardWorkParser implements Web3Parser {
         // just calculate aprox value based on PS reward
         if (!autoStake) {
           double fullReward = ((reward * dto.getFarmPrice())
-              / requireNonNullElse(dto.getProfitSharingRate(), 0.3)); // full reward
+              / requireNonNullElse(dto.getProfitSharingRate(),
+              defaultPsDenominator(network))); // full reward
           dto.setFullRewardUsd(fullReward);
         }
       }
 
+    }
+  }
+
+  private double defaultPsDenominator(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return 0.3;
+    } else {
+      return 0.08;
     }
   }
 
