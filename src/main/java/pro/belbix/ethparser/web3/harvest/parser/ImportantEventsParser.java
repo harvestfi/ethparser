@@ -72,7 +72,7 @@ public class ImportantEventsParser implements Web3Parser {
   @Override
   public void startParse() {
     log.info("Start parse Important Events logs");
-    web3Subscriber.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
     parserInfo.addParser(this);
     new Thread(() -> {
       while (run.get()) {

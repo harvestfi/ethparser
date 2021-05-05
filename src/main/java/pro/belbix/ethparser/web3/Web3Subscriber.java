@@ -45,7 +45,7 @@ public class Web3Subscriber {
   private final DeployerDbService deployerDbService;
 
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers = new ArrayList<>();
-  private final List<BlockingQueue<Web3Model<Log>>> logConsumers = new ArrayList<>();
+  private final Map<String, BlockingQueue<Web3Model<Log>>> logConsumers = new HashMap<>();
   private final List<BlockingQueue<Web3Model<EthBlock>>> blockConsumers = new ArrayList<>();
   private final Map<String, Disposable> subscriptions = new HashMap<>();
 
@@ -194,8 +194,8 @@ public class Web3Subscriber {
     transactionConsumers.add(queue);
   }
 
-  public void subscribeOnLogs(BlockingQueue<Web3Model<Log>> queue) {
-    logConsumers.add(queue);
+  public void subscribeOnLogs(BlockingQueue<Web3Model<Log>> queue, String name) {
+    logConsumers.put(name, queue);
   }
 
   public void subscribeOnBlocks(BlockingQueue<Web3Model<EthBlock>> queue) {

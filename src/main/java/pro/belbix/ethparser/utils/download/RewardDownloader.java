@@ -57,7 +57,7 @@ public class RewardDownloader {
   }
 
   public void start() {
-    if (vaultNames != null) {
+    if (vaultNames != null && vaultNames.length != 0) {
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
               Arrays.stream(vaultNames)

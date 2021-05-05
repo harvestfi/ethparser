@@ -126,50 +126,10 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         @Param("startTime") long startTime,
         @Param("endTime") long endTime);
 
-    // excellent explanation https://stackoverflow.com/a/7630564/6537367
     @Query(nativeQuery = true, value = "" +
-        "select distinct on (vault_address) "
-        + "    last_value(id) over w                    as id, "
-        + "    vault_address, "
-        + "    last_value(vault) over w                 as vault, "
-        + "    last_value(block) over w                 as block, "
-        + "    last_value(block_date) over w            as block_date, "
-        + "    last_value(network) over w               as network, "
-        + "    last_value(share_change) over w          as share_change, "
-        + "    last_value(full_reward_usd) over w       as full_reward_usd, "
-        + "    last_value(full_reward_usd_total) over w as full_reward_usd_total, "
-        + "    last_value(tvl) over w                   as tvl, "
-        + "    last_value(all_profit) over w            as all_profit, "
-        + "    last_value(period_of_work) over w        as period_of_work, "
-        + "    last_value(ps_period_of_work) over w     as ps_period_of_work, "
-        + "    last_value(perc) over w                  as perc, "
-        + "    last_value(ps_tvl_usd) over w            as ps_tvl_usd, "
-        + "    last_value(ps_apr) over w                as ps_apr, "
-        + "    last_value(apr) over w                   as apr, "
-        + "    last_value(weekly_profit) over w         as weekly_profit, "
-        + "    last_value(weekly_all_profit) over w     as weekly_all_profit, "
-        + "    last_value(farm_buyback) over w          as farm_buyback, "
-        + "    last_value(farm_buyback_sum) over w      as farm_buyback_sum, "
-        + "    last_value(calls_quantity) over w        as calls_quantity, "
-        + "    last_value(pool_users) over w            as pool_users, "
-        + "    last_value(saved_gas_fees) over w        as saved_gas_fees, "
-        + "    last_value(saved_gas_fees_sum) over w    as saved_gas_fees_sum, "
-        + "    last_value(fee) over w                   as fee, "
-        + "    last_value(weekly_average_tvl) over w    as weekly_average_tvl, "
-        + "    last_value(farm_buyback_eth) over w      as farm_buyback_eth, "
-        + "    last_value(fee_eth) over w               as fee_eth, "
-        + "    last_value(gas_used) over w              as gas_used, "
-        + "    last_value(idle_time) over w             as idle_time, "
-        + "    last_value(invested) over w              as invested, "
-        + "    last_value(investment_target) over w     as investment_target, "
-        + "    last_value(farm_price) over w            as farm_price, "
-        + "    last_value(eth_price) over w             as eth_price, "
-        + "    last_value(buy_back_rate) over w             as buy_back_rate, "
-        + "    last_value(profit_sharing_rate) over w             as profit_sharing_rate, "
-        + "    last_value(auto_stake) over w             as auto_stake "
-        + "from hard_work where network = :network "
-        + "    window w as (PARTITION BY vault_address order by block_date desc) "
-        + "order by vault_address")
+        "select distinct on (vault_address) * from hard_work "
+        + "where network = :network "
+        + "order by vault_address, block_date desc")
     List<HardWorkDTO> fetchLatest(@Param("network") String network);
 
     @Query(nativeQuery = true, value = ""

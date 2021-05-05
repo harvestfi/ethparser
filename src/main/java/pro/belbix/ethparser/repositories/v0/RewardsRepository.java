@@ -32,23 +32,9 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     );
 
     @Query(nativeQuery = true, value = "" +
-        "select distinct on (vault_address) "
-        + "       last_value(id) over w            as id, "
-        + "       last_value(block) over w         as block, "
-        + "       last_value(block_date) over w    as block_date, "
-        + "       last_value(network) over w       as network, "
-        + "       vault_address, "
-        + "       last_value(vault) over w         as vault, "
-        + "       last_value(reward) over w        as reward, "
-        + "       last_value(apy) over w           as apy, "
-        + "       last_value(tvl) over w           as tvl, "
-        + "       last_value(farm_balance) over w  as farm_balance, "
-        + "       last_value(weekly_apy) over w    as weekly_apy, "
-        + "       last_value(period_finish) over w as period_finish, "
-        + "       last_value(is_weekly_reward) over w as is_weekly_reward "
-        + " "
-        + "from rewards where network = :network "
-        + "    window w as (PARTITION BY vault_address order by block_date desc)")
+        "select distinct on (vault_address) * from rewards "
+        + "where network = :network "
+        + "order by vault_address, block_date desc")
     List<RewardDTO> fetchLastRewards(@Param("network") String network);
 
     @Query("select t from RewardDTO t where "

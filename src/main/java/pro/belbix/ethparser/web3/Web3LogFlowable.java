@@ -4,6 +4,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -20,7 +22,7 @@ public class Web3LogFlowable implements Runnable {
   public static final int WAIT_BETWEEN_BLOCKS = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
-  private final List<BlockingQueue<Web3Model<Log>>> logConsumers;
+  private final Map<String, BlockingQueue<Web3Model<Log>>> logConsumers;
   private final String network;
   private Integer from;
   private BigInteger lastBlock;
@@ -31,7 +33,7 @@ public class Web3LogFlowable implements Runnable {
       Supplier<List<String>> addressesSupplier,
       Integer from,
       Web3Functions web3Functions,
-      List<BlockingQueue<Web3Model<Log>>> logConsumers,
+      Map<String, BlockingQueue<Web3Model<Log>>> logConsumers,
       String network,
       Supplier<Long> blockLimitations
   ) {
@@ -91,8 +93,8 @@ public class Web3LogFlowable implements Runnable {
           if (ethLog == null) {
             continue;
           }
-          for (BlockingQueue<Web3Model<Log>> queue : logConsumers) {
-            writeInQueue(queue, ethLog, logConsumers.size());
+          for (Entry<String, BlockingQueue<Web3Model<Log>>> queue : logConsumers.entrySet()) {
+            writeInQueue(queue.getValue(), queue.getKey(), ethLog, logConsumers.size());
           }
         }
         from = to + 1;
@@ -102,12 +104,13 @@ public class Web3LogFlowable implements Runnable {
     }
   }
 
-  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o, int queues) {
+  private <T> void writeInQueue(
+      BlockingQueue<Web3Model<T>> queue, String name, T o, int queues) {
     try {
       Web3Model<T> model = new Web3Model<>(o, network);
       while (!queue.offer(model, 15, SECONDS)) {
-        log.warn("The queue is full for logs, size {}. All queues this type {}",
-            queue.size(), queues);
+        log.warn("The queue is full for {}, size {}. All queues this type {}",
+            name, queue.size(), queues);
       }
     } catch (Exception e) {
       log.error("Error write in queue", e);

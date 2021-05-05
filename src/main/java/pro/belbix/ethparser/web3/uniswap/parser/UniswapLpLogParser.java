@@ -83,7 +83,7 @@ public class UniswapLpLogParser implements Web3Parser {
   public void startParse() {
     log.info("Start parse Uniswap logs");
     parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs);
+    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
     new Thread(() -> {
       while (run.get()) {
         Web3Model<Log> ethLog = null;

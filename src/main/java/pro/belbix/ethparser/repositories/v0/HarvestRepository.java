@@ -172,39 +172,9 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     );
 
     @Query(nativeQuery = true, value = "" +
-        "select distinct on (vault_address) "
-        + "    last_value(id) over w                     as id, "
-        + "    last_value(hash) over w                   as hash, "
-        + "    last_value(block) over w                  as block, "
-        + "    last_value(confirmed) over w              as confirmed, "
-        + "    last_value(block_date) over w             as block_date, "
-        + "    last_value(method_name) over w            as method_name, "
-        + "    last_value(owner) over w                  as owner, "
-        + "    last_value(amount) over w                 as amount, "
-        + "    last_value(amount_in) over w              as amount_in, "
-        + "    vault_address, "
-        + "    last_value(vault) over w                  as vault, "
-        + "    last_value(last_gas) over w               as last_gas, "
-        + "    last_value(last_tvl) over w               as last_tvl, "
-        + "    last_value(last_usd_tvl) over w           as last_usd_tvl, "
-        + "    last_value(owner_count) over w            as owner_count, "
-        + "    last_value(share_price) over w            as share_price, "
-        + "    last_value(usd_amount) over w             as usd_amount, "
-        + "    last_value(prices) over w                 as prices, "
-        + "    last_value(lp_stat) over w                as lp_stat, "
-        + "    last_value(owner_balance) over w          as owner_balance, "
-        + "    last_value(owner_balance_usd) over w      as owner_balance_usd, "
-        + "    last_value(all_owners_count) over w       as all_owners_count, "
-        + "    last_value(last_all_usd_tvl) over w       as last_all_usd_tvl, "
-        + "    last_value(underlying_price) over w       as underlying_price, "
-        + "    last_value(profit) over w                 as profit, "
-        + "    last_value(profit_usd) over w             as profit_usd, "
-        + "    last_value(total_amount) over w           as total_amount, "
-        + "    last_value(all_pools_owners_count) over w as all_pools_owners_count, "
-        + "    last_value(migrated) over w               as migrated, "
-        + "    last_value(network) over w                as network "
-        + "from harvest_tx where network = :network "
-        + "    window w as (PARTITION BY vault_address order by block_date desc)")
+        "select distinct on (vault_address) * from harvest_tx "
+        + "where network = :network "
+        + "order by vault_address, block_date desc")
     List<HarvestDTO> fetchLastTvl(@Param("network") String network);
 
     @Query("select t from HarvestDTO t where "
