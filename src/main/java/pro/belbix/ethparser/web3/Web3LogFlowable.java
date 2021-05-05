@@ -92,7 +92,7 @@ public class Web3LogFlowable implements Runnable {
             continue;
           }
           for (BlockingQueue<Web3Model<Log>> queue : logConsumers) {
-            writeInQueue(queue, ethLog);
+            writeInQueue(queue, ethLog, logConsumers.size());
           }
         }
         from = to + 1;
@@ -102,11 +102,12 @@ public class Web3LogFlowable implements Runnable {
     }
   }
 
-  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o) {
+  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o, int queues) {
     try {
       Web3Model<T> model = new Web3Model<>(o, network);
-      while (!queue.offer(model, 60, SECONDS)) {
-        log.warn("The queue is full for {}", o.getClass().getSimpleName());
+      while (!queue.offer(model, 15, SECONDS)) {
+        log.warn("The queue is full for logs, size {}. All queues this type {}",
+            queue.size(), queues);
       }
     } catch (Exception e) {
       log.error("Error write in queue", e);

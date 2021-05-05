@@ -61,7 +61,7 @@ public class DoHardWorkEthTest {
         assertNotNull(dto);
         hardWorkDbService.enrich(dto);
         assertAll(
-            () -> assertEquals("Farm buyback sum", "",
+            () -> assertEquals("Farm buyback sum", "0.000000",
                 String.format("%f", dto.getFarmBuybackSum()))
         );
     }

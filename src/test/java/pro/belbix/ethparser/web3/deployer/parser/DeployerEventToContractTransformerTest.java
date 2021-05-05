@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
@@ -28,8 +29,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_SUSHI_MIC_USDT() {
     String address = "0x6f14165c6d529ea3bfe1814d0998449e9c8d157d";
     long block = 11608458;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(5, contracts.size());
@@ -37,7 +39,9 @@ class DeployerEventToContractTransformerTest {
     assertAll(
         () -> assertEquals("SUSHI_MIC_USDT", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
-        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
     );
   }
 
@@ -45,8 +49,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_USDC() {
     String address = "0xf0358e8c3cd5fa238a29301d0bea3d63a17bedbe";
     long block = 11086843;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(3, contracts.size());
@@ -57,17 +62,23 @@ class DeployerEventToContractTransformerTest {
         () -> assertEquals("USDC", vault.getName(), "vault name"),
         () -> assertEquals(address, vault.getAddress(), "vault address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "vault created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type"),
 
         () -> assertEquals("USDC", token.getName(), "token name"),
         () -> assertEquals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
             token.getAddress(), "token address"),
         () -> assertEquals(block, token.getCreatedOnBlock(), "token created"),
         () -> assertEquals(block, (long) token.getLps().get(lp.getAddress()), "token lp"),
+        () -> assertEquals(network, token.getNetwork(), "token network"),
+        () -> assertEquals(ContractType.TOKEN, token.getContractType(), "token contract type"),
 
         () -> assertEquals("UNI_LP_USDC_WETH", lp.getName(), "lp name"),
         () -> assertEquals("0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc",
             lp.getAddress(), "lp address"),
-        () -> assertEquals(block, token.getCreatedOnBlock(), "lp created")
+        () -> assertEquals(block, lp.getCreatedOnBlock(), "lp created"),
+        () -> assertEquals(network, lp.getNetwork(), "lp network"),
+        () -> assertEquals(ContractType.UNI_PAIR, lp.getContractType(), "lp contract type")
     );
   }
 
@@ -75,20 +86,21 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_CRV_TBTC() {
     String address = "0x640704d106e79e105fda424f05467f005418f1b5";
     long block = 11230946;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(2, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(1);
+    assertEquals(4, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(3);
     TokenContract token = (TokenContract) contracts.get(0);
     assertAll(
         () -> assertEquals("CRV_TBTC_SBTC", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
-        () -> assertEquals("tbtc/sbtcCrv", token.getName(), "token name"),
-        () -> assertEquals("0x64eda51d3ad40d56b9dfc5554e06f94e1dd786fd",
+        () -> assertEquals("TBTC", token.getName(), "token name"),
+        () -> assertEquals("0x8daebade922df735c38c80c7ebd708af50815faa",
             token.getAddress(), "token address"),
         () -> assertEquals(block, token.getCreatedOnBlock(), "token created")
     );
@@ -98,8 +110,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_YCRV() {
     String address = "0x0fe4283e0216f94f5f9750a7a11ac54d3c9c38f3";
     long block = 11152259;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(3, contracts.size());
@@ -121,8 +134,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_1INCH_ETH_DAI() {
     String address = "0x8e53031462e930827a8d482e7d80603b1f86e32d";
     long block = 11647788;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(3, contracts.size());
@@ -151,8 +165,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_ST_MASK20_ETH() {
     String address = "0xc5fc56779b5925218d2cdac093d0bfc6de7cc2d1";
     long block = 12044260;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(5, contracts.size());
@@ -194,8 +209,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_PS_V0() {
     String address = "0xae024f29c26d6f71ec71658b1980189956b0546d";
     long block = 10770203;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(2, contracts.size());
@@ -211,8 +227,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_BPT() {
     String address = "0x158edb94d0bfc093952fb3009deeed613042907c";
     long block = 10816127;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(5, contracts.size());
@@ -228,8 +245,9 @@ class DeployerEventToContractTransformerTest {
   public void testCreateVault_ST_UNI_DAI_fDAI() {
     String address = "0xb492faeda6c9ffb9b9854a58f28d5333ff7a11bc";
     long block = 10817095;
+    String network = ETH_NETWORK;
 
-    DeployerDTO dto = createDeployerDto(address, block);
+    DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
     assertEquals(5, contracts.size());
@@ -241,11 +259,11 @@ class DeployerEventToContractTransformerTest {
     );
   }
 
-  private DeployerDTO createDeployerDto(String toAddress, long block) {
+  private DeployerDTO createDeployerDto(String toAddress, long block, String network) {
     return DeployerDTO.builder()
         .type(CONTRACT_CREATION.name())
         .toAddress(toAddress)
-        .network(ETH_NETWORK)
+        .network(network)
         .block(block)
         .build();
   }

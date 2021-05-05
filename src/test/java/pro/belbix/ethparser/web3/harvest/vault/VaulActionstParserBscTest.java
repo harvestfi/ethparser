@@ -176,7 +176,7 @@ public class VaulActionstParserBscTest {
         .lastTvl(1535.5432734372898)
         .lastUsdTvl(7240.0)
         .ownerBalance(1535.5432734372898)
-        .ownerBalanceUsd(3619.6440326107777)
+        .ownerBalanceUsd(7239.288065221555)
         .sharePrice(1.)
         .lpStat(null)
         .ownerCount(1)

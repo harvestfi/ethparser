@@ -4,9 +4,9 @@ import static java.math.BigInteger.ZERO;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -66,9 +66,10 @@ public class FunctionsUtils {
       String lpAddress,
       Long block,
       String network) {
-    if (contractDbService.findLpByAddress(lpAddress, network)
-        .filter(lp -> lp.getType() == PAIR_TYPE_ONEINCHE)
-        .isPresent()) {
+
+    String lpName = callStrByName(NAME, lpAddress, block, network).orElse("");
+
+    if (lpName.startsWith("1inch")) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
       return callUniReserves(lpAddress, block, network);
@@ -81,21 +82,21 @@ public class FunctionsUtils {
     String coin1 = callAddressByName(TOKEN1, lpAddress, block, network)
         .orElseThrow(() -> new IllegalStateException("Error get token1 for " + lpAddress));
 
-    double coin0Balance = 0;
-    double coin1Balance = 0;
+    double coin0Balance = contractDbService.parseAmount(
+        callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin0, block, network)
+            .orElse(ZERO), coin0, network);
+    double coin1Balance = contractDbService.parseAmount(
+        callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin1, block, network)
+            .orElse(ZERO), coin1, network);
     String baseAdr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
     double baseBalance = contractDbService.parseAmount(
         web3Functions.fetchBalance(lpAddress, block, network), baseAdr, network);
-    if (!ZERO_ADDRESS.equals(coin0)) {
-      coin0Balance = contractDbService.parseAmount(
-          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin0, block, network)
-              .orElse(ZERO), coin0, network);
-      coin1Balance = baseBalance;
-    } else if (!ZERO_ADDRESS.equals(coin1)) {
-      coin1Balance = contractDbService.parseAmount(
-          callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin1, block, network)
-              .orElse(ZERO), coin1, network);
-      coin0Balance = baseBalance;
+    if(coin0Balance == 0 || coin1Balance == 0) {
+      if (ZERO_ADDRESS.equals(coin0)) {
+        coin0Balance = baseBalance;
+      } else if (ZERO_ADDRESS.equals(coin1)) {
+        coin1Balance = baseBalance;
+      }
     }
     return new Tuple2<>(coin0Balance, coin1Balance);
   }

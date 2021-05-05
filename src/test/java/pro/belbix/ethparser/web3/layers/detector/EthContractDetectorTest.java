@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pro.belbix.ethparser.TestUtils.assertTwoArrays;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ class EthContractDetectorTest {
             "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
             "0x6b175474e89094c44da98b954eedeac495271d0f".toLowerCase(),
             "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(),
-            "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase(),
+            FARM_TOKEN,
             "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase(),
             "0x0000000000085d4780b73119b644ae5ecd22b376".toLowerCase(),
             "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),

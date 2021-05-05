@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -42,7 +45,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldNotParseDoHardWork_iPS() {
         harvestVaultParseTestNull(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             12225574,
             2);
     }
@@ -50,7 +53,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldParseWithdraw_iPS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             12090189,
             LOG_ID,
             "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
@@ -72,7 +75,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldNotParseDeposit_iPS() {
         harvestVaultParseTestNull(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             12090189,
             2
         );
@@ -148,7 +151,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVault_iPS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             11857842,
             LOG_ID,
             "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
@@ -293,7 +296,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVault_PS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             11800579,
             LOG_ID,
             "0x3fded1ff35d93fea43c9f8e5dea1a392d5d691c8",
@@ -391,8 +394,8 @@ public class VaultActionsParserEthTest {
             "18805,20616001",
             "",
             "",
-            18805L,
-            44777L,
+            18774L,
+            44704L,
             true
         );
         assertNotNull(dto);
@@ -1080,7 +1083,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS_V0() {
         harvestVaultParseTest(
-            "0x59258F4e15A5fC74A7284055A8094F58108dbD4f",
+            PS_V0_ADDRESS,
             10798055,
             LOG_ID,
             "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
@@ -1104,7 +1107,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS2() {
         harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             11262684,
             LOG_ID,
             "0xad77e73a9fd5d002bd1d043e6a4c6a456c9524fb",
@@ -1123,7 +1126,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS() {
         harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             10964982,
             LOG_ID,
             "0x640236965becf920a70a5dcd44b5c9c18f283095",
@@ -1532,8 +1535,8 @@ public class VaultActionsParserEthTest {
             "1,02540908",
             "1,02579537",
             "0",
-            14366L,
-            10786356L,
+            14342L,
+            10768363L,
             true
         );
     }
@@ -1551,8 +1554,8 @@ public class VaultActionsParserEthTest {
             "0,00000981",
             "0,00000981",
             "0",
-            22232L,
-            2661180L,
+            22502L,
+            2693526L,
             true
         );
     }

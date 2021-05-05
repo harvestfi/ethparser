@@ -11,6 +11,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.util.Map.Entry;
@@ -22,8 +23,8 @@ public class ContractUtils {
   }
 
   public static String getPsPool(String address) {
-    if ("0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equalsIgnoreCase(address)) {
-      return "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase();
+    if (PS_V0_ADDRESS.equalsIgnoreCase(address)) {
+      return PS_V0_ADDRESS.toLowerCase();
     }
     return "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase();
   }
@@ -90,71 +91,6 @@ public class ContractUtils {
     return "";
   }
 
-  public static String getSimilarAssetForPrice(String name, String network) {
-    if (ETH_NETWORK.equals(network)) {
-      return getSimilarAssetForPriceEth(name);
-    } else if (BSC_NETWORK.equals(network)) {
-      return getSimilarActiveForPriceBsc(name);
-    }
-    return name;
-  }
-
-  private static String getSimilarAssetForPriceEth(String name) {
-    name = name.replaceFirst("_V0", "");
-    switch (name) {
-      case "CRV_STETH":
-      case "WETH":
-        return "ETH";
-
-      case "PS":
-      case "iPS":
-        return "FARM";
-
-      case "RENBTC":
-      case "CRVRENWBTC":
-      case "CRV_RENWBTC":
-      case "CRV_RENBTC":
-      case "TBTC":
-      case "BTC":
-      case "CRV_OBTC":
-      case "CRV_TBTC":
-      case "HBTC":
-      case "CRV_HBTC":
-        return "WBTC";
-
-      case "CRV_EURS":
-        return "EURS";
-
-      case "CRV_LINK":
-        return "LINK";
-
-      case "SUSHI_HODL":
-        return "SUSHI";
-
-      case "YCRV":
-      case "_3CRV":
-      case "3CRV":
-      case "CRV_CMPND":
-      case "CRV_BUSD":
-      case "CRV_USDN":
-      case "CRV_HUSD":
-      case "CRV_UST":
-      case "CRV_AAVE":
-      case "CRV_GUSD":
-        return "USDC";
-    }
-    return name;
-  }
-
-  private static String getSimilarActiveForPriceBsc(String name) {
-    //noinspection SwitchStatementWithTooFewBranches
-    switch (name) {
-      case "RENBTC":
-        return "BTCB";
-    }
-    return name;
-  }
-
   public static String getPriceOracle(long block, String network) {
     Entry<Long, String> entry = new TreeMap<>(ORACLES.get(network)).floorEntry(block);
     if (entry == null) {
@@ -194,6 +130,25 @@ public class ContractUtils {
       return "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase();
     } else if (BSC_NETWORK.equals(network)) {
       return "0xe9e7cea3dedca5984780bafc599bd69add087d56".toLowerCase();
+    }
+    return null;
+  }
+
+  public static String getEurAddress(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return "0xdb25f211ab05b1c97d595516f45794528a807ad8".toLowerCase();
+    } else if (BSC_NETWORK.equals(network)) {
+      // didn't find, use busd
+      return "0xe9e7cea3dedca5984780bafc599bd69add087d56".toLowerCase();
+    }
+    return null;
+  }
+
+  public static String getLinkAddress(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase();
+    } else if (BSC_NETWORK.equals(network)) {
+      return "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd".toLowerCase();
     }
     return null;
   }

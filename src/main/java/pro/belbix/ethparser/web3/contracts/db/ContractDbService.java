@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.contracts.db;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseAddressInsteadOfZero;
 
 import java.math.BigDecimal;
@@ -102,7 +103,7 @@ public class ContractDbService {
   }
 
   public double parseAmount(BigInteger amount, String address, String network) {
-    if (amount == null) {
+    if (amount == null || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return 0.0;
     }
     return new BigDecimal(amount)

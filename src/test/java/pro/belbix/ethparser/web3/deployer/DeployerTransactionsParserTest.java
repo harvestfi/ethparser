@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -187,7 +188,7 @@ public class DeployerTransactionsParserTest {
             .block(10770079)
             .blockDate(1598895285)
             .network("eth")
-            .toAddress("0xa0246c9032bc3a600820415ae600c6388619a14d")
+            .toAddress(FARM_TOKEN)
             .fromAddress(DEPLOYERS.get(ETH_NETWORK))
             .value(0.0)
             .gasLimit(4721975)

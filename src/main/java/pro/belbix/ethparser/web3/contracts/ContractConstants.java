@@ -74,12 +74,12 @@ public class ContractConstants {
 
   final static Map<String, Map<String, String>> ORACLES_BY_FACTORY = Map.of(
       ETH_NETWORK,
-      Map.of("0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f".toLowerCase(),
+      Map.of(UNISWAP_FACTORY_ADDRESS,
           "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
       BSC_NETWORK,
-      Map.of("0xbcfccbde45ce874adcb698cc183debcf17952812".toLowerCase(),
+      Map.of(PCS_V1_FACTORY_ADDRESS,
           "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(), // V1
-          "0xca143ce32fe78f1f7019d7d551a6402fc5350c73".toLowerCase(),
+          PCS_V2_FACTORY_ADDRESS,
           "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
   );
 
@@ -94,9 +94,9 @@ public class ContractConstants {
 
   public static final Set<String> PS_ADDRESSES = Set.of(
       "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
-      "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase(), // FARM TOKEN
-      "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50".toLowerCase(), // PS
-      "0x59258F4e15A5fC74A7284055A8094F58108dbD4f".toLowerCase() // PS_V0
+      FARM_TOKEN, // FARM TOKEN
+      PS_ADDRESS, // PS
+      PS_V0_ADDRESS // PS_V0
   );
 
   public static final Set<String> ONE_DOLLAR_TOKENS = Set.of(

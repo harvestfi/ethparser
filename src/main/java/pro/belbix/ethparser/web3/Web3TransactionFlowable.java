@@ -70,7 +70,7 @@ public class Web3TransactionFlowable implements Runnable {
                 transactionConsumers.forEach(queue ->
                     block.getTransactions().forEach(t -> {
                       counter.incrementAndGet();
-                      writeInQueue(queue, (Transaction) t.get());
+                      writeInQueue(queue, (Transaction) t.get(), transactionConsumers.size());
                     })
                 )
             );
@@ -84,11 +84,12 @@ public class Web3TransactionFlowable implements Runnable {
     }
   }
 
-  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o) {
+  private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o, int queues) {
     try {
       Web3Model<T> model = new Web3Model<>(o, network);
-      while (!queue.offer(model, 60, SECONDS)) {
-        log.warn("The queue is full for {}", o.getClass().getSimpleName());
+      while (!queue.offer(model, 15, SECONDS)) {
+        log.warn("The queue is full for transactions, size {}. All queues this type {}",
+            queue.size(), queues);
       }
     } catch (Exception e) {
       log.error("Error write in queue", e);

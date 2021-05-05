@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
@@ -228,7 +229,7 @@ public class VaultActionsParser implements Web3Parser {
       TransactionReceipt receipt = web3Functions
           .fetchTransactionReceipt(harvestTx.getHash(), network);
       String vault = receipt.getTo();
-      if (vault.equalsIgnoreCase("0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651")) {
+      if (vault.equalsIgnoreCase(iPS_ADDRESS)) {
         return false; //not count deposit from iPS
       }
       harvestTx.setMethodName("Deposit");

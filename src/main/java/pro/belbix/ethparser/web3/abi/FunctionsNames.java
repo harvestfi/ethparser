@@ -43,4 +43,6 @@ public class FunctionsNames {
   public static final String GET_CURRENT_TOKENS = "getCurrentTokens";
   public static final String GET_PAIR = "getPair";
   public static final String GET_LARGEST_POOL = "getLargestPool";
+  public static final String MINTER = "minter";
+  public static final String COINS = "coins";
 }

@@ -24,7 +24,6 @@ public class LastDbPricesService {
   }
 
   public List<PriceDTO> getLastPrices(String network) {
-
     Tuple2<Instant, List<PriceDTO>> cachedPrices = cache.get(network);
     if (cachedPrices != null
         && Duration.between(cachedPrices.component1(), Instant.now()).toMinutes()
@@ -33,7 +32,9 @@ public class LastDbPricesService {
     }
 
     List<PriceDTO> lastPrices = getLastPricesWithoutCache(network);
-    cache.put(network, new Tuple2<>(Instant.now(), lastPrices));
+    if (lastPrices != null && !lastPrices.isEmpty()) {
+      cache.put(network, new Tuple2<>(Instant.now(), lastPrices));
+    }
     return lastPrices;
   }
 

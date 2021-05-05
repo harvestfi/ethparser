@@ -14,6 +14,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
 
@@ -257,8 +259,8 @@ public class ContractLoader {
         network
     ));
     //exclude PS vaults
-    if (address.equalsIgnoreCase("0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50")
-        || address.equalsIgnoreCase("0x59258F4e15A5fC74A7284055A8094F58108dbD4f")) {
+    if (address.equalsIgnoreCase(PS_ADDRESS)
+        || address.equalsIgnoreCase(PS_V0_ADDRESS)) {
       vaultEntity.setName("PS vault");
       vaultEntity.setDecimals(18L);
       return;
@@ -524,7 +526,7 @@ public class ContractLoader {
       if ((!name.equals(entity.getName())
           || type != entity.getType()
           || created != entity.getCreated())
-          && !"0x59258f4e15a5fc74a7284055a8094f58108dbd4f".equals(address)
+          && !PS_V0_ADDRESS.equals(address)
       ) {
         entity.setName(name);
         entity.setType(type);

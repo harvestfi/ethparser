@@ -2,22 +2,32 @@ package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.utils.Caller;
@@ -136,11 +146,7 @@ public class PriceProvider {
     }
 //    String coinNameSimple = cu(network).getSimilarAssetForPrice(coinAddress);
     updateUSDPrice(coinAddress, block, network);
-    Double price = getLastPrice(coinAddress, block);
-    if (price.isInfinite() || price.isNaN()) {
-      return 0.0;
-    }
-    return price;
+    return getLastPrice(coinAddress, block);
   }
 
   public Tuple2<Double, Double> getPairPriceForLpHash(
@@ -178,7 +184,9 @@ public class PriceProvider {
       return;
     }
     double price = getPriceForCoinWithoutCache(address, block, network);
-
+    if (Double.isInfinite(price) || Double.isNaN(price)) {
+      price = 0.0;
+    }
     savePrice(price, address, block);
   }
 
@@ -227,10 +235,15 @@ public class PriceProvider {
     if (ContractUtils.isStableCoin(address)) {
       return 1.0;
     }
+    // curve stab ETH as eee...ee
+    if ("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".equalsIgnoreCase(address)) {
+      address = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
 
-    if (contractDbService.getContractByAddress(address, network)
-        .filter(c -> c.getCreated() < block)
-        .isEmpty()) {
+    // if we don't have contract in DB use it anyway
+    ContractEntity c = contractDbService.getContractByAddress(address, network)
+        .orElse(null);
+    if (c != null && c.getCreated() > block) {
       return 0.0;
     }
     String lpHash = contractDbService
@@ -239,8 +252,16 @@ public class PriceProvider {
         .orElse(null);
 
     if (lpHash == null) {
+      try {
+        String curveUnderlying = curveUnderlying(address, block, network);
+        if (curveUnderlying != null) {
+          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network);
+        }
+      } catch (Exception ignore) {
+      }
+
       String similarToken = tryToFindSimilarToken(address, block, network);
-      if (similarToken.isBlank()) {
+      if (Strings.isBlank(similarToken)) {
         log.error("Not found similar token for {}, use 1$ price", address);
         return 1;
       }
@@ -271,6 +292,9 @@ public class PriceProvider {
       throw new IllegalStateException("Not found token in lp pair");
     }
     price *= getPriceForCoin(otherTokenAddress, block, network);
+    if (Double.isNaN(price) || Double.isInfinite(price)) {
+      price = 0.0;
+    }
     log.info("Price {} fetched {} on block {}", address, price, block);
     return price;
   }
@@ -279,19 +303,52 @@ public class PriceProvider {
   private String tryToFindSimilarToken(String address, Long block, String network) {
     String tokenName = functionsUtils.callStrByName(NAME, address, block, network)
         .orElse("").toUpperCase();
+    if (tokenName.contains("CURVE")) {
+      try {
+        String curveUnderlyingToken = curveUnderlying(address, block, network);
+        if (curveUnderlyingToken != null) {
+          return curveUnderlyingToken;
+        }
+      } catch (ClassNotFoundException | IOException ignored) {
+      }
+    }
     if (tokenName.contains("BTC")) {
       return ContractUtils.getBtcAddress(network);
     } else if (tokenName.contains("ETH")) {
       return ContractUtils.getEthAddress(network);
     } else if (
         tokenName.contains("USD")
-        || tokenName.contains("EUR")
-        || tokenName.contains("UST")
-        || tokenName.contains("DAI")
+            || tokenName.contains("UST")
+            || tokenName.contains("DAI")
     ) {
-      ContractUtils.getUsdAddress(network);
+      return ContractUtils.getUsdAddress(network);
+    } else if (tokenName.contains("EUR")) {
+      return ContractUtils.getEurAddress(network);
+    } else if (tokenName.contains("LINK")) {
+      return ContractUtils.getLinkAddress(network);
     }
     return "";
+  }
+
+  private String curveUnderlying(String address, Long block, String network)
+      throws ClassNotFoundException, IOException {
+    String minterAddress = functionsUtils.callAddressByName(MINTER, address, block, network)
+        .orElse(null);
+    if (minterAddress == null) {
+      return null;
+    }
+    //noinspection unchecked
+    String coinRaw = functionsUtils.callViewFunction(new Function(
+            COINS,
+            List.of(new Uint256(0)),
+            List.of(TypeReference.makeTypeReference("address"))
+        ),
+        minterAddress, block, network).orElse(null);
+    if (coinRaw == null) {
+      return null;
+    }
+    return (String) ObjectMapperFactory.getObjectMapper().readValue(coinRaw, List.class)
+        .get(0);
   }
 
   private boolean hasFreshPrice(String address, long block) {

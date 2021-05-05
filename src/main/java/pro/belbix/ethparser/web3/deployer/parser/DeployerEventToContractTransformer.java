@@ -1,7 +1,9 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_CURRENT_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
@@ -10,6 +12,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.USER_REWARD_PER_TOKEN
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
+import static pro.belbix.ethparser.web3.contracts.ContractType.TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNKNOWN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
@@ -23,6 +27,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
@@ -75,6 +80,8 @@ public class DeployerEventToContractTransformer {
       } else if (ContractType.UNI_PAIR == contract.getContractType()) {
         contractLoader.loadUniPair((LpContract) contract,
             contract.getNetwork(), contract.getCreatedOnBlock());
+      } else {
+        log.error("Unknown contract type! {}", contract);
       }
     }
 
@@ -354,27 +361,38 @@ public class DeployerEventToContractTransformer {
     List<PureEthContractInfo> contracts = new ArrayList<>();
 
     if (contractInfo.getUnderlyingTokens().isEmpty()) {
-      contracts.addAll(createTokenContract(contractInfo.getUnderlyingAddress(), block, network));
+      contracts
+          .addAll(createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network));
     } else {
       contractInfo.getUnderlyingTokens().forEach(c ->
-          contracts.addAll(createTokenContract(c, block, network)));
+          contracts.addAll(createTokenAndLpContracts(c, block, network)));
     }
 
     return contracts;
   }
 
-  private List<PureEthContractInfo> createTokenContract(
+  private List<PureEthContractInfo> createTokenAndLpContracts(
       String address, long block, String network) {
     if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return List.of();
     }
-    List<PureEthContractInfo> contracts = new ArrayList<>();
-    String name = functionsUtils.callStrByName(
+
+    List<PureEthContractInfo> curveSubContracts =
+        curveUnderlyingContracts(address, block, network);
+    List<PureEthContractInfo> contracts = new ArrayList<>(curveSubContracts);
+    String symbol = functionsUtils.callStrByName(
         FunctionsNames.SYMBOL, address, block, network)
         .orElse("?");
-    TokenContract tokenContract = new TokenContract((int) block, name, address);
+
+    TokenContract tokenContract = new TokenContract((int) block, symbol, address);
     tokenContract.setNetwork(network);
+    tokenContract.setContractType(TOKEN);
     contracts.add(tokenContract);
+
+    // for curve tokens don's seek Uni LPs
+    if(!curveSubContracts.isEmpty()) {
+      return contracts;
+    }
 
     String lpAddress = lpSeeker.findLargestLP(address, block, network);
     if (lpAddress != null) {
@@ -385,17 +403,45 @@ public class DeployerEventToContractTransformer {
           .orElse("");
 
       PlatformType lpPlatformType = detectPlatformType(lpName);
-      ContractInfo lpContractInfo = new ContractInfo(lpAddress, block, network, UNKNOWN);
+      ContractInfo lpContractInfo = new ContractInfo(lpAddress, block, network, UNI_PAIR);
       lpContractInfo.setUnderlyingAddress(lpAddress);
       String tokenNames = uniTokenNames(lpContractInfo);
       String lpFullName = lpPlatformType.getPrettyName() + "_LP_" + tokenNames;
 
       LpContract lpContract = new LpContract((int) block, lpFullName, address, lpAddress);
+      lpContract.setContractType(UNI_PAIR);
       lpContract.setNetwork(network);
       contracts.add(lpContract);
     }
 
     return contracts;
+  }
+
+  private List<PureEthContractInfo> curveUnderlyingContracts(
+      String address, long block, String network) {
+    try {
+      String minterAddress = functionsUtils.callAddressByName(MINTER, address, block, network)
+          .orElse(null);
+      if (minterAddress == null) {
+        return List.of();
+      }
+      //noinspection unchecked
+      String coinRaw = functionsUtils.callViewFunction(new Function(
+              COINS,
+              List.of(new Uint256(0)),
+              List.of(TypeReference.makeTypeReference("address"))
+          ),
+          minterAddress, block, network).orElse(null);
+      if (coinRaw == null) {
+        return List.of();
+      }
+      String underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
+          .readValue(coinRaw, List.class)
+          .get(0);
+      return createTokenAndLpContracts(underlyingToken, block, network);
+    } catch (Exception e) {
+      return List.of();
+    }
   }
 
 
