@@ -25,7 +25,7 @@ public class PriceRepositoryTest {
     @Test
     public void fetchLastPrice() {
         assertNotNull(priceRepository
-            .fetchLastPrice("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852",
+            .fetchLastPriceBySourceAddress("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852",
                 Long.MAX_VALUE, ETH_NETWORK, limitOne));
     }
 

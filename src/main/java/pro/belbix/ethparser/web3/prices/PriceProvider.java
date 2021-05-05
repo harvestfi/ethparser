@@ -63,7 +63,7 @@ public class PriceProvider {
     String lpName = contractDbService.getNameByAddress(lpAddress, network)
         .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
     PriceDTO priceDTO = silentCall(() -> priceRepository
-        .fetchLastPrice(lpAddress, block, network, limitOne))
+        .fetchLastPriceBySourceAddress(lpAddress, block, network, limitOne))
         .filter(Caller::isNotEmptyList)
         .map(l -> l.get(0))
         .orElse(null);
@@ -195,7 +195,7 @@ public class PriceProvider {
         .findPairByToken(address, block, network)
         .map(p -> p.getUniPair().getContract().getAddress())
         .flatMap(a -> silentCall(() -> priceRepository
-            .fetchLastPriceByAddress(a, block, network, limitOne))
+            .fetchLastPriceBySourceAddress(a, block, network, limitOne))
             .filter(Caller::isNotEmptyList)
             .map(l -> l.get(0)));
     if (lastDbPrice.isEmpty()) {

@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -110,5 +111,18 @@ public class PriceController {
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
         return lastDbPricesService.getLastPrices(network);
+    }
+
+    @RequestMapping(value = "/token/dto/{token}", method = RequestMethod.GET)
+    public PriceDTO lastPrice(
+        @PathVariable("token") String token,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        List<PriceDTO> priceL = priceRepository.fetchLastPriceByTokenAddress(
+            token.toLowerCase(), Long.MAX_VALUE, network, PageRequest.of(0, 1));
+        if (priceL == null || priceL.isEmpty()) {
+            return null;
+        }
+        return priceL.get(0);
     }
 }

@@ -14,7 +14,7 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
-    List<PriceDTO> fetchLastPrice(
+    List<PriceDTO> fetchLastPriceBySourceAddress(
         @Param("source") String sourceAddress,
         @Param("block") long block,
         @Param("network") String network,
@@ -22,25 +22,21 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
     );
 
     @Query("select t from PriceDTO t where "
-        + "t.sourceAddress = :sourceAddress "
+        + "t.tokenAddress = :address "
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
-    List<PriceDTO> fetchLastPriceByAddress(
-        @Param("sourceAddress") String sourceAddress,
+    List<PriceDTO> fetchLastPriceByTokenAddress(
+        @Param("address") String tokenAddress,
         @Param("block") long block,
         @Param("network") String network,
         Pageable pageable
     );
 
     @Query(nativeQuery = true, value = "" +
-        "select * from (select source_address from prices "
+        "select distinct on (source_address) * from prices "
         + "where network = :network "
-        + "group by source_address) sources "
-        + "join prices p on p.id = "
-        + "                 (select id from prices where "
-        + "                  source_address = sources.source_address "
-        + "                  order by block desc limit 1)")
+        + "order by source_address, block desc")
     List<PriceDTO> fetchLastPrices(
         @Param("network") String network
     );
