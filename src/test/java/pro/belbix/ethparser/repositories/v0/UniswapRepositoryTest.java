@@ -25,24 +25,7 @@ public class UniswapRepositoryTest {
 
     @Test
     public void findFirstByCoinOrderByBlockDesc() {
-        assertNotNull(uniswapRepository.findFirstByCoinOrderByBlockDesc("FARM"));
-    }
-
-    @Test
-    public void findFirstByBlockDateBeforeAndCoinOrderByBlockDesc() {
-        assertNotNull(uniswapRepository.findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(Long.MAX_VALUE, "FARM"));
-    }
-
-    @Test
-    public void fetchAmountSumUsd() {
-        assertNotNull(uniswapRepository.fetchAmountSumUsd(
-            0, "0x0d089508d5fcdc92363fe84c84a44738863d9201", limitOne));
-    }
-
-    @Test
-    public void findAllByOwnerAndCoinOrderByBlockDate() {
-        assertNotNull(uniswapRepository.findAllByOwnerAndCoinOrderByBlockDate(
-            "0x0d089508d5fcdc92363fe84c84a44738863d9201", "FARM"));
+        assertNotNull(uniswapRepository.findFirstByOrderByBlockDesc());
     }
 
     @Test

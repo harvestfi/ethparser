@@ -45,4 +45,10 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         @Param("network") String network
     );
 
+    @Query(nativeQuery = true, value = ""
+        + "select source_address from prices "
+        + "where network = :network "
+        + "group by source_address")
+    List<String> fetchAllSourceAddresses(@Param("network") String network);
+
 }

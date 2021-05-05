@@ -15,7 +15,10 @@ import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
 @Table(name = "uni_tx", indexes = {
-    @Index(name = "idx_uni_tx", columnList = "blockDate")
+    @Index(name = "idx_uni_block_date", columnList = "blockDate"),
+    @Index(name = "idx_uni_owner_balance_usd", columnList = "ownerBalanceUsd"),
+    @Index(name = "idx_uni_owner", columnList = "owner"),
+    @Index(name = "idx_uni_coin_address", columnList = "coinAddress")
 })
 @Cacheable(false)
 @Data

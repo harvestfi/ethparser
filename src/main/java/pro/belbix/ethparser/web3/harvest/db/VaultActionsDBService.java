@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.db;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
@@ -15,7 +16,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
-import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -24,6 +24,7 @@ import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -35,17 +36,20 @@ public class VaultActionsDBService {
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
   private final ContractDbService contractDbService;
+  private final PriceProvider priceProvider;
 
   public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
       UniswapRepository uniswapRepository,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      PriceProvider priceProvider) {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.harvestTvlRepository = harvestTvlRepository;
     this.uniswapRepository = uniswapRepository;
     this.contractDbService = contractDbService;
+    this.priceProvider = priceProvider;
   }
 
   public static double aprToApy(double apr, double period) {
@@ -133,14 +137,8 @@ public class VaultActionsDBService {
   }
 
   public void fillLastFarmPrice(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
-    UniswapDTO uniswapDTO = uniswapRepository
-        .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(
-            dto.getBlockDate(), "FARM");
-    if (uniswapDTO != null) {
-      harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
-    } else {
-      harvestTvl.setLastPrice(0.0);
-    }
+    harvestTvl.setLastPrice(
+        priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), dto.getNetwork()));
   }
 
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {

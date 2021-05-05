@@ -39,32 +39,10 @@ public class HardWorkDTO implements DtoI {
    * strategy + ps sum of earns
    */
   private double fullRewardUsd;
-  private double fullRewardUsdTotal;
-  private double tvl;
-  private double allProfit;
-  private long periodOfWork;
-  private long psPeriodOfWork;
-  private double perc;
-  private double apr;
-  private double weeklyProfit;
-  /**
-   * {@link #fullRewardUsd} sum of all vaults for the last week
-   */
-  private double weeklyAllProfit;
-  private double psTvlUsd;
-  private double psApr;
   private double farmBuyback;
-  private double farmBuybackSum;
-  private int callsQuantity;
-  private int poolUsers;
-  private double savedGasFees;
-  private double savedGasFeesSum;
   private double fee;
-  private Double weeklyAverageTvl;
   private double farmBuybackEth;
-  private double feeEth;
   private double gasUsed;
-  private long idleTime;
   private double invested;
   private double investmentTarget;
   private double farmPrice;
@@ -72,6 +50,31 @@ public class HardWorkDTO implements DtoI {
   private Double profitSharingRate;
   private Double buyBackRate;
   private Integer autoStake;
+
+  // todo move to another table or parse it from chain
+  // ------------- GENERATED VALUES -----------------------
+  private long idleTime;
+  private double feeEth;
+  private Double weeklyAverageTvl;
+  private double savedGasFeesSum;
+  private double savedGasFees;
+  private int poolUsers;
+  private int callsQuantity;
+  private double farmBuybackSum;
+  private double psApr;
+  private double psTvlUsd;
+  private double weeklyProfit;
+  /**
+   * {@link #fullRewardUsd} sum of all vaults for the last week
+   */
+  private double weeklyAllProfit;
+  private double apr;
+  private double perc;
+  private double fullRewardUsdTotal;
+  private double tvl;
+  private double allProfit;
+  private long periodOfWork;
+  private long psPeriodOfWork;
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "

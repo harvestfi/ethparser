@@ -15,7 +15,8 @@ import pro.belbix.ethparser.dto.DtoI;
 @Table(name = "prices", indexes = {
     @Index(name = "idx_prices", columnList = "block"),
     @Index(name = "idx_prices_network", columnList = "network"),
-    @Index(name = "idx_prices_source", columnList = "source")
+    @Index(name = "idx_prices_source", columnList = "source"),
+    @Index(name = "idx_prices_source_address", columnList = "sourceAddress")
 })
 @Data
 @Builder

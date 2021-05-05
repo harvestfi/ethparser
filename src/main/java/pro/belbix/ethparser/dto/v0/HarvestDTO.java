@@ -16,9 +16,11 @@ import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
 @Table(name = "harvest_tx", indexes = {
-    @Index(name = "idx_harvest_tx", columnList = "blockDate"),
-    @Index(name = "idx_harvest_tx2", columnList = "methodName, vault"),
-    @Index(name = "idx_harvest_network", columnList = "network")
+    @Index(name = "idx_harvest_block_date", columnList = "blockDate"),
+    @Index(name = "idx_harvest_method_name", columnList = "methodName"),
+    @Index(name = "idx_harvest_network", columnList = "network"),
+    @Index(name = "idx_harvest_vault", columnList = "vault"),
+    @Index(name = "idx_harvest_vault_address", columnList = "vaultAddress")
 })
 @Cacheable(false)
 @Data

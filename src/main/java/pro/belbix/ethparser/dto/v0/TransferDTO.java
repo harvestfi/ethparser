@@ -14,6 +14,7 @@ import pro.belbix.ethparser.dto.DtoI;
     @Index(name = "idx_transfers_owner", columnList = "owner"),
     @Index(name = "idx_transfers_type", columnList = "type"),
     @Index(name = "idx_transfers_name", columnList = "name"),
+    @Index(name = "idx_transfers_method_name", columnList = "methodName"),
     @Index(name = "idx_transfers_network", columnList = "network")
 })
 @Data

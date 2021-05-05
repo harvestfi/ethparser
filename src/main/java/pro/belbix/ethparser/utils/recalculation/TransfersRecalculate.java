@@ -1,17 +1,19 @@
 package pro.belbix.ethparser.utils.recalculation;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
-import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.TransferRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -22,6 +24,7 @@ public class TransfersRecalculate {
   private final TransferParser transferParser;
   private final UniswapRepository uniswapRepository;
   private final AppProperties appProperties;
+  private final PriceProvider priceProvider;
 
   @Value("${transfer-recalculate.fromBlockDate:0}")
   private long fromBlockDate = 0;
@@ -45,12 +48,13 @@ public class TransfersRecalculate {
       TransferRepository transferRepository,
       TransferParser transferParser,
       UniswapRepository uniswapRepository,
-      AppProperties appProperties) {
+      AppProperties appProperties, PriceProvider priceProvider) {
     this.transferDBService = transferDBService;
     this.transferRepository = transferRepository;
     this.transferParser = transferParser;
     this.uniswapRepository = uniswapRepository;
     this.appProperties = appProperties;
+    this.priceProvider = priceProvider;
   }
 
   public void start() {
@@ -127,7 +131,7 @@ public class TransfersRecalculate {
     int count = 0;
     for (TransferDTO dto : dtos) {
       try {
-        dto.setPrice(getFarmPrice(dto.getBlockDate()));
+        dto.setPrice(getFarmPrice(dto.getBlock(), dto.getNetwork()));
         result.add(dto);
         count++;
         if (count % 1000 == 0) {
@@ -159,14 +163,7 @@ public class TransfersRecalculate {
     }
   }
 
-  private double getFarmPrice(long blockDate) {
-    UniswapDTO uniswapDTO = uniswapRepository
-        .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(blockDate, "FARM");
-    if (uniswapDTO != null) {
-      return uniswapDTO.getLastPrice();
-    } else {
-      log.warn("FARM price not found at block date" + blockDate);
-      return 0.0;
-    }
+  private double getFarmPrice(long block, String network) {
+    return priceProvider.getPriceForCoin(FARM_TOKEN, block, network);
   }
 }

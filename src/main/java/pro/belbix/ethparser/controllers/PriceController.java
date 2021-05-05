@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
+import pro.belbix.ethparser.service.LastDbPricesService;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -27,15 +28,18 @@ public class PriceController {
     private final EthBlockService ethBlockService;
     private final PriceRepository priceRepository;
     private final ContractDbService contractDbService;
+    private final LastDbPricesService lastDbPricesService;
 
     public PriceController(PriceProvider priceProvider,
         EthBlockService ethBlockService,
         PriceRepository priceRepository,
-        ContractDbService contractDbService) {
+        ContractDbService contractDbService,
+        LastDbPricesService lastDbPricesService) {
         this.priceProvider = priceProvider;
         this.ethBlockService = ethBlockService;
         this.priceRepository = priceRepository;
         this.contractDbService = contractDbService;
+        this.lastDbPricesService = lastDbPricesService;
     }
 
     @GetMapping(value = "/lp/{lp}")
@@ -105,6 +109,6 @@ public class PriceController {
     public List<PriceDTO> lastPrices(
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return priceRepository.fetchLastPrices(network);
+        return lastDbPricesService.getLastPrices(network);
     }
 }
