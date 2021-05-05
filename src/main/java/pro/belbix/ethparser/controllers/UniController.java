@@ -46,7 +46,7 @@ public class UniController {
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end) {
         if (!address.startsWith("0x")) {
-            address = contractDbService.getAddressByName(address, ContractType.VAULT, ETH_NETWORK)
+            address = contractDbService.getAddressByName(address, ContractType.TOKEN, ETH_NETWORK)
                 .orElseThrow();
         }
         return uniswapRepository
