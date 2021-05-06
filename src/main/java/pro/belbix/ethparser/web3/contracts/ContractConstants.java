@@ -100,8 +100,9 @@ public class ContractConstants {
   );
 
   public static final Set<String> ONE_DOLLAR_TOKENS = Set.of(
-      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", //USDC
-      "0xe9e7cea3dedca5984780bafc599bd69add087d56" //BUSD
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(), //USDC
+      "0xe9e7cea3dedca5984780bafc599bd69add087d56".toLowerCase(), //BUSD
+      "0xdAC17F958D2ee523a2206206994597C13D831ec7".toLowerCase() //USDT
   );
 
   //Key tokens are used to find liquidity for any given token on Uni, Sushi and Curve.

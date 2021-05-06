@@ -87,8 +87,12 @@ public class ContractDbService {
   }
 
   public Optional<ContractEntity> getPoolContractByVaultAddress(String address, String network) {
-    return Optional.ofNullable(contractRepository
-        .findPoolByVaultAddress(address.toLowerCase(), network));
+    List<ContractEntity> pools =
+        contractRepository.findPoolsByVaultAddress(address.toLowerCase(), network);
+    if (pools == null || pools.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(pools.get(0));
   }
 
   public Tuple2<String, String> tokenAddressesByUniPairAddress(String address, String network) {

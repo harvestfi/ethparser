@@ -105,7 +105,9 @@ public class DeployerTransactionsParser extends Web3Parser<DeployerDTO, Transact
       dto.setName(generatedContract.getName());
       if (dto.getMethodName().startsWith("0x")) {
         FunctionWrapper functionWrapper = generatedContract.getFunction(dto.getMethodName());
-        dto.setMethodName(functionWrapper.getFunction().getName());
+        if (functionWrapper != null) {
+          dto.setMethodName(functionWrapper.getFunction().getName());
+        }
       }
     }
 
