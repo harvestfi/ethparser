@@ -38,7 +38,10 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     List<UniswapDTO> fetchAllWithoutOwnerBalance();
 
     @Query(nativeQuery = true, value =
-        "select * from uni_tx t where t.coin = 'FARM' and t.block_date > :fromTs order by t.block_date")
+        "select * from uni_tx t where "
+            + "t.coin = 'FARM' "
+            + "and t.block_date > :fromTs "
+            + "order by t.block_date")
     List<UniswapDTO> fetchAllFromBlockDate(@Param("fromTs") long fromTs);
 
     @Query(nativeQuery = true, value =

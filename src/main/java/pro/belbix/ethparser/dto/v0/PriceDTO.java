@@ -48,6 +48,7 @@ public class PriceDTO implements DtoI {
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
         + network + " "
+        + token + " "
         + source + " "
         + String.format("%.6f", price) + " "
         + buy + " "

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
@@ -219,8 +221,9 @@ public class VaultActionsDBService {
 
   public List<HarvestDTO> fetchHarvest(String from, String to, String network) {
     if (from == null && to == null) {
-      return harvestRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000, network);
+      return harvestRepository
+          .findAll(PageRequest.of(0, 100, Sort.by("blockDate").descending()))
+          .getContent();
     }
     int fromI = 0;
     int toI = Integer.MAX_VALUE;

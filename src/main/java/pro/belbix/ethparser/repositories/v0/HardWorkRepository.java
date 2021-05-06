@@ -11,7 +11,7 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
     @Query("select t from HardWorkDTO t where "
-        + "t.fullRewardUsd > :minAmount "
+        + "t.fullRewardUsd >= :minAmount "
         + "and t.network = :network")
     Page<HardWorkDTO> fetchPages(
         @Param("minAmount") double minAmount,
@@ -20,7 +20,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
     @Query("select t from HardWorkDTO t where "
         + "t.vaultAddress = :vault "
-        + "and t.fullRewardUsd > :minAmount "
+        + "and t.fullRewardUsd >= :minAmount "
         + "and t.network = :network")
     Page<HardWorkDTO> fetchPagesByVault(
         @Param("vault") String vaultAddress,

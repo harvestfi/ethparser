@@ -390,8 +390,14 @@ public class DeployerEventToContractTransformer {
     tokenContract.setContractType(TOKEN);
     contracts.add(tokenContract);
 
-    // for curve tokens don's seek Uni LPs
-    if (!curveSubContracts.isEmpty() || onlyToken) {
+    if (!curveSubContracts.isEmpty()) {
+      tokenContract.setCurve(true);
+      return contracts; // curve token doesn't have UNI LP
+    }
+
+    if (onlyToken // creating tokens for LPs
+        || ContractUtils.isStableCoin(address) // always 1$ price
+    ) {
       return contracts;
     }
 

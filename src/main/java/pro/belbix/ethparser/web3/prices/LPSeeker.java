@@ -21,6 +21,7 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
@@ -30,11 +31,14 @@ public class LPSeeker {
   private static final double MIN_LIQUIDITY = 100; //it is not USD, some token amount
   private final FunctionsUtils functionsUtils;
   private final PriceOracle priceOracle;
+  private final ContractDbService contractDbService;
 
   public LPSeeker(FunctionsUtils functionsUtils,
-      PriceOracle priceOracle) {
+      PriceOracle priceOracle,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.priceOracle = priceOracle;
+    this.contractDbService = contractDbService;
   }
 
 
@@ -58,12 +62,19 @@ public class LPSeeker {
         if (factoryStart > block) {
           continue;
         }
-        String pair = pairForTokens(factory, token, keyToken, block, network);
-        if (ZERO_ADDRESS.equalsIgnoreCase(pair)) {
+        String lpAddress = lpForTokens(factory, token, keyToken, block, network);
+        if (ZERO_ADDRESS.equalsIgnoreCase(lpAddress)) {
           log.info("Zero pair for {} {} from {}", token, keyToken, factoryStart);
           continue;
         }
-        pairsLiquidity.put(getLiquidity(pair, token, block, network), pair);
+
+        if (contractDbService.findLpByAddress(lpAddress, network).isPresent()) {
+          log.warn("We already have lp {}, try to find another for {}",
+              lpAddress, token);
+          continue;
+        }
+
+        pairsLiquidity.put(getLiquidity(lpAddress, token, block, network), lpAddress);
       }
     }
     if (pairsLiquidity.isEmpty()
@@ -92,7 +103,7 @@ public class LPSeeker {
     return true;
   }
 
-  private String pairForTokens(
+  private String lpForTokens(
       String factory,
       String token0,
       String token1,
