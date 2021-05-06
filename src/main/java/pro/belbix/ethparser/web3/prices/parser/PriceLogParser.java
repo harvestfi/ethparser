@@ -145,7 +145,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     }
     PriceDTO lastPrice = lastPrices.get(dto.getTokenAddress());
     if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
-      log.info("Skip similar price for {}", dto.getToken());
+      log.debug("Skip similar price for {}", dto.getToken());
       return true;
     }
     lastPrices.put(dto.getTokenAddress(), dto);
@@ -156,7 +156,8 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     var pair = contractDbService
         .findPairByToken(dto.getTokenAddress(), dto.getBlock(), network);
     if (pair.isEmpty()) {
-      log.info("Price dto doesn't have valid LP pair {}", dto);
+      log.trace("{} doesn't have valid LP pair {} {} {}",
+          dto.getToken(), dto.getTokenAddress(), dto.getBlock(), network);
       return false;
     }
 

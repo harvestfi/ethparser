@@ -41,3 +41,4 @@ spring:
 logging:
   level:
     com.yannbriancon.interceptor.HibernateQueryInterceptor: OFF
+#    pro.belbix: debug

@@ -64,7 +64,6 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   private final ContractDbService contractDbService;
-  private long count = 0;
 
   public VaultActionsParser(Web3Functions web3Functions,
       VaultActionsDBService vaultActionsDBService,
@@ -103,6 +102,9 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     if (dto.getMigration() != null) {
       save(dto.getMigration());
     }
+    if (success) {
+      log.debug("Successfully saved vault action for {}", dto.getVault());
+    }
     return success;
   }
 
@@ -116,10 +118,6 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
   public HarvestDTO parse(Log ethLog, String network) {
     if (!isValidLog(ethLog, network)) {
       return null;
-    }
-    count++;
-    if (count % 100 == 0) {
-      log.info(this.getClass().getSimpleName() + " handled " + count);
     }
     HarvestTx harvestTx = vaultActionsLogDecoder.decode(ethLog);
     if (harvestTx == null) {
@@ -155,6 +153,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     }
     log.info(dto.print());
     if (harvestTx.isMigration()) {
+      log.info("Parse migration for {}", dto.getVault());
       parseMigration(dto, network);
     }
     return dto;

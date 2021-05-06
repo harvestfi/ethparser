@@ -51,8 +51,11 @@ public abstract class Web3Parser<T extends DtoI, K> {
             }
           }
         } catch (Exception e) {
-          log.error("Error in loop {} with {}",
-              this.getClass().getSimpleName(), web3Model, e);
+          // don't show errors after shutdown
+          if (run.get()) {
+            log.error("Error in loop {} with {}",
+                this.getClass().getSimpleName(), web3Model, e);
+          }
           if (appProperties.isStopOnParseError()) {
             System.exit(-1);
           }
@@ -69,7 +72,12 @@ public abstract class Web3Parser<T extends DtoI, K> {
 
   private void sendToWs(T dto) {
     try {
-      while (!output.offer(dto, 5, TimeUnit.SECONDS) && run.get()) {
+      while (run.get()) {
+        boolean recorded = output.offer(dto, 5, TimeUnit.SECONDS);
+        if (recorded) {
+          log.trace("Put dto to WS {}", dto);
+          break;
+        }
         log.warn("Output queue is full for {}", this.getClass().getSimpleName());
       }
     } catch (Exception e) {
