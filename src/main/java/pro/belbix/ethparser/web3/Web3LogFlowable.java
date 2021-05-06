@@ -75,7 +75,8 @@ public class Web3LogFlowable implements Runnable {
         while (true) {
           long blockLimit = blockLimitations.get();
           if (to > blockLimit) {
-            log.info("Log flow wait limit... {} - {} = {}", to, blockLimit, to - blockLimit);
+            log.info("{} Log flow wait limit... {} - {} = {}",
+                network, to, blockLimit, to - blockLimit);
             Thread.sleep(5000);
           } else {
             break;

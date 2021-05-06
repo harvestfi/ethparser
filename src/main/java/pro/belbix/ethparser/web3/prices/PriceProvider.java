@@ -44,7 +44,6 @@ public class PriceProvider {
   private final Pageable limitOne = PageRequest.of(0, 1);
 
   private final FunctionsUtils functionsUtils;
-  private final PriceRepository priceRepository;
   private final AppProperties appProperties;
   private final PriceOracle priceOracle;
   private final ContractDbService contractDbService;
@@ -53,36 +52,13 @@ public class PriceProvider {
       AppProperties appProperties, PriceOracle priceOracle,
       ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
-    this.priceRepository = priceRepository;
     this.appProperties = appProperties;
     this.priceOracle = priceOracle;
     this.contractDbService = contractDbService;
   }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
-    String lpName = contractDbService.getNameByAddress(lpAddress, network)
-        .orElseThrow(() -> new IllegalStateException("Not found lp name for " + lpAddress));
-    PriceDTO priceDTO = silentCall(() -> priceRepository
-        .fetchLastPriceBySourceAddress(lpAddress, block, network, limitOne))
-        .filter(Caller::isNotEmptyList)
-        .map(l -> l.get(0))
-        .orElse(null);
-    if (priceDTO == null) {
-      log.debug("Saved price not found for " + lpName + " at block " + block);
       return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
-    }
-    if (priceDTO.getLpTotalSupply() == null
-        || priceDTO.getLpToken0Pooled() == null
-        || priceDTO.getLpToken1Pooled() == null) {
-      log.warn("Saved price has wrong data for " + lpName + " at block " + block);
-      return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
-    }
-    Tuple2<Double, Double> lpPooled = new Tuple2<>(
-        priceDTO.getLpToken0Pooled(),
-        priceDTO.getLpToken1Pooled()
-    );
-    double lpBalance = priceDTO.getLpTotalSupply();
-    return calculateLpTokenPrice(lpAddress, lpPooled, lpBalance, amount, block, network);
   }
 
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block,
@@ -183,40 +159,11 @@ public class PriceProvider {
     if (hasFreshPrice(address, block)) {
       return;
     }
-    double price = getPriceForCoinWithoutCache(address, block, network);
+    double price = getPriceForCoinFromEth(address, block, network);
     if (Double.isInfinite(price) || Double.isNaN(price)) {
       price = 0.0;
     }
     savePrice(price, address, block);
-  }
-
-  private double getPriceForCoinWithoutCache(String address, Long block, String network) {
-    Optional<PriceDTO> lastDbPrice = contractDbService
-        .findPairByToken(address, block, network)
-        .map(p -> p.getUniPair().getContract().getAddress())
-        .flatMap(a -> silentCall(() -> priceRepository
-            .fetchLastPriceBySourceAddress(a, block, network, limitOne))
-            .filter(Caller::isNotEmptyList)
-            .map(l -> l.get(0)));
-    if (lastDbPrice.isEmpty()) {
-      log.debug("Saved price not found for " + address + " at block " + block);
-      return getPriceForCoinFromEth(address, block, network);
-    }
-    PriceDTO priceDTO = lastDbPrice.orElseThrow();
-    if (block - priceDTO.getBlock() > 1000) {
-      log.warn("Price have not updated more then {} for {}", block - priceDTO.getBlock(), address);
-      return getPriceForCoinFromEth(address, block, network);
-    }
-
-    String tokenName = contractDbService.getNameByAddress(address, network)
-        .orElse("");
-    if (!priceDTO.getToken().equalsIgnoreCase(tokenName)
-        && !priceDTO.getOtherToken().equalsIgnoreCase(tokenName)) {
-      throw new IllegalStateException("Wrong source for " + tokenName);
-    }
-    String otherTokenAddress = priceDTO.getOtherTokenAddress();
-    double otherTokenPrice = getPriceForCoin(otherTokenAddress, block, network);
-    return priceDTO.getPrice() * otherTokenPrice;
   }
 
   private double getPriceForCoinFromEth(String address, Long block, String network) {

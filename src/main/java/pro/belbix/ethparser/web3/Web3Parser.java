@@ -21,6 +21,7 @@ public abstract class Web3Parser<T extends DtoI, K> {
   protected final BlockingQueue<T> output = new ArrayBlockingQueue<>(OUTPUT_OUTPUT_SIZE);
   protected static final AtomicBoolean run = new AtomicBoolean(true);
   protected Instant lastTx = Instant.now();
+  private int emptyMessageCount = 0;
 
   private final ParserInfo parserInfo;
   protected final AppProperties appProperties;
@@ -40,6 +41,9 @@ public abstract class Web3Parser<T extends DtoI, K> {
         Web3Model<K> web3Model = null;
         try {
           web3Model = input.poll(5, TimeUnit.SECONDS);
+          if (web3Model == null) {
+            incrementAndPrintEmptyCount();
+          }
           if (web3Model == null || !isActiveForNetwork(web3Model.getNetwork())) {
             continue;
           }
@@ -55,6 +59,9 @@ public abstract class Web3Parser<T extends DtoI, K> {
           if (run.get()) {
             log.error("Error in loop {} with {}",
                 this.getClass().getSimpleName(), web3Model, e);
+          } else {
+            log.debug("After shutdown - Error in loop {} with {}",
+                this.getClass().getSimpleName(), web3Model, e);
           }
           if (appProperties.isStopOnParseError()) {
             System.exit(-1);
@@ -63,6 +70,13 @@ public abstract class Web3Parser<T extends DtoI, K> {
       }
     }).start();
   }
+
+  private void incrementAndPrintEmptyCount() {
+    emptyMessageCount++;
+    log.trace("Handled {} empty messages fro {}",
+        emptyMessageCount, this.getClass().getSimpleName());
+  }
+
 
   protected abstract void subscribeToInput();
 
