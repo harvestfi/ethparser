@@ -362,17 +362,18 @@ public class DeployerEventToContractTransformer {
 
     if (contractInfo.getUnderlyingTokens().isEmpty()) {
       contracts
-          .addAll(createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network));
+          .addAll(createTokenAndLpContracts(
+              contractInfo.getUnderlyingAddress(), block, network, false));
     } else {
       contractInfo.getUnderlyingTokens().forEach(c ->
-          contracts.addAll(createTokenAndLpContracts(c, block, network)));
+          contracts.addAll(createTokenAndLpContracts(c, block, network, false)));
     }
 
     return contracts;
   }
 
   private List<PureEthContractInfo> createTokenAndLpContracts(
-      String address, long block, String network) {
+      String address, long block, String network, boolean onlyToken) {
     if (ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return List.of();
     }
@@ -390,7 +391,7 @@ public class DeployerEventToContractTransformer {
     contracts.add(tokenContract);
 
     // for curve tokens don's seek Uni LPs
-    if(!curveSubContracts.isEmpty()) {
+    if (!curveSubContracts.isEmpty() || onlyToken) {
       return contracts;
     }
 
@@ -407,6 +408,9 @@ public class DeployerEventToContractTransformer {
       lpContractInfo.setUnderlyingAddress(lpAddress);
       String tokenNames = uniTokenNames(lpContractInfo);
       String lpFullName = lpPlatformType.getPrettyName() + "_LP_" + tokenNames;
+
+      lpContractInfo.getUnderlyingTokens().forEach(t ->
+          contracts.addAll(createTokenAndLpContracts(t, block, network, true)));
 
       LpContract lpContract = new LpContract((int) block, lpFullName, address, lpAddress);
       lpContract.setContractType(UNI_PAIR);
@@ -438,7 +442,7 @@ public class DeployerEventToContractTransformer {
       String underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
           .readValue(coinRaw, List.class)
           .get(0);
-      return createTokenAndLpContracts(underlyingToken, block, network);
+      return createTokenAndLpContracts(underlyingToken, block, network, false);
     } catch (Exception e) {
       return List.of();
     }

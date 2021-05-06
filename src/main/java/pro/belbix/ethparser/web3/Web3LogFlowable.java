@@ -109,8 +109,8 @@ public class Web3LogFlowable implements Runnable {
     try {
       Web3Model<T> model = new Web3Model<>(o, network);
       while (!queue.offer(model, 15, SECONDS)) {
-        log.warn("The queue is full for {}, size {}. All queues this type {}",
-            name, queue.size(), queues);
+        log.warn("The queue is full for {} {}, size {}. All queues this type {}",
+            network, name, queue.size(), queues);
       }
     } catch (Exception e) {
       log.error("Error write in queue", e);

@@ -34,8 +34,8 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(5, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(4);
+    assertEquals(9, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(8);
     assertAll(
         () -> assertEquals("SUSHI_MIC_USDT", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
@@ -54,10 +54,10 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(3, contracts.size());
+    assertEquals(5, contracts.size());
     TokenContract token = (TokenContract) contracts.get(0);
-    LpContract lp = (LpContract) contracts.get(1);
-    SimpleContract vault = (SimpleContract) contracts.get(2);
+    LpContract lp = (LpContract) contracts.get(3);
+    SimpleContract vault = (SimpleContract) contracts.get(4);
     assertAll(
         () -> assertEquals("USDC", vault.getName(), "vault name"),
         () -> assertEquals(address, vault.getAddress(), "vault address"),
@@ -91,8 +91,8 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(4, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(3);
+    assertEquals(6, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(5);
     TokenContract token = (TokenContract) contracts.get(0);
     assertAll(
         () -> assertEquals("CRV_TBTC_SBTC", vault.getName(), "name"),
@@ -115,8 +115,8 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(3, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(2);
+    assertEquals(5, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(4);
     TokenContract token = (TokenContract) contracts.get(0);
     assertAll(
         () -> assertEquals("CRV_YDAI_YUSDC_YUSDT_YTUSD", vault.getName(), "name"),
@@ -139,10 +139,10 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(3, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(2);
+    assertEquals(5, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(4);
     TokenContract token = (TokenContract) contracts.get(0);
-    LpContract lp = (LpContract) contracts.get(1);
+    LpContract lp = (LpContract) contracts.get(3);
     assertAll(
         () -> assertEquals("1INCH_ETH_DAI", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
@@ -170,12 +170,12 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(5, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(4);
+    assertEquals(9, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(8);
     TokenContract token0 = (TokenContract) contracts.get(0);
-    LpContract lp0 = (LpContract) contracts.get(1);
-    TokenContract token1 = (TokenContract) contracts.get(2);
-    LpContract lp1 = (LpContract) contracts.get(3);
+    LpContract lp0 = (LpContract) contracts.get(3);
+    TokenContract token1 = (TokenContract) contracts.get(4);
+    LpContract lp1 = (LpContract) contracts.get(7);
     assertAll(
         () -> assertEquals("ST_UNI_WETH_MASK20", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
@@ -232,8 +232,8 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(5, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(4);
+    assertEquals(9, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(8);
     assertAll(
         () -> assertEquals("ST_BPT_YFV_FARM", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
@@ -250,8 +250,8 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(5, contracts.size());
-    SimpleContract vault = (SimpleContract) contracts.get(4);
+    assertEquals(9, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(8);
     assertAll(
         () -> assertEquals("ST_UNI_DAI_fDAI", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),

@@ -72,29 +72,16 @@ public class HardWorkDbService {
             .fetchLastByVaultAndDateNotZero(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate()))
         .ifPresentOrElse(harvestDTO -> {
           dto.setTvl(harvestDTO.getLastUsdTvl());
-          if (dto.getTvl() != 0.0) {
-            dto.setPerc(((dto.getFullRewardUsd() * (1 - dto.getProfitSharingRate())) / dto.getTvl()) * 100);
-          } else {
-            dto.setPerc(0.0);
-          }
-
           silentCall(() -> hardWorkRepository
               .fetchPercentForPeriod(
                   dto.getVaultAddress(), dto.getBlockDate() - 1, dto.getNetwork(), limitOne))
               .filter(Caller::isNotEmptyList)
               .ifPresentOrElse(sumOfPercL -> {
-                final double sumOfPerc = sumOfPercL.get(0) + dto.getPerc();
-
                 silentCall(() -> harvestRepository
                     .fetchPeriodOfWork(dto.getVaultAddress(), dto.getBlockDate(), dto.getNetwork(), limitOne))
                     .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
                     .ifPresentOrElse(periodL -> {
-                      double period = (double) periodL.get(0);
                       dto.setPeriodOfWork(periodL.get(0));
-                      if (period != 0.0) {
-                        double apr = (SECONDS_OF_YEAR / period) * sumOfPerc;
-                        dto.setApr(apr);
-                      }
                     }, () -> log.warn("Not found period for " + dto.print()));
               }, () -> log.warn("Not found profit for period for " + dto.print()));
 
