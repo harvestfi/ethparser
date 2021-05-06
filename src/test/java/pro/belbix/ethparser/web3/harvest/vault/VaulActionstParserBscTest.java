@@ -285,7 +285,7 @@ public class VaulActionstParserBscTest {
         .fetchContractLogs(singletonList(vaultAddress), block, block, BSC_NETWORK);
     assertTrue(LOG_ID < logResults.size(),
         "Log smaller then necessary");
-    HarvestDTO harvestDTO = harvestVaultParser.parseVaultLog(
+    HarvestDTO harvestDTO = harvestVaultParser.parse(
         (Log) logResults.get(LOG_ID).get(), BSC_NETWORK);
     harvestVaultParser.enrichDto(harvestDTO, BSC_NETWORK);
     harvestOwnerBalanceCalculator.fillBalance(harvestDTO, BSC_NETWORK);

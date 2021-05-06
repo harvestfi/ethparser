@@ -52,7 +52,7 @@ public class UniToHarvestConverterTest {
                 "269,16036881"
         );
 
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
                 () -> assertEquals("Amount", "58,70106387", String.format("%.8f", harvestDTO.getAmount())),
@@ -84,7 +84,7 @@ public class UniToHarvestConverterTest {
       List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-      UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+      UniswapDTO dto = uniswapLpLogParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertDto(dto,
           id,
           owner,

@@ -68,7 +68,7 @@ public class UniswapLpDownloader {
     for (LogResult logResult : logResults) {
       UniswapDTO dto = null;
       try {
-        dto = uniswapLpLogParser.parseUniswapLog((Log) logResult.get());
+        dto = uniswapLpLogParser.parse((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
           saveHarvestDTO.saveUniswapDto(dto);
         }

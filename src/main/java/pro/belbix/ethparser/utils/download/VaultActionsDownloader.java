@@ -93,7 +93,7 @@ public class VaultActionsDownloader {
     for (LogResult logResult : logResults) {
       try {
         HarvestDTO dto = vaultActionsParser
-            .parseVaultLog((Log) logResult.get(), appProperties.getUtilNetwork());
+            .parse((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           harvestOwnerBalanceCalculator.fillBalance(dto, appProperties.getUtilNetwork());
           vaultActionsDBService.saveHarvestDTO(dto);

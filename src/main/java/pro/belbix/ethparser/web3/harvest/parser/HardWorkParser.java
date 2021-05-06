@@ -20,21 +20,13 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -51,26 +43,20 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
-public class HardWorkParser implements Web3Parser {
+public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
 
   private final static String PROFIT_LOG_IN_REWARD_HASH =
       "0x33fd2845a0f10293482de360244dd4ad31ddbb4b8c4a1ded3875cf8ebfba184b";
   private final static String REWARD_ADDED_HASH =
       "0xde88a922e0d3b88b24e9623efeb464919c6bf9f66857a65e2bfcf2ce87a9433d";
-  private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
   private final HardWorkDbService hardWorkDbService;
-  private final ParserInfo parserInfo;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -80,51 +66,33 @@ public class HardWorkParser implements Web3Parser {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.hardWorkDbService = hardWorkDbService;
-    this.parserInfo = parserInfo;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse HardWork logs");
-    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
-    parserInfo.addParser(this);
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParseHardWorkLog()) {
-            continue;
-          }
-          HardWorkDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
-          if (dto != null  && run.get()) {
-            lastTx = Instant.now();
-            boolean saved = hardWorkDbService.save(dto);
-            if (saved) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Can't save " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
   }
 
-  public HardWorkDTO parseLog(Log ethLog, String network) {
+  @Override
+  protected boolean save(HardWorkDTO dto) {
+    return hardWorkDbService.save(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParseHardWorkLog();
+  }
+
+  @Override
+  public HardWorkDTO parse(Log ethLog, String network) {
     if (ethLog == null
         || !CONTROLLERS.get(network).equalsIgnoreCase(ethLog.getAddress())) {
       return null;
@@ -389,20 +357,5 @@ public class HardWorkParser implements Web3Parser {
     dto.setInvested(invested);
     double target = 100.0 * (vaultFractionToInvestNumerator / vaultFractionToInvestDenominator);
     dto.setInvestmentTarget(target);
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
   }
 }

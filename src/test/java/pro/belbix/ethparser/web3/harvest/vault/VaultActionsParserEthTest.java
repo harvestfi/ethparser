@@ -1926,7 +1926,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 
@@ -1950,7 +1950,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNotNull(dto);
         harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
         assertDto(dto,
@@ -1976,7 +1976,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 

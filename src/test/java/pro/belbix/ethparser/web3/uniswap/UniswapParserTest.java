@@ -68,7 +68,7 @@ public class UniswapParserTest {
             "15,00000000"
         );
 
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
     }
 
@@ -85,7 +85,7 @@ public class UniswapParserTest {
             "945,85450400",
             "231,74310394"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("0,00000000"),
@@ -163,7 +163,7 @@ public class UniswapParserTest {
             "233,93936051"
         );
 
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("0,00005882"),
@@ -195,7 +195,7 @@ public class UniswapParserTest {
             "44,45189785",
             "99,88726471"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("92,94539587"),
@@ -227,7 +227,7 @@ public class UniswapParserTest {
             "140,02624240",
             "0,10707515"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("4170,06518775"),
@@ -250,7 +250,7 @@ public class UniswapParserTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-        UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+        UniswapDTO dto = uniswapLpLogParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 
@@ -272,7 +272,7 @@ public class UniswapParserTest {
       List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-      UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+      UniswapDTO dto = uniswapLpLogParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertDto(dto,
           id,
           owner,

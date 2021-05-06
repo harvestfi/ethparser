@@ -3,24 +3,16 @@ package pro.belbix.ethparser.web3.prices.parser;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -36,22 +28,15 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
 @Service
 @Log4j2
-public class PriceLogParser implements Web3Parser {
+public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
-  private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
-  private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final FunctionsUtils functionsUtils;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
-  private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
   public PriceLogParser(
@@ -62,54 +47,32 @@ public class PriceLogParser implements Web3Parser {
       NetworkProperties networkProperties,
       FunctionsUtils functionsUtils,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
-    this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.functionsUtils = functionsUtils;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Price logs");
-    parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          count++;
-          if (count % 10_000 == 0) {
-            log.info(this.getClass().getSimpleName() + " handled " + count);
-          }
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParsePrices()) {
-            continue;
-          }
-          PriceDTO dto = parse(ethLog.getValue(), ethLog.getNetwork());
-          if (dto != null && run.get()) {
-            lastTx = Instant.now();
-            boolean success = priceDBService.savePriceDto(dto);
-            if (success) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Error price parser loop " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
+  }
+
+  @Override
+  protected boolean save(PriceDTO dto) {
+    return priceDBService.savePriceDto(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParsePrices();
   }
 
   // keep this parsing lightweight as more as possible
+  @Override
   public PriceDTO parse(Log ethLog, String network) {
     if (!isValidLog(ethLog, network)) {
       return null;
@@ -290,20 +253,5 @@ public class PriceLogParser implements Web3Parser {
 
   private static boolean isZero(PriceTx tx, int i) {
     return BigInteger.ZERO.equals(tx.getIntegers()[i]);
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
   }
 }

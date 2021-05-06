@@ -253,7 +253,7 @@ public class DeployerTransactionsParserTest {
   private DeployerDTO loadDto(String hash) {
     Transaction tx = web3Functions.findTransaction(hash, ETH_NETWORK);
     Assertions.assertNotNull(tx);
-    DeployerDTO dto = parser.parseDeployerTransaction(tx, ETH_NETWORK);
+    DeployerDTO dto = parser.parse(tx, ETH_NETWORK);
     Assertions.assertNotNull(dto);
     return dto;
   }

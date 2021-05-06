@@ -159,7 +159,7 @@ public class DoHardWorkBscTest {
             onBlock, onBlock, BSC_NETWORK);
         assertNotNull(logResults);
         Assertions.assertFalse(logResults.isEmpty());
-        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0), BSC_NETWORK);
+        HardWorkDTO dto = hardWorkParser.parse((Log) logResults.get(0), BSC_NETWORK);
         assertNotNull(dto);
 
 //        if (dto.getFullRewardUsd() != 0) {

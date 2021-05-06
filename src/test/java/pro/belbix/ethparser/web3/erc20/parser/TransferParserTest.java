@@ -372,7 +372,7 @@ public class TransferParserTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contractHash), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        TransferDTO dto = transferParser.parseLog((Log) logResults.get(logId).get());
+        TransferDTO dto = transferParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertDto(dto, name, owner, recipient, value, type, methodName);
         return dto;
     }

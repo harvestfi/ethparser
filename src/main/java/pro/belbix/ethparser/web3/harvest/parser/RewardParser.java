@@ -10,20 +10,12 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.time.Instant;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -39,22 +31,16 @@ import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
 @Service
 @Log4j2
-public class RewardParser implements Web3Parser {
-  private static final AtomicBoolean run = new AtomicBoolean(true);
+public class RewardParser extends Web3Parser<RewardDTO, Log> {
   private final Set<String> notWaitNewBlock = Set.of("reward-download", "new-strategy-download");
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
   private final FunctionsUtils functionsUtils;
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
   private final RewardsDBService rewardsDBService;
-  private final AppProperties appProperties;
-  private final ParserInfo parserInfo;
   private final Web3Functions web3Functions;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
   private boolean waitNewBlock = true;
 
   public RewardParser(
@@ -66,51 +52,32 @@ public class RewardParser implements Web3Parser {
       ParserInfo parserInfo, Web3Functions web3Functions,
       NetworkProperties networkProperties,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.functionsUtils = functionsUtils;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.rewardsDBService = rewardsDBService;
-    this.appProperties = appProperties;
-    this.parserInfo = parserInfo;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Rewards logs");
-    parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParseRewardsLog()) {
-            continue;
-          }
-          RewardDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
-          if (dto != null  && run.get()) {
-            lastTx = Instant.now();
-            boolean saved = rewardsDBService.saveRewardDTO(dto);
-            if (saved) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Error parse reward from " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
   }
 
-  public RewardDTO parseLog(Log ethLog, String network) throws InterruptedException {
+  @Override
+  protected boolean save(RewardDTO dto) {
+    return rewardsDBService.saveRewardDTO(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParseRewardsLog();
+  }
+
+  public RewardDTO parse(Log ethLog, String network) {
     if (ethLog == null
         || contractDbService
         .getContractByAddressAndType(ethLog.getAddress(), POOL, network)
@@ -137,7 +104,10 @@ public class RewardParser implements Web3Parser {
         && isWeeklyReward == 1
     ) {
       log.info("Wait new block for correct parsing rewards");
-      Thread.sleep(60 * 1000 * 5); //wait until new block created
+      try {
+        Thread.sleep(60 * 1000 * 5); //wait until new block created
+      } catch (InterruptedException ignored) {
+      }
     }
 
     long block = tx.getBlock().longValue();
@@ -198,20 +168,5 @@ public class RewardParser implements Web3Parser {
 
   public void setWaitNewBlock(boolean waitNewBlock) {
     this.waitNewBlock = waitNewBlock;
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
   }
 }

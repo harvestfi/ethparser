@@ -10,9 +10,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
@@ -35,21 +33,16 @@ import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 
 @Service
 @Log4j2
-public class ImportantEventsParser implements Web3Parser {
+public class ImportantEventsParser extends Web3Parser<ImportantEventsDTO, Log> {
+
   public static final String TOKEN_MINTED = "TokenMinted";
-  private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final ImportantEventsLogDecoder importantEventsLogDecoder = new ImportantEventsLogDecoder();
   private final Web3Subscriber web3Subscriber;
   private final ImportantEventsDbService importantEventsDbService;
-  private final ParserInfo parserInfo;
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
 
   public ImportantEventsParser(
       Web3Subscriber web3Subscriber,
@@ -59,50 +52,32 @@ public class ImportantEventsParser implements Web3Parser {
       FunctionsUtils functionsUtils, AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
-    this.parserInfo = parserInfo;
     this.ethBlockService = ethBlockService;
     this.functionsUtils = functionsUtils;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Important Events logs");
-    web3Subscriber.subscribeOnLogs(logs, this.getClass().getSimpleName());
-    parserInfo.addParser(this);
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParseImportantEvents()) {
-            continue;
-          }
-          ImportantEventsDTO dto = parseLog(ethLog.getValue(), ethLog.getNetwork());
-          if (dto != null && run.get()) {
-            lastTx = Instant.now();
-            boolean saved = importantEventsDbService.save(dto);
-            if (saved) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Can't save " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
   }
 
-  public ImportantEventsDTO parseLog(Log ethLog, String network) {
+  @Override
+  protected boolean save(ImportantEventsDTO dto) {
+    return importantEventsDbService.save(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParseImportantEvents();
+  }
+
+  @Override
+  public ImportantEventsDTO parse(Log ethLog, String network) {
     if (ethLog == null ||
         (!ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())
             && contractDbService
@@ -179,20 +154,5 @@ public class ImportantEventsParser implements Web3Parser {
       log.error("Error converting to json " + info, e);
     }
 
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
   }
 }

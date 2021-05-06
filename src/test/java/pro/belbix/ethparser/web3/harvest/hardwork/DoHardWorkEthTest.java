@@ -237,7 +237,7 @@ public class DoHardWorkEthTest {
                 onBlock, onBlock, ETH_NETWORK);
         assertNotNull(logResults);
         assertFalse(logResults.isEmpty());
-        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0), ETH_NETWORK);
+        HardWorkDTO dto = hardWorkParser.parse((Log) logResults.get(0), ETH_NETWORK);
         assertNotNull(dto);
         assertAll(
             () -> assertEquals("id", id, dto.getId()),

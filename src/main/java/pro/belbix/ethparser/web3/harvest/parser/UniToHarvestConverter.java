@@ -5,19 +5,14 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
-import java.time.Instant;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.LpStat;
+import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.web3.ParserInfo;
@@ -29,64 +24,43 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
-public class UniToHarvestConverter implements Web3Parser {
-  private static final AtomicBoolean run = new AtomicBoolean(true);
-  private final BlockingQueue<UniswapDTO> uniswapDTOS = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
+
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
   private final VaultActionsDBService vaultActionsDBService;
-  private final ParserInfo parserInfo;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
 
   public UniToHarvestConverter(PriceProvider priceProvider, FunctionsUtils functionsUtils,
       VaultActionsDBService vaultActionsDBService, ParserInfo parserInfo,
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.vaultActionsDBService = vaultActionsDBService;
-    this.parserInfo = parserInfo;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start UniToHarvestConverter");
-    parserInfo.addParser(this);
-    new Thread(() -> {
-      while (run.get()) {
-        UniswapDTO uniswapDTO = null;
-        try {
-          uniswapDTO = uniswapDTOS.poll(1, TimeUnit.SECONDS);
-          if (!networkProperties.get(ETH_NETWORK).isConvertUniToHarvest()) {
-            continue;
-          }
-          HarvestDTO dto = convert(uniswapDTO);
-          if (dto != null) {
-            lastTx = Instant.now();
-            boolean success = vaultActionsDBService.saveHarvestDTO(dto);
-            if (success) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Can't save harvest dto for" + uniswapDTO, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    // we write to this parser directly from uniswap parser
   }
 
-  public HarvestDTO convert(UniswapDTO uniswapDTO) {
+  @Override
+  protected boolean save(HarvestDTO dto) {
+    return vaultActionsDBService.saveHarvestDTO(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isConvertUniToHarvest();
+  }
+
+  public HarvestDTO parse(UniswapDTO uniswapDTO, String network) {
     if (uniswapDTO == null || !uniswapDTO.isLiquidity()) {
       return null;
     }
@@ -197,16 +171,6 @@ public class UniToHarvestConverter implements Web3Parser {
   }
 
   public void addDtoToQueue(UniswapDTO dto) {
-    uniswapDTOS.add(dto);
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
+    input.add(new Web3Model<>(dto, ETH_NETWORK));
   }
 }

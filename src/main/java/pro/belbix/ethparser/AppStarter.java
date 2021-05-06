@@ -130,8 +130,8 @@ public class AppStarter {
         }
     }
 
-    public void startParse(Web3Parser parser, WsService ws,
-                           String topicName, boolean logs) {
+    public <T extends DtoI, K> void startParse(
+        Web3Parser<T, K> parser, WsService ws, String topicName, boolean logs) {
         if (logs) {
             startWeb3SubscribeLog();
         } else {
@@ -143,7 +143,7 @@ public class AppStarter {
             Thread.currentThread().setName("ParserToWsSender"
                 + parser.getClass().getSimpleName());
             while (run.get()) {
-                DtoI dto = null;
+                T dto = null;
                 try {
                     dto = parser.getOutput().poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
