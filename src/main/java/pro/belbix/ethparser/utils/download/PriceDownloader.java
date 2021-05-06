@@ -1,11 +1,9 @@
 package pro.belbix.ethparser.utils.download;
 
 import static java.util.Collections.singletonList;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -50,12 +48,7 @@ public class PriceDownloader {
 
   public void start() {
     if (contractNames.length == 0) {
-      contractNames = PARSABLE_UNI_PAIRS.get(appProperties.getUtilNetwork()).stream()
-          .map(c -> contractDbService
-              .getNameByAddress(c, appProperties.getUtilNetwork())
-              .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-          .collect(Collectors.toSet())
-          .toArray(contractNames);
+      throw new IllegalStateException("Empty contracts");
     }
     for (String contractName : contractNames) {
       String contractHash = contractDbService

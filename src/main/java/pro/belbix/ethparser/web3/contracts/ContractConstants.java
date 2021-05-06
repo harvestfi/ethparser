@@ -83,7 +83,7 @@ public class ContractConstants {
           "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
   );
 
-  public static final Map<String, Set<String>> PARSABLE_UNI_PAIRS = Map.of(
+  static final Map<String, Set<String>> FULL_PARSABLE_UNI_PAIRS = Map.of(
       ETH_NETWORK, Set.of(
           "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
           "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM

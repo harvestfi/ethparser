@@ -265,7 +265,8 @@ public class FunctionsUtils {
       String network) {
     List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block), network);
     if (types == null || types.isEmpty()) {
-      log.warn(function.getName() + " Wrong callback for hash: " + hash);
+      // we use an absent function for determination a contract type
+//      log.info(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((String) types.get(0).getValue());
@@ -275,7 +276,8 @@ public class FunctionsUtils {
       String network) {
     List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block), network);
     if (types == null || types.isEmpty()) {
-      log.warn(function.getName() + " Wrong callback for hash: " + hash);
+      // we use an absent function for determination a contract type
+//      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((BigInteger) types.get(0).getValue());
@@ -284,7 +286,8 @@ public class FunctionsUtils {
   private Optional<Boolean> callBoolFunction(Function function, String hash, Long block, String network) {
     List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block), network);
     if (types == null || types.isEmpty()) {
-      log.warn(function.getName() + " Wrong callback for hash: " + hash);
+      // we use an absent function for determination a contract type
+//      log.warn(function.getName() + " Wrong callback for hash: " + hash);
       return Optional.empty();
     }
     return Optional.ofNullable((Boolean) types.get(0).getValue());

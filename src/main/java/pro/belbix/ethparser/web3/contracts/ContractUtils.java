@@ -9,7 +9,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_T
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -153,7 +153,7 @@ public class ContractUtils {
     return null;
   }
 
-  public static boolean isParsableLp(String address, String network) {
-    return PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
+  public static boolean isFullParsableLp(String address, String network) {
+    return FULL_PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
   }
 }

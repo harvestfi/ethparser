@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.uniswap.parser;
 
 import static pro.belbix.ethparser.model.tx.UniswapTx.SWAP;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -124,11 +124,11 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     return dto;
   }
 
-  private boolean isValidLog(Log log) {
-    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+  private boolean isValidLog(Log ethLog) {
+    if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
       return false;
     }
-    return PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(log.getAddress());
+    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK);
   }
 
   private void enrichDto(UniswapDTO dto) {

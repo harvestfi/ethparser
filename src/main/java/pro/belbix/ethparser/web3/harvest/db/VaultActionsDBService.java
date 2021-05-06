@@ -4,7 +4,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,8 +146,6 @@ public class VaultActionsDBService {
     List<String> contractAddresses = contractDbService.getAllVaults(dto.getNetwork())
         .stream().map(v -> v.getContract().getAddress())
         .collect(Collectors.toList());
-
-    contractAddresses.addAll(PARSABLE_UNI_PAIRS.get(dto.getNetwork()));
 
     for (String vaultAddress : contractAddresses) {
       HarvestDTO lastHarvest = harvestRepository

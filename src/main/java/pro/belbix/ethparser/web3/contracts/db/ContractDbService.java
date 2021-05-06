@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.contracts.db;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseAddressInsteadOfZero;
 
@@ -9,7 +8,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -196,9 +194,6 @@ public class ContractDbService {
         ContractConstants.FARM_TOKEN
     ));
     contracts.addAll(CONTROLLERS.values());
-    contracts.addAll(PARSABLE_UNI_PAIRS.values().stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList()));
     contracts.addAll(
         contractRepository.findAll().stream()
             .map(ContractEntity::getAddress)
