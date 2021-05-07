@@ -45,4 +45,5 @@ public class FunctionsNames {
   public static final String GET_LARGEST_POOL = "getLargestPool";
   public static final String MINTER = "minter";
   public static final String COINS = "coins";
+  public static final String GET_POOL_FROM_LP_TOKEN = "get_pool_from_lp_token";
 }

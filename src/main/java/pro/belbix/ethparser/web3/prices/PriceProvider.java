@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
-import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
@@ -14,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
@@ -26,11 +24,9 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
-import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -174,17 +170,23 @@ public class PriceProvider {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
     log.debug("Oracle not deployed yet, use direct calculation for prices");
-    return getPriceForCoinFromEthLegacy(address, block, network);
+    return getPriceForCoinFromEthLegacy(address, block, network, 0);
   }
 
   //for compatibility with CRV prices without oracle
-  private double getPriceForCoinFromEthLegacy(String address, Long block, String network) {
+  private double getPriceForCoinFromEthLegacy(String address, Long block, String network,
+      int deep) {
     if (ContractUtils.isStableCoin(address)) {
       return 1.0;
     }
     // curve stab ETH as eee...ee
     if ("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".equalsIgnoreCase(address)) {
       address = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
+
+    if (deep > 5) {
+      log.error("Recursive price detected! {} {}", address, network);
+      return 0;
     }
 
     // if we don't have contract in DB use it anyway
@@ -202,7 +204,7 @@ public class PriceProvider {
       try {
         String curveUnderlying = curveUnderlying(address, block, network);
         if (curveUnderlying != null) {
-          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network);
+          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, deep + 1);
         }
       } catch (Exception ignore) {
       }
@@ -212,7 +214,7 @@ public class PriceProvider {
         log.error("Not found similar token for {}, use 1$ price", address);
         return 1;
       }
-      return getPriceForCoinFromEthLegacy(similarToken, block, network);
+      return getPriceForCoinFromEthLegacy(similarToken, block, network, deep + 1);
     }
 
     Tuple2<Double, Double> reserves = functionsUtils
@@ -238,7 +240,7 @@ public class PriceProvider {
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }
-    price *= getPriceForCoin(otherTokenAddress, block, network);
+    price *= getPriceForCoinFromEthLegacy(otherTokenAddress, block, network, deep + 1);
     if (Double.isNaN(price) || Double.isInfinite(price)) {
       price = 0.0;
     }

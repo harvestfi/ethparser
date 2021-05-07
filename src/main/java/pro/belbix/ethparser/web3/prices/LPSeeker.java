@@ -22,6 +22,7 @@ import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 
 @Service
 @Log4j2
@@ -42,7 +43,12 @@ public class LPSeeker {
   }
 
 
-  public String findLargestLP(String tokenAddress, long block, String network) {
+  public String findLargestLP(
+      String tokenAddress,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
 //    if (PriceOracle.isAvailable(block, network)) {
 //      String largestKeyToken = priceOracle.getLargestKeyToken(tokenAddress, block, network);
 //      if (largestKeyToken != null) {
@@ -50,10 +56,15 @@ public class LPSeeker {
 //      }
 //      pairForTokens()
 //    }
-    return getUniLargestPool(tokenAddress, block, network);
+    return getUniLargestPool(tokenAddress, block, network, contracts);
   }
 
-  private String getUniLargestPool(String token, long block, String network) {
+  private String getUniLargestPool(
+      String tokenAddress,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
     Set<String> tokenList = ContractConstants.KEY_TOKENS.get(network);
     TreeMap<BigInteger, String> pairsLiquidity = new TreeMap<>();
     for (String keyToken : tokenList) {
@@ -62,23 +73,24 @@ public class LPSeeker {
         if (factoryStart > block) {
           continue;
         }
-        String lpAddress = lpForTokens(factory, token, keyToken, block, network);
+        String lpAddress = lpForTokens(factory, tokenAddress, keyToken, block, network);
         if (ZERO_ADDRESS.equalsIgnoreCase(lpAddress)) {
-          log.info("Zero pair for {} {} from {}", token, keyToken, factoryStart);
+          log.info("Zero pair for {} {} from {}", tokenAddress, keyToken, factoryStart);
           continue;
         }
 
-        if (contractDbService.findLpByAddress(lpAddress, network).isPresent()) {
+        if (contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))
+            || contractDbService.findLpByAddress(lpAddress, network).isPresent()) {
           log.warn("We already have lp {}, try to find another for {}",
-              lpAddress, token);
+              lpAddress, tokenAddress);
           continue;
         }
 
-        pairsLiquidity.put(getLiquidity(lpAddress, token, block, network), lpAddress);
+        pairsLiquidity.put(getLiquidity(lpAddress, tokenAddress, block, network), lpAddress);
       }
     }
     if (pairsLiquidity.isEmpty()
-        || isNotEnoughLiquidity(pairsLiquidity.lastEntry().getKey(), token, block, network)
+        || isNotEnoughLiquidity(pairsLiquidity.lastEntry().getKey(), tokenAddress, block, network)
     ) {
       return null;
     }

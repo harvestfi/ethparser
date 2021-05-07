@@ -47,7 +47,7 @@ public class PriceOracleTest {
                 String.format("%.8f", priceWETH)),
             () -> assertEquals("priceUSDC", numberFormat("1,00000000"),
                 String.format("%.8f", priceUSDC)),
-            () -> assertEquals("priceUSDT", numberFormat("0,99958400"),
+            () -> assertEquals("priceUSDT", numberFormat("1.00000000"),
                 String.format("%.8f", priceUSDT)),
             () -> assertEquals("priceSUSHI_LP_ETH_WBTC", numberFormat("47351069766,33282500"),
                 String.format("%.8f", priceSUSHI_LP_ETH_WBTC)),

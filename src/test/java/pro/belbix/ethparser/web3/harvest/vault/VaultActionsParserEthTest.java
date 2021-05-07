@@ -394,8 +394,8 @@ public class VaultActionsParserEthTest {
             "18805,20616001",
             "",
             "",
-            18774L,
-            44704L,
+            18785L,
+            44730L,
             true
         );
         assertNotNull(dto);
@@ -416,8 +416,8 @@ public class VaultActionsParserEthTest {
             "87,57535992",
             "",
             "",
-            2006L,
-            2006L,
+            2002L,
+            2002L,
             true
         );
         assertNotNull(dto);
@@ -483,7 +483,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             1L,
-            5172L,
+            5170L,
             true
         );
         assertNotNull(dto);
@@ -724,8 +724,8 @@ public class VaultActionsParserEthTest {
             "14,32730677",
             "",
             "",
-            34971L,
-            47057L,
+            34994L,
+            47087L,
             true
         );
         assertNotNull(dto);
@@ -813,7 +813,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             405L,
-            279984L,
+            279662L,
             true
         );
         assertNotNull(dto);
@@ -832,8 +832,8 @@ public class VaultActionsParserEthTest {
             "0,01899012",
             "",
             "",
-            41715L,
-            2401460L,
+            41679L,
+            2399350L,
             true
         );
         assertNotNull(dto);
@@ -1012,8 +1012,8 @@ public class VaultActionsParserEthTest {
             "0,00089347",
             "0",
             "0",
-            48582L,
-            15559101L,
+            48497L,
+            15531830L,
             true
         );
     }
@@ -1327,7 +1327,7 @@ public class VaultActionsParserEthTest {
             "0,00066200",
             "0",
             0L,
-            8995075L,
+            8979591L,
             true
         );
     }
@@ -1345,8 +1345,8 @@ public class VaultActionsParserEthTest {
             "2365639,42309700",
             "1998649,72839200",
             "0,00066200",
-            1998887L,
-            8950476L,
+            1998648L,
+            8949404L,
             true
         );
     }
@@ -1364,8 +1364,8 @@ public class VaultActionsParserEthTest {
             "0,00068016",
             "0,00068416",
             "1,00424760",
-            33496L,
-            32457092L,
+            33497L,
+            32457454L,
             true
         );
     }
@@ -1383,8 +1383,8 @@ public class VaultActionsParserEthTest {
             "0,01479451",
             "0,01488166",
             "1,00424760",
-            735413L,
-            32564696L,
+            735155L,
+            32553250L,
             true
         );
     }
@@ -1688,8 +1688,8 @@ public class VaultActionsParserEthTest {
             "1108,86509634",
             "1108,86509634",
             "0",
-            50838L,
-            454788L,
+            50681L,
+            453376L,
             true
         );
     }
@@ -1707,8 +1707,8 @@ public class VaultActionsParserEthTest {
             "1587,47546529",
             "1587,47546529",
             "0",
-            25835L,
-            203122L,
+            25864L,
+            203350L,
             true
         );
     }
