@@ -15,7 +15,6 @@ import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -161,7 +160,7 @@ public class Web3Subscriber {
   public void startLogFlowableThread(Supplier<List<String>> addressesSupplier, Integer from,
       String network) {
     Web3LogFlowable logFlowable = new Web3LogFlowable(addressesSupplier, from, web3Functions,
-        logConsumers, network);
+        logConsumers, network, networkProperties.get(network).getBlockStep());
     new Thread(logFlowable).start();
   }
 

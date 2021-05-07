@@ -8,7 +8,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import lombok.extern.log4j.Log4j2;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
@@ -17,7 +16,6 @@ import pro.belbix.ethparser.model.Web3Model;
 @Log4j2
 public class Web3LogFlowable implements Runnable {
 
-  public static final int BLOCKS_STEP = 100;
   public static final int WAIT_BETWEEN_BLOCKS = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
@@ -25,6 +23,7 @@ public class Web3LogFlowable implements Runnable {
   private final String network;
   private Integer from;
   private BigInteger lastBlock;
+  private final int blockStep;
   private final Supplier<List<String>> addressesSupplier;
 
   public Web3LogFlowable(
@@ -32,12 +31,14 @@ public class Web3LogFlowable implements Runnable {
       Integer from,
       Web3Functions web3Functions,
       List<BlockingQueue<Web3Model<Log>>> logConsumers,
-      String network) {
+      String network,
+      int blockStep) {
     this.addressesSupplier = addressesSupplier;
     this.web3Functions = web3Functions;
     this.from = from;
     this.logConsumers = logConsumers;
     this.network = network;
+    this.blockStep = blockStep;
   }
 
   public void stop() {
@@ -62,14 +63,15 @@ public class Web3LogFlowable implements Runnable {
           from = to;
         } else {
           int diff = to - from;
-          if (diff > BLOCKS_STEP) {
-            to = from + BLOCKS_STEP;
+          if (diff > blockStep) {
+            to = from + blockStep;
           }
         }
         //noinspection rawtypes
-        List<EthLog.LogResult> logResults = web3Functions.fetchContractLogs(addressesSupplier.get(), from, to, network);
-        log.info("Parse {} log from {} to {} on block: {} - {}", network, from, to,
-            currentBlock, logResults.size());
+        List<EthLog.LogResult> logResults = web3Functions
+            .fetchContractLogs(addressesSupplier.get(), from, to, network);
+        log.info("Fetched {} logs from {} to {} ({}) on block: {}, size {}",
+            network, from, to, to - from, currentBlock, logResults.size());
         //noinspection rawtypes
         for (LogResult logResult : logResults) {
           Log ethLog = (Log) logResult.get();
