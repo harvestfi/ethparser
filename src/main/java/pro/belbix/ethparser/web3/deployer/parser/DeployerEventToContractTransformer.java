@@ -447,8 +447,9 @@ public class DeployerEventToContractTransformer {
         if (!name.startsWith("Curve.fi")) {
           return false;
         }
+        // use future block because it maybe not created yet
         minterAddress = functionsUtils.callAddressByNameWithArg(
-            GET_POOL_FROM_LP_TOKEN, address, CURVE_REGISTRY_ADDRESS, block, network)
+            GET_POOL_FROM_LP_TOKEN, address, CURVE_REGISTRY_ADDRESS, 12000000L, network)
             .orElse(null);
         if (minterAddress == null) {
           // TODO I don't know how to find pool address, use USDC as underlying :(
