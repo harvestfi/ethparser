@@ -146,7 +146,9 @@ public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
 
     harvestDTO.setLpStat(LpStat.createJson(
         contractDbService.getNameByAddress(lpTokens.component1(), ETH_NETWORK).orElse("unknown"),
+        lpTokens.component1(),
         contractDbService.getNameByAddress(lpTokens.component2(), ETH_NETWORK).orElse("unknown"),
+        lpTokens.component2(),
         firstCoinBalance,
         secondCoinBalance,
         uniPrices.component1(),

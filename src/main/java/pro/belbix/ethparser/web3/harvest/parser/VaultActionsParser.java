@@ -426,7 +426,9 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
     dto.setLpStat(LpStat.createJson(
         contractDbService.getNameByAddress(lpTokens.component1(), network).orElse("unknown"),
+        lpTokens.component1(),
         contractDbService.getNameByAddress(lpTokens.component2(), network).orElse("unknown"),
+        lpTokens.component2(),
         firstVault,
         secondVault,
         uniPrices.component1(),

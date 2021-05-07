@@ -27,9 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Int128;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
@@ -442,6 +444,7 @@ public class DeployerEventToContractTransformer {
     try {
       String minterAddress = functionsUtils.callAddressByName(MINTER, address, block, network)
           .orElse(null);
+      String underlyingToken;
       if (minterAddress == null) {
         String name = functionsUtils.callStrByName(NAME, address, block, network).orElse("");
         if (!name.startsWith("Curve.fi")) {
@@ -457,25 +460,52 @@ public class DeployerEventToContractTransformer {
           createTokenAndLpContracts(USDC, block, network, contracts);
           return USDC;
         }
+        //noinspection unchecked
+        String coinRaw = functionsUtils.callViewFunction(new Function(
+                COINS,
+                List.of(new Int128(0)),
+                List.of(TypeReference.makeTypeReference("address"))
+            ),
+            minterAddress, block, network).orElse(null);
+        if (coinRaw == null) {
+          return null;
+        }
+
+        underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
+            .readValue(coinRaw, List.class)
+            .get(0);
+      } else {
+        //noinspection unchecked
+        String coinRaw = functionsUtils.callViewFunction(new Function(
+                COINS,
+                List.of(new Uint256(0)),
+                List.of(TypeReference.makeTypeReference("address"))
+            ),
+            minterAddress, block, network).orElse(null);
+        if (coinRaw == null) {
+          return null;
+        }
+
+        underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
+            .readValue(coinRaw, List.class)
+            .get(0);
       }
-      //noinspection unchecked
-      String coinRaw = functionsUtils.callViewFunction(new Function(
-              COINS,
-              List.of(new Uint256(0)),
-              List.of(TypeReference.makeTypeReference("address"))
-          ),
-          minterAddress, block, network).orElse(null);
-      if (coinRaw == null) {
-        return null;
+
+      //try to determinate underlying
+      String deeperUnderlyingAddress = getPotentiallyUnderlying(underlyingToken, block, network);
+      if (!Strings.isBlank(deeperUnderlyingAddress)) {
+        underlyingToken = deeperUnderlyingAddress;
       }
-      String underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
-          .readValue(coinRaw, List.class)
-          .get(0);
       createTokenAndLpContracts(underlyingToken, block, network, contracts);
       return underlyingToken;
     } catch (Exception e) {
       return null;
     }
+  }
+
+  private String getPotentiallyUnderlying(String address, long block, String network) {
+    return functionsUtils.callAddressByName(FunctionsNames.TOKEN,
+        address, block, network).orElse("");
   }
 
   private boolean addInContracts(List<PureEthContractInfo> contracts, PureEthContractInfo c) {

@@ -122,9 +122,9 @@ class DeployerEventToContractTransformerTest {
     DeployerDTO dto = createDeployerDto(address, block, network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(3, contracts.size());
+    assertEquals(9, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
-    TokenContract token = (TokenContract) contracts.get(2);
+    TokenContract token = (TokenContract) contracts.get(8);
     assertAll(
         () -> assertEquals("CRV_YDAI_YUSDC_YUSDT_YTUSD", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),

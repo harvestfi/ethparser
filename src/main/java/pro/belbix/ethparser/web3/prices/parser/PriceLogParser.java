@@ -107,7 +107,6 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       return null;
     }
 
-    // for lpToken price we should know staked amounts
     fillLpStats(dto, network);
 
     dto.setBlockDate(
@@ -127,6 +126,10 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
   }
 
   private void fillLpStats(PriceDTO dto, String network) {
+    // reduce web3 calls
+    if (!ContractUtils.isFullParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+      return;
+    }
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         dto.getSourceAddress(), dto.getBlock(), network);
     double lpBalance = contractDbService.parseAmount(
