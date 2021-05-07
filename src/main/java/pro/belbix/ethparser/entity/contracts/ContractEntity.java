@@ -28,6 +28,6 @@ public class ContractEntity {
     private Long created;
     private int type;
     private String network;
-    private Integer curve;
+    private String curveUnderlying;
 
 }

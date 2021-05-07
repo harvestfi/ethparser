@@ -389,7 +389,7 @@ public class DeployerEventToContractTransformer {
       return;
     }
 
-    boolean isCurve = curveUnderlyingContracts(address, block, network, contracts);
+    String curveUnderlying = curveUnderlyingContracts(address, block, network, contracts);
     String symbol = functionsUtils.callStrByName(
         FunctionsNames.SYMBOL, address, block, network)
         .orElse("?");
@@ -397,10 +397,10 @@ public class DeployerEventToContractTransformer {
     TokenContract tokenContract = new TokenContract((int) block, symbol, address);
     tokenContract.setNetwork(network);
     tokenContract.setContractType(TOKEN);
-    tokenContract.setCurve(isCurve);
+    tokenContract.setCurveUnderlying(curveUnderlying);
     addInContracts(contracts, tokenContract);
 
-    if (isCurve || ContractUtils.isStableCoin(address)) {
+    if (curveUnderlying != null || ContractUtils.isStableCoin(address)) {
       return; // curve token doesn't have UNI LP
     }
 
@@ -433,7 +433,7 @@ public class DeployerEventToContractTransformer {
     }
   }
 
-  private boolean curveUnderlyingContracts(
+  private String curveUnderlyingContracts(
       String address,
       long block,
       String network,
@@ -445,7 +445,7 @@ public class DeployerEventToContractTransformer {
       if (minterAddress == null) {
         String name = functionsUtils.callStrByName(NAME, address, block, network).orElse("");
         if (!name.startsWith("Curve.fi")) {
-          return false;
+          return null;
         }
         // use future block because it maybe not created yet
         minterAddress = functionsUtils.callAddressByNameWithArg(
@@ -453,8 +453,9 @@ public class DeployerEventToContractTransformer {
             .orElse(null);
         if (minterAddress == null) {
           // TODO I don't know how to find pool address, use USDC as underlying :(
-          createTokenAndLpContracts("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", block, network, contracts);
-          return true;
+          String USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+          createTokenAndLpContracts(USDC, block, network, contracts);
+          return USDC;
         }
       }
       //noinspection unchecked
@@ -465,15 +466,15 @@ public class DeployerEventToContractTransformer {
           ),
           minterAddress, block, network).orElse(null);
       if (coinRaw == null) {
-        return false;
+        return null;
       }
       String underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
           .readValue(coinRaw, List.class)
           .get(0);
       createTokenAndLpContracts(underlyingToken, block, network, contracts);
-      return true;
+      return underlyingToken;
     } catch (Exception e) {
-      return false;
+      return null;
     }
   }
 

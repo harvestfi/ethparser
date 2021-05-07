@@ -359,6 +359,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     if (priceUnderlying == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }
+    dto.setUnderlyingAddress(underlyingAddress);
     dto.setUnderlyingPrice(priceUnderlying);
     double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock(), network)
