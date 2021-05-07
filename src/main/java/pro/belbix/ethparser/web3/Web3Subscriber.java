@@ -166,7 +166,7 @@ public class Web3Subscriber {
       throw new IllegalStateException("Double call log flowable for " + network);
     }
     Web3LogFlowable logFlowable = new Web3LogFlowable(addressesSupplier, from, web3Functions,
-        logConsumers, network, () -> logBlockLimitation(network));
+        logConsumers, network, () -> logBlockLimitation(network), networkProperties.get(network).getBlockStep());
     new Thread(logFlowable).start();
     web3LogFlowable.put(network, logFlowable);
   }

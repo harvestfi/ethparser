@@ -43,15 +43,15 @@ abstract class Web3Service {
     if (Strings.isBlank(web3Url)) {
       throw new IllegalStateException("Web3 url not defined");
     }
-
+    int timeout = networkProperties.get(network).getWeb3Timeout();
     web3 = Web3j.build(
         new HttpService(
             web3Url,
             new OkHttpClient.Builder()
-                .readTimeout(Duration.of(30, ChronoUnit.SECONDS))
-                .callTimeout(Duration.of(30, ChronoUnit.SECONDS))
-                .writeTimeout(Duration.of(30, ChronoUnit.SECONDS))
-                .connectTimeout(Duration.of(30, ChronoUnit.SECONDS))
+                .readTimeout(Duration.of(timeout, ChronoUnit.SECONDS))
+                .callTimeout(Duration.of(timeout, ChronoUnit.SECONDS))
+                .writeTimeout(Duration.of(timeout, ChronoUnit.SECONDS))
+                .connectTimeout(Duration.of(timeout, ChronoUnit.SECONDS))
                 .build(),
             false)
     );
