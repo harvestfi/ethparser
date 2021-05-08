@@ -3,6 +3,7 @@ package pro.belbix.ethparser.repositories.v0;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static pro.belbix.ethparser.TestAddresses.USDC;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
@@ -17,8 +18,6 @@ import pro.belbix.ethparser.Application;
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class HarvestRepositoryTest {
-
-    private static final String USDC = "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE";
 
     private final Pageable limitOne = PageRequest.of(0, 1);
 

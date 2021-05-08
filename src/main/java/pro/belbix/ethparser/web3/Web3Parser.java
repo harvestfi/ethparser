@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -47,10 +48,15 @@ public abstract class Web3Parser<T extends DtoI, K> {
           if (web3Model == null || !isActiveForNetwork(web3Model.getNetwork())) {
             continue;
           }
+          Instant startParse = Instant.now();
           T dto = parse(web3Model.getValue(), web3Model.getNetwork());
           if (dto != null && run.get()) {
+            log.trace("Web3Object for {} parsed by {}",
+                getClass().getSimpleName(), Duration.between(startParse, Instant.now()).toMillis());
             lastTx = Instant.now();
             if (save(dto) && run.get()) {
+              log.trace("Web3Object for {} persisted by {}",
+                  getClass().getSimpleName(), Duration.between(lastTx, Instant.now()).toMillis());
               sendToWs(dto);
             }
           }

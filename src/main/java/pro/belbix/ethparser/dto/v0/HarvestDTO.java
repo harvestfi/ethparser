@@ -51,6 +51,7 @@ public class HarvestDTO implements DtoI {
   @Deprecated
   @Column(columnDefinition = "TEXT")
   private String prices;
+  @Column(columnDefinition = "TEXT")
   private String lpStat;
   @Deprecated
   private Double lastAllUsdTvl;

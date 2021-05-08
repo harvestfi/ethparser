@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
-import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.Duration.between;
+import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
@@ -109,6 +110,7 @@ public class VaultActionsDBService {
   }
 
   public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    Instant start = now();
     if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
       log.warn("Found the same harvestTvl record for " + dto);
     }
@@ -121,6 +123,7 @@ public class VaultActionsDBService {
     fillSimpleDataFromDto(dto, harvestTvl);
     //should be after price filling
     fillTvl(dto, harvestTvl);
+    log.trace("Vault action created TVL for {}", between(start, now()).toMillis());
     return harvestTvl;
   }
 

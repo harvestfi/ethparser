@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static pro.belbix.ethparser.TestAddresses.USDC;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,8 +22,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.model.PaginatedResponse;
-import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 
@@ -133,14 +132,14 @@ public class HardWorkControllerTest {
   @Test
   public void hardworkPagesPageSizePageDefaultsUSDCVault() throws Exception {
     var pages = hardWorkRepository
-        .fetchPagesByVault("USDC", ETH_NETWORK, Integer.MIN_VALUE,
+        .fetchPagesByVault(USDC, ETH_NETWORK, Integer.MIN_VALUE,
             PageRequest.of(0, 5, Sort.by("blockDate")));
 
     var expectedResult = ObjectMapperFactory
         .getObjectMapper()
         .writeValueAsString(pages.getContent());
 
-    this.mockMvc.perform(get("/hardwork/pages?vault=USDC&pageSize=5&page=0"))
+    this.mockMvc.perform(get(String.format("/hardwork/pages?vault=%s&pageSize=5&page=0", USDC)))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(expectedResult)));
   }
