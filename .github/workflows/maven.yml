@@ -164,7 +164,7 @@ jobs:
           # Optional, defaults to current repo
           #repo: ${{github.repository}}
         # Run only on push to release branch
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'mai') }}
+        #if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
 
       - name: Prepare deploy to server
         uses: hughcube/deploy-action@1.0.0
