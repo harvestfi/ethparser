@@ -7,17 +7,11 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
-import java.time.Instant;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.model.ImportantEventsInfo;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -121,11 +115,12 @@ public class ImportantEventsParser extends Web3Parser<ImportantEventsDTO, Log> {
     }
   }
 
-  private void parseVault(ImportantEventsDTO dto, String vault, String network) {
+  private void parseVault(ImportantEventsDTO dto, String vaultAddress, String network) {
     dto.setVault(contractDbService
-        .getNameByAddress(vault, network)
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + vault))
+        .getNameByAddress(vaultAddress, network)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + vaultAddress))
     );
+    dto.setVaultAddress(vaultAddress);
   }
 
   private void parseMintAmount(ImportantEventsDTO dto, BigInteger mintAmount) {

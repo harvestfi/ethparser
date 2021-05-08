@@ -91,7 +91,7 @@ public class HardWorkController {
             return RestResponse.ok((String.format("%.8f",
                 hardWorkRepository.fetchLastGasSaved(network))));
         } catch (Exception e) {
-            log.error("Error get last saved gas sum", e);
+            log.warn("Error get last saved gas sum", e);
             return RestResponse.error("Server error during getting last saved gas");
         }
 
@@ -110,7 +110,7 @@ public class HardWorkController {
             ));
         } catch (Exception e) {
             String msg = "Error get total saved gas fee for address: " + address;
-            log.error(msg, e);
+            log.warn(msg, e);
             return RestResponse.error(msg);
         }
     }

@@ -152,4 +152,8 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         @Param("network") String network,
         @Param("block_date") long blockDate
     );
+
+    @Query("select t from HardWorkDTO t where "
+        + "t.vaultAddress is null or t.vaultAddress = ''")
+    List<HardWorkDTO> fetchAllWithoutAddresses();
 }

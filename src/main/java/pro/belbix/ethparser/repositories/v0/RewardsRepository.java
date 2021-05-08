@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 
 public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
@@ -58,4 +59,8 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
         @Param("endTime") long endTime,
         @Param("network") String network
     );
+
+    @Query("select t from RewardDTO t where "
+        + "t.vaultAddress is null or t.vaultAddress = ''")
+    List<RewardDTO> fetchAllWithoutAddresses();
 }
