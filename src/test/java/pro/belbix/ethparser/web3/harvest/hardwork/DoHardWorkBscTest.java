@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +47,7 @@ public class DoHardWorkBscTest {
     );
 
     @Test
+    @Disabled("Returns missing trie node error")
     public void parse_ONEINCH_BNB() throws Exception {
         HardWorkDTO dto = loadHardWork(6607654);
         assertModel(
