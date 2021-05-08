@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 
 public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
@@ -51,6 +52,12 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
             + "and t.block_date <= :to "
             + "order by t.block_date")
     List<UniswapDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
+
+    @Query("select t from UniswapDTO t where "
+        + "t.coinAddress is null or t.coinAddress = '' "
+        + "or t.otherCoinAddress is null or t.otherCoinAddress = '' "
+    )
+    List<UniswapDTO> fetchAllWithoutAddresses();
 
     @Query(nativeQuery = true, value = "" +
         "select FLOOR(MIN(block_date)/:period)*:period as timestamp,  " +
