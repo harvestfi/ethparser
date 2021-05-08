@@ -138,7 +138,7 @@ jobs:
           # Or a workflow status:
           # "completed", "in_progress", "queued"
           # Default: "completed,success"
-          workflow_conclusion: "completed,success"
+          workflow_conclusion: "in_progress,completed,success"
           # Optional, will get head commit SHA
           commit: ${{github.event.pull_request.head.sha}}
           # Optional, no need to specify if PR is
@@ -159,7 +159,7 @@ jobs:
           # Optional, defaults to current repo
           #repo: ${{github.repository}}
         # Run only on push to release branch
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
+        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'main') }}
 
       - name: Prepare deploy to server
         uses: hughcube/deploy-action@1.0.0
