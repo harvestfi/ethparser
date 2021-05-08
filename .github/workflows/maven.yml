@@ -144,7 +144,7 @@ jobs:
           # Or a workflow status:
           # "completed", "in_progress", "queued"
           # Default: "completed,success"
-          workflow_conclusion: "in_progress,completed,success"
+          #workflow_conclusion: "in_progress,completed,success"
           # Optional, will get head commit SHA
           commit: ${{github.event.pull_request.head.sha}}
           # Optional, no need to specify if PR is
