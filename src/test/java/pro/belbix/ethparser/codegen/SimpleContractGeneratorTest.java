@@ -43,7 +43,7 @@ class SimpleContractGeneratorTest {
     assertAll(
         () -> assertNotNull(contract, "contract is not null"),
         () -> assertEquals(17, contract.getEvents().size(), "Events size"),
-        () -> assertEquals(52, contract.getFunctions().size(), "Functions size")
+        () -> assertEquals(50, contract.getFunctions().size(), "Functions size")
     );
   }
 
