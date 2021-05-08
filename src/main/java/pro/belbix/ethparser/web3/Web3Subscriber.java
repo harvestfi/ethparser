@@ -49,8 +49,8 @@ public class Web3Subscriber {
   private final List<BlockingQueue<Web3Model<EthBlock>>> blockConsumers = new ArrayList<>();
   private final Map<String, Disposable> subscriptions = new HashMap<>();
 
-  private Map<String, Web3LogFlowable> web3LogFlowable = new HashMap<>();
-  private Map<String, Web3TransactionFlowable> web3TransactionFlowable = new HashMap<>();
+  private final Map<String, Web3LogFlowable> web3LogFlowable = new HashMap<>();
+  private final Map<String, Web3TransactionFlowable> web3TransactionFlowable = new HashMap<>();
 
   public Web3Subscriber(Web3Functions web3Functions,
       AppProperties appProperties,
@@ -166,7 +166,7 @@ public class Web3Subscriber {
       throw new IllegalStateException("Double call log flowable for " + network);
     }
     Web3LogFlowable logFlowable = new Web3LogFlowable(addressesSupplier, from, web3Functions,
-        logConsumers, network, () -> logBlockLimitation(network));
+        logConsumers, network, () -> logBlockLimitation(network), networkProperties.get(network).getBlockStep());
     new Thread(logFlowable).start();
     web3LogFlowable.put(network, logFlowable);
   }
@@ -184,7 +184,9 @@ public class Web3Subscriber {
       throw new IllegalStateException("Double call transaction flowable");
     }
     Web3TransactionFlowable web3TransactionFlowable =
-        new Web3TransactionFlowable(from, web3Functions, transactionConsumers, network);
+        new Web3TransactionFlowable(
+            from, web3Functions, transactionConsumers, network,
+            networkProperties.get(network).getBlockStep());
     new Thread(web3TransactionFlowable)
         .start();
     this.web3TransactionFlowable.put(network, web3TransactionFlowable);

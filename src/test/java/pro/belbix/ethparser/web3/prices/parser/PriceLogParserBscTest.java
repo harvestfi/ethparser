@@ -33,15 +33,17 @@ public class PriceLogParserBscTest {
             .block(6442026L)
             .network(BSC_NETWORK)
             .token("WBNB")
+            .tokenAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
             .tokenAmount(0.18967699605476643)
             .otherToken("BUSD")
+            .otherTokenAddress("0xe9e7cea3dedca5984780bafc599bd69add087d56")
             .otherTokenAmount(91.77635486931689)
             .price(483.85601194790024)
             .buy(1)
             .source("PC_WBNB_BUSD")
-            .lpTotalSupply(8660817.747093258)
-            .lpToken0Pooled(453476.31838750903)
-            .lpToken1Pooled(2.1896660626009792E8)
+//            .lpTotalSupply(8660817.747093258)
+//            .lpToken0Pooled(453476.31838750903)
+//            .lpToken1Pooled(2.1896660626009792E8)
             .build(),
         loadPrice(
             "0x1b96b92314c44b159149f7e0303511fb2fc4774f",

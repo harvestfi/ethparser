@@ -16,12 +16,12 @@ import pro.belbix.ethparser.model.Web3Model;
 @Log4j2
 public class Web3TransactionFlowable implements Runnable {
 
-  public static final int BLOCKS_STEP = 100;
   public static final int WAIT_BETWEEN_BLOCKS = 5 * 1000;
   private final AtomicBoolean run = new AtomicBoolean(true);
   private final Web3Functions web3Functions;
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers;
   private final String network;
+  private final int blockStep;
   private Integer from;
   private BigInteger lastBlock;
   private int lastParsedBlock = Integer.MAX_VALUE;
@@ -30,11 +30,14 @@ public class Web3TransactionFlowable implements Runnable {
       Integer from,
       Web3Functions web3Functions,
       List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers,
-      String network) {
+      String network,
+      int blockStep
+  ) {
     this.web3Functions = web3Functions;
     this.from = from;
     this.transactionConsumers = transactionConsumers;
     this.network = network;
+    this.blockStep = blockStep;
   }
 
   public void stop() {
@@ -59,8 +62,8 @@ public class Web3TransactionFlowable implements Runnable {
           from = to;
         } else {
           int diff = to - from;
-          if (diff > BLOCKS_STEP) {
-            to = from + BLOCKS_STEP;
+          if (diff > blockStep) {
+            to = from + blockStep;
           }
         }
         AtomicInteger counter = new AtomicInteger(0);

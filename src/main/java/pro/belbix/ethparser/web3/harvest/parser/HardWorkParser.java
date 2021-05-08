@@ -160,7 +160,10 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
         priceProvider.getPriceForCoin(
             ContractUtils.getEthAddress(network), dto.getBlock(), network);
     dto.setEthPrice(ethPrice);
-    double farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
+    double farmBuybackEth = 0;
+    if (ethPrice != 0) {
+      farmBuybackEth = dto.getFullRewardUsd() / ethPrice;
+    }
     dto.setFarmBuybackEth(farmBuybackEth);
     fillFeeInfo(dto, txHash, tr, network);
   }

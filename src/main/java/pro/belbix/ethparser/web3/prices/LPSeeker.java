@@ -21,6 +21,8 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 
 @Service
 @Log4j2
@@ -30,15 +32,23 @@ public class LPSeeker {
   private static final double MIN_LIQUIDITY = 100; //it is not USD, some token amount
   private final FunctionsUtils functionsUtils;
   private final PriceOracle priceOracle;
+  private final ContractDbService contractDbService;
 
   public LPSeeker(FunctionsUtils functionsUtils,
-      PriceOracle priceOracle) {
+      PriceOracle priceOracle,
+      ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.priceOracle = priceOracle;
+    this.contractDbService = contractDbService;
   }
 
 
-  public String findLargestLP(String tokenAddress, long block, String network) {
+  public String findLargestLP(
+      String tokenAddress,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
 //    if (PriceOracle.isAvailable(block, network)) {
 //      String largestKeyToken = priceOracle.getLargestKeyToken(tokenAddress, block, network);
 //      if (largestKeyToken != null) {
@@ -46,10 +56,15 @@ public class LPSeeker {
 //      }
 //      pairForTokens()
 //    }
-    return getUniLargestPool(tokenAddress, block, network);
+    return getUniLargestPool(tokenAddress, block, network, contracts);
   }
 
-  private String getUniLargestPool(String token, long block, String network) {
+  private String getUniLargestPool(
+      String tokenAddress,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
     Set<String> tokenList = ContractConstants.KEY_TOKENS.get(network);
     TreeMap<BigInteger, String> pairsLiquidity = new TreeMap<>();
     for (String keyToken : tokenList) {
@@ -58,16 +73,24 @@ public class LPSeeker {
         if (factoryStart > block) {
           continue;
         }
-        String pair = pairForTokens(factory, token, keyToken, block, network);
-        if (ZERO_ADDRESS.equalsIgnoreCase(pair)) {
-          log.info("Zero pair for {} {} from {}", token, keyToken, factoryStart);
+        String lpAddress = lpForTokens(factory, tokenAddress, keyToken, block, network);
+        if (ZERO_ADDRESS.equalsIgnoreCase(lpAddress)) {
+          log.info("Zero pair for {} {} from {}", tokenAddress, keyToken, factoryStart);
           continue;
         }
-        pairsLiquidity.put(getLiquidity(pair, token, block, network), pair);
+
+        if (contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))
+            || contractDbService.findLpByAddress(lpAddress, network).isPresent()) {
+          log.warn("We already have lp {}, try to find another for {}",
+              lpAddress, tokenAddress);
+          continue;
+        }
+
+        pairsLiquidity.put(getLiquidity(lpAddress, tokenAddress, block, network), lpAddress);
       }
     }
     if (pairsLiquidity.isEmpty()
-        || isNotEnoughLiquidity(pairsLiquidity.lastEntry().getKey(), token, block, network)
+        || isNotEnoughLiquidity(pairsLiquidity.lastEntry().getKey(), tokenAddress, block, network)
     ) {
       return null;
     }
@@ -92,7 +115,7 @@ public class LPSeeker {
     return true;
   }
 
-  private String pairForTokens(
+  private String lpForTokens(
       String factory,
       String token0,
       String token1,

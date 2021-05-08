@@ -134,8 +134,8 @@ public class Web3FunctionsTest {
   void testRequestWithTopics() {
     List<EthLog.LogResult> results = web3Functions.fetchContractLogs(
         List.of("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-        null,
-        null,
+        12317814,
+        12317814,
         ETH_NETWORK,
         "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b"
     );

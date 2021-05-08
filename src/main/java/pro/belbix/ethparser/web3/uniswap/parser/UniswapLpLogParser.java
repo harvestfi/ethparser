@@ -18,6 +18,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
@@ -82,7 +83,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
   }
 
   public UniswapDTO parse(Log ethLog, String network) {
-    if (!isValidLog(ethLog)) {
+    if (!isValidLog(ethLog, network)) {
       return null;
     }
     UniswapTx tx = new UniswapTx();
@@ -124,11 +125,13 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     return dto;
   }
 
-  private boolean isValidLog(Log ethLog) {
+  private boolean isValidLog(Log ethLog, String network) {
     if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
       return false;
     }
-    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK);
+    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK)
+        && contractDbService.getContractByAddressAndType(
+        ethLog.getAddress(), ContractType.UNI_PAIR, network).isPresent();
   }
 
   private void enrichDto(UniswapDTO dto) {

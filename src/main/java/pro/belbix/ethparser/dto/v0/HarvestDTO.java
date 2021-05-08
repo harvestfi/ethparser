@@ -51,6 +51,7 @@ public class HarvestDTO implements DtoI {
   @Deprecated
   @Column(columnDefinition = "TEXT")
   private String prices;
+  @Column(columnDefinition = "TEXT")
   private String lpStat;
   @Deprecated
   private Double lastAllUsdTvl;
@@ -60,6 +61,7 @@ public class HarvestDTO implements DtoI {
   private Integer allPoolsOwnersCount;
   private boolean migrated = false;
   private Double underlyingPrice;
+  private String underlyingAddress;
   @Transient
   private HarvestDTO migration;
   private Double profit;

@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 
 public interface TransferRepository extends JpaRepository<TransferDTO, String> {
@@ -65,4 +66,8 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
         + "and network = :network "
         + "order by block_date")
     List<TransferDTO> fetchAllWithoutProfits(@Param("network") String network);
+
+    @Query("select t from TransferDTO t where "
+        + "t.tokenAddress is null or t.tokenAddress = ''")
+    List<TransferDTO> fetchAllWithoutAddresses();
 }

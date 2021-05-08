@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 
 public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
@@ -216,6 +217,11 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         @Param("blockDate") long blockDate,
         @Param("network") String network
     );
+
+    @Query("select t from HarvestDTO t where "
+        + "t.vaultAddress is null or t.vaultAddress = '' "
+        + "or t.lpStat not like '%coin1Address%'")
+    List<HarvestDTO> fetchAllWithoutAddresses();
 
     @Query(nativeQuery = true, value = ""
         + "select t.owner, sum(t.b) balance from "

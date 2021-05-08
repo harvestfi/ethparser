@@ -13,6 +13,8 @@ public class EthAppProperties implements NetworkPropertiesI {
 
   private String web3Url = "";
   private String abiProviderKey = "";
+  private int blockStep = 100;
+  private int web3Timeout = 60;
 
   // log parsing
   private boolean parseLog = true;

@@ -42,7 +42,7 @@ public class HarvestOwnerBalanceCalculatorTest {
         10780101,
         1,
         "4990,85837900",
-        "4943.34928575"
+        "4990.85837900"
     );
     }
 

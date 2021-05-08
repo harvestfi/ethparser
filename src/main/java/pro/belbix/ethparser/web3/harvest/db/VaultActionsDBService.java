@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
-import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.Duration.between;
+import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
@@ -107,6 +110,7 @@ public class VaultActionsDBService {
   }
 
   public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    Instant start = now();
     if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
       log.warn("Found the same harvestTvl record for " + dto);
     }
@@ -119,6 +123,7 @@ public class VaultActionsDBService {
     fillSimpleDataFromDto(dto, harvestTvl);
     //should be after price filling
     fillTvl(dto, harvestTvl);
+    log.trace("Vault action created TVL for {}", between(start, now()).toMillis());
     return harvestTvl;
   }
 
@@ -219,8 +224,9 @@ public class VaultActionsDBService {
 
   public List<HarvestDTO> fetchHarvest(String from, String to, String network) {
     if (from == null && to == null) {
-      return harvestRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000, network);
+      return harvestRepository
+          .findAll(PageRequest.of(0, 100, Sort.by("blockDate").descending()))
+          .getContent();
     }
     int fromI = 0;
     int toI = Integer.MAX_VALUE;
