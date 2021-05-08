@@ -35,7 +35,7 @@ jobs:
 
     needs: pre-ci
     # Run only if there are differences in the source code
-    #if: needs.pre-ci.outputs.diff
+    if: needs.pre-ci.outputs.diff
 
     runs-on: ubuntu-latest
 
@@ -164,7 +164,7 @@ jobs:
           # Optional, defaults to current repo
           #repo: ${{github.repository}}
         # Run only on push to release branch
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'main') }}
+        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'mai') }}
 
       - name: Prepare deploy to server
         uses: hughcube/deploy-action@1.0.0
