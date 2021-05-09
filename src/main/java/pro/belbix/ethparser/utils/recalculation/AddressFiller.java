@@ -2,11 +2,12 @@ package pro.belbix.ethparser.utils.recalculation;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.DtoI;
@@ -20,6 +21,7 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
+@Log4j2
 public class AddressFiller {
 
   private final ContractDbService contractDbService;
@@ -46,6 +48,10 @@ public class AddressFiller {
 
   public void start() {
     fillHardWork();
+    fillVaultActions();
+    fillRewards();
+    fillTransfers();
+    fillUniswap();
   }
 
   private void fillHardWork() {
@@ -62,27 +68,28 @@ public class AddressFiller {
   private void fillVaultActions() {
     handle(harvestRepository.fetchAllWithoutAddresses(),
         dto -> {
-          String vaultAddress = contractDbService
-              .getAddressByName(dto.getVault(), ContractType.VAULT, dto.getNetwork())
-              .orElseThrow();
-          dto.setVaultAddress(vaultAddress);
+          try {
+            String vaultAddress = contractDbService
+                .getAddressByName(dto.getVault(), ContractType.VAULT, dto.getNetwork())
+                .orElse(null);
+            if (vaultAddress == null) {
+              vaultAddress = contractDbService
+                  .getAddressByName(dto.getVault(), ContractType.UNI_PAIR, ETH_NETWORK)
+                  .orElseThrow(
+                      () -> new IllegalStateException("Not found address for " + dto.getVault())
+                  );
+            }
+            dto.setVaultAddress(vaultAddress);
 
-          LpStat lpStat;
-          try {
-            lpStat = ObjectMapperFactory.getObjectMapper()
-                .readValue(dto.getLpStat(), LpStat.class);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-          lpStat.setCoin1Address(contractDbService
-              .getAddressByName(lpStat.getCoin1(), ContractType.TOKEN, dto.getNetwork())
-              .orElseThrow());
-          lpStat.setCoin2Address(contractDbService
-              .getAddressByName(lpStat.getCoin2(), ContractType.TOKEN, dto.getNetwork())
-              .orElseThrow());
-          try {
-            dto.setLpStat(ObjectMapperFactory.getObjectMapper().writeValueAsString(lpStat));
-          } catch (JsonProcessingException e) {
+            if (dto.getLpStat() != null) {
+              LpStat lpStat;
+              lpStat = ObjectMapperFactory.getObjectMapper()
+                  .readValue(dto.getLpStat(), LpStat.class);
+              lpStat.setCoin1Address(getTokenAddress(lpStat.getCoin1(), dto.getNetwork()));
+              lpStat.setCoin2Address(getTokenAddress(lpStat.getCoin2(), dto.getNetwork()));
+              dto.setLpStat(ObjectMapperFactory.getObjectMapper().writeValueAsString(lpStat));
+            }
+          } catch (Exception e) {
             throw new RuntimeException(e);
           }
         },
@@ -94,7 +101,14 @@ public class AddressFiller {
         dto -> {
           String vaultAddress = contractDbService
               .getAddressByName(dto.getVault(), ContractType.VAULT, dto.getNetwork())
-              .orElseThrow();
+              .orElse(null);
+          if (vaultAddress == null) {
+            vaultAddress = contractDbService
+                .getAddressByName(dto.getVault(), ContractType.UNI_PAIR, ETH_NETWORK)
+                .orElseThrow(
+                    () -> new IllegalStateException("Not found address for " + dto.getVault())
+                );
+          }
           dto.setVaultAddress(vaultAddress);
         },
         rewardsRepository::saveAll);
@@ -103,9 +117,7 @@ public class AddressFiller {
   private void fillTransfers() {
     handle(transferRepository.fetchAllWithoutAddresses(),
         dto -> {
-          String tokenAddress = contractDbService
-              .getAddressByName(dto.getName(), ContractType.TOKEN, dto.getNetwork())
-              .orElseThrow();
+          String tokenAddress = getTokenAddress(dto.getName(), dto.getNetwork());
           dto.setTokenAddress(tokenAddress);
         },
         transferRepository::saveAll);
@@ -114,16 +126,30 @@ public class AddressFiller {
   private void fillUniswap() {
     handle(uniswapRepository.fetchAllWithoutAddresses(),
         dto -> {
-          String coinAddress = contractDbService
-              .getAddressByName(dto.getCoinAddress(), ContractType.TOKEN, ETH_NETWORK)
-              .orElseThrow();
-          String otherCoinAddress = contractDbService
-              .getAddressByName(dto.getOtherCoinAddress(), ContractType.TOKEN, ETH_NETWORK)
-              .orElseThrow();
+          String coinAddress = getTokenAddress(dto.getCoin(), ETH_NETWORK);
+          String otherCoinAddress = getTokenAddress(dto.getOtherCoin(), ETH_NETWORK);
           dto.setCoinAddress(coinAddress);
           dto.setOtherCoinAddress(otherCoinAddress);
         },
         uniswapRepository::saveAll);
+  }
+
+  private String getTokenAddress(String _name, String network) {
+    String name = _name;
+    if ("WETH".equals(name)) {
+      name = "ETH";
+    } else if ("MEME20_ETH".equals(name)) {
+      name = "MEME20";
+    } else if ("WBTC_KBTC".equals(name)) {
+      name = "KBTC";
+    } else if ("WBTC_KLON".equals(name)) {
+      name = "KLON";
+    }
+    return contractDbService
+        .getAddressByName(name, ContractType.TOKEN, network)
+        .orElseThrow(
+            () -> new IllegalStateException("Not found address for " + _name)
+        );
   }
 
   private <T extends DtoI> void handle(
@@ -131,12 +157,24 @@ public class AddressFiller {
       Consumer<T> handler,
       Consumer<List<T>> saver
   ) {
+    log.info("Start handling, size {}", dtos.size());
     List<T> handled = new ArrayList<>();
+    int count = 0;
+    Instant start = Instant.now();
     for (T dto : dtos) {
-      handler.accept(dto);
+      try {
+        handler.accept(dto);
+      } catch (Exception e) {
+        log.info("Error handle {}", dto, e);
+        continue;
+      }
 
       handled.add(dto);
-      if (handled.size() % 1000 == 0) {
+      count++;
+      if (handled.size() % 100 == 0) {
+        log.info("Save butch {} {} for {}, total {}",
+            dto.getClass().getSimpleName(), handled.size(),
+            Duration.between(start, Instant.now()), count);
         saver.accept(handled);
         handled.clear();
       }
