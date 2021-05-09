@@ -102,10 +102,13 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
     String sourceName = getSourceName(tx.getSource(), network);
 
-    boolean buy = isBuy(tx, keyCoinFirst);
+    Boolean buy = isBuy(tx, keyCoinFirst);
+    if (buy == null) {
+      log.error("Both amountOut values not zero, can't determinate swap direction {}", tx);
+      return null;
+    }
     dto.setSource(sourceName);
     dto.setBuy(buy ? 1 : 0);
-
 
     fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
 
@@ -244,14 +247,14 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     return keyCoinFirst;
   }
 
-  private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
+  private static Boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
     if (keyCoinFirst) {
       if (isZero(tx, 3)) { // amount1Out
         return true;
       } else if (isZero(tx, 2)) { // amount0Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     } else {
       if (isZero(tx, 2)) { // amount0Out
@@ -259,7 +262,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       } else if (isZero(tx, 3)) { // amount1Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     }
   }
