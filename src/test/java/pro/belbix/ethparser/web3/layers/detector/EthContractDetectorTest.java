@@ -78,11 +78,13 @@ class EthContractDetectorTest {
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
             "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
             "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0x3da1313ae46132a397d90d95b1424a9a7e3e0fce".toLowerCase(),
+            "0xd533a949740bb3306d119cc777fa900ba034cd52".toLowerCase(),
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
     assertEvents(events, ContractEventAssertion.builder()
-        .eventSize(12)
+        .eventSize(14)
         .eventContractAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
         .txSize(15)
         .txAddress("0xf9fba9a4ed29d8dfc8895737e62f71957abcfb64f503864fc5f68230efa33abf")
