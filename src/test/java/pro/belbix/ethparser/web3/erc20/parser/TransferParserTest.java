@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -142,7 +143,7 @@ public class TransferParserTest {
             0,
             "FARM",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "180981.24181470",
             "PS_INTERNAL",
             "exit"
@@ -157,7 +158,7 @@ public class TransferParserTest {
             1,
             "FARM",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "2.07976153",
             "PS_INTERNAL",
             "exit"
@@ -171,7 +172,7 @@ public class TransferParserTest {
             11337723,
             2,
             "FARM",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "0x27c7e3758983f00085c5bbc91ecf0c91baae7146",
             "1.06503922",
             "PS_EXIT",
@@ -186,7 +187,7 @@ public class TransferParserTest {
             11337723,
             5,
             "FARM",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "180982.25653701",
             "PS_INTERNAL",
@@ -202,7 +203,7 @@ public class TransferParserTest {
             0,
             "FARM",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "180905.75962281",
             "PS_INTERNAL",
             "stake"
@@ -217,7 +218,7 @@ public class TransferParserTest {
             1,
             "FARM",
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "10.56597522",
             "PS_INTERNAL",
             "stake"
@@ -231,7 +232,7 @@ public class TransferParserTest {
             11337691,
             6,
             "FARM",
-            "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50",
+            PS_ADDRESS,
             "0x8f5adc58b32d4e5ca02eac0e293d35855999436c",
             "180981.24181470",
             "PS_INTERNAL",
@@ -371,7 +372,7 @@ public class TransferParserTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contractHash), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        TransferDTO dto = transferParser.parseLog((Log) logResults.get(logId).get());
+        TransferDTO dto = transferParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertDto(dto, name, owner, recipient, value, type, methodName);
         return dto;
     }

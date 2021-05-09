@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
+import pro.belbix.ethparser.service.LastDbPricesService;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -27,15 +29,18 @@ public class PriceController {
     private final EthBlockService ethBlockService;
     private final PriceRepository priceRepository;
     private final ContractDbService contractDbService;
+    private final LastDbPricesService lastDbPricesService;
 
     public PriceController(PriceProvider priceProvider,
         EthBlockService ethBlockService,
         PriceRepository priceRepository,
-        ContractDbService contractDbService) {
+        ContractDbService contractDbService,
+        LastDbPricesService lastDbPricesService) {
         this.priceProvider = priceProvider;
         this.ethBlockService = ethBlockService;
         this.priceRepository = priceRepository;
         this.contractDbService = contractDbService;
+        this.lastDbPricesService = lastDbPricesService;
     }
 
     @GetMapping(value = "/lp/{lp}")
@@ -105,6 +110,19 @@ public class PriceController {
     public List<PriceDTO> lastPrices(
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return priceRepository.fetchLastPrices(network);
+        return lastDbPricesService.getLastPrices(network);
+    }
+
+    @RequestMapping(value = "/token/dto/{token}", method = RequestMethod.GET)
+    public PriceDTO lastPrice(
+        @PathVariable("token") String token,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+    ) {
+        List<PriceDTO> priceL = priceRepository.fetchLastPriceByTokenAddress(
+            token.toLowerCase(), Long.MAX_VALUE, network, PageRequest.of(0, 1));
+        if (priceL == null || priceL.isEmpty()) {
+            return null;
+        }
+        return priceL.get(0);
     }
 }

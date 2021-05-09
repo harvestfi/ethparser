@@ -1,14 +1,13 @@
 package pro.belbix.ethparser.web3.contracts.db;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseAddressInsteadOfZero;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +58,8 @@ public class ContractDbService {
   }
 
   public Optional<ContractEntity> getContractByAddress(String address, String network) {
-    return Optional.ofNullable(contractRepository.findFirstByAddress(address, network));
+    return Optional.ofNullable(contractRepository
+        .findFirstByAddress(address.toLowerCase(), network));
   }
 
   public Optional<ContractEntity> getContractByAddressAndType(
@@ -77,7 +77,7 @@ public class ContractDbService {
   }
 
   public Optional<String> getNameByAddress(String address, String network) {
-    return getContractByAddress(address, network)
+    return getContractByAddress(address.toLowerCase(), network)
         .map(ContractEntity::getName);
   }
 
@@ -87,13 +87,17 @@ public class ContractDbService {
   }
 
   public Optional<ContractEntity> getPoolContractByVaultAddress(String address, String network) {
-    return Optional.ofNullable(contractRepository
-        .findPoolByVaultAddress(address.toLowerCase(), network));
+    List<ContractEntity> pools =
+        contractRepository.findPoolsByVaultAddress(address.toLowerCase(), network);
+    if (pools == null || pools.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(pools.get(0));
   }
 
   public Tuple2<String, String> tokenAddressesByUniPairAddress(String address, String network) {
     UniPairEntity uniPair = Optional.ofNullable(uniPairRepository
-        .findFirstByAddress(address, network))
+        .findFirstByAddress(address.toLowerCase(), network))
         .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
     return new Tuple2<>(
         getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress(), network),
@@ -102,7 +106,7 @@ public class ContractDbService {
   }
 
   public double parseAmount(BigInteger amount, String address, String network) {
-    if (amount == null) {
+    if (amount == null || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return 0.0;
     }
     return new BigDecimal(amount)
@@ -134,7 +138,8 @@ public class ContractDbService {
   }
 
   public Optional<UniPairEntity> findLpForTokens(String token0, String token1, String network) {
-    List<UniPairEntity> lps = uniPairRepository.findLpsForTokenPair(token0, token1, network);
+    List<UniPairEntity> lps = uniPairRepository
+        .findLpsForTokenPair(token0.toLowerCase(), token1.toLowerCase(), network);
     if (lps == null || lps.isEmpty()) {
       return Optional.empty();
     }
@@ -148,12 +153,14 @@ public class ContractDbService {
   }
 
   public Optional<UniPairEntity> findLpByAddress(String address, String network) {
-    return Optional.ofNullable(uniPairRepository.findFirstByAddress(address, network));
+    return Optional.ofNullable(uniPairRepository
+        .findFirstByAddress(address.toLowerCase(), network));
   }
 
   public Optional<TokenToUniPairEntity> findPairByToken(String tokenAddress, long block,
       String network) {
-    List<TokenToUniPairEntity> pairs = tokenToUniPairRepository.findByToken(tokenAddress, network);
+    List<TokenToUniPairEntity> pairs = tokenToUniPairRepository
+        .findByToken(tokenAddress.toLowerCase(), network);
     if (pairs == null || pairs.isEmpty()) {
       return Optional.empty();
     }
@@ -182,7 +189,8 @@ public class ContractDbService {
   }
 
   public Optional<PoolEntity> getPoolByAddress(String address, String network) {
-    return Optional.ofNullable(poolRepository.findFirstByAddress(address, network));
+    return Optional.ofNullable(poolRepository
+        .findFirstByAddress(address.toLowerCase(), network));
   }
 
   public List<String> getSubscriptions() {
@@ -190,9 +198,6 @@ public class ContractDbService {
         ContractConstants.FARM_TOKEN
     ));
     contracts.addAll(CONTROLLERS.values());
-    contracts.addAll(PARSABLE_UNI_PAIRS.values().stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList()));
     contracts.addAll(
         contractRepository.findAll().stream()
             .map(ContractEntity::getAddress)

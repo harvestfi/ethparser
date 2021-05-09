@@ -12,6 +12,7 @@ import pro.belbix.ethparser.Application;
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class RewardsRepositoryTest {
+    private static final String USDC = "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE";
 
     @Autowired
     private RewardsRepository rewardsRepository;
@@ -19,7 +20,8 @@ public class RewardsRepositoryTest {
     @Test
     public void getFirstByVaultOrderByBlockDateDesc() {
         assertNotNull(
-            rewardsRepository.getFirstByVaultAndNetworkOrderByBlockDateDesc("USDC", ETH_NETWORK));
+            rewardsRepository.getFirstByVaultAddressAndNetworkOrderByBlockDateDesc(
+                USDC, ETH_NETWORK));
     }
 
     @Test
@@ -30,7 +32,7 @@ public class RewardsRepositoryTest {
     @Test
     public void fetchRewardsByVaultAfterBlockDate() {
         assertNotNull(rewardsRepository
-            .fetchRewardsByVaultAfterBlockDate("USDC", 0, Long.MAX_VALUE, ETH_NETWORK));
+            .fetchRewardsByVaultAfterBlockDate(USDC, 0, Long.MAX_VALUE, ETH_NETWORK));
     }
 
     @Test
@@ -41,6 +43,6 @@ public class RewardsRepositoryTest {
     @Test
     public void getAllByVaultOrderByBlockDate() {
         assertNotNull(rewardsRepository
-            .getAllByVaultOrderByBlockDate("USDC", 0, Long.MAX_VALUE, ETH_NETWORK));
+            .getAllByVaultOrderByBlockDate(USDC, 0, Long.MAX_VALUE, ETH_NETWORK));
     }
 }

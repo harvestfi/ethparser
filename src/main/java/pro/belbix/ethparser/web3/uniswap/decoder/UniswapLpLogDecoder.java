@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.web3.uniswap.decoder;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -17,6 +16,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.tx.EthTransactionI;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 @Log4j2
@@ -57,11 +57,11 @@ public class UniswapLpLogDecoder extends MethodDecoder {
     enrich(types, methodName, tx, ethLog);
   }
 
-  private boolean isValidLog(Log log) {
-    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+  private boolean isValidLog(Log ethLog) {
+    if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
       return false;
     }
-    return PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(log.getAddress());
+    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK);
   }
 
   private void enrich(List<Type> types, String methodName, UniswapTx tx, Log log) {

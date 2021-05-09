@@ -29,6 +29,7 @@ public class ImportantEventsDTO implements DtoI {
   private String oldStrategy;
   private String newStrategy;
   private String vault;
+  private String vaultAddress;
   private Double mintAmount;
   @Column(columnDefinition = "TEXT")
   private String info;

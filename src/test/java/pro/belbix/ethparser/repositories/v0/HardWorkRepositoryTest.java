@@ -14,6 +14,7 @@ import pro.belbix.ethparser.Application;
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class HardWorkRepositoryTest {
+    private static final String USDC = "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE";
 
     private final Pageable limitOne = PageRequest.of(0, 1);
 
@@ -32,19 +33,24 @@ public class HardWorkRepositoryTest {
 
     @Test
     public void getSumForVault() {
-        assertNotNull(hardWorkRepository.getSumForVault("USDC", Long.MAX_VALUE, ETH_NETWORK));
+        assertNotNull(hardWorkRepository.getSumForVault(
+            USDC, Long.MAX_VALUE, ETH_NETWORK));
     }
 
     @Test
     public void fetchPercentForPeriod() {
         assertNotNull(hardWorkRepository
-            .fetchPercentForPeriod("USDC", Long.MAX_VALUE, ETH_NETWORK, limitOne));
+            .fetchPercentForPeriod(
+                USDC, Long.MAX_VALUE, ETH_NETWORK,
+                limitOne));
     }
 
     @Test
     public void fetchProfitForPeriod() {
         assertNotNull(hardWorkRepository
-            .fetchProfitForPeriod("USDC", 0, Long.MAX_VALUE, ETH_NETWORK, limitOne));
+            .fetchProfitForPeriod(
+                USDC, 0, Long.MAX_VALUE, ETH_NETWORK,
+                limitOne));
     }
 
     @Test
@@ -67,18 +73,21 @@ public class HardWorkRepositoryTest {
 
     @Test
     public void countAtBlockDate() {
-        assertNotNull(hardWorkRepository.countAtBlockDate("USDC", ETH_NETWORK, Long.MAX_VALUE));
+        assertNotNull(hardWorkRepository.countAtBlockDate(
+            USDC, ETH_NETWORK, Long.MAX_VALUE));
     }
 
     @Test
     public void sumSavedGasFees() {
-        assertNotNull(hardWorkRepository.sumSavedGasFees("USDC", ETH_NETWORK, Long.MAX_VALUE));
+        assertNotNull(hardWorkRepository.sumSavedGasFees(
+            USDC, ETH_NETWORK, Long.MAX_VALUE));
     }
 
     @Test
     public void findAllByVaultOrderByBlockDate() {
         assertNotNull(hardWorkRepository
-            .findAllByVaultOrderByBlockDate("USDC", ETH_NETWORK, 0, Long.MAX_VALUE));
+            .findAllByVaultOrderByBlockDate(
+                USDC, ETH_NETWORK, 0, Long.MAX_VALUE));
     }
 
     @Test
@@ -94,6 +103,7 @@ public class HardWorkRepositoryTest {
     @Test
     public void fetchPreviousBlockDateByVaultAndDate() {
         assertNotNull(hardWorkRepository
-            .fetchPreviousBlockDateByVaultAndDate("USDC", ETH_NETWORK, Long.MAX_VALUE));
+            .fetchPreviousBlockDateByVaultAndDate(
+                USDC, ETH_NETWORK, Long.MAX_VALUE));
     }
 }

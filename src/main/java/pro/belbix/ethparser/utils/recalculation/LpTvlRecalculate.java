@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.utils.recalculation;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +42,7 @@ public class LpTvlRecalculate {
 
     for (UniswapDTO dto : dtos) {
       try {
-        HarvestDTO harvestDto = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDto = uniToHarvestConverter.parse(dto, ETH_NETWORK);
 
         if (harvestDto != null) {
 

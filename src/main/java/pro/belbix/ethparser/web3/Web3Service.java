@@ -1,11 +1,9 @@
 package pro.belbix.ethparser.web3;
 
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.util.Strings;
@@ -18,6 +16,7 @@ import pro.belbix.ethparser.properties.NetworkProperties;
 @Log4j2
 abstract class Web3Service {
 
+  private static final AtomicBoolean run = new AtomicBoolean(true);
   public final static int RETRY_COUNT = 5000;
   private final String network;
   final AppProperties appProperties;
@@ -85,6 +84,7 @@ abstract class Web3Service {
 
   void close() {
     log.info("Close {} web3 service", network);
+    run.set(false);
     if (web3 != null) {
       web3.shutdown();
     }
@@ -94,7 +94,7 @@ abstract class Web3Service {
 
   public <T> T callWithRetry(Callable<T> callable, String logMessage) {
     int count = 0;
-    while (true) {
+    while (run.get()) {
       waitInit();
       T result = null;
       Exception lastError = null;
@@ -104,15 +104,14 @@ abstract class Web3Service {
         if (e.getMessage().startsWith("Not retryable response")) {
           return null;
         }
-      }
-//      catch (ClientConnectionException e) { //by default all errors, but can be filtered by type
-//        log.error("Connection exception, reconnect...", e);
-//        close();
-//        waitInit();
-//        lastError = e;
-//      }
-      catch (Exception e) { //by default all errors, but can be filtered by type
-        log.warn(logMessage+ " Retryable error", e);
+      } catch (ClientConnectionException e) {
+        if (e.getMessage().contains("Invalid method parameter(s)")) {
+          return null;
+        }
+        log.warn(logMessage + " Retryable client error", e);
+        lastError = e;
+      } catch (Exception e) { //by default all errors, but can be filtered by type
+        log.warn(logMessage + " Retryable error", e);
         lastError = e;
       }
 
@@ -133,5 +132,6 @@ abstract class Web3Service {
       } catch (InterruptedException ignore) {
       }
     }
+    return null;
   }
 }

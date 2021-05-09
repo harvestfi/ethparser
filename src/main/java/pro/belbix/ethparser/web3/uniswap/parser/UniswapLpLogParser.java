@@ -2,23 +2,14 @@ package pro.belbix.ethparser.web3.uniswap.parser;
 
 import static pro.belbix.ethparser.model.tx.UniswapTx.SWAP;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
 
-import java.time.Instant;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -27,6 +18,8 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -36,25 +29,18 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 
 @Service
 @Log4j2
-public class UniswapLpLogParser implements Web3Parser {
+public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
-  private static final AtomicBoolean run = new AtomicBoolean(true);
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final UniswapDbService uniswapDbService;
   private final EthBlockService ethBlockService;
   private final PriceProvider priceProvider;
   private final UniToHarvestConverter uniToHarvestConverter;
-  private final ParserInfo parserInfo;
   private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
-  private long count = 0;
 
   public UniswapLpLogParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, UniswapDbService uniswapDbService,
@@ -66,61 +52,38 @@ public class UniswapLpLogParser implements Web3Parser {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
     this.uniToHarvestConverter = uniToHarvestConverter;
-    this.parserInfo = parserInfo;
     this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Uniswap logs");
-    parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs);
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          count++;
-          if (count % 100 == 0) {
-            log.info(this.getClass().getSimpleName() + " handled " + count);
-          }
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParseUniswapLog()) {
-            continue;
-          }
-          UniswapDTO dto = parseUniswapLog(ethLog.getValue());
-          if (dto != null) {
-            lastTx = Instant.now();
-            enrichDto(dto);
-            uniOwnerBalanceCalculator.fillBalance(dto);
-            uniToHarvestConverter.addDtoToQueue(dto);
-            boolean success = uniswapDbService.saveUniswapDto(dto);
-            if (success) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Error uniswap parser loop " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
   }
 
-  public UniswapDTO parseUniswapLog(Log ethLog) {
-    if (!isValidLog(ethLog)) {
+  @Override
+  protected boolean save(UniswapDTO dto) {
+    enrichDto(dto);
+    uniOwnerBalanceCalculator.fillBalance(dto);
+    uniToHarvestConverter.addDtoToQueue(dto);
+    return uniswapDbService.saveUniswapDto(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParseUniswapLog();
+  }
+
+  public UniswapDTO parse(Log ethLog, String network) {
+    if (!isValidLog(ethLog, network)) {
       return null;
     }
     UniswapTx tx = new UniswapTx();
@@ -162,11 +125,13 @@ public class UniswapLpLogParser implements Web3Parser {
     return dto;
   }
 
-  private boolean isValidLog(Log log) {
-    if (log == null || log.getTopics() == null || log.getTopics().isEmpty()) {
+  private boolean isValidLog(Log ethLog, String network) {
+    if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
       return false;
     }
-    return PARSABLE_UNI_PAIRS.get(ETH_NETWORK).contains(log.getAddress());
+    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK)
+        && contractDbService.getContractByAddressAndType(
+        ethLog.getAddress(), ContractType.UNI_PAIR, network).isPresent();
   }
 
   private void enrichDto(UniswapDTO dto) {
@@ -298,20 +263,5 @@ public class UniswapLpLogParser implements Web3Parser {
     } else {
       throw new IllegalStateException("Wrong index for pair " + i);
     }
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
   }
 }

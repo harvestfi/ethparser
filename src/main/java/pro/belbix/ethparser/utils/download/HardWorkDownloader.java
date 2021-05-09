@@ -62,7 +62,7 @@ public class HardWorkDownloader {
     for (LogResult logResult : logResults) {
       try {
         HardWorkDTO dto = hardWorkParser
-            .parseLog((Log) logResult.get(), appProperties.getUtilNetwork());
+            .parse((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           hardWorkDbService.save(dto);
         }

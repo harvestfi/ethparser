@@ -66,7 +66,7 @@ public class HardWorksCalculatorTest {
     private HarvestDTO mockHarvest(String ethAddr, String vault, double balance, long blockDate) {
         HarvestDTO harvest = new HarvestDTO();
         harvest.setOwner(ethAddr);
-        harvest.setVault(vault);
+        harvest.setVaultAddress(vault);
         harvest.setOwnerBalance(balance);
         harvest.setBlockDate(blockDate);
         return harvest;
@@ -74,7 +74,7 @@ public class HardWorksCalculatorTest {
 
     private HardWorkDTO mockHardWork(String vault, long block, long blockDate) {
         HardWorkDTO hardwork = new HardWorkDTO();
-        hardwork.setVault(vault);
+        hardwork.setVaultAddress(vault);
         hardwork.setBlock(block);
         hardwork.setBlockDate(blockDate);
         hardwork.setEthPrice(fakeEthPrice);

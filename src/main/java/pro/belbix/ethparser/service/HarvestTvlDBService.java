@@ -22,11 +22,11 @@ public class HarvestTvlDBService {
 
     //todo move calculation on the frontend
     public List<TvlHistory> fetchTvlByVault(
-        String name, long startTime, long endTime, String network
+        String address, long startTime, long endTime, String network
     ) {
-        log.debug("get tvl for " + name);
+        log.debug("get tvl for " + address);
         List<HarvestDTO> harvestTxEntities = harvestRepository
-            .findAllByVaultOrderByBlockDate(name, startTime, endTime, network);
+            .findAllByVaultOrderByBlockDate(address, startTime, endTime, network);
         List<TvlHistory> tvlHistoryDTOS = new ArrayList<>();
         if (harvestTxEntities == null) {
             return tvlHistoryDTOS;

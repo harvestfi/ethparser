@@ -68,7 +68,7 @@ public class UniswapParserTest {
             "15,00000000"
         );
 
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
     }
 
@@ -85,7 +85,7 @@ public class UniswapParserTest {
             "945,85450400",
             "231,74310394"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("0,00000000"),
@@ -97,7 +97,7 @@ public class UniswapParserTest {
             () -> assertEquals("LastUsdTvl", "0",
                 String.format("%.0f", harvestDTO.getLastUsdTvl())),
             () -> assertEquals("LpStat",
-                "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":0.0,\"amount2\":0.0,\"price1\":231.7431039407448,\"price2\":1.0}",
+                "{\"coin1\":\"FARM\",\"coin1Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"coin2\":\"USDC\",\"coin2Address\":\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\",\"amount1\":0.0,\"amount2\":0.0,\"price1\":231.7431039407448,\"price2\":1.0}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", numberFormat("0,00000000"),
                 String.format("%.8f", harvestDTO.getLastTvl()))
@@ -163,7 +163,7 @@ public class UniswapParserTest {
             "233,93936051"
         );
 
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("0,00005882"),
@@ -175,7 +175,7 @@ public class UniswapParserTest {
             () -> assertEquals("LastUsdTvl", "9657721",
                 String.format("%.0f", harvestDTO.getLastUsdTvl())),
             () -> assertEquals("LpStat",
-                "{\"coin1\":\"FARM\",\"coin2\":\"USDC\",\"amount1\":20641.50424133,\"amount2\":4828860.303375671,\"price1\":233.93936056786777,\"price2\":1.0}",
+                "{\"coin1\":\"FARM\",\"coin1Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"coin2\":\"USDC\",\"coin2Address\":\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\",\"amount1\":20641.50424133,\"amount2\":4828860.303375671,\"price1\":233.93936056786777,\"price2\":1.0}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", numberFormat("0,30169333"),
                 String.format("%.8f", harvestDTO.getLastTvl()))
@@ -195,7 +195,7 @@ public class UniswapParserTest {
             "44,45189785",
             "99,88726471"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("92,94539587"),
@@ -207,7 +207,7 @@ public class UniswapParserTest {
             () -> assertEquals("LastUsdTvl", "282796",
                 String.format("%.0f", harvestDTO.getLastUsdTvl())),
             () -> assertEquals("LpStat",
-                "{\"coin1\":\"FARM\",\"coin2\":\"ETH\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":561.7716539993273}",
+                "{\"coin1\":\"FARM\",\"coin1Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"coin2\":\"ETH\",\"coin2Address\":\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":561.7716539993273}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", numberFormat("523,39010775"),
                 String.format("%.8f", harvestDTO.getLastTvl()))
@@ -227,7 +227,7 @@ public class UniswapParserTest {
             "140,02624240",
             "0,10707515"
         );
-        HarvestDTO harvestDTO = uniToHarvestConverter.convert(dto);
+        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
             () -> assertEquals("Amount", numberFormat("4170,06518775"),
@@ -239,7 +239,7 @@ public class UniswapParserTest {
             () -> assertEquals("LastUsdTvl", "219248",
                 String.format("%.0f", harvestDTO.getLastUsdTvl())),
             () -> assertEquals("LpStat",
-                "{\"coin1\":\"GRAIN\",\"coin2\":\"FARM\",\"amount1\":1023805.547072685,\"amount2\":1122.2395189074418,\"price1\":0.10707514707395074,\"price2\":97.68336231347396}",
+                "{\"coin1\":\"GRAIN\",\"coin1Address\":\"0x6589fe1271a0f29346796c6baf0cdf619e25e58e\",\"coin2\":\"FARM\",\"coin2Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"amount1\":1023805.547072685,\"amount2\":1122.2395189074418,\"price1\":0.10707514707395074,\"price2\":97.68336231347396}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", numberFormat("33420,96359919"),
                 String.format("%.8f", harvestDTO.getLastTvl()))
@@ -250,7 +250,7 @@ public class UniswapParserTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-        UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+        UniswapDTO dto = uniswapLpLogParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 
@@ -272,7 +272,7 @@ public class UniswapParserTest {
       List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary " + logResults.size(), logId < logResults.size());
-      UniswapDTO dto = uniswapLpLogParser.parseUniswapLog((Log) logResults.get(logId).get());
+      UniswapDTO dto = uniswapLpLogParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertDto(dto,
           id,
           owner,

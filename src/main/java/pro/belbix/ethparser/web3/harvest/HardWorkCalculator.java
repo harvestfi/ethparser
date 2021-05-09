@@ -12,6 +12,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 public class HardWorkCalculator {
@@ -36,39 +37,38 @@ public class HardWorkCalculator {
     long lastBlockDate = ethBlockService.getTimestampSecForBlock(lastBlock, network);
 
     HashMap<String, ArrayList<long[]>> blockRangeByVault = new HashMap<>();
-    List<HarvestDTO> harvests = harvestRepository
-        .fetchAllByOwner(ownerAddress, 0, lastBlockDate, network);
 
-    harvests
+    harvestRepository
+        .fetchAllByOwner(ownerAddress, 0, lastBlockDate, network)
         .stream()
-        .filter(harvest -> !harvest.getVault().startsWith("PS"))
+        .filter(harvest -> !ContractUtils.isPsAddress(harvest.getVaultAddress()))
         .forEach(harvest -> {
-          String vault = harvest.getVault();
+          String vaultAddress = harvest.getVaultAddress();
           double balance = harvest.getOwnerBalance();
 
-          if (!blockRangeByVault.containsKey(vault)) {
+          if (!blockRangeByVault.containsKey(vaultAddress)) {
             if (balance == 0) {
               return;
             }
             ArrayList<long[]> blockPeriods = new ArrayList<>();
-            blockRangeByVault.put(vault, blockPeriods);
+            blockRangeByVault.put(vaultAddress, blockPeriods);
           }
 
-          updateBlockPeriods(blockRangeByVault.get(vault), harvest);
+          updateBlockPeriods(blockRangeByVault.get(vaultAddress), harvest);
         });
 
     return blockRangeByVault
         .entrySet()
         .stream()
         .map(entry -> {
-          String vault = entry.getKey();
+          String vaultAddress = entry.getKey();
 
           ArrayList<long[]> blockPeriods = entry.getValue();
           long[] period = calculatePeriod(blockPeriods, lastBlockDate);
 
           List<HardWorkDTO> allHardWorksByVaultAndPeriod = hardworkRepository
               .findAllByVaultOrderByBlockDate(
-                  vault, network, period[0], period[1]);
+                  vaultAddress, network, period[0], period[1]);
           return blockPeriods
               .stream()
               .map(blockPeriod -> allHardWorksByVaultAndPeriod

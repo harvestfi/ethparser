@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -42,7 +45,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldNotParseDoHardWork_iPS() {
         harvestVaultParseTestNull(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             12225574,
             2);
     }
@@ -50,7 +53,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldParseWithdraw_iPS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             12090189,
             LOG_ID,
             "0xb30452beca9c462bc6773582c9e0d70cc60e7321",
@@ -72,7 +75,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void shouldNotParseDeposit_iPS() {
         harvestVaultParseTestNull(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             12090189,
             2
         );
@@ -148,7 +151,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVault_iPS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651",
+            iPS_ADDRESS,
             11857842,
             LOG_ID,
             "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
@@ -293,7 +296,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVault_PS() {
         HarvestDTO dto = harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             11800579,
             LOG_ID,
             "0x3fded1ff35d93fea43c9f8e5dea1a392d5d691c8",
@@ -391,8 +394,8 @@ public class VaultActionsParserEthTest {
             "18805,20616001",
             "",
             "",
-            18805L,
-            44777L,
+            18785L,
+            44730L,
             true
         );
         assertNotNull(dto);
@@ -413,8 +416,8 @@ public class VaultActionsParserEthTest {
             "87,57535992",
             "",
             "",
-            2006L,
-            2006L,
+            2002L,
+            2002L,
             true
         );
         assertNotNull(dto);
@@ -480,7 +483,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             1L,
-            5172L,
+            5170L,
             true
         );
         assertNotNull(dto);
@@ -721,8 +724,8 @@ public class VaultActionsParserEthTest {
             "14,32730677",
             "",
             "",
-            34971L,
-            47057L,
+            34994L,
+            47087L,
             true
         );
         assertNotNull(dto);
@@ -810,7 +813,7 @@ public class VaultActionsParserEthTest {
             "",
             "",
             405L,
-            279984L,
+            279662L,
             true
         );
         assertNotNull(dto);
@@ -829,8 +832,8 @@ public class VaultActionsParserEthTest {
             "0,01899012",
             "",
             "",
-            41715L,
-            2401460L,
+            41679L,
+            2399350L,
             true
         );
         assertNotNull(dto);
@@ -1009,8 +1012,8 @@ public class VaultActionsParserEthTest {
             "0,00089347",
             "0",
             "0",
-            48582L,
-            15559101L,
+            48497L,
+            15531830L,
             true
         );
     }
@@ -1080,7 +1083,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS_V0() {
         harvestVaultParseTest(
-            "0x59258F4e15A5fC74A7284055A8094F58108dbD4f",
+            PS_V0_ADDRESS,
             10798055,
             LOG_ID,
             "0x0c124a0b302f06072ddc1fe1ce991578ecb248d6",
@@ -1104,7 +1107,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS2() {
         harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             11262684,
             LOG_ID,
             "0xad77e73a9fd5d002bd1d043e6a4c6a456c9524fb",
@@ -1123,7 +1126,7 @@ public class VaultActionsParserEthTest {
     @Test
     public void parseVaultPS() {
         harvestVaultParseTest(
-            "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50",
+            PS_ADDRESS,
             10964982,
             LOG_ID,
             "0x640236965becf920a70a5dcd44b5c9c18f283095",
@@ -1324,7 +1327,7 @@ public class VaultActionsParserEthTest {
             "0,00066200",
             "0",
             0L,
-            8995075L,
+            8979591L,
             true
         );
     }
@@ -1342,8 +1345,8 @@ public class VaultActionsParserEthTest {
             "2365639,42309700",
             "1998649,72839200",
             "0,00066200",
-            1998887L,
-            8950476L,
+            1998648L,
+            8949404L,
             true
         );
     }
@@ -1361,8 +1364,8 @@ public class VaultActionsParserEthTest {
             "0,00068016",
             "0,00068416",
             "1,00424760",
-            33496L,
-            32457092L,
+            33497L,
+            32457454L,
             true
         );
     }
@@ -1380,8 +1383,8 @@ public class VaultActionsParserEthTest {
             "0,01479451",
             "0,01488166",
             "1,00424760",
-            735413L,
-            32564696L,
+            735155L,
+            32553250L,
             true
         );
     }
@@ -1532,8 +1535,8 @@ public class VaultActionsParserEthTest {
             "1,02540908",
             "1,02579537",
             "0",
-            14366L,
-            10786356L,
+            14342L,
+            10768363L,
             true
         );
     }
@@ -1551,8 +1554,8 @@ public class VaultActionsParserEthTest {
             "0,00000981",
             "0,00000981",
             "0",
-            22232L,
-            2661180L,
+            22502L,
+            2693526L,
             true
         );
     }
@@ -1685,8 +1688,8 @@ public class VaultActionsParserEthTest {
             "1108,86509634",
             "1108,86509634",
             "0",
-            50838L,
-            454788L,
+            50681L,
+            453376L,
             true
         );
     }
@@ -1704,8 +1707,8 @@ public class VaultActionsParserEthTest {
             "1587,47546529",
             "1587,47546529",
             "0",
-            25835L,
-            203122L,
+            25864L,
+            203350L,
             true
         );
     }
@@ -1923,7 +1926,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 
@@ -1947,7 +1950,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNotNull(dto);
         harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
         assertDto(dto,
@@ -1973,7 +1976,7 @@ public class VaultActionsParserEthTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+        HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
         assertNull(dto);
     }
 

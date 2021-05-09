@@ -540,6 +540,9 @@ INSERT INTO public.eth_contracts (id, address, created, name, network, type) VAL
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (540, '0x26aad2da94c59524ac0d93f6d6cbf9071d7086f2', 11519620, 'UNI_LP_ONEINCH_ETH', 'eth', 2);
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (541, '0x734e48a1ffea1cdf4f5172210c322f3990d6d760', 11733686, 'UNI_LP_WBTC_KLON', 'eth', 2);
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (542, '0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974', 10091428, 'UNI_LP_LINK_ETH', 'eth', 2);
+INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (543, '0x8064d9Ae6cDf087b1bcd5BDf3531bD5d8C537a68', 11241743, 'OBTC', 'eth', 4);
+INSERT INTO public.eth_contracts (id, address, created, curve_underlying, name, network, type) VALUES (9001, '0x3da1313ae46132a397d90d95b1424a9a7e3e0fce', 10815689, null, 'UNI_LP_WETH_CRV', 'eth', 2);
+INSERT INTO public.eth_contracts (id, address, created, curve_underlying, name, network, type) VALUES (9002, '0xd533a949740bb3306d119cc777fa900ba034cd52', 10815689, null, 'CRV', 'eth', 4);
 
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (1, 18, 'BUSD Token', 'BUSD', 6839707, 59);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (2, 18, 'Ethereum Token', 'ETH', 6839707, 32);
@@ -632,6 +635,8 @@ INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contra
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (89, 18, 'Curve.fi HUSD/3Crv', 'husd3CRV', 12301999, 260);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (90, 18, 'Curve.fi tBTC/sbtcCrv', 'tbtc/sbtcCrv', 12301999, 231);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (91, 18, 'Curve.fi USDP/3Crv', 'usdp3CRV', 12301999, 402);
+INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (92, 18, 'OBTC', 'OBTC', 11241743, 543);
+INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (8001, 18, 'Curve DAO Token', 'CRV', 10815689, 9002);
 
 INSERT INTO public.eth_vaults (id, decimals, name, symbol, underlying_unit, updated_block, contract, controller_id, governance_id, strategy_id, underlying_id) VALUES (1, 18, 'bFARM_Cake-LP', 'bfCake-LP', 1000000000000000000, 6839707, 1, 2, 3, 4, 5);
 INSERT INTO public.eth_vaults (id, decimals, name, symbol, underlying_unit, updated_block, contract, controller_id, governance_id, strategy_id, underlying_id) VALUES (2, 18, 'bFARM_Cake', 'bfCake', 1000000000000000000, 6839707, 6, 2, 3, 7, 8);
@@ -955,7 +960,7 @@ INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, k
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, key_token, token0_id, token1_id) VALUES (79, 18, 1, 12301999, 387, 85, 165, 519);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, key_token, token0_id, token1_id) VALUES (80, 18, 1, 12301999, 390, 86, 520, 165);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, key_token, token0_id, token1_id) VALUES (81, 18, 1, 12301999, 393, 87, 521, 174);
-
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, key_token, token0_id, token1_id) VALUES (7001, 18, 1, 10815689, 9001, 8001, 165, 9002);
 
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (1, 0, 2, 2);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (2, 0, 3, 3);
@@ -1023,3 +1028,4 @@ INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (64, 0, 85, 79);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (65, 0, 86, 80);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (66, 0, 87, 81);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (6001, 0, 8001, 7001);

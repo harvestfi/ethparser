@@ -3,6 +3,7 @@ package pro.belbix.ethparser.repositories.v0;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static pro.belbix.ethparser.TestAddresses.USDC;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
@@ -43,20 +44,19 @@ public class HarvestRepositoryTest {
     @Test
     public void fetchLastByVaultAndDate() {
         assertNotNull(
-            harvestRepository.fetchLastByVaultAndDate("USDC", ETH_NETWORK, Long.MAX_VALUE));
+            harvestRepository.fetchLastByVaultAndDate(USDC, ETH_NETWORK, Long.MAX_VALUE));
     }
 
     @Test
     public void fetchLastByVaultAndDateNotZero() {
         assertNotNull(
-            harvestRepository.fetchLastByVaultAndDateNotZero("USDC", ETH_NETWORK, Long.MAX_VALUE));
+            harvestRepository.fetchLastByVaultAndDateNotZero(USDC, ETH_NETWORK, Long.MAX_VALUE));
     }
 
     @Test
     public void fetchActualOwnerQuantity() {
         assertNotNull(harvestRepository.fetchActualOwnerQuantity(
-            "USDC",
-            "asdada",
+            USDC,
             ETH_NETWORK,
             Long.MAX_VALUE
         ));
@@ -70,7 +70,7 @@ public class HarvestRepositoryTest {
     @Test
     public void fetchAllPoolsUsersQuantity() {
         assertNotNull(harvestRepository
-            .fetchAllPoolsUsersQuantity(List.of("USDC"), Long.MAX_VALUE, ETH_NETWORK));
+            .fetchAllPoolsUsersQuantity(List.of(USDC), Long.MAX_VALUE, ETH_NETWORK));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class HarvestRepositoryTest {
     @Test
     public void fetchPeriodOfWork() {
         List<Long> period = harvestRepository
-            .fetchPeriodOfWork("USDC", Long.MAX_VALUE, ETH_NETWORK, limitOne);
+            .fetchPeriodOfWork(USDC, Long.MAX_VALUE, ETH_NETWORK, limitOne);
         assertNotNull(period, "query result is not null");
         assertEquals(1, period.size(), "result contains elements");
         assertTrue(period.get(0) > 0, "period not equal zero");
@@ -90,7 +90,7 @@ public class HarvestRepositoryTest {
     @Test
     public void fetchAverageTvl() {
         List<Double> avgTvl = harvestRepository
-            .fetchAverageTvl("USDC", 0, Long.MAX_VALUE, ETH_NETWORK, limitOne);
+            .fetchAverageTvl(USDC, 0, Long.MAX_VALUE, ETH_NETWORK, limitOne);
         assertNotNull(avgTvl);
         assertEquals(1, avgTvl.size());
         assertEquals(2.87036734E7, avgTvl.get(0).doubleValue());
@@ -116,15 +116,9 @@ public class HarvestRepositoryTest {
     @Test
     public void findFirstByVaultAndBlockDateBeforeOrderByBlockDateDesc() {
         assertNotNull(
-            harvestRepository.findFirstByVaultAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
-                "USDC", Long.MAX_VALUE, ETH_NETWORK
+            harvestRepository.findFirstByVaultAddressAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
+                USDC, Long.MAX_VALUE, ETH_NETWORK
             ));
-    }
-
-    @Test
-    public void findFirstByVaultOrderByBlockDate() {
-        assertNotNull(
-            harvestRepository.findFirstByVaultAndNetworkOrderByBlockDate("USDC", ETH_NETWORK));
     }
 
     @Test
@@ -135,7 +129,7 @@ public class HarvestRepositoryTest {
     @Test
     public void findAllByVaultOrderByBlockDate() {
         assertNotNull(harvestRepository
-            .findAllByVaultOrderByBlockDate("USDC", 0, Long.MAX_VALUE, ETH_NETWORK));
+            .findAllByVaultOrderByBlockDate(USDC, 0, Long.MAX_VALUE, ETH_NETWORK));
     }
 
     @Test
@@ -159,7 +153,7 @@ public class HarvestRepositoryTest {
     @Test
     public void fetchLatestSinceLastWithdraw() {
         assertNotNull(harvestRepository.fetchLatestSinceLastWithdraw(
-            "0x51ab3dbf9a5089a85e6e3e8252df7c911078dd84", "USDC", Long.MAX_VALUE, ETH_NETWORK
+            "0x51ab3dbf9a5089a85e6e3e8252df7c911078dd84", USDC, Long.MAX_VALUE, ETH_NETWORK
         ));
     }
 

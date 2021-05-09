@@ -42,7 +42,7 @@ public class HarvestOwnerBalanceCalculatorTest {
         10780101,
         1,
         "4990,85837900",
-        "4943.34928575"
+        "4990.85837900"
     );
     }
 
@@ -68,7 +68,7 @@ public class HarvestOwnerBalanceCalculatorTest {
       List<LogResult> logResults = web3Functions
           .fetchContractLogs(singletonList(fromVault), onBlock, onBlock, ETH_NETWORK);
       assertTrue("Log smaller then necessary", logId < logResults.size());
-      HarvestDTO dto = harvestVaultParser.parseVaultLog((Log) logResults.get(logId).get(), ETH_NETWORK);
+      HarvestDTO dto = harvestVaultParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
       assertNotNull(dto, "Dto is null");
       boolean result = harvestOwnerBalanceCalculator.fillBalance(dto, ETH_NETWORK);
       assertTrue(result);

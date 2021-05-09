@@ -1,15 +1,22 @@
 package pro.belbix.ethparser.web3.deployer.parser;
 
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_CURRENT_TOKENS;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_FROM_LP_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USER_REWARD_PER_TOKEN_PAID;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CURVE_REGISTRY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
+import static pro.belbix.ethparser.web3.contracts.ContractType.TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNKNOWN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
@@ -20,9 +27,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Int128;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
@@ -32,11 +42,13 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUpdater;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.PlatformType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 import pro.belbix.ethparser.web3.deployer.ContractInfo;
+import pro.belbix.ethparser.web3.prices.LPSeeker;
 
 @Service
 @Log4j2
@@ -45,13 +57,19 @@ public class DeployerEventToContractTransformer {
   private final FunctionsUtils functionsUtils;
   private final ContractLoader contractLoader;
   private final ContractUpdater contractUpdater;
+  private final LPSeeker lpSeeker;
+  private final ContractDbService contractDbService;
 
-  public DeployerEventToContractTransformer(FunctionsUtils functionsUtils,
+  public DeployerEventToContractTransformer(
+      FunctionsUtils functionsUtils,
       ContractLoader contractLoader,
-      ContractUpdater contractUpdater) {
+      ContractUpdater contractUpdater,
+      LPSeeker lpSeeker, ContractDbService contractDbService) {
     this.functionsUtils = functionsUtils;
     this.contractLoader = contractLoader;
     this.contractUpdater = contractUpdater;
+    this.lpSeeker = lpSeeker;
+    this.contractDbService = contractDbService;
   }
 
   public void handleAndSave(DeployerDTO dto) {
@@ -70,6 +88,8 @@ public class DeployerEventToContractTransformer {
       } else if (ContractType.UNI_PAIR == contract.getContractType()) {
         contractLoader.loadUniPair((LpContract) contract,
             contract.getNetwork(), contract.getCreatedOnBlock());
+      } else {
+        log.error("Unknown contract type! {}", contract);
       }
     }
 
@@ -114,8 +134,9 @@ public class DeployerEventToContractTransformer {
     contract.setContractType(type);
     contract.setNetwork(dto.getNetwork());
 
-    List<PureEthContractInfo> result = collectUnderlingContracts(contractInfo);
+    List<PureEthContractInfo> result = new ArrayList<>();
     result.add(contract);
+    collectUnderlingContracts(contractInfo, result);
     return result;
   }
 
@@ -159,14 +180,14 @@ public class DeployerEventToContractTransformer {
       // some pools (PS/LP) have not vault as underlying
       underlyingAddress = address;
     }
-    contractInfo.setUnderlyingAddress(underlyingAddress);
 
     String underlyingName = functionsUtils.callStrByName(
-        FunctionsNames.NAME, underlyingAddress, block, network)
+        NAME, underlyingAddress, block, network)
         .orElse("");
-    contractInfo.setUnderlyingName(underlyingName);
-
     PlatformType platformType = detectPlatformType(underlyingName);
+
+    contractInfo.setUnderlyingAddress(underlyingAddress);
+    contractInfo.setUnderlyingName(underlyingName);
     contractInfo.setPlatformType(platformType);
 
     String tokenNames = tokenNames(contractInfo);
@@ -256,18 +277,20 @@ public class DeployerEventToContractTransformer {
     } else if (name.startsWith("Pancake")) {
       return PlatformType.PANCAKESWAP;
     }
+    log.warn("Unknown platform for name {}", name);
     return PlatformType.UNKNOWN;
   }
 
   private String tokenNames(ContractInfo contractInfo) {
-    if (PlatformType.BALANCER == contractInfo.getPlatformType()) {
+    String tokenNames = uniTokenNames(contractInfo);
+    if (tokenNames.isBlank()) {
       try {
-        return bptTokenNames(contractInfo);
+        tokenNames = bptTokenNames(contractInfo);
       } catch (IOException | ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
     }
-    return uniTokenNames(contractInfo);
+    return tokenNames;
   }
 
   private String bptTokenNames(ContractInfo contractInfo)
@@ -284,11 +307,15 @@ public class DeployerEventToContractTransformer {
         ),
         address, block, network)
         .orElse("");
+    if (tokens.isBlank()) {
+      return "";
+    }
 
     //noinspection unchecked
     List<String> tokenAddresses = ObjectMapperFactory.getObjectMapper().readValue(
         (String) ObjectMapperFactory.getObjectMapper().readValue(tokens, List.class).get(0)
         , List.class);
+    contractInfo.getUnderlyingTokens().addAll(tokenAddresses);
     return tokenAddresses.stream()
         .map(adr -> functionsUtils.callStrByName(
             SYMBOL, adr, block, network)
@@ -314,8 +341,8 @@ public class DeployerEventToContractTransformer {
       return "";
     }
 
-    contractInfo.setToken0Adr(token0Adr);
-    contractInfo.setToken1Adr(token1Adr);
+    contractInfo.getUnderlyingTokens().add(token0Adr);
+    contractInfo.getUnderlyingTokens().add(token1Adr);
 
     String token0Name;
     if (ZERO_ADDRESS.equalsIgnoreCase(token0Adr)) {
@@ -337,18 +364,158 @@ public class DeployerEventToContractTransformer {
     return token0Name + "_" + token1Name;
   }
 
-  private List<PureEthContractInfo> collectUnderlingContracts(ContractInfo contractInfo) {
-    String address = contractInfo.getAddress();
+  private List<PureEthContractInfo> collectUnderlingContracts(
+      ContractInfo contractInfo, List<PureEthContractInfo> contracts) {
     long block = contractInfo.getBlock();
     String network = contractInfo.getNetwork();
 
-    //todo detect crv underlying
+    if (contractInfo.getUnderlyingTokens().isEmpty()) {
+      createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
+    } else {
+      contractInfo.getUnderlyingTokens().forEach(c ->
+          createTokenAndLpContracts(c, block, network, contracts));
+    }
 
-    //todo detect LP underlying
+    return contracts;
+  }
 
-    //todo detect simple underlying
+  private void createTokenAndLpContracts(
+      String address,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
+    if (ZERO_ADDRESS.equalsIgnoreCase(address)
+        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))
+        || contractDbService.getContractByAddress(address, network).isPresent()) {
+      return;
+    }
 
-    return new ArrayList<>();
+    String curveUnderlying = curveUnderlyingContracts(address, block, network, contracts);
+    String symbol = functionsUtils.callStrByName(
+        FunctionsNames.SYMBOL, address, block, network)
+        .orElse("?");
+
+    TokenContract tokenContract = new TokenContract((int) block, symbol, address);
+    tokenContract.setNetwork(network);
+    tokenContract.setContractType(TOKEN);
+    tokenContract.setCurveUnderlying(curveUnderlying);
+    addInContracts(contracts, tokenContract);
+
+    if (curveUnderlying != null || ContractUtils.isStableCoin(address)) {
+      return; // curve token doesn't have UNI LP
+    }
+
+    String lpAddress = lpSeeker.findLargestLP(address, block, network, contracts);
+    if (lpAddress != null
+        && contracts.stream().noneMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))) {
+      tokenContract.addLp((int) block, lpAddress);
+
+      String lpName = functionsUtils.callStrByName(
+          NAME, lpAddress, block, network)
+          .orElse("");
+
+      PlatformType lpPlatformType = detectPlatformType(lpName);
+      ContractInfo lpContractInfo = new ContractInfo(lpAddress, block, network, UNI_PAIR);
+      lpContractInfo.setUnderlyingAddress(lpAddress);
+      String tokenNames = uniTokenNames(lpContractInfo);
+      String lpFullName = lpPlatformType.getPrettyName() + "_LP_" + tokenNames;
+
+      LpContract lpContract = new LpContract((int) block, lpFullName, address, lpAddress);
+      lpContract.setContractType(UNI_PAIR);
+      lpContract.setNetwork(network);
+      addInContracts(contracts, lpContract);
+
+      lpContractInfo.getUnderlyingTokens().forEach(t -> {
+        if (t.equalsIgnoreCase(address)) {
+          return;
+        }
+        createTokenAndLpContracts(t, block, network, contracts);
+      });
+    }
+  }
+
+  private String curveUnderlyingContracts(
+      String address,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
+    try {
+      String minterAddress = functionsUtils.callAddressByName(MINTER, address, block, network)
+          .orElse(null);
+      String underlyingToken;
+      if (minterAddress == null) {
+        String name = functionsUtils.callStrByName(NAME, address, block, network).orElse("");
+        if (!name.startsWith("Curve.fi")) {
+          return null;
+        }
+        // use future block because it maybe not created yet
+        minterAddress = functionsUtils.callAddressByNameWithArg(
+            GET_POOL_FROM_LP_TOKEN, address, CURVE_REGISTRY_ADDRESS, 12000000L, network)
+            .orElse(null);
+        if (minterAddress == null) {
+          // TODO I don't know how to find pool address, use USDC as underlying :(
+          String USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+          createTokenAndLpContracts(USDC, block, network, contracts);
+          return USDC;
+        }
+        //noinspection unchecked
+        String coinRaw = functionsUtils.callViewFunction(new Function(
+                COINS,
+                List.of(new Int128(0)),
+                List.of(TypeReference.makeTypeReference("address"))
+            ),
+            minterAddress, block, network).orElse(null);
+        if (coinRaw == null) {
+          return null;
+        }
+
+        underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
+            .readValue(coinRaw, List.class)
+            .get(0);
+      } else {
+        //noinspection unchecked
+        String coinRaw = functionsUtils.callViewFunction(new Function(
+                COINS,
+                List.of(new Uint256(0)),
+                List.of(TypeReference.makeTypeReference("address"))
+            ),
+            minterAddress, block, network).orElse(null);
+        if (coinRaw == null) {
+          return null;
+        }
+
+        underlyingToken = (String) ObjectMapperFactory.getObjectMapper()
+            .readValue(coinRaw, List.class)
+            .get(0);
+      }
+
+      //try to determinate underlying
+      String deeperUnderlyingAddress = getPotentiallyUnderlying(underlyingToken, block, network);
+      if (!Strings.isBlank(deeperUnderlyingAddress)) {
+        underlyingToken = deeperUnderlyingAddress;
+      }
+      createTokenAndLpContracts(underlyingToken, block, network, contracts);
+      return underlyingToken;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  private String getPotentiallyUnderlying(String address, long block, String network) {
+    return functionsUtils.callAddressByName(FunctionsNames.TOKEN,
+        address, block, network).orElse("");
+  }
+
+  private boolean addInContracts(List<PureEthContractInfo> contracts, PureEthContractInfo c) {
+    if (contracts.stream()
+        .anyMatch(exC -> exC.getAddress().equalsIgnoreCase(c.getAddress()))
+    ) {
+      return false;
+    }
+    contracts.add(c);
+    return true;
   }
 
 

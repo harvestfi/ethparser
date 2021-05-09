@@ -1,11 +1,10 @@
 package pro.belbix.ethparser.web3.uniswap.db;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -43,7 +42,7 @@ public class UniswapDbService {
   }
 
   public BigInteger lastBlock() {
-    UniswapDTO dto = uniswapRepository.findFirstByCoinOrderByBlockDesc("FARM");
+    UniswapDTO dto = uniswapRepository.findFirstByOrderByBlockDesc();
     if (dto == null) {
       return BigInteger.valueOf(10765094L);
     }
@@ -52,8 +51,9 @@ public class UniswapDbService {
 
   public List<UniswapDTO> fetchUni(String from, String to) {
     if (from == null && to == null) {
-      return uniswapRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000);
+      return uniswapRepository
+          .findAll(PageRequest.of(0, 100, Sort.by("blockDate").descending()))
+          .getContent();
     }
     long fromI = 0;
     long toI = Integer.MAX_VALUE;

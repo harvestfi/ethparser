@@ -1,7 +1,6 @@
 package pro.belbix.ethparser.codegen;
 
 
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.web3.MethodDecoder.extractLogIndexedValues;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.IMPLEMENTATION;
 
@@ -215,21 +214,16 @@ public class SimpleContractGenerator {
   }
 
   private String findLastProxyUpgrade(String address, Long _block, Event event, String network) {
-    Integer start = null;
-    Integer end = null;
-    if (_block != null) {
-      end = _block.intValue();
+    // todo collect full block range (now we not able to do it with eth node limitations)
+    Long created = contractDbService.getContractByAddress(address, network)
+        .map(ContractEntity::getCreated)
+        .orElse(null);
+    if (created == null) {
+      return null;
     }
-    // bsc has an odd bug with latest/earliest block fetching
-    if (BSC_NETWORK.equals(network)) {
-      Long created = contractDbService.getContractByAddress(address, network)
-          .map(ContractEntity::getCreated)
-          .orElse(null);
-      if (created == null) {
-        return null;
-      }
-      start = created.intValue() - 1;
-    }
+    int start = created.intValue() - 1;
+    int end = created.intValue() + 10_000;
+
     //noinspection rawtypes
     List<LogResult> logResults = web3Functions.fetchContractLogs(
         List.of(address),

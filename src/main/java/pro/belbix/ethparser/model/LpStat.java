@@ -10,7 +10,9 @@ public class LpStat {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private String coin1;
+  private String coin1Address;
   private String coin2;
+  private String coin2Address;
   private Double amount1;
   private Double amount2;
   private Double price1;
@@ -18,7 +20,9 @@ public class LpStat {
 
   public static String createJson(
       String firstCoinName,
+      String firstCoinAddress,
       String secondCoinName,
+      String secondCoinAddress,
       double firstCoinAmount,
       double secondCoinAmount,
       double firstCoinPrice,
@@ -27,7 +31,9 @@ public class LpStat {
     try {
       LpStat lpStat = new LpStat();
       lpStat.setCoin1(firstCoinName);
+      lpStat.setCoin1Address(firstCoinAddress);
       lpStat.setCoin2(secondCoinName);
+      lpStat.setCoin2Address(secondCoinAddress);
       lpStat.setAmount1(firstCoinAmount);
       lpStat.setAmount2(secondCoinAmount);
       lpStat.setPrice1(firstCoinPrice);

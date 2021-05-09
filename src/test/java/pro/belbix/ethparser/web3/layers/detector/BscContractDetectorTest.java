@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,6 +47,7 @@ class BscContractDetectorTest {
   private EthBlockRepository ethBlockRepository;
 
   @Test
+  @Disabled("Returns missing trie node error")
   void handleBlock_6101208_PC_BUSD_BNB() {
     EthBlockEntity ethBlockEntity = loadBlock(6101208);
     List<ContractEventEntity> events = contractDetector.handleBlock(ethBlockEntity, BSC_NETWORK);

@@ -31,6 +31,7 @@ public class HarvestOwnerBalanceCalculator {
 
   public boolean fillBalance(HarvestDTO dto, String network) {
     try {
+      log.debug("Fill balances for {}", dto.getVault());
       if (contractDbService.getContractByAddress(dto.getVaultAddress(), network)
           .isPresent()) {
         if (ContractUtils.isPsName(dto.getVault())) {

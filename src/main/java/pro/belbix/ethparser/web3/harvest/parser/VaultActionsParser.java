@@ -6,21 +6,16 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
@@ -28,11 +23,9 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.LpStat;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -53,101 +46,78 @@ import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
-public class VaultActionsParser implements Web3Parser {
+public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
+
   public static final double BURNED_FARM = 14850.0;
-  private static final AtomicBoolean run = new AtomicBoolean(true);
   private static final Set<String> allowedMethods = new HashSet<>(
       Collections.singletonList("transfer"));
   private final VaultActionsLogDecoder vaultActionsLogDecoder = new VaultActionsLogDecoder();
   private final Web3Functions web3Functions;
-  private final Web3Subscriber web3Subscriber;
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
+
   private final VaultActionsDBService vaultActionsDBService;
   private final EthBlockService ethBlockService;
   private final PriceProvider priceProvider;
   private final FunctionsUtils functionsUtils;
-  private final ParserInfo parserInfo;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
+  private final Web3Subscriber web3Subscriber;
+
+
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
-  private long count = 0;
 
   public VaultActionsParser(Web3Functions web3Functions,
-      Web3Subscriber web3Subscriber, VaultActionsDBService vaultActionsDBService,
+      VaultActionsDBService vaultActionsDBService,
       EthBlockService ethBlockService,
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
       ParserInfo parserInfo,
       AppProperties appProperties,
       NetworkProperties networkProperties,
+      Web3Subscriber web3Subscriber,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.web3Functions = web3Functions;
-    this.web3Subscriber = web3Subscriber;
     this.vaultActionsDBService = vaultActionsDBService;
     this.ethBlockService = ethBlockService;
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
-    this.parserInfo = parserInfo;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
+    this.web3Subscriber = web3Subscriber;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Harvest vaults logs");
-    parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs);
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParseHarvestLog()) {
-            continue;
-          }
-          HarvestDTO dto = parseVaultLog(ethLog.getValue(), ethLog.getNetwork());
-          handleDto(dto, ethLog.getNetwork());
-        } catch (Exception e) {
-          log.error("Can't save " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
   }
 
-  private void handleDto(HarvestDTO dto, String network) throws InterruptedException {
-    if (dto != null) {
-      lastTx = Instant.now();
-      enrichDto(dto, network);
-      harvestOwnerBalanceCalculator.fillBalance(dto, network);
-      boolean success = vaultActionsDBService.saveHarvestDTO(dto);
+  @Override
+  protected boolean save(HarvestDTO dto) {
+    enrichDto(dto, dto.getNetwork());
+    harvestOwnerBalanceCalculator.fillBalance(dto, dto.getNetwork());
+    boolean success = vaultActionsDBService.saveHarvestDTO(dto);
 
-      if (success) {
-        output.put(dto);
-      }
-      if (dto.getMigration() != null) {
-        handleDto(dto.getMigration(), network);
-      }
+    if (dto.getMigration() != null) {
+      save(dto.getMigration());
     }
+    if (success) {
+      log.debug("Successfully saved vault action for {}", dto.getVault());
+    }
+    return success;
   }
 
-  public HarvestDTO parseVaultLog(Log ethLog, String network) {
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network)
+        .isParseHarvestLog();
+  }
+
+  @Override
+  public HarvestDTO parse(Log ethLog, String network) {
     if (!isValidLog(ethLog, network)) {
       return null;
-    }
-    count++;
-    if (count % 100 == 0) {
-      log.info(this.getClass().getSimpleName() + " handled " + count);
     }
     HarvestTx harvestTx = vaultActionsLogDecoder.decode(ethLog);
     if (harvestTx == null) {
@@ -167,9 +137,6 @@ public class VaultActionsParser implements Web3Parser {
         return null;
       }
     }
-    String vaultName = contractDbService
-        .getNameByAddress(harvestTx.getVault().getValue(), network)
-        .orElseThrow();
     HarvestDTO dto = createDto(harvestTx, network);
     //enrich date
     dto.setBlockDate(
@@ -186,6 +153,7 @@ public class VaultActionsParser implements Web3Parser {
     }
     log.info(dto.print());
     if (harvestTx.isMigration()) {
+      log.info("Parse migration for {}", dto.getVault());
       parseMigration(dto, network);
     }
     return dto;
@@ -228,7 +196,7 @@ public class VaultActionsParser implements Web3Parser {
       TransactionReceipt receipt = web3Functions
           .fetchTransactionReceipt(harvestTx.getHash(), network);
       String vault = receipt.getTo();
-      if (vault.equalsIgnoreCase("0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651")) {
+      if (vault.equalsIgnoreCase(iPS_ADDRESS)) {
         return false; //not count deposit from iPS
       }
       harvestTx.setMethodName("Deposit");
@@ -391,6 +359,7 @@ public class VaultActionsParser implements Web3Parser {
     if (priceUnderlying == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }
+    dto.setUnderlyingAddress(underlyingAddress);
     dto.setUnderlyingPrice(priceUnderlying);
     double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock(), network)
@@ -457,7 +426,9 @@ public class VaultActionsParser implements Web3Parser {
 
     dto.setLpStat(LpStat.createJson(
         contractDbService.getNameByAddress(lpTokens.component1(), network).orElse("unknown"),
+        lpTokens.component1(),
         contractDbService.getNameByAddress(lpTokens.component2(), network).orElse("unknown"),
+        lpTokens.component2(),
         firstVault,
         secondVault,
         uniPrices.component1(),
@@ -505,19 +476,5 @@ public class VaultActionsParser implements Web3Parser {
     return dto;
   }
 
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @PreDestroy
-  public void stop() {
-    run.set(false);
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
-  }
 
 }

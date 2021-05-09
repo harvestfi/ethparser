@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 
 public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
@@ -21,15 +22,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         + "where balance > 10")
     Integer fetchOwnerCount(@Param("block_date") long blockDate);
 
-    UniswapDTO findFirstByCoinOrderByBlockDesc(String coin);
-
-    UniswapDTO findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(long blockDate, String coin);
-
-    @Query("select sum(t.otherAmount) from UniswapDTO t "
-        + "where t.coin = 'FARM' and t.owner = :owner and t.blockDate <= :from")
-    List<Double> fetchAmountSumUsd(@Param("from") long from, @Param("owner") String owner, Pageable pageable);
-
-    List<UniswapDTO> findAllByOwnerAndCoinOrderByBlockDate(String owner, String coin);
+    UniswapDTO findFirstByOrderByBlockDesc();
 
     @Query("select t from UniswapDTO t where "
         + "t.owner = :owner and t.coin = 'FARM' and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
@@ -46,7 +39,10 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     List<UniswapDTO> fetchAllWithoutOwnerBalance();
 
     @Query(nativeQuery = true, value =
-        "select * from uni_tx t where t.coin = 'FARM' and t.block_date > :fromTs order by t.block_date")
+        "select * from uni_tx t where "
+            + "t.coin = 'FARM' "
+            + "and t.block_date > :fromTs "
+            + "order by t.block_date")
     List<UniswapDTO> fetchAllFromBlockDate(@Param("fromTs") long fromTs);
 
     @Query(nativeQuery = true, value =
@@ -57,6 +53,12 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
             + "order by t.block_date")
     List<UniswapDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
 
+    @Query("select t from UniswapDTO t where "
+        + "t.coinAddress is null or t.coinAddress = '' "
+        + "or t.otherCoinAddress is null or t.otherCoinAddress = '' "
+    )
+    List<UniswapDTO> fetchAllWithoutAddresses();
+
     @Query(nativeQuery = true, value = "" +
         "select FLOOR(MIN(block_date)/:period)*:period as timestamp,  " +
         "       SUBSTRING_INDEX(MIN(CONCAT(block_date, '_', last_price)), '_', -1) as open,  " +
@@ -65,11 +67,11 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_price)), '_', -1) as close,  " +
         "       sum(amount) as volume  " +
         "from uni_tx  " +
-        "where coin = :coin and block_date between :startTime and :endTime " +
+        "where coin_address = :coin and block_date between :startTime and :endTime " +
         "GROUP BY FLOOR(block_date/:period)  " +
         "order by timestamp;")
     List<OhlcProjection> fetchOHLCTransactions(
-        @Param("coin") String coin,
+        @Param("coin") String coinAddress,
         @Param("startTime") long startTime,
         @Param("endTime") long endTime,
         @Param("period") int period);

@@ -57,7 +57,7 @@ public class RewardDownloader {
   }
 
   public void start() {
-    if (vaultNames != null) {
+    if (vaultNames != null && vaultNames.length != 0) {
       new LoopHandler(appProperties.getHandleLoopStep(),
           (from, end) -> parseContracts(from, end,
               Arrays.stream(vaultNames)
@@ -113,7 +113,7 @@ public class RewardDownloader {
   public void handleLogs(List<LogResult> logResults) {
     for (LogResult logResult : logResults) {
       try {
-        RewardDTO dto = rewardParser.parseLog((Log) logResult.get(), appProperties.getUtilNetwork());
+        RewardDTO dto = rewardParser.parse((Log) logResult.get(), appProperties.getUtilNetwork());
         if (dto != null) {
           try {
             rewardsDBService.saveRewardDTO(dto);

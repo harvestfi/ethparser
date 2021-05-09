@@ -71,7 +71,7 @@ public class TransferDownloader {
     }
     for (LogResult logResult : logResults) {
       try {
-        TransferDTO dto = transferParser.parseLog((Log) logResult.get());
+        TransferDTO dto = transferParser.parse((Log) logResult.get(), ETH_NETWORK);
         if (dto != null) {
           transferDBService.saveDto(dto);
         }

@@ -39,6 +39,7 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
@@ -318,8 +319,12 @@ public class Web3Functions {
     if (result == null) {
       return null;
     }
-
-    return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
+    try {
+      return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
+    } catch (Exception e) {
+      log.warn("Error decode response {} for {}", function.getName(), contractAddress);
+    }
+    return List.of();
   }
 
   Flowable<Transaction> transactionFlowable(String startBlock, String network) {
@@ -363,7 +368,9 @@ public class Web3Functions {
     DefaultBlockParameter startBlockP;
     if (Strings.isBlank(startBlock)) {
       startBlockP = DefaultBlockParameter.valueOf(
-          BigInteger.valueOf(lastBlockSupplier.get().orElse(0L)));
+          BigInteger.valueOf(lastBlockSupplier.get()
+              .orElse(0L)));
+//              .orElse((long) ContractUtils.getStartBlock(network))));
 
     } else {
       startBlockP = DefaultBlockParameter.valueOf(new BigInteger(startBlock));

@@ -10,39 +10,41 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 public interface PriceRepository extends JpaRepository<PriceDTO, String> {
 
     @Query("select t from PriceDTO t where "
-        + "t.source = :source "
+        + "t.sourceAddress = :source "
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
-    List<PriceDTO> fetchLastPrice(
-        @Param("source") String source,
+    List<PriceDTO> fetchLastPriceBySourceAddress(
+        @Param("source") String sourceAddress,
         @Param("block") long block,
         @Param("network") String network,
         Pageable pageable
     );
 
     @Query("select t from PriceDTO t where "
-        + "t.sourceAddress = :sourceAddress "
+        + "t.tokenAddress = :address "
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
-    List<PriceDTO> fetchLastPriceByAddress(
-        @Param("sourceAddress") String sourceAddress,
+    List<PriceDTO> fetchLastPriceByTokenAddress(
+        @Param("address") String tokenAddress,
         @Param("block") long block,
         @Param("network") String network,
         Pageable pageable
     );
 
     @Query(nativeQuery = true, value = "" +
-        "select * from (select source from prices "
+        "select distinct on (source_address) * from prices "
         + "where network = :network "
-        + "group by source) sources "
-        + "join prices p on p.id = "
-        + "                 (select id from prices where "
-        + "                  source = sources.source "
-        + "                  order by block desc limit 1)")
+        + "order by source_address, block desc")
     List<PriceDTO> fetchLastPrices(
         @Param("network") String network
     );
+
+    @Query(nativeQuery = true, value = ""
+        + "select source_address from prices "
+        + "where network = :network "
+        + "group by source_address")
+    List<String> fetchAllSourceAddresses(@Param("network") String network);
 
 }

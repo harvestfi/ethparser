@@ -187,3 +187,23 @@ where b > 10
 group by t.owner
 order by assets desc
 ;
+
+-- lp to token links
+select
+       link.id,
+       token_contract.network,
+       token_contract.name,
+       lp_contract.name,
+       link.block_start
+from eth_token_to_uni_pair link
+         left join eth_tokens token on token.id = link.token_id
+         left join eth_contracts token_contract on token_contract.id = token.contract
+         left join eth_uni_pairs lp on lp.id = link.uni_pair_id
+         left join eth_contracts lp_contract on lp_contract.id = lp.contract
+-- where  token_contract.address = '0x6b175474e89094c44da98b954eedeac495271d0f'
+;
+
+-- lps
+select lp_contract.name, lp_contract.address
+from eth_uni_pairs
+left join eth_contracts lp_contract on eth_uni_pairs.contract = lp_contract.id

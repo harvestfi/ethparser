@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +47,7 @@ public class DoHardWorkBscTest {
     );
 
     @Test
+    @Disabled("Returns missing trie node error")
     public void parse_ONEINCH_BNB() throws Exception {
         HardWorkDTO dto = loadHardWork(6607654);
         assertModel(
@@ -86,8 +88,6 @@ public class DoHardWorkBscTest {
                 .tvl(0.0)
                 .periodOfWork(0)
                 .psPeriodOfWork(0)
-                .perc(0.0)
-                .apr(0.0)
                 .weeklyProfit(0.0)
                 .psTvlUsd(0.0)
                 .psApr(0.0)
@@ -128,8 +128,6 @@ public class DoHardWorkBscTest {
                 .tvl(0.0)
                 .periodOfWork(0)
                 .psPeriodOfWork(0)
-                .perc(0.0)
-                .apr(0.0)
                 .weeklyProfit(0.0)
                 .psTvlUsd(0.0)
                 .psApr(0.0)
@@ -163,7 +161,7 @@ public class DoHardWorkBscTest {
             onBlock, onBlock, BSC_NETWORK);
         assertNotNull(logResults);
         Assertions.assertFalse(logResults.isEmpty());
-        HardWorkDTO dto = hardWorkParser.parseLog((Log) logResults.get(0), BSC_NETWORK);
+        HardWorkDTO dto = hardWorkParser.parse((Log) logResults.get(0), BSC_NETWORK);
         assertNotNull(dto);
 
 //        if (dto.getFullRewardUsd() != 0) {

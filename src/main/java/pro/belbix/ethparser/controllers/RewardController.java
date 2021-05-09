@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.repositories.v0.RewardsRepository;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
@@ -23,14 +25,17 @@ import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 public class RewardController {
 
     private final RewardsRepository rewardsRepository;
+    private final ContractDbService contractDbService;
 
-    public RewardController(RewardsRepository rewardsRepository) {
+    public RewardController(RewardsRepository rewardsRepository,
+        ContractDbService contractDbService) {
         this.rewardsRepository = rewardsRepository;
+        this.contractDbService = contractDbService;
     }
 
     @GetMapping(value = "/history/rewards/{pool}")
     List<RewardDTO> rewardsHistory(
-        @PathVariable("pool") String pool,
+        @PathVariable("pool") String address,
         @RequestParam(value = "days", required = false) String days,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
@@ -38,8 +43,12 @@ public class RewardController {
         if (days != null) {
             daysI = Integer.parseInt(days);
         }
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                .orElseThrow();
+        }
         return rewardsRepository.fetchRewardsByVaultAfterBlockDate(
-            pool,
+            address,
             Instant.now().minus(daysI, ChronoUnit.DAYS).getEpochSecond(),
             Long.MAX_VALUE,
             network
@@ -55,13 +64,17 @@ public class RewardController {
 
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
     public List<RewardDTO> historyReward(
-        @PathVariable("name") String name,
+        @PathVariable("name") String address,
         @RequestParam(value = "start", required = false) String start,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
         ) {
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+                .orElseThrow();
+        }
         return rewardsRepository
-            .getAllByVaultOrderByBlockDate(name, parseLong(start, 0),
+            .getAllByVaultOrderByBlockDate(address, parseLong(start, 0),
                 parseLong(end, Long.MAX_VALUE), network);
     }
 

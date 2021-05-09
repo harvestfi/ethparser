@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -75,7 +76,7 @@ public class EthBlockParser {
             log.info(this.getClass().getSimpleName() + " handled " + count);
           }
           EthBlockEntity entity = parse(ethBlock.getValue(), ethBlock.getNetwork());
-          if (entity != null
+          if (entity != null  && run.get()
               && networkProperties.get(entity.network()).isParseBlocks()) {
             lastTx = Instant.now();
             var persistedBlock = ethBlockDbService.save(entity);
@@ -102,7 +103,7 @@ public class EthBlockParser {
     Instant timer = Instant.now();
     Block block = ethBlock.getBlock();
     EthBlockEntity ethBlockEntity = blockToEntity(block);
-    ethBlockEntity.defineNetwork(network);
+    ethBlockEntity.setNetwork(EthBlockEntity.defineNetwork(network));
 
     Set<EthTxEntity> ethTxEntities = new LinkedHashSet<>();
     Map<String, EthTxEntity> txMap = new LinkedHashMap<>();
@@ -233,5 +234,10 @@ public class EthBlockParser {
 
   public Instant getLastTx() {
     return lastTx;
+  }
+
+  @PreDestroy
+  public void stop() {
+    run.set(false);
   }
 }

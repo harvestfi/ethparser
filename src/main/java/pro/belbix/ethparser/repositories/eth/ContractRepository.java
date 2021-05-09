@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.repositories.eth;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,8 +34,9 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
     @Query("select p_ctr from PoolEntity p "
         + "join p.contract p_ctr "
         + "where p.lpToken.address = :address "
-        + "and p.contract.network = :network")
-    ContractEntity findPoolByVaultAddress(
+        + "and p.contract.network = :network "
+        + "order by p_ctr.created desc")
+    List<ContractEntity> findPoolsByVaultAddress(
         @Param("address") String address,
         @Param("network") String network
     );

@@ -176,7 +176,7 @@ public class VaulActionstParserBscTest {
         .lastTvl(1535.5432734372898)
         .lastUsdTvl(7240.0)
         .ownerBalance(1535.5432734372898)
-        .ownerBalanceUsd(3619.6440326107777)
+        .ownerBalanceUsd(7239.288065221555)
         .sharePrice(1.)
         .lpStat(null)
         .ownerCount(1)
@@ -266,7 +266,7 @@ public class VaulActionstParserBscTest {
         .sharePrice(1.)
         .usdAmount(10L)
         .lpStat(
-            "{\"coin1\":\"WBNB\",\"coin2\":\"BUSD\",\"amount1\":0.01830295070448038,\"amount2\":4.999430824411079,\"price1\":273.1488985099692,\"price2\":1.0}")
+            "{\"coin1\":\"WBNB\",\"coin1Address\":\"0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c\",\"coin2\":\"BUSD\",\"coin2Address\":\"0xe9e7cea3dedca5984780bafc599bd69add087d56\",\"amount1\":0.01830295070448038,\"amount2\":4.999430824411079,\"price1\":273.1488985099692,\"price2\":1.0}")
         .ownerBalance(0.2662041892498321)
         .ownerBalanceUsd(9.99886164882216)
         .migrated(false)
@@ -285,7 +285,7 @@ public class VaulActionstParserBscTest {
         .fetchContractLogs(singletonList(vaultAddress), block, block, BSC_NETWORK);
     assertTrue(LOG_ID < logResults.size(),
         "Log smaller then necessary");
-    HarvestDTO harvestDTO = harvestVaultParser.parseVaultLog(
+    HarvestDTO harvestDTO = harvestVaultParser.parse(
         (Log) logResults.get(LOG_ID).get(), BSC_NETWORK);
     harvestVaultParser.enrichDto(harvestDTO, BSC_NETWORK);
     harvestOwnerBalanceCalculator.fillBalance(harvestDTO, BSC_NETWORK);

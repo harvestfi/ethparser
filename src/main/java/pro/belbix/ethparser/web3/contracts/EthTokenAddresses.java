@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.contracts;
 
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.models.TokenContract.createTokenContracts;
 
 import java.util.List;
@@ -11,8 +13,8 @@ class EthTokenAddresses {
   }
 
   static final List<TokenContract> TOKENS = createTokenContracts(
-      new TokenContract(0, "ZERO", "0x0000000000000000000000000000000000000000"),
-      new TokenContract(10770079, "FARM", "0xa0246c9032bc3a600820415ae600c6388619a14d")
+      new TokenContract(0, "ZERO", ZERO_ADDRESS),
+      new TokenContract(10770079, "FARM", FARM_TOKEN)
           .addLp(0, "UNI_LP_USDC_FARM").addLp(11609000, "UNI_LP_WETH_FARM"),
       new TokenContract(11348423, "BADGER", "0x3472A5A71965499acd81997a54BBA8D852C6E53d")
           .addLp(0, "UNI_LP_WBTC_BADGER"),

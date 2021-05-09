@@ -1,25 +1,21 @@
 package pro.belbix.ethparser.web3.prices.parser;
 
+import static java.time.Duration.between;
+import static java.time.Instant.now;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
-import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -35,22 +31,15 @@ import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
 @Service
 @Log4j2
-public class PriceLogParser implements Web3Parser {
+public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
-  private static final AtomicBoolean run = new AtomicBoolean(true);
   private final PriceDecoder priceDecoder = new PriceDecoder();
-  private final BlockingQueue<Web3Model<Log>> logs = new ArrayBlockingQueue<>(100);
-  private final BlockingQueue<DtoI> output = new ArrayBlockingQueue<>(100);
   private final Web3Subscriber web3Subscriber;
   private final EthBlockService ethBlockService;
-  private final ParserInfo parserInfo;
   private final PriceDBService priceDBService;
-  private final AppProperties appProperties;
   private final NetworkProperties networkProperties;
   private final FunctionsUtils functionsUtils;
   private final ContractDbService contractDbService;
-  private Instant lastTx = Instant.now();
-  private long count = 0;
   private final Map<String, PriceDTO> lastPrices = new HashMap<>();
 
   public PriceLogParser(
@@ -61,54 +50,32 @@ public class PriceLogParser implements Web3Parser {
       NetworkProperties networkProperties,
       FunctionsUtils functionsUtils,
       ContractDbService contractDbService) {
+    super(parserInfo, appProperties);
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
-    this.parserInfo = parserInfo;
     this.priceDBService = priceDBService;
-    this.appProperties = appProperties;
     this.networkProperties = networkProperties;
     this.functionsUtils = functionsUtils;
     this.contractDbService = contractDbService;
   }
 
   @Override
-  public void startParse() {
-    log.info("Start parse Price logs");
-    parserInfo.addParser(this);
-    web3Subscriber.subscribeOnLogs(logs);
-    new Thread(() -> {
-      while (run.get()) {
-        Web3Model<Log> ethLog = null;
-        try {
-          ethLog = logs.poll(1, TimeUnit.SECONDS);
-          count++;
-          if (count % 100 == 0) {
-            log.info(this.getClass().getSimpleName() + " handled " + count);
-          }
-          if (ethLog == null
-              || !networkProperties.get(ethLog.getNetwork())
-              .isParsePrices()) {
-            continue;
-          }
-          PriceDTO dto = parse(ethLog.getValue(), ethLog.getNetwork());
-          if (dto != null) {
-            lastTx = Instant.now();
-            boolean success = priceDBService.savePriceDto(dto);
-            if (success) {
-              output.put(dto);
-            }
-          }
-        } catch (Exception e) {
-          log.error("Error price parser loop " + ethLog, e);
-          if (appProperties.isStopOnParseError()) {
-            System.exit(-1);
-          }
-        }
-      }
-    }).start();
+  protected void subscribeToInput() {
+    web3Subscriber.subscribeOnLogs(input, this.getClass().getSimpleName());
+  }
+
+  @Override
+  protected boolean save(PriceDTO dto) {
+    return priceDBService.savePriceDto(dto);
+  }
+
+  @Override
+  protected boolean isActiveForNetwork(String network) {
+    return networkProperties.get(network).isParsePrices();
   }
 
   // keep this parsing lightweight as more as possible
+  @Override
   public PriceDTO parse(Log ethLog, String network) {
     if (!isValidLog(ethLog, network)) {
       return null;
@@ -118,22 +85,30 @@ public class PriceLogParser implements Web3Parser {
     if (tx == null) {
       return null;
     }
-    String sourceName = contractDbService.getNameByAddress(tx.getSource(), network)
-        .orElseThrow(() -> new IllegalStateException("Not found name for " + tx.getSource()));
-    PriceDTO dto = new PriceDTO();
 
-    boolean keyCoinFirst = checkAndFillCoins(tx, dto, network);
-    boolean buy = isBuy(tx, keyCoinFirst);
-    dto.setSource(sourceName);
+    PriceDTO dto = new PriceDTO();
+    dto.setOwner(tx.getAddresses()[0]);
+    dto.setRecipient(tx.getAddresses()[1]);
     dto.setSourceAddress(tx.getSource());
     dto.setId(tx.getHash() + "_" + tx.getLogId());
     dto.setBlock(tx.getBlock().longValue());
-    dto.setBuy(buy ? 1 : 0);
     dto.setNetwork(network);
+
+    boolean keyCoinFirst = checkAndFillCoins(tx, dto, network);
 
     if (!isValidSource(dto, network)) {
       return null;
     }
+
+    String sourceName = getSourceName(tx.getSource(), network);
+
+    Boolean buy = isBuy(tx, keyCoinFirst);
+    if (buy == null) {
+      log.error("Both amountOut values not zero, can't determinate swap direction {}", tx);
+      return null;
+    }
+    dto.setSource(sourceName);
+    dto.setBuy(buy ? 1 : 0);
 
     fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
 
@@ -141,13 +116,20 @@ public class PriceLogParser implements Web3Parser {
       return null;
     }
 
-    // for lpToken price we should know staked amounts
     fillLpStats(dto, network);
 
     dto.setBlockDate(
         ethBlockService.getTimestampSecForBlock(tx.getBlock().longValue(), network));
     log.info(dto.print());
     return dto;
+  }
+
+  private String getSourceName(String sourceAddress, String network) {
+    Instant start = now();
+    String name = contractDbService.getNameByAddress(sourceAddress, network)
+        .orElseThrow(() -> new IllegalStateException("Not found name for " + sourceAddress));
+    log.trace("Price name fetched {} {}", name, between(start, now()).toMillis());
+    return name;
   }
 
   private boolean isValidLog(Log log, String network) {
@@ -161,6 +143,10 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private void fillLpStats(PriceDTO dto, String network) {
+    // reduce web3 calls
+    if (!ContractUtils.isFullParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+      return;
+    }
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         dto.getSourceAddress(), dto.getBlock(), network);
     double lpBalance = contractDbService.parseAmount(
@@ -174,34 +160,53 @@ public class PriceLogParser implements Web3Parser {
   }
 
   private boolean skipSimilar(PriceDTO dto) {
-    if (ContractUtils.isParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
-      return true;
+    Instant start = now();
+    boolean isSimilar;
+    if (ContractUtils.isFullParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+      isSimilar = false;
+    } else {
+      PriceDTO lastPrice = lastPrices.get(dto.getTokenAddress());
+      if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
+        log.debug("Skip similar price for {}", dto.getToken());
+        isSimilar = true;
+      } else {
+        lastPrices.put(dto.getTokenAddress(), dto);
+        isSimilar = false;
+      }
     }
-    PriceDTO lastPrice = lastPrices.get(dto.getToken());
-    if (lastPrice != null && lastPrice.getBlock().equals(dto.getBlock())) {
-      return true;
-    }
-    lastPrices.put(dto.getToken(), dto);
-    return false;
+    log.trace("Price checked similar {}", between(start, now()).toMillis());
+    return isSimilar;
   }
 
   private boolean isValidSource(PriceDTO dto, String network) {
+    Instant start = now();
+    boolean isValid;
+    String tokenAddress = dto.getTokenAddress();
+    String sourceAddress = dto.getSourceAddress();
+    long block = dto.getBlock();
+
     var pair = contractDbService
-        .findPairByToken(dto.getTokenAddress(), dto.getBlock(), network);
+        .findPairByToken(tokenAddress, block, network);
     if (pair.isEmpty()) {
-      return false;
+      log.trace("{} doesn't have valid LP pair {} {}",
+          tokenAddress, block, network);
+      isValid = false;
+    } else if (pair.filter(p -> p.getUniPair().getContract().getAddress()
+        .equalsIgnoreCase(sourceAddress))
+        .isPresent()) {
+      isValid = true;
+    } else {
+      log.warn("{} price from not actual LP {}", tokenAddress, sourceAddress);
+      isValid = false;
     }
 
-    if (pair.filter(p -> p.getUniPair().getContract().getAddress()
-        .equalsIgnoreCase(dto.getSourceAddress()))
-        .isPresent()) {
-      return true;
-    }
-    log.warn("{} price from not actual LP {}", dto.getToken(), dto.getSource());
-    return false;
+    log.trace("Price validated {}", between(start, now()).toMillis());
+    return isValid;
   }
 
   private boolean checkAndFillCoins(PriceTx tx, PriceDTO dto, String network) {
+    Instant start = now();
+
     String lp = tx.getSource().toLowerCase();
 
     String keyCoinName = contractDbService.findLpByAddress(lp, network)
@@ -221,31 +226,35 @@ public class PriceLogParser implements Web3Parser {
                 "Not found token name for " + tokensAdr.component2()))
     );
 
+    boolean keyCoinFirst;
     if (tokensNames.component1().equals(keyCoinName)) {
       dto.setToken(tokensNames.component1());
       dto.setTokenAddress(tokensAdr.component1());
       dto.setOtherToken(tokensNames.component2());
       dto.setOtherTokenAddress(tokensAdr.component2());
-      return true;
+      keyCoinFirst = true;
     } else if (tokensNames.component2().equals(keyCoinName)) {
       dto.setToken(tokensNames.component2());
       dto.setTokenAddress(tokensAdr.component2());
       dto.setOtherToken(tokensNames.component1());
       dto.setOtherTokenAddress(tokensAdr.component1());
-      return false;
+      keyCoinFirst = false;
     } else {
       throw new IllegalStateException("Swap doesn't contains key coin " + keyCoinName + " " + tx);
     }
+
+    log.trace("Price checked and filled {}", between(start, now()).toMillis());
+    return keyCoinFirst;
   }
 
-  private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
+  private static Boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
     if (keyCoinFirst) {
       if (isZero(tx, 3)) { // amount1Out
         return true;
       } else if (isZero(tx, 2)) { // amount0Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     } else {
       if (isZero(tx, 2)) { // amount0Out
@@ -253,7 +262,7 @@ public class PriceLogParser implements Web3Parser {
       } else if (isZero(tx, 3)) { // amount1Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     }
   }
@@ -287,15 +296,5 @@ public class PriceLogParser implements Web3Parser {
 
   private static boolean isZero(PriceTx tx, int i) {
     return BigInteger.ZERO.equals(tx.getIntegers()[i]);
-  }
-
-  @Override
-  public BlockingQueue<DtoI> getOutput() {
-    return output;
-  }
-
-  @Override
-  public Instant getLastTx() {
-    return lastTx;
   }
 }

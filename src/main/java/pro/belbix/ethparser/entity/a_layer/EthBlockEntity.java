@@ -51,7 +51,8 @@ import pro.belbix.ethparser.entity.b_layer.ContractEventEntity;
 @Entity
 @Table(name = "a_eth_block", indexes = {
     @Index(name = "idx_eth_block_hash", columnList = "hash"),
-    @Index(name = "idx_eth_block_timestamp", columnList = "timestamp")
+    @Index(name = "idx_eth_block_timestamp", columnList = "timestamp"),
+    @Index(name = "idx_eth_block_network", columnList = "network")
 })
 @Data
 @JsonInclude(Include.NON_NULL)
@@ -104,14 +105,12 @@ public class EthBlockEntity implements DtoI {
         }
     }
 
-    public void defineNetwork(String network) {
+    public static int defineNetwork(String network) {
         switch (network) {
             case ETH_NETWORK:
-                this.network = 0;
-                break;
+                return 0;
             case BSC_NETWORK:
-                this.network = 1;
-                break;
+                return 1;
             default:
                 throw new IllegalStateException("Unknown network " + network);
         }

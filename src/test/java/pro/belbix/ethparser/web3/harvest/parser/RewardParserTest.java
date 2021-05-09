@@ -125,18 +125,15 @@ public class RewardParserTest {
         List<LogResult> logResults = web3Functions
             .fetchContractLogs(singletonList(contract), onBlock, onBlock, ETH_NETWORK);
         assertTrue("Log smaller then necessary", logId < logResults.size());
-        try {
-            RewardDTO dto = rewardParser.parseLog((Log) logResults.get(logId).get(), ETH_NETWORK);
 
-            assertNotNull(dto, "Dto is null");
-            assertAll(
-                () -> assertEquals("id", id, dto.getId()),
-                () -> assertEquals("vault", vault, dto.getVault()),
-                () -> assertEquals("reward", reward, String.format("%.8f", dto.getReward())),
-                () -> assertEquals("period", period, dto.getPeriodFinish())
-            );
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        RewardDTO dto = rewardParser.parse((Log) logResults.get(logId).get(), ETH_NETWORK);
+
+        assertNotNull(dto, "Dto is null");
+        assertAll(
+            () -> assertEquals("id", id, dto.getId()),
+            () -> assertEquals("vault", vault, dto.getVault()),
+            () -> assertEquals("reward", reward, String.format("%.8f", dto.getReward())),
+            () -> assertEquals("period", period, dto.getPeriodFinish())
+        );
     }
 }

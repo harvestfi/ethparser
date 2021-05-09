@@ -62,7 +62,7 @@ public class DeployerTransactionsDownloader {
   private void parse(Integer start, Integer end) {
     web3Functions.findBlocksByBlockBatch(start, end, appProperties.getUtilNetwork())
         .forEach(block -> block.getTransactions().forEach(transactionResult -> {
-              DeployerDTO dto = parser.parseDeployerTransaction(
+              DeployerDTO dto = parser.parse(
                   (Transaction) transactionResult.get(), appProperties.getUtilNetwork());
               if (dto != null) {
                 try {

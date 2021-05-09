@@ -1,9 +1,11 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
-import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.Duration.between;
+import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -12,9 +14,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
-import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -23,6 +26,7 @@ import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -34,17 +38,20 @@ public class VaultActionsDBService {
   private final HarvestTvlRepository harvestTvlRepository;
   private final UniswapRepository uniswapRepository;
   private final ContractDbService contractDbService;
+  private final PriceProvider priceProvider;
 
   public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
       UniswapRepository uniswapRepository,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      PriceProvider priceProvider) {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.harvestTvlRepository = harvestTvlRepository;
     this.uniswapRepository = uniswapRepository;
     this.contractDbService = contractDbService;
+    this.priceProvider = priceProvider;
   }
 
   public static double aprToApy(double apr, double period) {
@@ -72,8 +79,7 @@ public class VaultActionsDBService {
 
   public void fillOwnersCount(HarvestDTO dto) {
     Integer ownerCount = harvestRepository.fetchActualOwnerQuantity(
-        dto.getVault(),
-        dto.getVault() + "_V0",
+        dto.getVaultAddress(),
         dto.getNetwork(),
         dto.getBlockDate());
     if (ownerCount == null) {
@@ -90,9 +96,9 @@ public class VaultActionsDBService {
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
         contractDbService.getAllVaults(dto.getNetwork()).stream()
-            .map(v -> v.getContract().getName())
-            .filter(v -> !ContractUtils.isPsName(v))
-            .filter(v -> !v.equals("iPS"))
+            .map(v -> v.getContract().getAddress())
+            .filter(v -> !ContractUtils.isPsAddress(v))
+            .filter(v -> !v.equalsIgnoreCase(iPS_ADDRESS))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
         dto.getNetwork()
@@ -104,6 +110,7 @@ public class VaultActionsDBService {
   }
 
   public HarvestTvlEntity calculateHarvestTvl(HarvestDTO dto, boolean checkTheSame) {
+    Instant start = now();
     if (checkTheSame && harvestTvlRepository.existsById(dto.getId())) {
       log.warn("Found the same harvestTvl record for " + dto);
     }
@@ -116,6 +123,7 @@ public class VaultActionsDBService {
     fillSimpleDataFromDto(dto, harvestTvl);
     //should be after price filling
     fillTvl(dto, harvestTvl);
+    log.trace("Vault action created TVL for {}", between(start, now()).toMillis());
     return harvestTvl;
   }
 
@@ -133,31 +141,20 @@ public class VaultActionsDBService {
   }
 
   public void fillLastFarmPrice(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
-    UniswapDTO uniswapDTO = uniswapRepository
-        .findFirstByBlockDateBeforeAndCoinOrderByBlockDesc(
-            dto.getBlockDate(), "FARM");
-    if (uniswapDTO != null) {
-      harvestTvl.setLastPrice(uniswapDTO.getLastPrice());
-    } else {
-      harvestTvl.setLastPrice(0.0);
-    }
+    harvestTvl.setLastPrice(
+        priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), dto.getNetwork()));
   }
 
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     double tvl = 0.0;
 
-    List<String> contractNames = contractDbService.getAllVaults(dto.getNetwork())
-        .stream().map(v -> v.getContract().getName())
+    List<String> contractAddresses = contractDbService.getAllVaults(dto.getNetwork())
+        .stream().map(v -> v.getContract().getAddress())
         .collect(Collectors.toList());
 
-    PARSABLE_UNI_PAIRS.get(dto.getNetwork()).stream()
-        .map(c -> contractDbService.getNameByAddress(c, dto.getNetwork())
-            .orElseThrow(() -> new IllegalStateException("Not found name for " + c)))
-        .forEach(contractNames::add);
-
-    for (String vaultName : contractNames) {
+    for (String vaultAddress : contractAddresses) {
       HarvestDTO lastHarvest = harvestRepository
-          .fetchLastByVaultAndDate(vaultName, dto.getNetwork(), dto.getBlockDate());
+          .fetchLastByVaultAndDate(vaultAddress, dto.getNetwork(), dto.getBlockDate());
       if (lastHarvest == null) {
         continue;
       }
@@ -227,8 +224,9 @@ public class VaultActionsDBService {
 
   public List<HarvestDTO> fetchHarvest(String from, String to, String network) {
     if (from == null && to == null) {
-      return harvestRepository.fetchAllFromBlockDate(
-          Instant.now().minus(1, DAYS).toEpochMilli() / 1000, network);
+      return harvestRepository
+          .findAll(PageRequest.of(0, 100, Sort.by("blockDate").descending()))
+          .getContent();
     }
     int fromI = 0;
     int toI = Integer.MAX_VALUE;
@@ -255,7 +253,7 @@ public class VaultActionsDBService {
     // find relevant transfers (from last full withdraw)
     List<HarvestDTO> transfers = harvestRepository.fetchLatestSinceLastWithdraw(
         dto.getOwner(),
-        dto.getVault(),
+        dto.getVaultAddress(),
         dto.getBlockDate(),
         dto.getNetwork()
     );

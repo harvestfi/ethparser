@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import java.util.List;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.repositories.v0.UniswapRepository.OhlcProjection;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.uniswap.db.UniswapDbService;
 
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
@@ -21,11 +24,14 @@ public class UniController {
 
     private final UniswapRepository uniswapRepository;
     private final UniswapDbService uniswapDbService;
+    private final ContractDbService contractDbService;
 
     public UniController(UniswapRepository uniswapRepository,
-                         UniswapDbService uniswapDbService) {
+        UniswapDbService uniswapDbService,
+        ContractDbService contractDbService) {
         this.uniswapRepository = uniswapRepository;
         this.uniswapDbService = uniswapDbService;
+        this.contractDbService = contractDbService;
     }
 
     @RequestMapping(value = "api/transactions/history/uni", method = RequestMethod.GET)
@@ -35,10 +41,16 @@ public class UniController {
     }
 
     @RequestMapping(value = "api/transactions/history/uni/ohcl/{name}", method = RequestMethod.GET)
-    public Iterable<OhlcProjection> ohclUniswapTx(@PathVariable("name") String name,
-                                                  @RequestParam(value = "start", required = false) String start,
-                                                  @RequestParam(value = "end", required = false) String end) {
-        return uniswapRepository.fetchOHLCTransactions(name, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), 3600);
+    public Iterable<OhlcProjection> ohclUniswapTx(
+        @PathVariable("name") String address,
+        @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "end", required = false) String end) {
+        if (!address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(address, ContractType.TOKEN, ETH_NETWORK)
+                .orElseThrow();
+        }
+        return uniswapRepository
+            .fetchOHLCTransactions(address, parseLong(start, 0), parseLong(end, Long.MAX_VALUE), 3600);
     }
 
     @GetMapping("/history/uni/{address}")
