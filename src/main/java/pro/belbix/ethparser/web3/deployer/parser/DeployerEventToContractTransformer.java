@@ -246,17 +246,21 @@ public class DeployerEventToContractTransformer {
   }
 
   private ContractType detectContractType(DeployerDTO dto) {
-    if (functionsUtils.callIntByName(
-        VAULT_FRACTION_TO_INVEST_NUMERATOR,
-        dto.getToAddress(),
-        dto.getBlock(), dto.getNetwork()).isPresent()) {
-      return VAULT;
-    } else if (functionsUtils.callIntByNameWithAddressArg(
-        USER_REWARD_PER_TOKEN_PAID,
-        dto.getToAddress(), // any address
-        dto.getToAddress(),
-        dto.getBlock(), dto.getNetwork()).isPresent()) {
-      return POOL;
+    try {
+      if (functionsUtils.callIntByName(
+          VAULT_FRACTION_TO_INVEST_NUMERATOR,
+          dto.getToAddress(),
+          dto.getBlock(), dto.getNetwork()).isPresent()) {
+        return VAULT;
+      } else if (functionsUtils.callIntByNameWithAddressArg(
+          USER_REWARD_PER_TOKEN_PAID,
+          dto.getToAddress(), // any address
+          dto.getToAddress(),
+          dto.getBlock(), dto.getNetwork()).isPresent()) {
+        return POOL;
+      }
+    } catch (Exception e) {
+      log.error("Error determinate contract type {}", dto);
     }
     return UNKNOWN;
   }

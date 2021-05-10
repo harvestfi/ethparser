@@ -50,7 +50,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
             + "t.coin = 'FARM' "
             + "and t.block_date > :from "
             + "and t.block_date <= :to "
-            + "order by t.block_date")
+            + "order by t.block_date desc")
     List<UniswapDTO> fetchAllByPeriod(@Param("from") long from, @Param("to") long to);
 
     @Query("select t from UniswapDTO t where "

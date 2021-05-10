@@ -105,6 +105,8 @@ public class ContractLoader {
         true,
         network);
     tokenContract.setCurveUnderlying(contract.getCurveUnderlying());
+    contractRepository.save(tokenContract);
+
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
     if (tokenEntity == null) {

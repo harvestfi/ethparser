@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: reward-download
+  startUtil: deployer-recalculation
   overrideDuplicates: false
   utilNetwork: eth
   handleLoopStep: 1000

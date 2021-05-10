@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
 
@@ -17,7 +18,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
-import pro.belbix.ethparser.repositories.eth.ContractRepository;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
@@ -39,6 +39,26 @@ class DeployerEventToContractTransformerTest {
   void setUp() {
     when(contractDbService.findLpByAddress(any(), any())).thenReturn(Optional.empty());
     when(contractDbService.getContractByAddress(any(), any())).thenReturn(Optional.empty());
+  }
+
+  @Test
+  public void testCreateVault_ICE_notInit() {
+    String address = "0x5da237ad194b8bbb008ac8916df99a92a8a7c8eb";
+    long block = 6736315;
+    String network = BSC_NETWORK;
+
+    DeployerDTO dto = createDeployerDto(address, block, network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
   }
 
   @Test
