@@ -52,7 +52,7 @@ management:
   server:
     port: 8080 # on heroku use same port as tomcat server port
   endpoints:
-    enabled-by-default: false  
+    enabled-by-default: false
     web:
       exposure.include: prometheus
   endpoint:
