@@ -84,6 +84,21 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: target/surefire-reports/**/*.xml
+
+      - name: Publish report to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          directory: target/surefire-reports/ # optional
+          name: codecov-ethparser # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
+
   deploy:
     
     needs: [pre-ci, build]
