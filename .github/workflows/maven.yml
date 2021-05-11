@@ -3,7 +3,14 @@
 
 name: Java CICD with Maven
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - 'release-**'
 
 jobs:
   # Wait for up to a minute for previous run to complete, abort if not done by then
