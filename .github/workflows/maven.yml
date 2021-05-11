@@ -94,7 +94,7 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          directory: target/surefire-reports/ # optional
+          directory: target/jacoco/ # optional
           name: codecov-ethparser # optional
           fail_ci_if_error: true # optional (default = false)
           verbose: true # optional (default = false)
