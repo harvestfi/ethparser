@@ -155,7 +155,7 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
   }
 
   public void fillPrice(TransferDTO dto) {
-    dto.setPrice(priceProvider.getPriceForCoin(dto.getName(), dto.getBlock(), ETH_NETWORK));
+    dto.setPrice(priceProvider.getPriceForCoin(dto.getTokenAddress(), dto.getBlock(), dto.getNetwork()));
   }
 
   private double getBalance(String holder, String tokenAddress, long block) {

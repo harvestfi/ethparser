@@ -371,7 +371,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     dto.setLastTvl(vault);
     dto.setLastUsdTvl((double) Math.round(vault * priceUnderlying));
     dto.setUsdAmount((long) (priceUnderlying * dto.getAmount() * dto.getSharePrice()));
-    if ("iPS".equals(dto.getVault())) {
+    if (iPS_ADDRESS.equalsIgnoreCase(dto.getVaultAddress())) {
       dto.setTotalAmount(farmTotalAmount(dto.getBlock(), network));
     }
   }

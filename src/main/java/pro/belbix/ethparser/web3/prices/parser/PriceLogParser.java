@@ -110,7 +110,11 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     dto.setSource(sourceName);
     dto.setBuy(buy ? 1 : 0);
 
-    fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
+    boolean successParseAmount =
+        fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
+    if (!successParseAmount) {
+      return null;
+    }
 
     if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
       return null;
@@ -267,7 +271,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     }
   }
 
-  private void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
+  private boolean fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
       boolean buy, String network) {
     if (keyCoinFirst) {
       if (buy) {
@@ -286,8 +290,13 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
         dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherTokenAddress(), network));
       }
     }
+    if (dto.getTokenAmount() == 0.0 || dto.getOtherTokenAmount() == 0.0) {
+      log.error("Zero amount in price DTO, skip {}", dto);
+      return false;
+    }
 
     dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
+    return true;
   }
 
   private double parseAmountFromTx(PriceTx tx, int i, String address, String network) {

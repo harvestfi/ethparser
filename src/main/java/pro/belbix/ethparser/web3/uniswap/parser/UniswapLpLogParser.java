@@ -112,7 +112,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
     if (dto.getLastPrice() == null) {
       Double otherCoinPrice = priceProvider
-          .getPriceForCoin(dto.getOtherCoin(), dto.getBlock().longValue(), ETH_NETWORK);
+          .getPriceForCoin(dto.getOtherCoinAddress(), dto.getBlock().longValue(), ETH_NETWORK);
       if (otherCoinPrice != null) {
         dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
       } else {
@@ -189,7 +189,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       throw new IllegalStateException("Contract can't identified " + toString());
     }
 
-    if (uniswapDTO.getOtherCoin().equals("USDC")) {
+    if (ContractUtils.isStableCoin(uniswapDTO.getOtherCoinAddress())) {
       double price = (uniswapDTO.getOtherAmount() / uniswapDTO.getAmount());
       uniswapDTO.setPrice(price);
     }
