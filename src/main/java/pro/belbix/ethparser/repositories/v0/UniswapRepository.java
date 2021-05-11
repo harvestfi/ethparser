@@ -1,10 +1,12 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.TransferDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 
@@ -58,6 +60,20 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         + "or t.otherCoinAddress is null or t.otherCoinAddress = '' "
     )
     List<UniswapDTO> fetchAllWithoutAddresses();
+
+    @Query("select t from UniswapDTO t where "
+        + "t.amount >= :minAmount ")
+    Page<UniswapDTO> fetchPages(
+        @Param("minAmount") double minAmount,
+        Pageable pageable);
+
+    @Query("select t from UniswapDTO t where "
+        + "t.coinAddress = :coinAddress "
+        + "and t.amount >= :minAmount ")
+    Page<UniswapDTO> fetchPagesByToken(
+        @Param("coinAddress") String coinAddress,
+        @Param("minAmount") double minAmount,
+        Pageable pageable);
 
     @Query(nativeQuery = true, value = "" +
         "select FLOOR(MIN(block_date)/:period)*:period as timestamp,  " +
