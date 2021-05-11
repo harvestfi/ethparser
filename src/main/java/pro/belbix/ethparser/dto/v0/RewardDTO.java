@@ -4,7 +4,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
@@ -14,12 +17,16 @@ import pro.belbix.ethparser.dto.DtoI;
     @Index(name = "idx_rewards_vault_address", columnList = "vaultAddress")
 })
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class RewardDTO implements DtoI {
 
   @Id
   private String id;
   private String vault;
   private String vaultAddress;
+  private String poolAddress;
   private long block;
   private long blockDate;
   private String network;

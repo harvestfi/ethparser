@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ST_PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.models.SimpleContract.createContracts;
 
 import java.util.List;
@@ -28,7 +29,7 @@ class EthPoolAddresses {
       new SimpleContract(11153147, "ST_YCRV", "0x6D1b6Ea108AA03c6993d8010690264BA96D349A8"),
       new SimpleContract(11159034, "ST_3CRV", "0x27F12d1a08454402175b9F0b53769783578Be7d9"),
       new SimpleContract(10997827, "ST_TUSD", "0xeC56a21CF0D7FeB93C25587C12bFfe094aa0eCdA"),
-      new SimpleContract(10957879, "ST_PS", "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"),
+      new SimpleContract(10957879, "ST_PS", ST_PS_ADDRESS),
       new SimpleContract(10797544, "PS_V0", PS_V0_ADDRESS),
       new SimpleContract(11231016, "ST_CRV_TBTC", "0x017eC1772A45d2cf68c429A820eF374f0662C57c"),
       new SimpleContract(11269974, "ST_SUSHI_ETH_DAI", "0x76Aef359a33C02338902aCA543f37de4b01BA1FA"),
