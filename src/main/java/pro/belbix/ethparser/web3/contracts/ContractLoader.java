@@ -18,11 +18,13 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map.Entry;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
@@ -520,12 +522,17 @@ public class ContractLoader {
       String network,
       int retry
   ) {
-    if (address == null || address.isBlank()) {
+    if (address == null
+        || address.isBlank()
+        || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return null;
     }
     ContractEntity entity = contractRepository.findFirstByAddress(address, network);
     if (appProperties.isOnlyApi()) {
       return entity;
+    }
+    if (Strings.isBlank(name)) {
+      name = "UNKNOWN";
     }
 
     if (entity == null) {
@@ -533,8 +540,10 @@ public class ContractLoader {
           contractRepository.findFirstByName(name, type, network) != null) {
         log.info("Not unique name for {} {}", name, address);
         retry++;
+
         return findOrCreateContract(
-            address, name + "_#V" + retry, type, created, rewrite, network, retry);
+            address, cleanName(name) + "_#V" + retry,
+            type, created, rewrite, network, retry);
       }
 
       entity = new ContractEntity();
@@ -546,11 +555,19 @@ public class ContractLoader {
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
-        entity.setName(name);
-        entity.setType(type);
-        entity.setCreated(created);
-        contractRepository.save(entity);
+      entity.setName(name);
+      entity.setType(type);
+      entity.setCreated(created);
+      contractRepository.save(entity);
     }
     return entity;
+  }
+
+  private String cleanName(String name) {
+    String[] tmp = name.split("_#");
+    if (tmp.length != 2) {
+      return name;
+    }
+    return tmp[0];
   }
 }
