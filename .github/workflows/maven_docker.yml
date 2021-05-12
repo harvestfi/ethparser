@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Java CICD with Maven
+name: Java CICD with Maven k8s
 
 on: [push, pull_request]
 
@@ -36,7 +36,6 @@ jobs:
     needs: pre-ci
     # Run only if there are differences in the source code
     #if: needs.pre-ci.outputs.diff
-    if: false
 
     runs-on: ubuntu-latest
 
@@ -110,74 +109,49 @@ jobs:
           #    name: jacoco-report
           #    path: target/site/jacoco/
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist/
-
-  deploy:
-    
-    needs: [pre-ci, build]
-    # Run only on push, but after pre-ci and build
-    if: ${{ always() && github.event_name == 'push' }}
-
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v2
-
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
         id: extract_branch
 
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          # Optional, GitHub token
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          # Required, workflow file name or ID
-          workflow: maven.yml
-          # Optional, the status or conclusion of a completed workflow to search for
-          # Can be one of a workflow conclusion::
-          # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
-          # Or a workflow status:
-          # "completed", "in_progress", "queued"
-          # Default: "completed,success"
-          #workflow_conclusion: "in_progress,completed,success"
-          # Optional, will get head commit SHA
-          #commit: ${{github.event.pull_request.head.sha}}
-          # Optional, no need to specify if PR is
-          #pr: ${{github.event.pull_request.number}}
-          # Optional, will use the branch
-          branch: ${{ steps.extract_branch.outputs.branch }}
-          # Optional, will use specified workflow run
-          #run_id: 1122334455
-          # Optional, run number from the workflow
-          #run_number: 34
-          # Optional, uploaded artifact name,
-          # will download all artifacts if not specified
-          # and extract them in respective subdirectories
-          # https://github.com/actions/download-artifact#download-all-artifacts
-          name: dist
-          # Optional, directory where to extract artifact
-          path: dist
-          # Optional, defaults to current repo
-          #repo: ${{github.repository}}
-        # Run only on push to release branch
-        #if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
-      - name: Prepare deploy to server
-        uses: hughcube/deploy-action@1.0.0
-        with:
-          ssh_private_key: ${{ secrets.SSH_KEY }}
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Deploy to ETH server
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ethparser
+          BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          export SERVER=ethparser_eth
-          rsync -rzv -e "ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" dist/ ${{secrets.SSH_USER}}@$SERVER:/opt/ethparser
-          ssh -J ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ${{secrets.SSH_USER}}@$SERVER "/opt/ethparser/deploy.sh"
-        if: ${{ startsWith(steps.extract_branch.outputs.branch, 'release-') }}
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH-$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH-$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH-$IMAGE_TAG"
 
+          #- name: Fill in the new image ID in the Amazon ECS task definition
+          #  id: task-def
+          #  uses: aws-actions/amazon-ecs-render-task-definition@v1
+          #  with:
+          #    task-definition: task-definition.json
+          #    container-name: ethparser
+          #    image: ${{ steps.build-image.outputs.image }}
+
+          #- name: Deploy Amazon ECS task definition
+          #  uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          #  with:
+          #    task-definition: ${{ steps.task-def.outputs.task-definition }}
+          #    service: ethparser-service
+          #    cluster: default
+          #    wait-for-service-stability: true
