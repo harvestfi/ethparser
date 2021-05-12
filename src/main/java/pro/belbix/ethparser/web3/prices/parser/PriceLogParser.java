@@ -291,7 +291,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       }
     }
     if (dto.getTokenAmount() == 0.0 || dto.getOtherTokenAmount() == 0.0) {
-      log.error("Zero amount in price DTO, skip {}", dto);
+      log.info("Zero amount in price DTO, skip {}", dto);
       return false;
     }
 
