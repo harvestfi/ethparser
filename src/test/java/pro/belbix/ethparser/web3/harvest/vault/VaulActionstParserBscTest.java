@@ -39,6 +39,37 @@ public class VaulActionstParserBscTest {
   private VaultActionsDBService vaultActionsDBService;
 
   @Test
+  void test_PC_BUSD_BNB_after_migration() throws Exception {
+    HarvestDTO harvestDTO = loadHarvestDto(
+        "0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34", 7328200);
+    assertNotNull(harvestDTO);
+    assertModel(HarvestDTO.builder()
+        .hash("0xaad9fe66639ae8d4f2ef818f1a3ddfe25a01cac327f09cc0a25f1e76793b1ee8")
+        .block(7328200L)
+        .blockDate(1620760239L)
+        .confirmed(1)
+        .methodName("Deposit")
+        .owner("")
+        .amount(0.)
+        .vault("PC_BUSD_BNB")
+        .lastUsdTvl(0.)
+        .sharePrice(1.)
+        .usdAmount(1L)
+        .lpStat(
+            "")
+        .ownerBalance(0.)
+        .ownerBalanceUsd(0.)
+        .migrated(false)
+        .underlyingPrice(null)
+        .ownerCount(0)
+        .lastTvl(0.)
+        .profit(null)
+        .profitUsd(null)
+        .totalAmount(null)
+        .build(), harvestDTO);
+  }
+
+  @Test
   void test_VENUS_ETH() throws Exception {
     HarvestDTO harvestDTO = loadHarvestDto(
         "0x2ce34b1bb247f242f1d2a33811e01138968efbff",

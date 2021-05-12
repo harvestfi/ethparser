@@ -4,7 +4,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_CURRENT_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_FROM_LP_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINIMUM_LIQUIDITY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
@@ -37,6 +36,7 @@ import org.web3j.abi.datatypes.generated.Int128;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
+import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
@@ -61,17 +61,20 @@ public class DeployerEventToContractTransformer {
   private final ContractUpdater contractUpdater;
   private final LPSeeker lpSeeker;
   private final ContractDbService contractDbService;
+  private final FunctionService functionService;
 
   public DeployerEventToContractTransformer(
       FunctionsUtils functionsUtils,
       ContractLoader contractLoader,
       ContractUpdater contractUpdater,
-      LPSeeker lpSeeker, ContractDbService contractDbService) {
+      LPSeeker lpSeeker, ContractDbService contractDbService,
+      FunctionService functionService) {
     this.functionsUtils = functionsUtils;
     this.contractLoader = contractLoader;
     this.contractUpdater = contractUpdater;
     this.lpSeeker = lpSeeker;
     this.contractDbService = contractDbService;
+    this.functionService = functionService;
   }
 
   public void handleAndSave(DeployerDTO dto) {
@@ -102,9 +105,8 @@ public class DeployerEventToContractTransformer {
       }
     }
 
-    if (!contracts.isEmpty()) {
-      contractUpdater.updateContracts();
-    }
+    contractUpdater.checkAndUpdateAddress(
+        dto.getToAddress(), dto.getBlock(), dto.getNetwork());
   }
 
 
@@ -125,6 +127,7 @@ public class DeployerEventToContractTransformer {
     String address = dto.getToAddress();
     long block = dto.getBlock();
     String network = dto.getNetwork();
+    log.info("Start transform {}", address);
 
     ContractInfo contractInfo = collectContractInfo(address, block, network, type);
 
@@ -413,7 +416,7 @@ public class DeployerEventToContractTransformer {
       createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
     } else {
       // if we have multiple underlying just add underlying token
-      createTokenContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
+      createTokenContract(contractInfo.getUnderlyingAddress(), block, network, contracts);
       contractInfo.getUnderlyingTokens().forEach(c ->
           createTokenAndLpContracts(c, block, network, contracts));
     }
@@ -425,14 +428,18 @@ public class DeployerEventToContractTransformer {
       String network,
       List<PureEthContractInfo> contracts
   ) {
-    TokenContract tokenContract =
-        createTokenContracts(address, block, network, contracts);
-    if (tokenContract != null) {
-      createLpContracts(address, block, network, contracts, tokenContract);
+    if (functionService.isLp(address, block, network)) {
+      createSimpleLpContract(address, block, network, contracts);
+    } else {
+      TokenContract tokenContract =
+          createTokenContract(address, block, network, contracts);
+      if (tokenContract != null) {
+        createLpContracts(address, block, network, contracts, tokenContract);
+      }
     }
   }
 
-  private TokenContract createTokenContracts(
+  private TokenContract createTokenContract(
       String address,
       long block,
       String network,
@@ -443,25 +450,39 @@ public class DeployerEventToContractTransformer {
         || contractDbService.getContractByAddress(address, network).isPresent()) {
       return null;
     }
-    boolean isLp = isLp(address, block, network);
 
     String curveUnderlying = curveUnderlyingContracts(address, block, network, contracts);
 
-    String symbol;
-    if (isLp) {
-      symbol = lpName(address, block, network);
-    } else {
-      symbol = functionsUtils.callStrByName(
-          FunctionsNames.SYMBOL, address, block, network)
-          .orElse("?");
-    }
+    String symbol = functionsUtils.callStrByName(
+        FunctionsNames.SYMBOL, address, block, network)
+        .orElse("?");
 
     TokenContract tokenContract = new TokenContract((int) block, symbol, address);
     tokenContract.setNetwork(network);
-    tokenContract.setContractType(isLp ? UNI_PAIR : TOKEN);
+    tokenContract.setContractType(TOKEN);
     tokenContract.setCurveUnderlying(curveUnderlying);
     addInContracts(contracts, tokenContract);
     return tokenContract;
+  }
+
+  private void createSimpleLpContract(
+      String address,
+      long block,
+      String network,
+      List<PureEthContractInfo> contracts
+  ) {
+    if (ZERO_ADDRESS.equalsIgnoreCase(address)
+        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))
+        || contractDbService.getContractByAddress(address, network).isPresent()) {
+      return;
+    }
+
+    String symbol = lpName(address, block, network);
+
+    LpContract lpContract = new LpContract((int) block, symbol, null, address);
+    lpContract.setNetwork(network);
+    lpContract.setContractType(UNI_PAIR);
+    addInContracts(contracts, lpContract);
   }
 
   private void createLpContracts(
@@ -576,15 +597,6 @@ public class DeployerEventToContractTransformer {
   private String getPotentiallyUnderlying(String address, long block, String network) {
     return functionsUtils.callAddressByName(FunctionsNames.TOKEN,
         address, block, network).orElse("");
-  }
-
-  private boolean isLp(String address, long block, String network) {
-    try {
-      return functionsUtils.callIntByName(MINIMUM_LIQUIDITY, address, block, network)
-          .orElse(null) != null;
-    } catch (Exception ignored) {
-    }
-    return false;
   }
 
   private String lpName(String lpAddress, long block, String network) {

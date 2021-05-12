@@ -42,6 +42,7 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
@@ -59,6 +60,7 @@ public class ContractLoader {
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
   private final SourceResolver sourceResolver;
+  private final ContractDbService contractDbService;
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,
@@ -68,7 +70,8 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      SourceResolver sourceResolver) {
+      SourceResolver sourceResolver,
+      ContractDbService contractDbService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.contractRepository = contractRepository;
@@ -78,6 +81,7 @@ public class ContractLoader {
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
     this.sourceResolver = sourceResolver;
+    this.contractDbService = contractDbService;
   }
 
   private void loadNetwork(String network, long block) {
@@ -105,9 +109,9 @@ public class ContractLoader {
         ContractType.TOKEN.getId(),
         contract.getCreatedOnBlock(),
         true,
-        network);
-    tokenContract.setCurveUnderlying(contract.getCurveUnderlying());
-    contractRepository.save(tokenContract);
+        network,
+        0,
+        contract.getCurveUnderlying());
 
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
@@ -406,7 +410,7 @@ public class ContractLoader {
   private void keyTokenForLps(LpContract lpContract, String network, long block) {
 
     String keyTokenAddressOrName = lpContract.getKeyToken();
-    if (keyTokenAddressOrName.isBlank()) {
+    if (Strings.isBlank(keyTokenAddressOrName)) {
       return;
     }
     TokenEntity tokenEntity;
@@ -522,6 +526,18 @@ public class ContractLoader {
       String network,
       int retry
   ) {
+    return findOrCreateContract(address, name, type, created, rewrite, network, retry, null);
+  }
+
+  private ContractEntity findOrCreateContract(String address,
+      String name,
+      int type,
+      long created,
+      boolean rewrite,
+      String network,
+      int retry,
+      String underlying
+  ) {
     if (address == null
         || address.isBlank()
         || ZERO_ADDRESS.equalsIgnoreCase(address)) {
@@ -537,7 +553,8 @@ public class ContractLoader {
 
     if (entity == null) {
       if (!name.startsWith("UNKNOWN") &&
-          contractRepository.findFirstByName(name, type, network) != null) {
+          contractDbService.getContractByNameAndType(
+              name, ContractType.valueOfId(type), network).isPresent()) {
         log.info("Not unique name for {} {}", name, address);
         retry++;
 
@@ -552,12 +569,18 @@ public class ContractLoader {
       entity.setType(type);
       entity.setCreated(created);
       entity.setNetwork(network);
+      entity.setCurveUnderlying(underlying);
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
-      entity.setName(name);
+      if (!Strings.isBlank(name)) {
+        entity.setName(name);
+      }
       entity.setType(type);
       entity.setCreated(created);
+      if (underlying != null) {
+        entity.setCurveUnderlying(underlying);
+      }
       contractRepository.save(entity);
     }
     return entity;

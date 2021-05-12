@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -73,7 +74,9 @@ public class ContractDbService {
   public Optional<ContractEntity> getContractByNameAndType(
       String name, ContractType type, String network) {
     return Optional.ofNullable(contractRepository
-        .findFirstByName(name, type.getId(), network));
+        .findByNameAndType(name, type.getId(), network, PageRequest.of(0, 1)))
+        .filter(c -> !c.isEmpty())
+        .map(c -> c.get(0));
   }
 
   public Optional<String> getNameByAddress(String address, String network) {
@@ -114,14 +117,17 @@ public class ContractDbService {
         .doubleValue();
   }
 
-  public BigDecimal getDividerByAddress(String address, String network) {
-    address = address.toLowerCase();
+  public BigDecimal getDividerByAddress(String _address, String network) {
+    String address = _address.toLowerCase();
     long decimals;
     // unique addresses
     if (ContractUtils.isPsAddress(address)) {
       decimals = 18L;
     } else {
-      ContractEntity contract = getContractByAddress(address, network).orElseThrow();
+      ContractEntity contract = getContractByAddress(address, network)
+          .orElseThrow(
+              () -> new IllegalStateException("Not found contract for " + address)
+          );
       if (contract.getType() == ContractType.VAULT.getId()) {
         decimals = vaultRepository.findFirstByContract(address, network).getDecimals();
       } else if (contract.getType() == ContractType.POOL.getId()) {
@@ -191,6 +197,11 @@ public class ContractDbService {
   public Optional<PoolEntity> getPoolByAddress(String address, String network) {
     return Optional.ofNullable(poolRepository
         .findFirstByAddress(address.toLowerCase(), network));
+  }
+
+  public Optional<VaultEntity> getVaultByAddress(String address, String network) {
+    return Optional.ofNullable(vaultRepository
+        .findFirstByContract(address.toLowerCase(), network));
   }
 
   public List<String> getSubscriptions() {
