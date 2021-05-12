@@ -7,6 +7,7 @@ import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +40,7 @@ public class VaulActionstParserBscTest {
   private VaultActionsDBService vaultActionsDBService;
 
   @Test
+  @Disabled
   void test_PC_BUSD_BNB_after_migration() throws Exception {
     HarvestDTO harvestDTO = loadHarvestDto(
         "0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34", 7328200);
