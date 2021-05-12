@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: deployer-recalculation
+  startUtil: address-filler
   overrideDuplicates: false
   utilNetwork: eth
   handleLoopStep: 1000

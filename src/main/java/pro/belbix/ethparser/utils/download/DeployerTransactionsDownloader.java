@@ -56,7 +56,7 @@ public class DeployerTransactionsDownloader {
     }
 
     log.info("DeployerTransactionsDownloader start");
-    new LoopHandler(300, this::parse).start(from, to);
+    new LoopHandler(appProperties.getHandleLoopStep(), this::parse).start(from, to);
   }
 
   private void parse(Integer start, Integer end) {

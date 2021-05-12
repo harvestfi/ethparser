@@ -42,6 +42,8 @@ public class ContractConstants {
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
+  public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"
+      .toLowerCase();
   public static final String PS_ADDRESS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50"
       .toLowerCase();
   public static final String PS_V0_ADDRESS = "0x59258F4e15A5fC74A7284055A8094F58108dbD4f"
