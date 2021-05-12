@@ -37,6 +37,7 @@ import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractLoader;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUpdater;
@@ -116,8 +117,13 @@ public class DeployerEventToContractTransformer {
     }
 
     ContractType type = detectContractType(dto);
-    // detect only vaults and pools
     if (VAULT != type && POOL != type) {
+      log.info("Not vault or pool, skip contract transform");
+      return List.of();
+    }
+
+    if (VAULT == type && CONTRACT_CREATION.name().equals(dto.getType())) {
+      log.info("Vault contract creation, parse only vault init");
       return List.of();
     }
 
@@ -236,6 +242,10 @@ public class DeployerEventToContractTransformer {
   }
 
   private String underlyingSymbol(String address, long block, String network) {
+    // assume that FARM underlying only in Profit Share pool
+    if (ContractConstants.FARM_TOKEN.equalsIgnoreCase(address)) {
+      return "PS";
+    }
     return functionsUtils.callStrByName(
         FunctionsNames.SYMBOL, address, block, network)
         .orElse("")

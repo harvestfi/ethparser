@@ -366,7 +366,8 @@ public class ContractLoader {
         ContractType.TOKEN.getId(),
         0,
         false,
-        network
+        network,
+        0
     ));
 
     uniPairEntity.setType(defineUniPairType(address, block, network));
@@ -508,6 +509,17 @@ public class ContractLoader {
       boolean rewrite,
       String network
   ) {
+    return findOrCreateContract(address, name, type, created, rewrite, network, 0);
+  }
+
+  private ContractEntity findOrCreateContract(String address,
+      String name,
+      int type,
+      long created,
+      boolean rewrite,
+      String network,
+      int retry
+  ) {
     if (address == null || address.isBlank()) {
       return null;
     }
@@ -515,7 +527,16 @@ public class ContractLoader {
     if (appProperties.isOnlyApi()) {
       return entity;
     }
+
     if (entity == null) {
+      if (!name.startsWith("UNKNOWN") &&
+          contractRepository.findFirstByName(name, type, network) != null) {
+        log.info("Not unique name for {} {}", name, address);
+        retry++;
+        return findOrCreateContract(
+            address, name + "_#V" + retry, type, created, rewrite, network, retry);
+      }
+
       entity = new ContractEntity();
       entity.setAddress(address.toLowerCase());
       entity.setName(name);
@@ -525,17 +546,10 @@ public class ContractLoader {
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
-      // for db optimization
-      if ((!name.equals(entity.getName())
-          || type != entity.getType()
-          || created != entity.getCreated())
-          && !PS_V0_ADDRESS.equals(address)
-      ) {
         entity.setName(name);
         entity.setType(type);
         entity.setCreated(created);
         contractRepository.save(entity);
-      }
     }
     return entity;
   }
