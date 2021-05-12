@@ -80,7 +80,9 @@ public class LPSeeker {
         }
 
         if (contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))
-            || contractDbService.findLpByAddress(lpAddress, network).isPresent()) {
+            || contractDbService.findLpByAddress(lpAddress, network)
+            .filter(lp -> lp.getKeyToken() != null)
+            .isPresent()) {
           log.warn("We already have lp {}, try to find another for {}",
               lpAddress, tokenAddress);
           continue;

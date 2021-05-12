@@ -34,6 +34,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
@@ -60,6 +61,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
   private final FunctionsUtils functionsUtils;
   private final NetworkProperties networkProperties;
   private final Web3Subscriber web3Subscriber;
+  private final FunctionService functionService;
 
 
   private final HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator;
@@ -74,6 +76,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       Web3Subscriber web3Subscriber,
+      FunctionService functionService,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
       ContractDbService contractDbService) {
     super(parserInfo, appProperties);
@@ -84,6 +87,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     this.functionsUtils = functionsUtils;
     this.networkProperties = networkProperties;
     this.web3Subscriber = web3Subscriber;
+    this.functionService = functionService;
     this.harvestOwnerBalanceCalculator = harvestOwnerBalanceCalculator;
     this.contractDbService = contractDbService;
   }
@@ -339,9 +343,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
         .orElseThrow(
             () -> new IllegalStateException(
                 "Can't fetch underlying token for " + dto.getVaultAddress()));
-    if (contractDbService
-        .getContractByAddressAndType(underlyingToken, UNI_PAIR, network)
-        .isPresent()) {
+    if (functionService.isLp(underlyingToken, dto.getBlock(), network)) {
       fillUsdValuesForLP(dto, dto.getVaultAddress(), underlyingToken, network);
     } else {
       fillUsdValues(dto, dto.getVaultAddress(), network);
@@ -371,7 +373,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     dto.setLastTvl(vault);
     dto.setLastUsdTvl((double) Math.round(vault * priceUnderlying));
     dto.setUsdAmount((long) (priceUnderlying * dto.getAmount() * dto.getSharePrice()));
-    if ("iPS".equals(dto.getVault())) {
+    if (iPS_ADDRESS.equalsIgnoreCase(dto.getVaultAddress())) {
       dto.setTotalAmount(farmTotalAmount(dto.getBlock(), network));
     }
   }

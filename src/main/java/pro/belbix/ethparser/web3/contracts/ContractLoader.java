@@ -18,11 +18,13 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map.Entry;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
@@ -40,6 +42,7 @@ import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
@@ -57,6 +60,7 @@ public class ContractLoader {
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
   private final SourceResolver sourceResolver;
+  private final ContractDbService contractDbService;
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,
@@ -66,7 +70,8 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      SourceResolver sourceResolver) {
+      SourceResolver sourceResolver,
+      ContractDbService contractDbService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.contractRepository = contractRepository;
@@ -76,6 +81,7 @@ public class ContractLoader {
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
     this.sourceResolver = sourceResolver;
+    this.contractDbService = contractDbService;
   }
 
   private void loadNetwork(String network, long block) {
@@ -103,8 +109,10 @@ public class ContractLoader {
         ContractType.TOKEN.getId(),
         contract.getCreatedOnBlock(),
         true,
-        network);
-    tokenContract.setCurveUnderlying(contract.getCurveUnderlying());
+        network,
+        0,
+        contract.getCurveUnderlying());
+
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
     if (tokenEntity == null) {
@@ -364,7 +372,8 @@ public class ContractLoader {
         ContractType.TOKEN.getId(),
         0,
         false,
-        network
+        network,
+        0
     ));
 
     uniPairEntity.setType(defineUniPairType(address, block, network));
@@ -401,7 +410,7 @@ public class ContractLoader {
   private void keyTokenForLps(LpContract lpContract, String network, long block) {
 
     String keyTokenAddressOrName = lpContract.getKeyToken();
-    if (keyTokenAddressOrName.isBlank()) {
+    if (Strings.isBlank(keyTokenAddressOrName)) {
       return;
     }
     TokenEntity tokenEntity;
@@ -506,35 +515,82 @@ public class ContractLoader {
       boolean rewrite,
       String network
   ) {
-    if (address == null || address.isBlank()) {
+    return findOrCreateContract(address, name, type, created, rewrite, network, 0);
+  }
+
+  private ContractEntity findOrCreateContract(String address,
+      String name,
+      int type,
+      long created,
+      boolean rewrite,
+      String network,
+      int retry
+  ) {
+    return findOrCreateContract(address, name, type, created, rewrite, network, retry, null);
+  }
+
+  private ContractEntity findOrCreateContract(String address,
+      String name,
+      int type,
+      long created,
+      boolean rewrite,
+      String network,
+      int retry,
+      String underlying
+  ) {
+    if (address == null
+        || address.isBlank()
+        || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return null;
     }
     ContractEntity entity = contractRepository.findFirstByAddress(address, network);
     if (appProperties.isOnlyApi()) {
       return entity;
     }
+    if (Strings.isBlank(name)) {
+      name = "UNKNOWN";
+    }
+
     if (entity == null) {
+      if (!name.startsWith("UNKNOWN") &&
+          contractDbService.getContractByNameAndType(
+              name, ContractType.valueOfId(type), network).isPresent()) {
+        log.info("Not unique name for {} {}", name, address);
+        retry++;
+
+        return findOrCreateContract(
+            address, cleanName(name) + "_#V" + retry,
+            type, created, rewrite, network, retry);
+      }
+
       entity = new ContractEntity();
       entity.setAddress(address.toLowerCase());
       entity.setName(name);
       entity.setType(type);
       entity.setCreated(created);
       entity.setNetwork(network);
+      entity.setCurveUnderlying(underlying);
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
-      // for db optimization
-      if ((!name.equals(entity.getName())
-          || type != entity.getType()
-          || created != entity.getCreated())
-          && !PS_V0_ADDRESS.equals(address)
-      ) {
+      if (!Strings.isBlank(name)) {
         entity.setName(name);
-        entity.setType(type);
-        entity.setCreated(created);
-        contractRepository.save(entity);
       }
+      entity.setType(type);
+      entity.setCreated(created);
+      if (underlying != null) {
+        entity.setCurveUnderlying(underlying);
+      }
+      contractRepository.save(entity);
     }
     return entity;
+  }
+
+  private String cleanName(String name) {
+    String[] tmp = name.split("_#");
+    if (tmp.length != 2) {
+      return name;
+    }
+    return tmp[0];
   }
 }

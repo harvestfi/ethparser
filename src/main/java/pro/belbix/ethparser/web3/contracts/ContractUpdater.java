@@ -2,6 +2,7 @@ package pro.belbix.ethparser.web3.contracts;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -50,6 +51,33 @@ public class ContractUpdater {
       }
       started = false;
     }).start();
+  }
+
+  public void checkAndUpdateAddress(String address, long block, String network) {
+    if (address == null) {
+      return;
+    }
+    ContractEntity contractEntity =
+        contractDbService.getContractByAddress(address, network)
+            .orElse(null);
+    if (contractEntity == null) {
+      return;
+    }
+
+    ContractType type = ContractType.valueOfId(contractEntity.getType());
+    if (type == ContractType.VAULT) {
+      contractDbService.getVaultByAddress(address, network)
+          .ifPresent(vault -> {
+            contractLoader.enrichVault(vault, block, network);
+            vaultRepository.save(vault);
+          });
+    } else if (type == ContractType.POOL) {
+      contractDbService.getPoolByAddress(address, network)
+          .ifPresent(pool -> {
+            contractLoader.enrichPool(pool, block, network);
+            poolRepository.save(pool);
+          });
+    }
   }
 
 

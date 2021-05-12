@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories.v0;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -222,6 +223,24 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "t.vaultAddress is null or t.vaultAddress = '' "
         + "or t.lpStat not like '%coin1Address%'")
     List<HarvestDTO> fetchAllWithoutAddresses();
+
+    @Query("select t from HarvestDTO t where "
+        + "t.usdAmount >= :minAmount "
+        + "and t.network = :network")
+    Page<HarvestDTO> fetchPages(
+        @Param("minAmount") double minAmount,
+        @Param("network") String network,
+        Pageable pageable);
+
+    @Query("select t from HarvestDTO t where "
+        + "t.vaultAddress = :vault "
+        + "and t.usdAmount >= :minAmount "
+        + "and t.network = :network")
+    Page<HarvestDTO> fetchPagesByVault(
+        @Param("vault") String vaultAddress,
+        @Param("network") String network,
+        @Param("minAmount") double minAmount,
+        Pageable pageable);
 
     @Query(nativeQuery = true, value = ""
         + "select t.owner, sum(t.b) balance from "

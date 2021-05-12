@@ -16,4 +16,13 @@ public enum ContractType {
   public int getId() {
     return id;
   }
+
+  public static ContractType valueOfId(int id) {
+    for (ContractType type : values()) {
+      if (type.id == id) {
+        return type;
+      }
+    }
+    throw new IllegalStateException("Id " + id + " not found");
+  }
 }
