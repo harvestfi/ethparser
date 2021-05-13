@@ -43,7 +43,7 @@ public class ContractUtils {
     if (address == null) {
       return false;
     }
-    return PS_ADDRESSES.contains(address);
+    return PS_ADDRESSES.contains(address.toLowerCase());
   }
 
   public static boolean isFarmAddress(String address) {
@@ -52,7 +52,7 @@ public class ContractUtils {
   }
 
   public static boolean isStableCoin(String address) {
-    return ONE_DOLLAR_TOKENS.contains(address);
+    return ONE_DOLLAR_TOKENS.contains(address.toLowerCase());
   }
 
   public static String getBaseAddressInsteadOfZero(String address, String network) {

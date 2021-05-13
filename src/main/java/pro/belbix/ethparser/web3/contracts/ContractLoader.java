@@ -19,6 +19,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractType.INFRASTRUCTURE;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -254,7 +255,7 @@ public class ContractLoader {
     vaultEntity.setController(findOrCreateContract(
         functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -262,7 +263,7 @@ public class ContractLoader {
     vaultEntity.setGovernance(findOrCreateContract(
         functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -277,7 +278,7 @@ public class ContractLoader {
     vaultEntity.setStrategy(findOrCreateContract(
         functionsUtils.callAddressByName(STRATEGY, address, block, network).orElse(""),
         AddressType.UNKNOWN_STRATEGY.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -285,7 +286,7 @@ public class ContractLoader {
     vaultEntity.setUnderlying(findOrCreateContract(
         functionsUtils.callAddressByName(UNDERLYING, address, block, network).orElse(""),
         AddressType.UNKNOWN_UNDERLYING.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -310,7 +311,7 @@ public class ContractLoader {
     poolEntity.setController(findOrCreateContract(
         functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -318,7 +319,7 @@ public class ContractLoader {
     poolEntity.setGovernance(findOrCreateContract(
         functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -326,7 +327,7 @@ public class ContractLoader {
     poolEntity.setOwner(findOrCreateContract(
         functionsUtils.callAddressByName(OWNER, address, block, network).orElse(""),
         AddressType.OWNER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -334,7 +335,7 @@ public class ContractLoader {
     poolEntity.setLpToken(findOrCreateContract(
         functionsUtils.callAddressByName(LP_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_POOL_LP.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -342,7 +343,7 @@ public class ContractLoader {
     poolEntity.setRewardToken(findOrCreateContract(
         functionsUtils.callAddressByName(REWARD_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_REWARD_TOKEN.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -551,35 +552,35 @@ public class ContractLoader {
       name = "UNKNOWN";
     }
 
+    if (!name.startsWith("UNKNOWN") &&
+        contractDbService.getContractByNameAndType(
+            name, ContractType.valueOfId(type), network).isPresent()) {
+      log.info("Not unique name for {} {}", name, address);
+      retry++;
+
+      return findOrCreateContract(
+          address, cleanName(name) + "_#V" + retry,
+          type, created, rewrite, network, retry, underlying);
+    }
+
     if (entity == null) {
-      if (!name.startsWith("UNKNOWN") &&
-          contractDbService.getContractByNameAndType(
-              name, ContractType.valueOfId(type), network).isPresent()) {
-        log.info("Not unique name for {} {}", name, address);
-        retry++;
-
-        return findOrCreateContract(
-            address, cleanName(name) + "_#V" + retry,
-            type, created, rewrite, network, retry, underlying);
-      }
-
       entity = new ContractEntity();
       entity.setAddress(address.toLowerCase());
       entity.setName(name);
       entity.setType(type);
       entity.setCreated(created);
       entity.setNetwork(network);
-      entity.setCurveUnderlying(underlying);
+      entity.setUnderlying(underlying);
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
       if (!Strings.isBlank(name)) {
         entity.setName(name);
       }
-      if (underlying != null) {
-        entity.setCurveUnderlying(underlying);
+      entity.setUnderlying(underlying);
+      if (type != INFRASTRUCTURE.getId() && type != ContractType.UNKNOWN.getId()) {
+        entity.setType(type);
       }
-//      entity.setType(type); // forbidden to change
       entity.setCreated(created);
       contractRepository.save(entity);
     }

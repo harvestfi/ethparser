@@ -51,6 +51,48 @@ class DeployerEventToContractTransformerTest {
   }
 
   @Test
+  public void testCreateVPool_ST_UNI_WBTC_KBTC() {
+    String address = "0xdD496A6Ba1B4Cf2b3ef42dEf132e2B2c570941FE".toLowerCase();
+    long block = 11924852;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x34358cd715cb9efc0d98bff92124bcb27a5c5e3780bafcbf0ecc750a2b6ee75e", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(8, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("ST_UNI_WBTC_KBTC", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.POOL, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_PS() {
+    String address = "0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50";
+    long block = 10957909;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x6611e4fd6174077ab3468d66c12588ba0ee3f588a0dfbab551f30bd385da3eb4", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(1, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("PS", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
   public void testNotCreateVault_Migration() {
     DeployerDTO dto = loadDto(
         "0xa9ffa219fb8276b9828ad7b0852f9df739c5503b98625189724b91cd9b408e3d"

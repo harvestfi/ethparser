@@ -56,7 +56,7 @@ public class ContractLoaderTest {
     result.setAddress(adr);
     result.setName(name + "_#V1");
     result.setCreated(1L);
-    result.setCurveUnderlying(und);
+    result.setUnderlying(und);
     result.setNetwork(net);
     verify(contractRepository, times(1)).save(result);
   }
@@ -72,7 +72,7 @@ public class ContractLoaderTest {
     contractEntity.setAddress(adr);
     contractEntity.setNetwork(net);
     contractEntity.setName("old" + name);
-    contractEntity.setCurveUnderlying("old" + und);
+    contractEntity.setUnderlying("old" + und);
     contractEntity.setCreated(0L);
 
     ContractType type = ContractType.VAULT;
@@ -95,7 +95,7 @@ public class ContractLoaderTest {
     result.setAddress(adr);
     result.setName(name);
     result.setCreated(1L);
-    result.setCurveUnderlying(und);
+    result.setUnderlying(und);
     result.setNetwork(net);
     verify(contractRepository, times(1)).save(result);
   }

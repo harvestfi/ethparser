@@ -275,7 +275,8 @@ public class DeployerEventToContractTransformer {
 
   private String underlyingSymbol(String address, long block, String network) {
     // assume that FARM underlying only in Profit Share pool
-    if (ContractUtils.isFarmAddress(address)) {
+    if (ContractUtils.isFarmAddress(address)
+    || ContractUtils.isPsAddress(address)) {
       return "PS";
     }
     return functionsUtils.callStrByName(
@@ -283,11 +284,14 @@ public class DeployerEventToContractTransformer {
         .orElse("")
         .replaceAll("/", "_")
         .replaceAll("\\+", "_")
-        .replaceAll("Crv", "")
-        .toUpperCase();
+        .replaceAll("Crv", "");
   }
 
   private ContractType detectContractType(DeployerDTO dto) {
+    ContractType type = UniqueTypes.TYPES.get(dto.getToAddress().toLowerCase());
+    if (type != null) {
+      return type;
+    }
     try {
       if (functionsUtils.callIntByName(
           VAULT_FRACTION_TO_INVEST_NUMERATOR,
