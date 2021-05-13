@@ -1,69 +1,102 @@
 package pro.belbix.ethparser.web3.contracts;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.entity.contracts.PoolEntity;
-import pro.belbix.ethparser.entity.contracts.TokenEntity;
-import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
-import pro.belbix.ethparser.entity.contracts.UniPairEntity;
-import pro.belbix.ethparser.entity.contracts.VaultEntity;
-import pro.belbix.ethparser.repositories.eth.PoolRepository;
-import pro.belbix.ethparser.repositories.eth.TokenRepository;
-import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
-import pro.belbix.ethparser.repositories.eth.UniPairRepository;
-import pro.belbix.ethparser.repositories.eth.VaultRepository;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.repositories.eth.ContractRepository;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
 public class ContractLoaderTest {
+
   @Autowired
-  private VaultRepository vaultRepository;
-  @Autowired
-  private PoolRepository poolRepository;
-  @Autowired
-  private UniPairRepository uniPairRepository;
-  @Autowired
-  private TokenRepository tokenRepository;
-  @Autowired
-  private TokenToUniPairRepository tokenToUniPairRepository;
+  private ContractLoader contractLoader;
+  @MockBean
+  private ContractRepository contractRepository;
+  @MockBean
+  private ContractDbService contractDbService;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
-//    @Disabled
-  public void fullRunShouldBeOk() throws JsonProcessingException {
-//        appProperties.setUpdateContracts(true);
-    System.out.println("**************** VAULTS ************************");
-    for (VaultEntity vaultEntity : vaultRepository.findAll()) {
-      assertNotNull(vaultEntity);
-      System.out.println(objectMapper.writeValueAsString(vaultEntity));
-    }
-        System.out.println("**************** POOLS ************************");
-        for (PoolEntity poolEntity : poolRepository.findAll()) {
-            assertNotNull(poolEntity);
-            System.out.println(objectMapper.writeValueAsString(poolEntity));
-        }
-        System.out.println("**************** UNI PAIRS ************************");
-        for (UniPairEntity uniPairEntity : uniPairRepository.findAll()) {
-            assertNotNull(uniPairEntity);
-            System.out.println(objectMapper.writeValueAsString(uniPairEntity));
-        }
-        System.out.println("**************** TOKENS ************************");
-        for (TokenEntity tokenEntity : tokenRepository.findAll()) {
-            assertNotNull(tokenEntity);
-            System.out.println(objectMapper.writeValueAsString(tokenEntity));
-        }
-        System.out.println("**************** TOKEN TO UNI ************************");
-        for (TokenToUniPairEntity tokenToUniPairEntity : tokenToUniPairRepository.findAll()) {
-            assertNotNull(tokenToUniPairEntity);
-            System.out.println(objectMapper.writeValueAsString(tokenToUniPairEntity));
-        }
-    }
+  void saveContractTest_DuplicateNames() {
+    String adr = "adr";
+    String net = "fake_net";
+    String name = "cName";
+    String und = "undrAdr";
+    ContractType type = ContractType.VAULT;
+    when(contractRepository.findFirstByAddress(eq(adr), eq(net)))
+        .thenReturn(null);
+    when(contractDbService.getContractByNameAndType(eq(name), eq(type), eq(net)))
+        .thenReturn(Optional.of(new ContractEntity()));
+
+    contractLoader.findOrCreateContract(
+        adr,
+        name,
+        type.getId(),
+        1,
+        true,
+        net,
+        0,
+        und
+    );
+    ContractEntity result = new ContractEntity();
+    result.setAddress(adr);
+    result.setName(name + "_#V1");
+    result.setCreated(1L);
+    result.setCurveUnderlying(und);
+    result.setNetwork(net);
+    verify(contractRepository, times(1)).save(result);
+  }
+
+  @Test
+  void saveContractTest_Rewrite() {
+    ContractEntity contractEntity = new ContractEntity();
+    String adr = "adr";
+    String net = "fake_net";
+    String name = "cName";
+    String und = "undrAdr";
+
+    contractEntity.setAddress(adr);
+    contractEntity.setNetwork(net);
+    contractEntity.setName("old" + name);
+    contractEntity.setCurveUnderlying("old" + und);
+    contractEntity.setCreated(0L);
+
+    ContractType type = ContractType.VAULT;
+    when(contractRepository.findFirstByAddress(eq(adr), eq(net)))
+        .thenReturn(contractEntity);
+    when(contractDbService.getContractByNameAndType(eq(name), eq(type), eq(net)))
+        .thenReturn(Optional.empty());
+
+    contractLoader.findOrCreateContract(
+        adr,
+        name,
+        type.getId(),
+        1,
+        true,
+        net,
+        0,
+        und
+    );
+    ContractEntity result = new ContractEntity();
+    result.setAddress(adr);
+    result.setName(name);
+    result.setCreated(1L);
+    result.setCurveUnderlying(und);
+    result.setNetwork(net);
+    verify(contractRepository, times(1)).save(result);
+  }
 }

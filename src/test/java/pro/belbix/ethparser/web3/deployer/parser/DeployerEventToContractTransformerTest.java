@@ -51,6 +51,16 @@ class DeployerEventToContractTransformerTest {
   }
 
   @Test
+  public void testNotCreateVault_Migration() {
+    DeployerDTO dto = loadDto(
+        "0xa9ffa219fb8276b9828ad7b0852f9df739c5503b98625189724b91cd9b408e3d"
+        , BSC_NETWORK);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(0, contracts.size());
+  }
+
+  @Test
   public void testCreateVault_ICE_notInit() {
     String address = "0x5da237ad194b8bbb008ac8916df99a92a8a7c8eb";
     long block = 6736315;

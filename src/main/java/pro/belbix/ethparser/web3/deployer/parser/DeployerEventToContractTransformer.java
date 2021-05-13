@@ -12,6 +12,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USER_REWARD_PER_TOKEN_PAID;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CURVE_REGISTRY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -104,9 +105,6 @@ public class DeployerEventToContractTransformer {
         contractLoader.linkUniPairsToToken((TokenContract) contract, contract.getNetwork());
       }
     }
-
-    contractUpdater.checkAndUpdateAddress(
-        dto.getToAddress(), dto.getBlock(), dto.getNetwork());
   }
 
 
@@ -155,10 +153,15 @@ public class DeployerEventToContractTransformer {
     if (isVaultInit(dto.getMethodName())) {
       return true;
     }
-    if (!CONTRACT_CREATION.name().equals(dto.getType())) {
-      return false;
+
+    // any interactions with existed contracts
+    if (dto.getToAddress() != null
+        && contractDbService.getContractByAddress(dto.getToAddress(), dto.getNetwork())
+        .isPresent()) {
+      return true;
     }
-    return true;
+
+    return CONTRACT_CREATION.name().equals(dto.getType());
   }
 
   private boolean isEligibleVaultOrPool(DeployerDTO dto, ContractType type) {
@@ -264,7 +267,9 @@ public class DeployerEventToContractTransformer {
 
   private boolean isMigration(String address, String underlyingAddress, ContractType type) {
     return VAULT == type
-        && FARM_TOKEN.equalsIgnoreCase(underlyingAddress)
+        && (FARM_TOKEN.equalsIgnoreCase(underlyingAddress)
+        || BSC_FARM_TOKEN.equalsIgnoreCase(underlyingAddress)
+        || ZERO_ADDRESS.equalsIgnoreCase(underlyingAddress))
         && !ContractUtils.isPsAddress(address);
   }
 

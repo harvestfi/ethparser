@@ -114,7 +114,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       Double otherCoinPrice = priceProvider
           .getPriceForCoin(dto.getOtherCoinAddress(), dto.getBlock().longValue(), ETH_NETWORK);
       if (otherCoinPrice != null) {
-        dto.setPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
+        dto.setLastPrice((dto.getOtherAmount() * otherCoinPrice) / dto.getAmount());
       } else {
         throw new IllegalStateException("Price not found " + dto.print());
       }
@@ -191,7 +191,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
     if (ContractUtils.isStableCoin(uniswapDTO.getOtherCoinAddress())) {
       double price = (uniswapDTO.getOtherAmount() / uniswapDTO.getAmount());
-      uniswapDTO.setPrice(price);
+      uniswapDTO.setLastPrice(price);
     }
     return uniswapDTO;
   }

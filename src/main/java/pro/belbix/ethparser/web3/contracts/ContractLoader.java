@@ -529,7 +529,7 @@ public class ContractLoader {
     return findOrCreateContract(address, name, type, created, rewrite, network, retry, null);
   }
 
-  private ContractEntity findOrCreateContract(String address,
+  ContractEntity findOrCreateContract(String address,
       String name,
       int type,
       long created,
@@ -560,7 +560,7 @@ public class ContractLoader {
 
         return findOrCreateContract(
             address, cleanName(name) + "_#V" + retry,
-            type, created, rewrite, network, retry);
+            type, created, rewrite, network, retry, underlying);
       }
 
       entity = new ContractEntity();
@@ -576,11 +576,11 @@ public class ContractLoader {
       if (!Strings.isBlank(name)) {
         entity.setName(name);
       }
-      entity.setType(type);
-      entity.setCreated(created);
       if (underlying != null) {
         entity.setCurveUnderlying(underlying);
       }
+//      entity.setType(type); // forbidden to change
+      entity.setCreated(created);
       contractRepository.save(entity);
     }
     return entity;
