@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: address-filler
+  startUtil: deployer-recalculation
   overrideDuplicates: false
   utilNetwork: eth
   handleLoopStep: 1000
@@ -49,3 +49,5 @@ block-download:
   from: 10765094
 deployer-download:
 #  from:
+deployer-recalculation:
+  fill-addresses: true

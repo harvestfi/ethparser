@@ -424,14 +424,9 @@ public class DeployerEventToContractTransformer {
     long block = contractInfo.getBlock();
     String network = contractInfo.getNetwork();
 
-    if (contractInfo.getUnderlyingTokens().isEmpty()) {
-      createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
-    } else {
-      // if we have multiple underlying just add underlying token
-      createTokenContract(contractInfo.getUnderlyingAddress(), block, network, contracts);
-      contractInfo.getUnderlyingTokens().forEach(c ->
-          createTokenAndLpContracts(c, block, network, contracts));
-    }
+    createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
+    contractInfo.getUnderlyingTokens().forEach(c ->
+        createTokenAndLpContracts(c, block, network, contracts));
   }
 
   private void createTokenAndLpContracts(

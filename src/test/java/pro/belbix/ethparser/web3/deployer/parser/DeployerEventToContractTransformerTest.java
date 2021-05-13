@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
 
 import java.util.List;
 import java.util.Optional;
@@ -112,7 +111,7 @@ class DeployerEventToContractTransformerTest {
         "0x36b37c88e0951435300a1fcd66232d5f7994dd36a292b39e98f939270b2d47db", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(1, contracts.size());
+    assertEquals(0, contracts.size());
   }
 
   @Test
@@ -138,12 +137,19 @@ class DeployerEventToContractTransformerTest {
         deployerEventToContractTransformer.transform(dto);
     assertEquals(9, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
+    LpContract lpUnderlying = (LpContract) contracts.get(1);
     assertAll(
         () -> assertEquals("SUSHI_MIC_USDT", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
-        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type"),
+
+        () -> assertEquals("SUSHI_LP_MIC_USDT", lpUnderlying.getName(), "name"),
+        () -> assertEquals("0xc9cb53b48a2f3a9e75982685644c1870f1405ccb", lpUnderlying.getAddress(), "address"),
+        () -> assertEquals(block, lpUnderlying.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, lpUnderlying.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.UNI_PAIR, lpUnderlying.getContractType(), "contract type")
     );
   }
 
@@ -190,7 +196,7 @@ class DeployerEventToContractTransformerTest {
     SimpleContract vault = (SimpleContract) contracts.get(0);
     TokenContract token = (TokenContract) contracts.get(1);
     assertAll(
-        () -> assertEquals("CRV_TBTC_SBTC", vault.getName(), "name"),
+        () -> assertEquals("CRV_tbtc_sbtc", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
@@ -215,7 +221,7 @@ class DeployerEventToContractTransformerTest {
     SimpleContract vault = (SimpleContract) contracts.get(0);
     TokenContract token = (TokenContract) contracts.get(8);
     assertAll(
-        () -> assertEquals("CRV_YDAI_YUSDC_YUSDT_YTUSD", vault.getName(), "name"),
+        () -> assertEquals("CRV_yDAI_yUSDC_yUSDT_yTUSD", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
