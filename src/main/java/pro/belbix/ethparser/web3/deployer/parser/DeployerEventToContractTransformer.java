@@ -288,6 +288,9 @@ public class DeployerEventToContractTransformer {
   }
 
   private ContractType detectContractType(DeployerDTO dto) {
+    if (dto.getToAddress() == null) {
+      return UNKNOWN;
+    }
     ContractType type = UniqueTypes.TYPES.get(dto.getToAddress().toLowerCase());
     if (type != null) {
       return type;

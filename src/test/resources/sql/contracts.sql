@@ -541,8 +541,8 @@ INSERT INTO public.eth_contracts (id, address, created, name, network, type) VAL
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (541, '0x734e48a1ffea1cdf4f5172210c322f3990d6d760', 11733686, 'UNI_LP_WBTC_KLON', 'eth', 2);
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (542, '0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974', 10091428, 'UNI_LP_LINK_ETH', 'eth', 2);
 INSERT INTO public.eth_contracts (id, address, created, name, network, type) VALUES (543, '0x8064d9Ae6cDf087b1bcd5BDf3531bD5d8C537a68', 11241743, 'OBTC', 'eth', 4);
-INSERT INTO public.eth_contracts (id, address, created, curve_underlying, name, network, type) VALUES (9001, '0x3da1313ae46132a397d90d95b1424a9a7e3e0fce', 10815689, null, 'UNI_LP_WETH_CRV', 'eth', 2);
-INSERT INTO public.eth_contracts (id, address, created, curve_underlying, name, network, type) VALUES (9002, '0xd533a949740bb3306d119cc777fa900ba034cd52', 10815689, null, 'CRV', 'eth', 4);
+INSERT INTO public.eth_contracts (id, address, created, underlying, name, network, type) VALUES (9001, '0x3da1313ae46132a397d90d95b1424a9a7e3e0fce', 10815689, null, 'UNI_LP_WETH_CRV', 'eth', 2);
+INSERT INTO public.eth_contracts (id, address, created, underlying, name, network, type) VALUES (9002, '0xd533a949740bb3306d119cc777fa900ba034cd52', 10815689, null, 'CRV', 'eth', 4);
 
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (1, 18, 'BUSD Token', 'BUSD', 6839707, 59);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (2, 18, 'Ethereum Token', 'ETH', 6839707, 32);
