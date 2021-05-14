@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.deployer.parser;
+package pro.belbix.ethparser.web3.deployer.transform;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;

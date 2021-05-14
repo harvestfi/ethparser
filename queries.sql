@@ -206,4 +206,10 @@ from eth_token_to_uni_pair link
 -- lps
 select lp_contract.name, lp_contract.address
 from eth_uni_pairs
-left join eth_contracts lp_contract on eth_uni_pairs.contract = lp_contract.id
+left join eth_contracts lp_contract on eth_uni_pairs.contract = lp_contract.id;
+
+-- pools
+select ec.name, reward_ec.name
+from eth_pools pool
+left join eth_contracts ec on ec.id = pool.contract
+left join eth_contracts reward_ec on reward_ec.id = pool.reward_token;

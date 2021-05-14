@@ -35,6 +35,8 @@ public class ContractConstants {
       .toLowerCase();
   public static final String CURVE_REGISTRY_ADDRESS = "0x7D86446dDb609eD0F5f8684AcF30380a356b2B4c"
       .toLowerCase();
+  public static final String BELT_POOL_ADDRESS = "0xF16D312d119c13dD27fD0dC814b0bCdcaAa62dfD"
+      .toLowerCase();
   public static final String ONE_INCH_FACTORY_ADDRESS = "0xbAF9A5d4b0052359326A6CDAb54BABAa3a3A9643"
       .toLowerCase();
   static final String ONE_INCH_FACTORY_BSC = "0xD41B24bbA51fAc0E4827b6F94C0D6DDeB183cD64"

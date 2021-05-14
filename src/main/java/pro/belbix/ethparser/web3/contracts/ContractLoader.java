@@ -60,7 +60,6 @@ public class ContractLoader {
   private final UniPairRepository uniPairRepository;
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
-  private final SourceResolver sourceResolver;
   private final ContractDbService contractDbService;
 
   public ContractLoader(AppProperties appProperties,
@@ -71,7 +70,6 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      SourceResolver sourceResolver,
       ContractDbService contractDbService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
@@ -81,25 +79,7 @@ public class ContractLoader {
     this.uniPairRepository = uniPairRepository;
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
-    this.sourceResolver = sourceResolver;
     this.contractDbService = contractDbService;
-  }
-
-  private void loadNetwork(String network, long block) {
-    loadVaults(network, block);
-    loadPools(network, block);
-    loadTokens(network, block);
-    loadUniPairs(network, block);
-    linkUniPairsToTokens(network, block);
-  }
-
-  private void loadTokens(String network, long block) {
-    for (TokenContract contract : sourceResolver.getTokens(network)) {
-      if (contract.getCreatedOnBlock() > block) {
-        log.info("Token not created yet, skip {}", contract.getName());
-      }
-      loadToken(contract, network, block);
-    }
   }
 
   public void loadToken(TokenContract contract, String network, long block) {
@@ -127,17 +107,6 @@ public class ContractLoader {
     }
   }
 
-  private void loadVaults(String network, long block) {
-    log.info("Start load vaults on block {}", block);
-    for (SimpleContract vault : sourceResolver.getVaults(network)) {
-      if (vault.getCreatedOnBlock() > block) {
-        log.info("Vault {} not created yet, skip", vault.getName());
-        continue;
-      }
-      loadVault(vault, network, block);
-    }
-  }
-
   public void loadVault(SimpleContract vault, String network, long block) {
     log.debug("Load {}", vault.getName());
     ContractEntity vaultContract =
@@ -158,17 +127,6 @@ public class ContractLoader {
     } else if (appProperties.isUpdateContracts()) {
       enrichVault(vaultEntity, block, network);
       vaultRepository.save(vaultEntity);
-    }
-  }
-
-  private void loadPools(String network, long block) {
-    log.info("Start load pools on block {}", block);
-    for (SimpleContract pool : sourceResolver.getPools(network)) {
-      if (pool.getCreatedOnBlock() > block) {
-        log.info("Pool {} not created yet, skip", pool.getName());
-        continue;
-      }
-      loadPool(pool, network, block);
     }
   }
 
@@ -195,13 +153,6 @@ public class ContractLoader {
       poolRepository.save(poolEntity);
     }
 
-  }
-
-  private void loadUniPairs(String network, long block) {
-    log.info("Start load uni pairs on block {}", block);
-    for (LpContract uniPair : sourceResolver.getLps(network)) {
-      loadUniPair(uniPair, network, block);
-    }
   }
 
   /**
@@ -434,13 +385,6 @@ public class ContractLoader {
       uniPairRepository.save(uniPairEntity);
     }
 
-  }
-
-  private void linkUniPairsToTokens(String network, long block) {
-    log.info("Start link UniPairs to Tokens on block {}", block);
-    for (TokenContract tokenContract : sourceResolver.getTokens(network)) {
-      linkUniPairsToToken(tokenContract, network);
-    }
   }
 
   /**

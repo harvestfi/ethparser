@@ -11,7 +11,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.repositories.v0.DeployerRepository;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.deployer.parser.DeployerEventToContractTransformer;
+import pro.belbix.ethparser.web3.deployer.transform.DeployerEventToContractTransformer;
 
 @Service
 @Log4j2

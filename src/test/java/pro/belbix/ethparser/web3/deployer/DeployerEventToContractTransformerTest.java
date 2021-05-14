@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.web3.deployer.parser;
+package pro.belbix.ethparser.web3.deployer;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +26,8 @@ import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
+import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
+import pro.belbix.ethparser.web3.deployer.transform.DeployerEventToContractTransformer;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -47,6 +49,48 @@ class DeployerEventToContractTransformerTest {
   void setUp() {
     when(contractDbService.findLpByAddress(any(), any())).thenReturn(Optional.empty());
     when(contractDbService.getContractByAddress(any(), any())).thenReturn(Optional.empty());
+  }
+
+  @Test
+  public void testCreateVault_EPS_fusdt3EPS() {
+    String address = "0xe64bfe13aa99335487f1f42a56cddbffaec83bbf".toLowerCase();
+    long block = 6736265;
+    String network = BSC_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0xa38e66c19905467492b52ab759b1e08467ad35f1d9f9f8df5a7008869c936453", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(5, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("EPS_fusdt3EPS", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_Belt_bDAI_bUSDC_bUSDT_bBUSD() {
+    String address = "0x2427da81376a0c0a0c654089a951887242d67c92".toLowerCase();
+    long block = 6619994;
+    String network = BSC_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x2fd827c9756e354e7ad9dd60144f4e35823873111e74467f1fd61773e19f20da", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(5, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("BELT_bDAI_bUSDC_bUSDT_bBUSD", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
   }
 
   @Test
