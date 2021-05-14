@@ -126,4 +126,5 @@ jobs:
           config-files: helm/ethparser/values/stage.yaml
           namespace: stage
           values: tag=${TAG}
+          chart-path: helm/ethparser
           name: ethparser
