@@ -42,12 +42,16 @@ public class ContractConstants {
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
+  public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"
+      .toLowerCase();
   public static final String PS_ADDRESS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50"
       .toLowerCase();
   public static final String PS_V0_ADDRESS = "0x59258F4e15A5fC74A7284055A8094F58108dbD4f"
       .toLowerCase();
   public static final String iPS_ADDRESS = "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651"
       .toLowerCase();
+  public static final String ST_PS_ADDRESS = "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"
+          .toLowerCase();
 
   public final static Map<String, String> DEPLOYERS = Map.of(
       ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),

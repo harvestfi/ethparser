@@ -13,6 +13,7 @@ import pro.belbix.ethparser.utils.download.TransferDownloader;
 import pro.belbix.ethparser.utils.download.UniswapLpDownloader;
 import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
 import pro.belbix.ethparser.utils.recalculation.AddressFiller;
+import pro.belbix.ethparser.utils.recalculation.DeployerRecalculation;
 import pro.belbix.ethparser.utils.recalculation.HardWorkRecalculate;
 import pro.belbix.ethparser.utils.recalculation.HarvestProfitRecalculate;
 import pro.belbix.ethparser.utils.recalculation.LpTvlRecalculate;
@@ -47,6 +48,7 @@ public class UtilsStarter {
   private final DeployerTransactionsDownloader deployerTransactionsDownloader;
   private final EthBlockDownloader ethBlockDownloader;
   private final AddressFiller addressFiller;
+  private final DeployerRecalculation deployerRecalculation;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -67,7 +69,8 @@ public class UtilsStarter {
       PriceDownloader priceDownloader,
       DeployerTransactionsDownloader deployerTransactionsDownloader,
       EthBlockDownloader ethBlockDownloader,
-      AddressFiller addressFiller) {
+      AddressFiller addressFiller,
+      DeployerRecalculation deployerRecalculation) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.vaultActionsDownloader = vaultActionsDownloader;
@@ -88,6 +91,7 @@ public class UtilsStarter {
     this.deployerTransactionsDownloader = deployerTransactionsDownloader;
     this.ethBlockDownloader = ethBlockDownloader;
     this.addressFiller = addressFiller;
+    this.deployerRecalculation = deployerRecalculation;
   }
 
   public void startUtils() {
@@ -130,6 +134,8 @@ public class UtilsStarter {
       ethBlockDownloader.start();
     } else if ("address-filler".equals(appProperties.getStartUtil())) {
       addressFiller.start();
+    }else if ("deployer-recalculation".equals(appProperties.getStartUtil())) {
+      deployerRecalculation.start();
     }
     log.info("Utils completed");
     System.exit(0);

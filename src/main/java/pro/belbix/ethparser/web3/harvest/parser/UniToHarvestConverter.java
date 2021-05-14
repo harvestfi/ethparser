@@ -161,7 +161,7 @@ public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
 
     double usdAmount =
         uniswapDTO.getAmount()
-            * priceProvider.getPriceForCoin(uniswapDTO.getCoin(), block, ETH_NETWORK)
+            * priceProvider.getPriceForCoin(uniswapDTO.getCoinAddress(), block, ETH_NETWORK)
             * 2;
     harvestDTO.setUsdAmount(Math.round(usdAmount));
 

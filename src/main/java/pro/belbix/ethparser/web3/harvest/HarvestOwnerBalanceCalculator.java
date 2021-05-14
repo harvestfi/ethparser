@@ -34,7 +34,7 @@ public class HarvestOwnerBalanceCalculator {
       log.debug("Fill balances for {}", dto.getVault());
       if (contractDbService.getContractByAddress(dto.getVaultAddress(), network)
           .isPresent()) {
-        if (ContractUtils.isPsName(dto.getVault())) {
+        if (ContractUtils.isPsAddress(dto.getVaultAddress())) {
           return balanceForPs(dto, network);
         }
         return balanceForVault(dto, network);

@@ -3,13 +3,15 @@ package pro.belbix.ethparser.web3.contracts;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_25_MARCH_2021;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -42,6 +44,11 @@ public class ContractUtils {
       return false;
     }
     return PS_ADDRESSES.contains(address);
+  }
+
+  public static boolean isFarmAddress(String address) {
+    return FARM_TOKEN.equalsIgnoreCase(address)
+        || BSC_FARM_TOKEN.equalsIgnoreCase(address);
   }
 
   public static boolean isStableCoin(String address) {

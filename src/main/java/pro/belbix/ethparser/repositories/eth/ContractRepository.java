@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.repositories.eth;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,11 +25,15 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
     );
 
     @Query("select t from ContractEntity t "
-        + "where t.name = :name and t.type = :type and t.network = :network")
-    ContractEntity findFirstByName(
+        + "where t.name = :name "
+        + "and t.type = :type "
+        + "and t.network = :network "
+        + "order by t.created desc")
+    List<ContractEntity> findByNameAndType(
         @Param("name") String name,
         @Param("type") int type,
-        @Param("network") String network
+        @Param("network") String network,
+        Pageable pageable
     );
 
     @Query("select p_ctr from PoolEntity p "

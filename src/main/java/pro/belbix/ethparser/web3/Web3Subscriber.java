@@ -19,10 +19,14 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
+import pro.belbix.ethparser.entity.LogLastEntity;
+import pro.belbix.ethparser.entity.TransactionLastEntity;
 import pro.belbix.ethparser.entity.a_layer.EthBlockEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.LogLastRepository;
+import pro.belbix.ethparser.repositories.TransactionLastRepository;
 import pro.belbix.ethparser.repositories.a_layer.EthBlockRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -43,6 +47,8 @@ public class Web3Subscriber {
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
   private final DeployerDbService deployerDbService;
+  private final LogLastRepository logLastRepository;
+  private final TransactionLastRepository transactionLastRepository;
 
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers = new ArrayList<>();
   private final Map<String, BlockingQueue<Web3Model<Log>>> logConsumers = new HashMap<>();
@@ -59,7 +65,9 @@ public class Web3Subscriber {
       EthBlockRepository ethBlockRepository,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      DeployerDbService deployerDbService) {
+      DeployerDbService deployerDbService,
+      LogLastRepository logLastRepository,
+      TransactionLastRepository transactionLastRepository) {
     this.web3Functions = web3Functions;
     this.appProperties = appProperties;
     this.uniswapDbService = uniswapDbService;
@@ -68,6 +76,8 @@ public class Web3Subscriber {
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
     this.deployerDbService = deployerDbService;
+    this.logLastRepository = logLastRepository;
+    this.transactionLastRepository = transactionLastRepository;
   }
 
   public void subscribeLogFlowable(String network) {
@@ -100,6 +110,13 @@ public class Web3Subscriber {
   }
 
   private int getLastTransactionBlock(String network) {
+    TransactionLastEntity transactionLastEntity =
+        transactionLastRepository.findById(network).orElse(null);
+
+    if (transactionLastEntity != null && transactionLastEntity.getBlock() != null) {
+      return transactionLastEntity.getBlock().intValue();
+    }
+
     if (networkProperties.get(network).getStartTransactionBlock().isBlank()) {
       return deployerDbService.getLastBlock(network);
     } else {
@@ -139,6 +156,11 @@ public class Web3Subscriber {
   }
 
   private BigInteger findEarliestLastBlock(String network) {
+    LogLastEntity logLastEntity = logLastRepository.findById(network).orElse(null);
+    if (logLastEntity != null && logLastEntity.getBlock() != null) {
+      return BigInteger.valueOf(logLastEntity.getBlock());
+    }
+
     BigInteger lastBlocUniswap = uniswapDbService.lastBlock();
     BigInteger lastBlocHarvest = vaultActionsDBService.lastBlock(network);
     //if only one enabled
@@ -165,8 +187,15 @@ public class Web3Subscriber {
     if (web3LogFlowable.containsKey(network)) {
       throw new IllegalStateException("Double call log flowable for " + network);
     }
-    Web3LogFlowable logFlowable = new Web3LogFlowable(addressesSupplier, from, web3Functions,
-        logConsumers, network, () -> logBlockLimitation(network), networkProperties.get(network).getBlockStep());
+    Web3LogFlowable logFlowable = new Web3LogFlowable(
+        addressesSupplier,
+        from,
+        web3Functions,
+        logConsumers,
+        network,
+        () -> logBlockLimitation(network),
+        networkProperties.get(network).getBlockStep(),
+        logLastRepository);
     new Thread(logFlowable).start();
     web3LogFlowable.put(network, logFlowable);
   }
@@ -185,8 +214,12 @@ public class Web3Subscriber {
     }
     Web3TransactionFlowable web3TransactionFlowable =
         new Web3TransactionFlowable(
-            from, web3Functions, transactionConsumers, network,
-            networkProperties.get(network).getBlockStep());
+            from - 10,
+            web3Functions,
+            transactionConsumers,
+            network,
+            networkProperties.get(network).getBlockStep(),
+            transactionLastRepository);
     new Thread(web3TransactionFlowable)
         .start();
     this.web3TransactionFlowable.put(network, web3TransactionFlowable);

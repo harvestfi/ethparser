@@ -1,7 +1,7 @@
 ethparser:
   #  overrideDuplicates: true
   stopOnParseError: true
-#  onlyApi: true
+  onlyApi: true
 #  eth:
     #  onlyParse: true
 #    startLogBlock: 10765094

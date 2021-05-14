@@ -61,6 +61,7 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
     );
 
     @Query("select t from RewardDTO t where "
-        + "t.vaultAddress is null or t.vaultAddress = ''")
+        + "t.vaultAddress is null or t.vaultAddress = '' "
+        + "or t.poolAddress is null or t.poolAddress = ''")
     List<RewardDTO> fetchAllWithoutAddresses();
 }

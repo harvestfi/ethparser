@@ -102,12 +102,19 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
     String sourceName = getSourceName(tx.getSource(), network);
 
-    boolean buy = isBuy(tx, keyCoinFirst);
+    Boolean buy = isBuy(tx, keyCoinFirst);
+    if (buy == null) {
+      log.error("Both amountOut values not zero, can't determinate swap direction {}", tx);
+      return null;
+    }
     dto.setSource(sourceName);
     dto.setBuy(buy ? 1 : 0);
 
-
-    fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
+    boolean successParseAmount =
+        fillAmountsAndPrice(dto, tx, keyCoinFirst, buy, network);
+    if (!successParseAmount) {
+      return null;
+    }
 
     if (appProperties.isSkipSimilarPrices() && skipSimilar(dto)) {
       return null;
@@ -244,14 +251,14 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     return keyCoinFirst;
   }
 
-  private static boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
+  private static Boolean isBuy(PriceTx tx, boolean keyCoinFirst) {
     if (keyCoinFirst) {
       if (isZero(tx, 3)) { // amount1Out
         return true;
       } else if (isZero(tx, 2)) { // amount0Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     } else {
       if (isZero(tx, 2)) { // amount0Out
@@ -259,12 +266,12 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       } else if (isZero(tx, 3)) { // amount1Out
         return false;
       } else {
-        throw new IllegalStateException("Swap doesn't contains zero value " + tx);
+        return null;
       }
     }
   }
 
-  private void fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
+  private boolean fillAmountsAndPrice(PriceDTO dto, PriceTx tx, boolean keyCoinFirst,
       boolean buy, String network) {
     if (keyCoinFirst) {
       if (buy) {
@@ -283,8 +290,13 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
         dto.setOtherTokenAmount(parseAmountFromTx(tx, 2, dto.getOtherTokenAddress(), network));
       }
     }
+    if (dto.getTokenAmount() == 0.0 || dto.getOtherTokenAmount() == 0.0) {
+      log.info("Zero amount in price DTO, skip {}", dto);
+      return false;
+    }
 
     dto.setPrice(dto.getOtherTokenAmount() / dto.getTokenAmount());
+    return true;
   }
 
   private double parseAmountFromTx(PriceTx tx, int i, String address, String network) {

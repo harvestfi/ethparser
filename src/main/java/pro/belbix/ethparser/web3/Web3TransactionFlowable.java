@@ -11,7 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.log4j.Log4j2;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.Transaction;
+import pro.belbix.ethparser.entity.TransactionLastEntity;
 import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.repositories.TransactionLastRepository;
 
 @Log4j2
 public class Web3TransactionFlowable implements Runnable {
@@ -22,6 +24,7 @@ public class Web3TransactionFlowable implements Runnable {
   private final List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers;
   private final String network;
   private final int blockStep;
+  private final TransactionLastRepository transactionLastRepository;
   private Integer from;
   private BigInteger lastBlock;
   private int lastParsedBlock = Integer.MAX_VALUE;
@@ -31,13 +34,14 @@ public class Web3TransactionFlowable implements Runnable {
       Web3Functions web3Functions,
       List<BlockingQueue<Web3Model<Transaction>>> transactionConsumers,
       String network,
-      int blockStep
-  ) {
+      int blockStep,
+      TransactionLastRepository transactionLastRepository) {
     this.web3Functions = web3Functions;
     this.from = from;
     this.transactionConsumers = transactionConsumers;
     this.network = network;
     this.blockStep = blockStep;
+    this.transactionLastRepository = transactionLastRepository;
   }
 
   public void stop() {
@@ -78,6 +82,7 @@ public class Web3TransactionFlowable implements Runnable {
                 )
             );
         lastParsedBlock = to;
+        saveLast(to);
         log.info("Parse {} transactions from {} to {} on block: {} - {}",
             network, from, to, currentBlock, counter.get());
         from = to + 1;
@@ -85,6 +90,13 @@ public class Web3TransactionFlowable implements Runnable {
         log.error("Error in transaction flow", e);
       }
     }
+  }
+
+  private void saveLast(int to) {
+    TransactionLastEntity entity = new TransactionLastEntity();
+    entity.setNetwork(network);
+    entity.setBlock((long) to);
+    transactionLastRepository.save(entity);
   }
 
   private <T> void writeInQueue(BlockingQueue<Web3Model<T>> queue, T o, int queues) {

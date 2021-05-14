@@ -13,7 +13,9 @@ import lombok.extern.log4j.Log4j2;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
+import pro.belbix.ethparser.entity.LogLastEntity;
 import pro.belbix.ethparser.model.Web3Model;
+import pro.belbix.ethparser.repositories.LogLastRepository;
 
 @Log4j2
 public class Web3LogFlowable implements Runnable {
@@ -28,6 +30,7 @@ public class Web3LogFlowable implements Runnable {
   private final int blockStep;
   private final Supplier<List<String>> addressesSupplier;
   private final Supplier<Long> blockLimitations;
+  private final LogLastRepository logLastRepository;
 
   public Web3LogFlowable(
       Supplier<List<String>> addressesSupplier,
@@ -36,8 +39,8 @@ public class Web3LogFlowable implements Runnable {
       Map<String, BlockingQueue<Web3Model<Log>>> logConsumers,
       String network,
       Supplier<Long> blockLimitations,
-      int blockStep
-  ) {
+      int blockStep,
+      LogLastRepository logLastRepository) {
     this.addressesSupplier = addressesSupplier;
     this.web3Functions = web3Functions;
     this.from = from;
@@ -45,6 +48,7 @@ public class Web3LogFlowable implements Runnable {
     this.network = network;
     this.blockStep = blockStep;
     this.blockLimitations = blockLimitations;
+    this.logLastRepository = logLastRepository;
   }
 
   public void stop() {
@@ -101,10 +105,18 @@ public class Web3LogFlowable implements Runnable {
           }
         }
         from = to + 1;
+        saveLastLog(to);
       } catch (Exception e) {
         log.error("Error in log flow", e);
       }
     }
+  }
+
+  private void saveLastLog(long block) {
+    LogLastEntity logLastEntity = new LogLastEntity();
+    logLastEntity.setNetwork(network);
+    logLastEntity.setBlock(block);
+    logLastRepository.save(logLastEntity);
   }
 
   private <T> void writeInQueue(

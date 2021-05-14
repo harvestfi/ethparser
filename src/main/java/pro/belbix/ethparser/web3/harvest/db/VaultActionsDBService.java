@@ -172,7 +172,8 @@ public class VaultActionsDBService {
     try {
       if (Strings.isBlank(dto.getLpStat())) {
         double coinPrice = 0.0;
-        if (("PS".equals(dto.getVault()) || "PS_V0".equals(dto.getVault())) && farmPrice != null) {
+        if (ContractUtils.isPsAddress(dto.getVaultAddress())
+            && farmPrice != null) {
           coinPrice = farmPrice;
         } else {
           coinPrice = dto.getUnderlyingPrice();
