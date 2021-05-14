@@ -117,7 +117,7 @@ jobs:
       - name: Deploy with helm
         env:
           TAG: ${{ steps.extract_branch.outputs.branch }}-${{ github.sha }} 
-        uses: peymanmortazavi/eks-helm-deploy@v1
+        uses: peymanmortazavi/eks-helm-deploy@v2.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS__KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -125,5 +125,5 @@ jobs:
           cluster-name: harvest
           config-files: helm/ethparser/values/stage.yaml
           namespace: stage
-          values: tag=${TAG}}
+          values: tag=${TAG}
           name: ethparser
