@@ -1,0 +1,41 @@
+{{`
+application.yml: |
+  spring:
+    jpa:
+      #    open-in-view: true
+      database: postgresql
+      #    show-sql: true
+      hibernate:
+        ddl-auto: update
+      properties.hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.lob.non_contextual_creation: true
+  
+    datasource:
+      platform: postgresql
+      url: ${DB_URL}
+      username: ${$DB_USER}
+      password: ${DB_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 3
+  
+  server:
+    port: 8080
+
+  management:
+    server:
+      port: 9090
+  
+  ethparser:
+    onlyParse: true
+    stopOnParseError: true
+    networks: eth  
+  
+    eth:
+      web3Url: ${WEB3URL}
+      abiProviderKey: ${ABI_PROVIDER_KEY}          
+      parseLog: false
+      parseTransactions: false
+      parseBlocks: true
+`}}

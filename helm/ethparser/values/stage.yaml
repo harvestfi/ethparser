@@ -1,0 +1,7 @@
+namespace: stage
+nameOverride: ""
+
+image:
+  tag: "master-6ed7d08c1cec2c8f415d584d4f9bf138109f52d4"
+
+javaArgs: "-Xmx1000m -Xms1000m"

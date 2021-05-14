@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application-{{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+data:
+  {{ tpl (.Files.Get "values/application.yaml") . | nindent 2 }}
