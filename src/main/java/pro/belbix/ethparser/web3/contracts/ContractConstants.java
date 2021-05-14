@@ -22,8 +22,8 @@ public class ContractConstants {
 
   public static final DefaultBlockParameterNumber ETH_BLOCK_NUMBER_30_AUGUST_2020 =
       (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("10765094"));
-  public static final DefaultBlockParameterNumber BSC_BLOCK_NUMBER_25_MARCH_2021 =
-      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("5993570"));
+  public static final DefaultBlockParameterNumber BSC_BLOCK_NUMBER_18_MARCH_2021 =
+      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("5800123"));
 
   public static final String PCS_V1_FACTORY_ADDRESS = "0xbcfccbde45ce874adcb698cc183debcf17952812"
       .toLowerCase();

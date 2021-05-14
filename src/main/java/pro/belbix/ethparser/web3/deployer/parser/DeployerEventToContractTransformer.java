@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_FROM_LP_TOKE
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LP_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
@@ -127,7 +128,8 @@ public class DeployerEventToContractTransformer {
     String network = dto.getNetwork();
     log.info("Start transform {}", address);
 
-    ContractInfo contractInfo = collectContractInfo(address, block, network, type);
+    ContractInfo contractInfo =
+        collectVaultOrPoolContractInfo(address, block, network, type);
 
     if (contractInfo == null) {
       return List.of();
@@ -143,6 +145,7 @@ public class DeployerEventToContractTransformer {
     List<PureEthContractInfo> result = new ArrayList<>();
     result.add(contract);
     collectUnderlingContracts(contractInfo, result);
+    collectRewardToken(contractInfo, result);
     return result;
   }
 
@@ -183,7 +186,7 @@ public class DeployerEventToContractTransformer {
         || "initializeVault".equals(methodName);
   }
 
-  private ContractInfo collectContractInfo(
+  private ContractInfo collectVaultOrPoolContractInfo(
       String address,
       long block,
       String network,
@@ -617,6 +620,19 @@ public class DeployerEventToContractTransformer {
     lpContractInfo.setUnderlyingAddress(lpAddress);
     String tokenNames = uniTokenNames(lpContractInfo);
     return lpPlatformType.getPrettyName() + "_LP_" + tokenNames;
+  }
+
+  private void collectRewardToken(ContractInfo contractInfo, List<PureEthContractInfo> result) {
+    if (contractInfo.getContractType() != POOL) {
+      return;
+    }
+
+    String rewardTokenAdr = functionsUtils.callAddressByName(REWARD_TOKEN,
+        contractInfo.getAddress(), contractInfo.getBlock(), contractInfo.getNetwork())
+        .orElse(null);
+
+    createTokenAndLpContracts(rewardTokenAdr,
+        contractInfo.getBlock(), contractInfo.getNetwork(), result);
   }
 
   private boolean addInContracts(List<PureEthContractInfo> contracts, PureEthContractInfo c) {

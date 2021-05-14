@@ -552,9 +552,13 @@ public class ContractLoader {
       name = "UNKNOWN";
     }
 
-    if (!name.startsWith("UNKNOWN") &&
+    ContractEntity contractWithTheSameName =
         contractDbService.getContractByNameAndType(
-            name, ContractType.valueOfId(type), network).isPresent()) {
+            name, ContractType.valueOfId(type), network)
+            .orElse(null);
+    if (!name.startsWith("UNKNOWN") &&
+        (contractWithTheSameName != null
+            && !contractWithTheSameName.getAddress().equalsIgnoreCase(address))) {
       log.info("Not unique name for {} {}", name, address);
       retry++;
 

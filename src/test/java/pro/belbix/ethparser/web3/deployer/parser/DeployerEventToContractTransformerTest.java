@@ -50,6 +50,27 @@ class DeployerEventToContractTransformerTest {
   }
 
   @Test
+  public void testCreateVault_PC_BUSD_BNB() {
+    String address = "0xF7A3a95d0f7E8A5EEaE483Cdd7b76aF287283D34".toLowerCase();
+    long block = 5992263;
+    String network = BSC_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x13626d5ec4bc925782f2d9ac6b3965b25a978e5d9605de796afd513284a5f98a", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(9, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("PCS_WBNB_BUSD", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
   public void testCreateVPool_ST_UNI_WBTC_KBTC() {
     String address = "0xdD496A6Ba1B4Cf2b3ef42dEf132e2B2c570941FE".toLowerCase();
     long block = 11924852;
@@ -59,7 +80,7 @@ class DeployerEventToContractTransformerTest {
         "0x34358cd715cb9efc0d98bff92124bcb27a5c5e3780bafcbf0ecc750a2b6ee75e", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(8, contracts.size());
+    assertEquals(10, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
         () -> assertEquals("ST_UNI_WBTC_KBTC", vault.getName(), "name"),
@@ -274,7 +295,7 @@ class DeployerEventToContractTransformerTest {
         "0xc898948df88e70d8af818157770fdf89fcdefc9ecab9887512136e0b6fd01b63", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(7, contracts.size());
+    assertEquals(9, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     TokenContract token0 = (TokenContract) contracts.get(2);
     LpContract lp0 = (LpContract) contracts.get(3);
@@ -312,7 +333,7 @@ class DeployerEventToContractTransformerTest {
         "0x25e9331254c2b262e5fc8dd14686d02d9c7ff9550503a53aeb1bde15a02a4ca1", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(2, contracts.size());
+    assertEquals(7, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
         () -> assertEquals("ST_PS", vault.getName(), "name"),
@@ -350,7 +371,7 @@ class DeployerEventToContractTransformerTest {
         "0x83d7ba92ea38827c38405cd13f490de8e04fc3962334640d8ca0e2c6147f103d", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(8, contracts.size());
+    assertEquals(10, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
         () -> assertEquals("ST_UNI_DAI_fDAI", vault.getName(), "name"),
