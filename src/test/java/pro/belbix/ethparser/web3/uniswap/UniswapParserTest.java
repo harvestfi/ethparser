@@ -115,7 +115,7 @@ public class UniswapParserTest {
             "BUY",
             "FARM",
             "2,02599871",
-            "0,11354850"
+            "0.11389017"
         );
     }
 
@@ -130,7 +130,7 @@ public class UniswapParserTest {
             "SELL",
             "ETH",
             "0,14924968",
-            "91,38680102"
+            "91.11346064"
         );
     }
 
@@ -145,7 +145,7 @@ public class UniswapParserTest {
             "BUY",
             "USDC",
             "891,77695300",
-            "88,91016221"
+            "89.17769530"
         );
     }
 
