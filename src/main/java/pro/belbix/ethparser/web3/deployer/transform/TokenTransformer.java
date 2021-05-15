@@ -11,7 +11,6 @@ import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
-import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
@@ -22,18 +21,18 @@ import pro.belbix.ethparser.web3.prices.LPSeeker;
 public class TokenTransformer {
 
   private final FunctionsUtils functionsUtils;
-  private final ContractDbService contractDbService;
   private final UnderlyingTransformer underlyingTransformer;
   private final FunctionService functionService;
   private final LPSeeker lpSeeker;
   final ContractNameCreator contractNameCreator;
 
   public TokenTransformer(
-      FunctionsUtils functionsUtils, ContractDbService contractDbService,
-      UnderlyingTransformer underlyingTransformer, FunctionService functionService,
-      LPSeeker lpSeeker, ContractNameCreator contractNameCreator) {
+      FunctionsUtils functionsUtils,
+      UnderlyingTransformer underlyingTransformer,
+      FunctionService functionService,
+      LPSeeker lpSeeker,
+      ContractNameCreator contractNameCreator) {
     this.functionsUtils = functionsUtils;
-    this.contractDbService = contractDbService;
     this.underlyingTransformer = underlyingTransformer;
     this.functionService = functionService;
     this.lpSeeker = lpSeeker;
@@ -64,8 +63,7 @@ public class TokenTransformer {
       List<PureEthContractInfo> contracts
   ) {
     if (ZERO_ADDRESS.equalsIgnoreCase(address)
-        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))
-        || contractDbService.getContractByAddress(address, network).isPresent()) {
+        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))) {
       return null;
     }
 
@@ -94,8 +92,7 @@ public class TokenTransformer {
       List<PureEthContractInfo> contracts
   ) {
     if (ZERO_ADDRESS.equalsIgnoreCase(address)
-        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))
-        || contractDbService.getContractByAddress(address, network).isPresent()) {
+        || contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(address))) {
       return;
     }
 

@@ -10,6 +10,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
+import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -214,7 +215,8 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     Tuple2<String, String> tokens = contractDbService
         .tokenAddressesByUniPairAddress(lpAddress, ETH_NETWORK);
     String keyCoin = contractDbService.findLpByAddress(lpAddress, ETH_NETWORK)
-        .map(lp -> lp.getKeyToken().getContract().getAddress())
+        .map(UniPairEntity::getKeyToken)
+        .map(c -> c.getContract().getAddress())
         .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
     if (tokens.component1().equalsIgnoreCase(keyCoin)) {
       return true;

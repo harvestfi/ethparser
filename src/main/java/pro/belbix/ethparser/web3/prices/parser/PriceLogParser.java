@@ -200,7 +200,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
         .isPresent()) {
       isValid = true;
     } else {
-      log.warn("{} price from not actual LP {}", tokenAddress, sourceAddress);
+      log.debug("{} price from not actual LP {}", tokenAddress, sourceAddress);
       isValid = false;
     }
 

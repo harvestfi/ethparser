@@ -10,9 +10,11 @@ import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWr
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
@@ -170,12 +172,15 @@ public class PriceProvider {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
     log.debug("Oracle not deployed yet, use direct calculation for prices");
-    return getPriceForCoinFromEthLegacy(address, block, network, 0);
+    return getPriceForCoinFromEthLegacy(address, block, network, new HashSet<>());
   }
 
   //for compatibility with CRV prices without oracle
-  private double getPriceForCoinFromEthLegacy(String address, Long block, String network,
-      int deep) {
+  private double getPriceForCoinFromEthLegacy(
+      String address,
+      Long block,
+      String network,
+      Set<String> handled) {
     if (ContractUtils.isStableCoin(address)) {
       return 1.0;
     }
@@ -184,10 +189,11 @@ public class PriceProvider {
       address = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
     }
 
-    if (deep > 5) {
-      log.error("Recursive price detected! {} {}", address, network);
+    if (handled.contains(address)) {
+      log.error("Recursive price detected! {} {} {}", address, network, handled);
       return 0;
     }
+    handled.add(address);
 
     // if we don't have contract in DB use it anyway
     ContractEntity c = contractDbService.getContractByAddress(address, network)
@@ -204,7 +210,7 @@ public class PriceProvider {
       try {
         String curveUnderlying = curveUnderlying(address, block, network);
         if (curveUnderlying != null) {
-          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, deep + 1);
+          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, handled);
         }
       } catch (Exception ignore) {
       }
@@ -214,7 +220,7 @@ public class PriceProvider {
         log.error("Not found similar token for {}, use 1$ price", address);
         return 1;
       }
-      return getPriceForCoinFromEthLegacy(similarToken, block, network, deep + 1);
+      return getPriceForCoinFromEthLegacy(similarToken, block, network, handled);
     }
 
     Tuple2<Double, Double> reserves = functionsUtils
@@ -240,7 +246,7 @@ public class PriceProvider {
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }
-    price *= getPriceForCoinFromEthLegacy(otherTokenAddress, block, network, deep + 1);
+    price *= getPriceForCoinFromEthLegacy(otherTokenAddress, block, network, handled);
     if (Double.isNaN(price) || Double.isInfinite(price)) {
       price = 0.0;
     }
