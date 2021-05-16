@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +45,7 @@ class UniPriceViewRepositoryTest {
   private ContractEventsDbService contractEventsDbService;
 
   @Test
+  @Disabled
   void testUniPriceView_UNI_LP_ETH_USDT() {
     loadBlock(12080691);
     List<UniPriceViewEntity> uniPrices =

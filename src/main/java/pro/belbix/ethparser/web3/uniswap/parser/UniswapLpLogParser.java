@@ -88,8 +88,13 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     }
     long block = ethLog.getBlockNumber().longValue();
     UniswapTx tx = new UniswapTx();
-    tx.setFirstTokenIsKey(
-        firstTokenIsKey(ethLog.getAddress(), block));
+    try {
+      tx.setFirstTokenIsKey(
+          firstTokenIsKey(ethLog.getAddress(), block));
+    } catch (Exception e) {
+      log.error("Error find key token for {} ", ethLog.getAddress());
+      return null;
+    }
     tx.setCoin(mapLpAddress(ethLog.getAddress(), block, true));
     tx.setOtherCoin(mapLpAddress(ethLog.getAddress(), block, false));
     tx.setCoinAddress(contractDbService.findKeyTokenViaLinkForLp(
