@@ -40,7 +40,7 @@ public class PriceLogParserBscTest {
             .otherTokenAmount(91.77635486931689)
             .price(483.85601194790024)
             .buy(1)
-            .source("PC_WBNB_BUSD")
+            .source("PCS_LP_WBNB_BUSD")
 //            .lpTotalSupply(8660817.747093258)
 //            .lpToken0Pooled(453476.31838750903)
 //            .lpToken1Pooled(2.1896660626009792E8)

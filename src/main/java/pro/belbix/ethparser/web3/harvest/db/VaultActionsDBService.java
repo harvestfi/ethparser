@@ -4,7 +4,6 @@ import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +22,6 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
-import pro.belbix.ethparser.repositories.v0.UniswapRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -36,20 +34,17 @@ public class VaultActionsDBService {
   private final HarvestRepository harvestRepository;
   private final AppProperties appProperties;
   private final HarvestTvlRepository harvestTvlRepository;
-  private final UniswapRepository uniswapRepository;
   private final ContractDbService contractDbService;
   private final PriceProvider priceProvider;
 
   public VaultActionsDBService(HarvestRepository harvestRepository,
       AppProperties appProperties,
       HarvestTvlRepository harvestTvlRepository,
-      UniswapRepository uniswapRepository,
       ContractDbService contractDbService,
       PriceProvider priceProvider) {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.harvestTvlRepository = harvestTvlRepository;
-    this.uniswapRepository = uniswapRepository;
     this.contractDbService = contractDbService;
     this.priceProvider = priceProvider;
   }
@@ -142,7 +137,8 @@ public class VaultActionsDBService {
 
   public void fillLastFarmPrice(HarvestDTO dto, HarvestTvlEntity harvestTvl) {
     harvestTvl.setLastPrice(
-        priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), dto.getNetwork()));
+        priceProvider.getPriceForCoin(
+            ContractUtils.getFarmAddress(dto.getNetwork()), dto.getBlock(), dto.getNetwork()));
   }
 
   public void fillTvl(HarvestDTO dto, HarvestTvlEntity harvestTvl) {

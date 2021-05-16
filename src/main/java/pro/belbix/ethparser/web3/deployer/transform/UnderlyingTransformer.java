@@ -71,18 +71,34 @@ public class UnderlyingTransformer {
         //better than nothing -  use USD as underlying
         return ContractUtils.getUsdAddress(network);
       }
-      return getUnderlyingToken(
-          platformType, minterAddress, block, network, new Int128(0));
-    } else {
-      return getUnderlyingToken(
-          platformType, minterAddress, block, network, new Uint256(0));
     }
 
+    // curve has different attribute (they are killing me)
+    String underlyingToken = getUnderlyingToken(
+        minterAddress, block, network, new Int128(0));
+    if (underlyingToken == null) {
+      underlyingToken = getUnderlyingToken(
+          minterAddress, block, network, new Uint256(0));
+    }
+
+    //better than nothing -  use USD as underlying
+    if (underlyingToken == null) {
+      return ContractUtils.getUsdAddress(network);
+    }
+    return underlyingToken;
   }
 
   private String getPotentiallyUnderlying(String address, long block, String network) {
-    return functionsUtils.callAddressByName(FunctionsNames.TOKEN,
-        address, block, network).orElse("");
+    String result = functionsUtils.callAddressByName(FunctionsNames.TOKEN,
+        address, block, network)
+        .orElse(null);
+    if (result == null) {
+      // aave tokens
+      result = functionsUtils.callAddressByName(FunctionsNames.UNDERLYING_ASSET_ADDRESS,
+          address, block, network)
+          .orElse(null);
+    }
+    return result;
   }
 
   private String getMinterAddress(
@@ -104,7 +120,6 @@ public class UnderlyingTransformer {
   }
 
   private String getUnderlyingToken(
-      PlatformType platformType,
       String minterAddress,
       long block,
       String network,

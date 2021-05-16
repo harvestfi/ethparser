@@ -160,6 +160,15 @@ public class ContractUtils {
     return null;
   }
 
+  public static String getFarmAddress(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return FARM_TOKEN;
+    } else if (BSC_NETWORK.equals(network)) {
+      return BSC_FARM_TOKEN;
+    }
+    return null;
+  }
+
   public static boolean isFullParsableLp(String address, String network) {
     return FULL_PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
   }

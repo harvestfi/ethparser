@@ -48,28 +48,10 @@ public class UniswapParserTest {
             "0x1125917201ed36700f86c3cecec8c5dafae280d1",
             "0,62171546",
             "REM",
-            "ETH",
+            "WETH",
             "0,10113922",
-            "96,43124305"
+            "96.50164299"
         );
-    }
-
-    @Test
-    public void parseUNI_LP_USDC_FARM_testUniToHarvest() {
-        UniswapDTO dto = uniswapParseTest("0x514906fc121c7878424a5c928cad1852cc545892",
-            10777016,
-            3,
-            "0x07877aa1dd7d5e4e675e5b79b210b87028ff7cc246f1e1834efc1f7a372b1732_14",
-            "0x843002b1d545ef7abb71c716e6179570582faa40",
-            "200,00000000",
-            "ADD",
-            "USDC",
-            "3000,00000000",
-            "15,00000000"
-        );
-
-        HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
-        assertNotNull(harvestDTO);
     }
 
     @Test
@@ -91,7 +73,7 @@ public class UniswapParserTest {
             () -> assertEquals("Amount", numberFormat("0,00000000"),
                 String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
-            () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
+            () -> assertEquals("Vault", "UNI_LP_FARM_USDC", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "1892",
                 String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
             () -> assertEquals("LastUsdTvl", "0",
@@ -128,9 +110,9 @@ public class UniswapParserTest {
             "0x05310c5594a3c961f212308317ff3a4fdd8f82af",
             "1,00000000",
             "SELL",
-            "ETH",
+            "WETH",
             "0,14924968",
-            "91.11346064"
+            "90.94905117"
         );
     }
 
@@ -169,7 +151,7 @@ public class UniswapParserTest {
             () -> assertEquals("Amount", numberFormat("0,00005882"),
                 String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
-            () -> assertEquals("Vault", "UNI_LP_USDC_FARM", harvestDTO.getVault()),
+            () -> assertEquals("Vault", "UNI_LP_FARM_USDC", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "1883",
                 String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
             () -> assertEquals("LastUsdTvl", "9657721",
@@ -191,23 +173,23 @@ public class UniswapParserTest {
             "0x51d2c880493ac63140ffe0e645cc99afc228ab59",
             "250,00000000",
             "ADD",
-            "ETH",
+            "WETH",
             "44,45189785",
-            "99,88726471"
+            "100.41399212"
         );
         HarvestDTO harvestDTO = uniToHarvestConverter.parse(dto, ETH_NETWORK);
         assertNotNull(harvestDTO);
         assertAll(
-            () -> assertEquals("Amount", numberFormat("92,94539587"),
+            () -> assertEquals("Amount", numberFormat("92.70165173"),
                 String.format("%.8f", harvestDTO.getAmount())),
             () -> assertEquals("Method", "Deposit", harvestDTO.getMethodName()),
-            () -> assertEquals("Vault", "UNI_LP_WETH_FARM", harvestDTO.getVault()),
+            () -> assertEquals("Vault", "UNI_LP_FARM_WETH", harvestDTO.getVault()),
             () -> assertEquals("UsdAmount", "50220",
                 String.format("%.0f", harvestDTO.getUsdAmount().doubleValue())),
-            () -> assertEquals("LastUsdTvl", "282796",
+            () -> assertEquals("LastUsdTvl", "283539",
                 String.format("%.0f", harvestDTO.getLastUsdTvl())),
             () -> assertEquals("LpStat",
-                "{\"coin1\":\"FARM\",\"coin1Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"coin2\":\"ETH\",\"coin2Address\":\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":561.7716539993273}",
+                "{\"coin1\":\"FARM\",\"coin1Address\":\"0xa0246c9032bc3a600820415ae600c6388619a14d\",\"coin2\":\"WETH\",\"coin2Address\":\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\"amount1\":1411.6707756227602,\"amount2\":251.00578046192655,\"price1\":100.43960495287531,\"price2\":564.7339988552998}",
                 harvestDTO.getLpStat()),
             () -> assertEquals("LastTvl", numberFormat("523,39010775"),
                 String.format("%.8f", harvestDTO.getLastTvl()))

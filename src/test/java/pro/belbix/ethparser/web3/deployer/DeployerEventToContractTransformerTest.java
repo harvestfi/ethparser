@@ -52,6 +52,128 @@ class DeployerEventToContractTransformerTest {
   }
 
   @Test
+  public void testCreateVault_FARM_GRAIN() {
+    String address = "0xe58f0d2956628921cded2ea6b195fc821c3a2b16".toLowerCase();
+    long block = 11407202;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x686c0d0293a1b0084cd9dcb46256a4557db65e829107ff5562727017b2b035b0", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(5, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    LpContract lpUnderlying = (LpContract) contracts.get(1);
+    TokenContract token = (TokenContract) contracts.get(2);
+    assertAll(
+        () -> assertEquals("ST_UNI_GRAIN_FARM", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.POOL, vault.getContractType(), "contract type"),
+
+        () -> assertEquals("UNI_LP_GRAIN_FARM", lpUnderlying.getName(), "lp name"),
+        () -> assertEquals("0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49", lpUnderlying.getAddress(),
+            "lp address"),
+        () -> assertEquals(block, lpUnderlying.getCreatedOnBlock(), "lp created"),
+        () -> assertEquals(network, lpUnderlying.getNetwork(), "lp network"),
+        () -> assertEquals(ContractType.UNI_PAIR, lpUnderlying.getContractType(),
+            "lp contract type"),
+
+        () -> assertEquals("GRAIN", token.getName(), "token name"),
+        () -> assertEquals("0x6589fe1271a0f29346796c6baf0cdf619e25e58e",
+            token.getAddress(), "token address"),
+        () -> assertEquals(block, token.getCreatedOnBlock(), "token created"),
+        () -> assertEquals(network, token.getNetwork(), "token network"),
+        () -> assertEquals(Integer.valueOf((int) block),
+            token.getLps().get(lpUnderlying.getAddress()), "token lp"),
+        () -> assertEquals(ContractType.TOKEN, token.getContractType(), "token contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_DAI_BSG() {
+    String address = "0x21e22315bcfcba1c02fc40903bf02b3bd78c6e13".toLowerCase();
+    long block = 11655635;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0xc1b8b0e44fe0e6ae3b72eb272ce998f4e50556e11bacfedab2a1ae502d1840cd", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(6, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("UNI_DAI_BSG", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_CRV_GUSD() {
+    String address = "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E".toLowerCase();
+    long block = 11745396;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x30a47c665311609e5932fada7a69276dc62d1925c21546e0725e3b25cf6dea8f", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(7, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("CRV_gusd3CRV", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_UNI_UST_mTWTR() {
+    String address = "0xb37c79f954e3e1a4accc14a5cca3e46f226038b7".toLowerCase();
+    long block = 11954001;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0xd468ccf42efe49b8f07aab68efda8a166de4cff60a66100cffb89ae623b91489", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(6, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    LpContract lpUnderlying = (LpContract) contracts.get(1);
+    TokenContract token = (TokenContract) contracts.get(5);
+    assertAll(
+        () -> assertEquals("UNI_UST_mTWTR", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type"),
+
+        () -> assertEquals("UNI_LP_UST_mTWTR", lpUnderlying.getName(), "lp name"),
+        () -> assertEquals("0x34856be886a2dba5f7c38c4df7fd86869ab08040", lpUnderlying.getAddress(),
+            "lp address"),
+        () -> assertEquals(block, lpUnderlying.getCreatedOnBlock(), "lp created"),
+        () -> assertEquals(network, lpUnderlying.getNetwork(), "lp network"),
+        () -> assertEquals(ContractType.UNI_PAIR, lpUnderlying.getContractType(),
+            "lp contract type"),
+
+        () -> assertEquals("mTWTR", token.getName(), "token name"),
+        () -> assertEquals("0xedb0414627e6f1e3f082de65cd4f9c693d78cca9",
+            token.getAddress(), "token address"),
+        () -> assertEquals(block, token.getCreatedOnBlock(), "token created"),
+        () -> assertEquals(network, token.getNetwork(), "token network"),
+        () -> assertEquals(Integer.valueOf((int) block),
+            token.getLps().get(lpUnderlying.getAddress()), "token lp"),
+        () -> assertEquals(ContractType.TOKEN, token.getContractType(), "token contract type")
+    );
+  }
+
+  @Test
   public void testCreateVault_EPS_fusdt3EPS() {
     String address = "0xe64bfe13aa99335487f1f42a56cddbffaec83bbf".toLowerCase();
     long block = 6736265;

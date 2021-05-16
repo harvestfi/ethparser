@@ -7,8 +7,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USER_REWARD_PER_TOKEN_PAID;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNKNOWN;
@@ -57,6 +55,10 @@ public class DeployerEventToContractTransformer {
 
   public void handleAndSave(DeployerDTO dto) {
     var contracts = transform(dto);
+    uploadContracts(contracts);
+  }
+
+  public void uploadContracts(List<PureEthContractInfo> contracts) {
     for (PureEthContractInfo contract : contracts) {
       log.info("Save {}", contract);
       if (ContractType.VAULT == contract.getContractType()) {
@@ -83,7 +85,6 @@ public class DeployerEventToContractTransformer {
       }
     }
   }
-
 
   public List<PureEthContractInfo> transform(DeployerDTO dto) {
     if (!isEligible(dto)) {
@@ -246,8 +247,7 @@ public class DeployerEventToContractTransformer {
 
   private boolean isMigration(String address, String underlyingAddress, ContractType type) {
     return VAULT == type
-        && (FARM_TOKEN.equalsIgnoreCase(underlyingAddress)
-        || BSC_FARM_TOKEN.equalsIgnoreCase(underlyingAddress)
+        && (ContractUtils.isFarmAddress(underlyingAddress)
         || ZERO_ADDRESS.equalsIgnoreCase(underlyingAddress))
         && !ContractUtils.isPsAddress(address);
   }

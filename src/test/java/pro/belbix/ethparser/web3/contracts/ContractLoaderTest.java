@@ -40,7 +40,9 @@ public class ContractLoaderTest {
     when(contractRepository.findFirstByAddress(eq(adr), eq(net)))
         .thenReturn(null);
     when(contractDbService.getContractByNameAndType(eq(name), eq(type), eq(net)))
-        .thenReturn(Optional.of(new ContractEntity()));
+        .thenReturn(Optional.of(ContractEntity.builder()
+            .address("adr2")
+            .build()));
 
     contractLoader.findOrCreateContract(
         adr,

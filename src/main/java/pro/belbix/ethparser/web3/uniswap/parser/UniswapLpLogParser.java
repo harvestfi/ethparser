@@ -10,7 +10,6 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
-import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -87,14 +86,17 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     if (!isValidLog(ethLog, network)) {
       return null;
     }
+    long block = ethLog.getBlockNumber().longValue();
     UniswapTx tx = new UniswapTx();
-    tx.setFirstTokenIsKey(firstTokenIsKey(ethLog.getAddress()));
-    tx.setCoin(mapLpAddress(ethLog.getAddress(), true));
-    tx.setOtherCoin(mapLpAddress(ethLog.getAddress(), false));
-    tx.setCoinAddress(contractDbService.findLpByAddress(ethLog.getAddress(), ETH_NETWORK)
-        .map(lp -> lp.getKeyToken().getContract().getAddress())
+    tx.setFirstTokenIsKey(
+        firstTokenIsKey(ethLog.getAddress(), block));
+    tx.setCoin(mapLpAddress(ethLog.getAddress(), block, true));
+    tx.setOtherCoin(mapLpAddress(ethLog.getAddress(), block, false));
+    tx.setCoinAddress(contractDbService.findKeyTokenViaLinkForLp(
+        ethLog.getAddress(), block, ETH_NETWORK)
         .orElseThrow(
-            () -> new IllegalStateException("Not found key token for " + ethLog.getAddress())));
+            () -> new IllegalStateException(
+                "Not found key token for " + ethLog.getAddress())));
     uniswapLpLogDecoder.decode(tx, ethLog);
     if (tx.getHash() == null) {
       return null;
@@ -107,9 +109,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     dto.setOwner(receipt.getFrom());
 
     //enrich date
-    dto.setBlockDate(
-        ethBlockService
-            .getTimestampSecForBlock(ethLog.getBlockNumber().longValue(), ETH_NETWORK));
+    dto.setBlockDate(ethBlockService.getTimestampSecForBlock(block, ETH_NETWORK));
 
     if (dto.getLastPrice() == null) {
       Double otherCoinPrice = priceProvider
@@ -211,25 +211,24 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
         .orElseThrow(() -> new IllegalStateException("Not found name for " + adr.getValue()));
   }
 
-  public boolean firstTokenIsKey(String lpAddress) {
+  public boolean firstTokenIsKey(String lpAddress, long block) {
     Tuple2<String, String> tokens = contractDbService
         .tokenAddressesByUniPairAddress(lpAddress, ETH_NETWORK);
-    String keyCoin = contractDbService.findLpByAddress(lpAddress, ETH_NETWORK)
-        .map(UniPairEntity::getKeyToken)
-        .map(c -> c.getContract().getAddress())
+    String keyTokenAddress = contractDbService.findKeyTokenViaLinkForLp(
+        lpAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Key coin not found for " + lpAddress));
-    if (tokens.component1().equalsIgnoreCase(keyCoin)) {
+    if (tokens.component1().equalsIgnoreCase(keyTokenAddress)) {
       return true;
-    } else if (tokens.component2().equalsIgnoreCase(keyCoin)) {
+    } else if (tokens.component2().equalsIgnoreCase(keyTokenAddress)) {
       return false;
     } else {
       throw new IllegalStateException("Not found key name in lp " + lpAddress);
     }
   }
 
-  private String mapLpAddress(String address, boolean isKeyCoin) {
-    String keyCoinAdr = contractDbService.findLpByAddress(address, ETH_NETWORK)
-        .map(lp -> lp.getKeyToken().getContract().getAddress())
+  private String mapLpAddress(String address, long block, boolean isKeyCoin) {
+    String keyCoinAdr = contractDbService.findKeyTokenViaLinkForLp(
+        address, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Key coin not found for " + address));
     Tuple2<String, String> tokensAdr = contractDbService
         .tokenAddressesByUniPairAddress(address, ETH_NETWORK);

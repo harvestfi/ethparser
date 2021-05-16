@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.entity.contracts;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -8,7 +7,10 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "eth_contracts", indexes = {
@@ -18,6 +20,9 @@ import lombok.Data;
     @UniqueConstraint(name = "eth_c_adr_net_pk", columnNames = {"address", "network"})
 })
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ContractEntity {
 
     @Id
@@ -26,6 +31,7 @@ public class ContractEntity {
     private String address;
     private String name;
     private Long created;
+    private Long updated;
     private int type;
     private String network;
     private String underlying;

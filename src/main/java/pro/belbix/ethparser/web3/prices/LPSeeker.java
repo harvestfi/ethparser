@@ -50,6 +50,10 @@ public class LPSeeker {
       String network,
       List<PureEthContractInfo> contracts
   ) {
+    String uniqueLp = UniqueLps.LPS.get(tokenAddress);
+    if (uniqueLp != null) {
+      return uniqueLp;
+    }
 //    if (PriceOracle.isAvailable(block, network)) {
 //      String largestKeyToken = priceOracle.getLargestKeyToken(tokenAddress, block, network);
 //      if (largestKeyToken != null) {
@@ -146,9 +150,9 @@ public class LPSeeker {
   }
 
   private BigInteger getLiquidity(String pair, String token, long block, String network) {
-    String token0 = functionsUtils.callStrByName(TOKEN0, pair, block, network)
+    String token0 = functionsUtils.callAddressByName(TOKEN0, pair, block, network)
         .orElseThrow(() -> new IllegalStateException(
-            "Token0 not found for " + pair + " network: " + network
+            "Token0 not found for " + pair + " network: " + network + " " + block
         ));
     List<BigInteger> reserves = getReserves(pair, block, network);
     if (token.equalsIgnoreCase(token0)) {

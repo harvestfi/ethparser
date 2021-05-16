@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: deployer-recalculation
+  startUtil: contract-updater
   overrideDuplicates: false
   utilNetwork: eth
   handleLoopStep: 1000
@@ -51,3 +51,6 @@ deployer-download:
 #  from:
 deployer-recalculation:
   fill-addresses: true
+contract-updater:
+  block: 12000000
+  token: 0x6589fe1271a0f29346796c6baf0cdf619e25e58e

@@ -178,8 +178,6 @@ public class ContractLoader {
       enrichUniPair(uniPairEntity, block, network);
       uniPairRepository.save(uniPairEntity);
     }
-
-    keyTokenForLps(uniPair, network, block);
   }
 
   private void enrichToken(TokenEntity tokenEntity, long block, String network) {
@@ -310,8 +308,22 @@ public class ContractLoader {
     uniPairEntity.setDecimals(
         functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
+
+    String token0Adr = functionsUtils.callAddressByName(TOKEN0, address, block, network)
+        .orElse(null);
+    String token1Adr = functionsUtils.callAddressByName(TOKEN1, address, block, network)
+        .orElse(null);
+
+    if (token0Adr == null) {
+      token0Adr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
+
+    if (token1Adr == null) {
+      token1Adr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
+
     uniPairEntity.setToken0(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN0, address, block, network).orElse(""),
+        token0Adr,
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -319,7 +331,7 @@ public class ContractLoader {
         network
     ));
     uniPairEntity.setToken1(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN1, address, block, network).orElse(""),
+        token1Adr,
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -357,34 +369,6 @@ public class ContractLoader {
       }
     }
     return type;
-  }
-
-  private void keyTokenForLps(LpContract lpContract, String network, long block) {
-
-    String keyTokenAddressOrName = lpContract.getKeyToken();
-    if (Strings.isBlank(keyTokenAddressOrName)) {
-      return;
-    }
-    TokenEntity tokenEntity;
-    if (keyTokenAddressOrName.startsWith("0x")) {
-      tokenEntity = tokenRepository.findFirstByAddress(keyTokenAddressOrName, network);
-    } else {
-      tokenEntity = tokenRepository.findFirstByName(keyTokenAddressOrName, network);
-    }
-    if (tokenEntity == null) {
-      log.warn("Not found token for " + keyTokenAddressOrName);
-      return;
-    }
-
-    UniPairEntity uniPairEntity = uniPairRepository
-        .findFirstByAddress(lpContract.getAddress(), network);
-    if (uniPairEntity.getKeyToken() == null ||
-        !tokenEntity.getContract().getAddress()
-            .equals(uniPairEntity.getKeyToken().getContract().getAddress())) {
-      uniPairEntity.setKeyToken(tokenEntity);
-      uniPairRepository.save(uniPairEntity);
-    }
-
   }
 
   /**
@@ -529,7 +513,11 @@ public class ContractLoader {
       if (type != INFRASTRUCTURE.getId() && type != ContractType.UNKNOWN.getId()) {
         entity.setType(type);
       }
-      entity.setCreated(created);
+      if (entity.getCreated() == null || entity.getCreated() == 0) {
+        entity.setCreated(created); // it should be created date, not updated
+      } else {
+        entity.setUpdated(created);
+      }
       contractRepository.save(entity);
     }
     return entity;

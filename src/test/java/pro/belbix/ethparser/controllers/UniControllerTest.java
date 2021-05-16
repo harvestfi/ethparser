@@ -47,7 +47,7 @@ public class UniControllerTest {
 
     @ParameterizedTest(name = "{index} => name={0}, address={1}")
     @CsvSource({
-            "ETH, 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "WETH, 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "WBTC, 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
             "DAI, 0x6b175474e89094c44da98b954eedeac495271d0f",
     })

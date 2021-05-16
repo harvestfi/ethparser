@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
-import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 
 import java.math.BigInteger;
@@ -233,7 +232,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       harvestTx.setOwner(receipt.getFrom());
     } else {
       String poolAddress = contractDbService
-          .getPoolContractByVaultAddress(ethLog.getAddress(), network)
+          .getPoolContractByVaultAddress(
+              ethLog.getAddress(), ethLog.getBlockNumber().longValue(), network)
           .map(ContractEntity::getAddress)
           .orElse(""); // if we don't have a pool assume that it was migration
       if (isMigration(harvestTx, poolAddress, network)) {
@@ -254,7 +254,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     String newVaultHash = contractDbService
         .getAddressByName(newVault, ContractType.VAULT, network)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + newVault));
-    String poolAddress = contractDbService.getPoolContractByVaultAddress(newVaultHash, network)
+    String poolAddress = contractDbService.getPoolContractByVaultAddress(
+        newVaultHash, dto.getBlock(), network)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
         .getAddress();
 

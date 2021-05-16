@@ -6,7 +6,9 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -18,12 +20,14 @@ import pro.belbix.ethparser.web3.deployer.ContractInfo;
 import pro.belbix.ethparser.web3.prices.LPSeeker;
 
 @Service
+@Log4j2
 public class TokenTransformer {
 
   private final FunctionsUtils functionsUtils;
   private final UnderlyingTransformer underlyingTransformer;
   private final FunctionService functionService;
   private final LPSeeker lpSeeker;
+  private final EthBlockService ethBlockService;
   final ContractNameCreator contractNameCreator;
 
   public TokenTransformer(
@@ -31,11 +35,13 @@ public class TokenTransformer {
       UnderlyingTransformer underlyingTransformer,
       FunctionService functionService,
       LPSeeker lpSeeker,
+      EthBlockService ethBlockService,
       ContractNameCreator contractNameCreator) {
     this.functionsUtils = functionsUtils;
     this.underlyingTransformer = underlyingTransformer;
     this.functionService = functionService;
     this.lpSeeker = lpSeeker;
+    this.ethBlockService = ethBlockService;
     this.contractNameCreator = contractNameCreator;
   }
 
@@ -118,14 +124,20 @@ public class TokenTransformer {
       return;
     }
 
+//     use +100k blocks for more accurate LP fetching
+//    block = Math.min(block + 100_000, ethBlockService.getLastBlock(network));
     String lpAddress = lpSeeker.findLargestLP(address, block, network, contracts);
-    if (lpAddress == null
-        || contracts.stream()
-        .anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))) {
+    if (lpAddress == null) {
+      log.error("Not found lp for {} {} {}", address, block, network);
       return;
     }
 
     tokenContract.addLp((int) block, lpAddress);
+
+    if (contracts.stream()
+        .anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))) {
+      return;
+    }
     ContractInfo lpContractInfo = new ContractInfo(lpAddress, block, network, UNI_PAIR);
     lpContractInfo.setUnderlyingAddress(lpAddress);
     String lpFullName = lpName(lpAddress, block, network);
@@ -135,13 +147,13 @@ public class TokenTransformer {
     lpContract.setNetwork(network);
     addInContracts(contracts, lpContract);
 
-    contractNameCreator.tokenNames(lpContractInfo); // filling underlying tokens (can be optimized)
-    lpContractInfo.getUnderlyingTokens().forEach(t -> {
+    contractNameCreator.tokenNames(lpContractInfo);
+    for (var t : lpContractInfo.getUnderlyingTokens()) {
       if (t.equalsIgnoreCase(address)) {
         return;
       }
       createTokenAndLpContracts(t, block, network, contracts);
-    });
+    }
 
   }
 
