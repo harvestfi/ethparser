@@ -5,18 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicBytes;
-import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.generated.Uint256;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.dto.v0.ContractSourceCodeDTO;
+import pro.belbix.ethparser.repositories.eth.ContractSourceCodeRepository;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -24,6 +19,9 @@ class SimpleContractGeneratorTest {
 
   @Autowired
   private SimpleContractGenerator simpleContractGenerator;
+
+  @Autowired
+  private ContractSourceCodeRepository contractSourceCodeRepository;
 
   @Test
   void getContract_USDT() {
@@ -89,5 +87,18 @@ class SimpleContractGeneratorTest {
         () -> assertEquals(0, contract.getEvents().size(), "Events size"),
         () -> assertEquals(5, contract.getFunctions().size(), "Functions size")
     );
+  }
+
+  @Test
+  void getCachedContract_USDT() {
+    String address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+    GeneratedContract contract = simpleContractGenerator.getContract(
+        address, 10800000L,
+        null, ETH_NETWORK, true);
+    ContractSourceCodeDTO cachedContractSource =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    assertNotNull(cachedContractSource);
+    assertEquals(address, cachedContractSource.getAddress());
+    contractSourceCodeRepository.deleteById(cachedContractSource.getId());
   }
 }
