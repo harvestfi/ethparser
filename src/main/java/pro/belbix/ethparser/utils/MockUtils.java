@@ -46,7 +46,7 @@ public class MockUtils {
         uniswapDTO.setType(new Random().nextBoolean() ?
             new Random().nextBoolean() ? "BUY" : "SELL" :
             new Random().nextBoolean() ? ADD_LIQ : REMOVE_LIQ);
-        uniswapDTO.setPrice(currentCount);
+        uniswapDTO.setLastPrice(currentCount);
         uniswapDTO.setConfirmed(new Random().nextBoolean());
         uniswapDTO.setLastGas(currentCount / 6);
         uniswapDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());

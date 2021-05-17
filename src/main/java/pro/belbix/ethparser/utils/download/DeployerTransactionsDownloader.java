@@ -13,7 +13,7 @@ import pro.belbix.ethparser.utils.LoopHandler;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
-import pro.belbix.ethparser.web3.deployer.parser.DeployerEventToContractTransformer;
+import pro.belbix.ethparser.web3.deployer.transform.DeployerEventToContractTransformer;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
 @Service

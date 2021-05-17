@@ -34,40 +34,6 @@ public class PriceLogParserEthTest {
             10829173, 10829173, ETH_NETWORK);
   }
 
-  @Test
-  public void priceParseUNI_LP_ETH_DAI() {
-    assertOnBlock(
-        "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11",
-        11942484,
-        1,
-        "0x2c8b2763ab51c386dccc27e53787b5d2b7548639d5d2377f49e30267509a464d_220",
-        "UNI_LP_ETH_DAI",
-        1,
-        "DAI",
-        9.44601483E-10,
-        "ETH",
-        1.948E-15,
-        2.0622453331464862E-6
-    );
-  }
-
-  @Test
-  public void priceParseUNI_LP_DAI_BSG() {
-    assertOnBlock(
-        "0x4a9596e5d2f9bef50e4de092ad7181ae3c40353e",
-        11644538,
-        1,
-        "0xa96edf5c1858ab62d8bcf10d54e2adee1f1bdf38fd36c8f4450d3eb3ad8f7223_101",
-        "UNI_LP_DAI_BSG",
-        1,
-        "BSG",
-        9.95014151163403E-4,
-        "DAI",
-        200.16815759936367,
-        201171.166626445
-    );
-  }
-
   private PriceDTO assertOnBlock(String contract,
       int onBlock,
       int logId,

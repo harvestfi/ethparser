@@ -48,4 +48,5 @@ public class FunctionsNames {
   public static final String GET_POOL_FROM_LP_TOKEN = "get_pool_from_lp_token";
   public static final String TOKEN = "token";
   public static final String MINIMUM_LIQUIDITY = "MINIMUM_LIQUIDITY";
+  public static final String UNDERLYING_ASSET_ADDRESS = "UNDERLYING_ASSET_ADDRESS";
 }

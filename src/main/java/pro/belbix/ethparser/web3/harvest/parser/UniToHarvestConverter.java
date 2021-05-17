@@ -106,7 +106,7 @@ public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
   public void fillUsdValuesForLP(UniswapDTO uniswapDTO, HarvestDTO harvestDTO, String lpHash) {
     long block = harvestDTO.getBlock();
     ContractEntity poolContract = contractDbService
-        .getPoolContractByVaultAddress(lpHash, ETH_NETWORK)
+        .getPoolContractByVaultAddress(lpHash, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + lpHash));
     if (poolContract.getCreated() > uniswapDTO.getBlock().longValue()) {
       log.warn("Pool not created yet {} ", poolContract.getName());

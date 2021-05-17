@@ -22,8 +22,8 @@ public class ContractConstants {
 
   public static final DefaultBlockParameterNumber ETH_BLOCK_NUMBER_30_AUGUST_2020 =
       (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("10765094"));
-  public static final DefaultBlockParameterNumber BSC_BLOCK_NUMBER_25_MARCH_2021 =
-      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("5993570"));
+  public static final DefaultBlockParameterNumber BSC_BLOCK_NUMBER_18_MARCH_2021 =
+      (DefaultBlockParameterNumber) DefaultBlockParameter.valueOf(new BigInteger("5800123"));
 
   public static final String PCS_V1_FACTORY_ADDRESS = "0xbcfccbde45ce874adcb698cc183debcf17952812"
       .toLowerCase();
@@ -35,6 +35,8 @@ public class ContractConstants {
       .toLowerCase();
   public static final String CURVE_REGISTRY_ADDRESS = "0x7D86446dDb609eD0F5f8684AcF30380a356b2B4c"
       .toLowerCase();
+  public static final String BELT_POOL_ADDRESS = "0xF16D312d119c13dD27fD0dC814b0bCdcaAa62dfD"
+      .toLowerCase();
   public static final String ONE_INCH_FACTORY_ADDRESS = "0xbAF9A5d4b0052359326A6CDAb54BABAa3a3A9643"
       .toLowerCase();
   static final String ONE_INCH_FACTORY_BSC = "0xD41B24bbA51fAc0E4827b6F94C0D6DDeB183cD64"
@@ -43,6 +45,8 @@ public class ContractConstants {
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
   public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"
+      .toLowerCase();
+  public static final String GRAIN_TOKEN = "0x6589fe1271A0F29346796C6bAf0cdF619e25e58e"
       .toLowerCase();
   public static final String PS_ADDRESS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50"
       .toLowerCase();
@@ -122,16 +126,16 @@ public class ContractConstants {
           "0x514910771AF9Ca656af840dff83E8264EcF986CA".toLowerCase()  //LINK
       ),
       BSC_NETWORK, Set.of(
-          "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", //USDC
-          "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", //ETH
-          "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3", //DAI
-          "0x55d398326f99059fF775485246999027B3197955", //USDT
-          "0x23396cF899Ca06c4472205fC903bDB4de249D6fC", //UST
-          "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c", //BTCB
-          "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", //BUSD
-          "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", //WBNB
-          "0x4BD17003473389A42DAF6a0a729f6Fdb328BbBd7", //VAI
-          "0x111111111117dC0aa78b770fA6A738034120C302" //1INCH
+          "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d".toLowerCase(), //USDC
+          "0x2170Ed0880ac9A755fd29B2688956BD959F933F8".toLowerCase(), //ETH
+          "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3".toLowerCase(), //DAI
+          "0x55d398326f99059fF775485246999027B3197955".toLowerCase(), //USDT
+          "0x23396cF899Ca06c4472205fC903bDB4de249D6fC".toLowerCase(), //UST
+          "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c".toLowerCase(), //BTCB
+          "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56".toLowerCase(), //BUSD
+          "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c".toLowerCase(), //WBNB
+          "0x4BD17003473389A42DAF6a0a729f6Fdb328BbBd7".toLowerCase(), //VAI
+          "0x111111111117dC0aa78b770fA6A738034120C302".toLowerCase() //1INCH
       )
   );
 

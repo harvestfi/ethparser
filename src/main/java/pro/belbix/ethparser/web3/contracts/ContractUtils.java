@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_25_MARCH_2021;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_18_MARCH_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
@@ -43,7 +43,7 @@ public class ContractUtils {
     if (address == null) {
       return false;
     }
-    return PS_ADDRESSES.contains(address);
+    return PS_ADDRESSES.contains(address.toLowerCase());
   }
 
   public static boolean isFarmAddress(String address) {
@@ -52,7 +52,7 @@ public class ContractUtils {
   }
 
   public static boolean isStableCoin(String address) {
-    return ONE_DOLLAR_TOKENS.contains(address);
+    return ONE_DOLLAR_TOKENS.contains(address.toLowerCase());
   }
 
   public static String getBaseAddressInsteadOfZero(String address, String network) {
@@ -65,7 +65,7 @@ public class ContractUtils {
     if (ETH_NETWORK.equals(network)) {
       return ETH_BLOCK_NUMBER_30_AUGUST_2020.getBlockNumber().intValue();
     } else if (BSC_NETWORK.equals(network)) {
-      return BSC_BLOCK_NUMBER_25_MARCH_2021.getBlockNumber().intValue();
+      return BSC_BLOCK_NUMBER_18_MARCH_2021.getBlockNumber().intValue();
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }
@@ -156,6 +156,15 @@ public class ContractUtils {
       return "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase();
     } else if (BSC_NETWORK.equals(network)) {
       return "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd".toLowerCase();
+    }
+    return null;
+  }
+
+  public static String getFarmAddress(String network) {
+    if (ETH_NETWORK.equals(network)) {
+      return FARM_TOKEN;
+    } else if (BSC_NETWORK.equals(network)) {
+      return BSC_FARM_TOKEN;
     }
     return null;
   }

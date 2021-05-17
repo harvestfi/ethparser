@@ -13,6 +13,7 @@ import pro.belbix.ethparser.utils.download.TransferDownloader;
 import pro.belbix.ethparser.utils.download.UniswapLpDownloader;
 import pro.belbix.ethparser.utils.download.VaultActionsDownloader;
 import pro.belbix.ethparser.utils.recalculation.AddressFiller;
+import pro.belbix.ethparser.utils.recalculation.ContractUpdater;
 import pro.belbix.ethparser.utils.recalculation.DeployerRecalculation;
 import pro.belbix.ethparser.utils.recalculation.HardWorkRecalculate;
 import pro.belbix.ethparser.utils.recalculation.HarvestProfitRecalculate;
@@ -49,6 +50,7 @@ public class UtilsStarter {
   private final EthBlockDownloader ethBlockDownloader;
   private final AddressFiller addressFiller;
   private final DeployerRecalculation deployerRecalculation;
+  private final ContractUpdater contractUpdater;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -70,7 +72,8 @@ public class UtilsStarter {
       DeployerTransactionsDownloader deployerTransactionsDownloader,
       EthBlockDownloader ethBlockDownloader,
       AddressFiller addressFiller,
-      DeployerRecalculation deployerRecalculation) {
+      DeployerRecalculation deployerRecalculation,
+      ContractUpdater contractUpdater) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.vaultActionsDownloader = vaultActionsDownloader;
@@ -92,6 +95,7 @@ public class UtilsStarter {
     this.ethBlockDownloader = ethBlockDownloader;
     this.addressFiller = addressFiller;
     this.deployerRecalculation = deployerRecalculation;
+    this.contractUpdater = contractUpdater;
   }
 
   public void startUtils() {
@@ -136,6 +140,8 @@ public class UtilsStarter {
       addressFiller.start();
     }else if ("deployer-recalculation".equals(appProperties.getStartUtil())) {
       deployerRecalculation.start();
+    }else if ("contract-updater".equals(appProperties.getStartUtil())) {
+      contractUpdater.start();
     }
     log.info("Utils completed");
     System.exit(0);

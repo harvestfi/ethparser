@@ -32,7 +32,6 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
-import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -117,14 +116,13 @@ public class FunctionsUtils {
       return null;
     }
 
-    UniPairEntity uniPairEntity = contractDbService
-        .findLpByAddress(lpAddress, network)
-        .orElseThrow();
+    Tuple2<String, String> tokens = contractDbService.tokenAddressesByUniPairAddress(
+        lpAddress, network);
     BigInteger v1 = (BigInteger) types.get(0).getValue();
     BigInteger v2 = (BigInteger) types.get(1).getValue();
     return new Tuple2<>(
-        contractDbService.parseAmount(v1, uniPairEntity.getToken0().getAddress(), network),
-        contractDbService.parseAmount(v2, uniPairEntity.getToken1().getAddress(), network)
+        contractDbService.parseAmount(v1, tokens.component1(), network),
+        contractDbService.parseAmount(v2, tokens.component2(), network)
     );
   }
 

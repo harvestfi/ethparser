@@ -16,7 +16,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INV
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 
 import java.math.BigInteger;
@@ -146,7 +145,8 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     dto.setAutoStake(autoStake ? 1 : 0);
 
     double farmPrice =
-        priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
+        priceProvider.getPriceForCoin(
+            ContractUtils.getFarmAddress(network), dto.getBlock(), network);
     dto.setFarmPrice(farmPrice);
 
     for (Log ethLog : tr.getLogs()) {

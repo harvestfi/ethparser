@@ -4,11 +4,9 @@ import static java.util.Collections.singletonList;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
-import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 
 import java.math.BigInteger;
@@ -36,7 +34,6 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -172,7 +169,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
   private void fillPsTvlAndUsdValue(HarvestDTO dto, String vaultHash, String network) {
     String poolAddress = ContractUtils.getPsPool(vaultHash);
-    Double price = priceProvider.getPriceForCoin(FARM_TOKEN, dto.getBlock(), network);
+    Double price = priceProvider.getPriceForCoin(
+        ContractUtils.getFarmAddress(network), dto.getBlock(), network);
     double vaultBalance = contractDbService.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock(), network)
             .orElse(BigInteger.ZERO),
@@ -187,9 +185,10 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
   private double farmTotalAmount(long block, String network) {
     return contractDbService.parseAmount(
-        functionsUtils.callIntByName(TOTAL_SUPPLY, ContractConstants.FARM_TOKEN, block, network)
+        functionsUtils.callIntByName(TOTAL_SUPPLY,
+            ContractUtils.getFarmAddress(network), block, network)
             .orElse(BigInteger.ZERO),
-        ContractConstants.FARM_TOKEN, network)
+        ContractUtils.getFarmAddress(network), network)
         - BURNED_FARM;
   }
 
@@ -233,7 +232,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       harvestTx.setOwner(receipt.getFrom());
     } else {
       String poolAddress = contractDbService
-          .getPoolContractByVaultAddress(ethLog.getAddress(), network)
+          .getPoolContractByVaultAddress(
+              ethLog.getAddress(), ethLog.getBlockNumber().longValue(), network)
           .map(ContractEntity::getAddress)
           .orElse(""); // if we don't have a pool assume that it was migration
       if (isMigration(harvestTx, poolAddress, network)) {
@@ -254,7 +254,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     String newVaultHash = contractDbService
         .getAddressByName(newVault, ContractType.VAULT, network)
         .orElseThrow(() -> new IllegalStateException("Not found address by " + newVault));
-    String poolAddress = contractDbService.getPoolContractByVaultAddress(newVaultHash, network)
+    String poolAddress = contractDbService.getPoolContractByVaultAddress(
+        newVaultHash, dto.getBlock(), network)
         .orElseThrow(() -> new IllegalStateException("Not found pool for " + newVaultHash))
         .getAddress();
 
