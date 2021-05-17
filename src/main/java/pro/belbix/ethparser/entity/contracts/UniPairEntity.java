@@ -33,11 +33,6 @@ public class UniPairEntity {
     private ContractEntity contract;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "key_token")
-    @Fetch(FetchMode.JOIN)
-    private TokenEntity keyToken;
-
-    @ManyToOne(fetch = FetchType.EAGER)
     private ContractEntity token0;
 
     @ManyToOne(fetch = FetchType.EAGER)

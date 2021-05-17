@@ -5,17 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
+@ContextConfiguration
 public class PriceOracleTest {
 
     @Autowired
@@ -26,17 +23,21 @@ public class PriceOracleTest {
 
         double priceBAS = priceProvider.getPriceForCoin("BAS", 12015725, ETH_NETWORK);
         double priceWBTC = priceProvider.getPriceForCoin("WBTC", 12015725, ETH_NETWORK);
-        double priceWETH = priceProvider.getPriceForCoin("ETH", 12015725, ETH_NETWORK);
+        double priceWETH = priceProvider.getPriceForCoin("WETH", 12015725, ETH_NETWORK);
         double priceUSDC = priceProvider.getPriceForCoin("USDC", 12015725, ETH_NETWORK);
         double priceUSDT = priceProvider.getPriceForCoin("USDT", 12015725, ETH_NETWORK);
         double priceSUSHI_LP_ETH_WBTC = priceProvider
             .getLpTokenUsdPrice("0xceff51756c56ceffca006cd410b03ffc46dd3a58", 1, 12015725,
                 ETH_NETWORK);
-        double priceCRV_EURS = priceProvider.getPriceForCoin("CRV_EURS", 12015725, ETH_NETWORK);
-        double priceMGOOGL = priceProvider.getPriceForCoin("MGOOGL", 12015725, ETH_NETWORK);
+        double priceCRV_EURS = priceProvider.getPriceForCoin(
+            "0x194eBd173F6cDacE046C53eACcE9B953F28411d1", 12015725, ETH_NETWORK);
+        double priceMGOOGL = priceProvider
+            .getPriceForCoin("0x59A921Db27Dd6d4d974745B7FfC5c33932653442", 12015725, ETH_NETWORK);
         double priceFARM = priceProvider.getPriceForCoin("FARM", 12015725, ETH_NETWORK);
-        double priceRENBTC = priceProvider.getPriceForCoin("RENBTC", 12015725, ETH_NETWORK);
-        double price3CRV = priceProvider.getPriceForCoin("3CRV", 12015725, ETH_NETWORK);
+        double priceRENBTC = priceProvider
+            .getPriceForCoin("0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D", 12015725, ETH_NETWORK);
+        double price3CRV = priceProvider
+            .getPriceForCoin("0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490", 12015725, ETH_NETWORK);
 
         assertAll(
             () -> assertEquals("priceBAS", numberFormat("0,46139880"),

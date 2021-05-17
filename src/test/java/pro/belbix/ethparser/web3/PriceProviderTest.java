@@ -23,15 +23,15 @@ public class PriceProviderTest {
   public void getLpPositionAmountInUsdWithNonNullBlockTest() {
     double amountUsd =
             priceProvider.getLpTokenUsdPrice(
-                "0xcd7989894bc033581532d2cd88da5db0a4b12859",
-                0.00000630081174343, 11387098L, ETH_NETWORK);
-    assertEquals(numberFormat("437,96"), String.format("%.2f", amountUsd));
+                "0xc3d03e4f041fd4cd388c549ee2a29a9e5075882f",
+                1, 12100000L, ETH_NETWORK);
+    assertEquals(numberFormat("100.89"), String.format("%.2f", amountUsd));
     }
 
     @Test
     public void priceForBAS() {
-        double price = priceProvider.getPriceForCoin("BAS", 11619379L, ETH_NETWORK);
-      assertEquals(numberFormat("142.91"), String.format("%.2f", price));
+        double price = priceProvider.getPriceForCoin("BAS", 12100000L, ETH_NETWORK);
+      assertEquals(numberFormat("0.79"), String.format("%.2f", price));
     }
 
   @Test

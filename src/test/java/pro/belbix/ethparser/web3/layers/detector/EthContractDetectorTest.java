@@ -77,14 +77,21 @@ class EthContractDetectorTest {
             "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
             "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc".toLowerCase(),
-            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
-            "0x3da1313ae46132a397d90d95b1424a9a7e3e0fce".toLowerCase(),
             "0xd533a949740bb3306d119cc777fa900ba034cd52".toLowerCase(),
+            "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e".toLowerCase(),
+            "0xc5be99a02c6857f9eac67bbce58df5572498f40c".toLowerCase(),
+            "0xf80758ab42c3b07da84053fd88804bcb6baa4b5c".toLowerCase(),
+            "0x57ab1ec28d129707052df4df418d58a2d46d5f51".toLowerCase(),
+            "0xc139d8450177c0b8c3788608518687b585f7ae5a".toLowerCase(),
+            "0xb8baa0e4287890a5f79863ab62b7f175cecbd433".toLowerCase(),
+            "0xd7b7d3c0bda57723fb54ab95fd8f9ea033af37f2".toLowerCase(),
+            "0xbe9ba93515e87c7bd3a0cebb9f61aaabe7a77dd3".toLowerCase(),
+            "0xce84867c3c02b05dc570d0135103d3fb9cc19433".toLowerCase(),
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
     assertEvents(events, ContractEventAssertion.builder()
-        .eventSize(14)
+        .eventSize(21)
         .eventContractAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
         .txSize(15)
         .txAddress("0xf9fba9a4ed29d8dfc8895737e62f71957abcfb64f503864fc5f68230efa33abf")
@@ -126,7 +133,7 @@ class EthContractDetectorTest {
             "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(),
             "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852".toLowerCase(),
             "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase(),
-            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0xb20bd5d04be54f870d5c0d3ca85d82b34b836405".toLowerCase(),
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
 
@@ -169,7 +176,7 @@ class EthContractDetectorTest {
             "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2".toLowerCase(),
             "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase(),
             "0x274aa8b58e8c57c4e347c8768ed853eb6d375b48".toLowerCase(),
-            "0xa2107fa5b38d9bbd2c461d6edf11b11a50f6b974".toLowerCase(),
+            "0xb20bd5d04be54f870d5c0d3ca85d82b34b836405".toLowerCase(),
             "0x514910771af9ca656af840dff83e8264ecf986ca".toLowerCase()
         )));
   }

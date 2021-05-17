@@ -193,6 +193,7 @@ select
        link.id,
        token_contract.network,
        token_contract.name,
+       token_contract.address,
        lp_contract.name,
        link.block_start
 from eth_token_to_uni_pair link
@@ -200,10 +201,25 @@ from eth_token_to_uni_pair link
          left join eth_contracts token_contract on token_contract.id = token.contract
          left join eth_uni_pairs lp on lp.id = link.uni_pair_id
          left join eth_contracts lp_contract on lp_contract.id = lp.contract
--- where  token_contract.address = '0x6b175474e89094c44da98b954eedeac495271d0f'
+-- where  lower(token_contract.address) =
+--        lower('0xedb0414627e6f1e3f082de65cd4f9c693d78cca9')
+order by token_contract.name, link.block_start
 ;
 
 -- lps
-select lp_contract.name, lp_contract.address
+select lp_contract.name,
+       lp_contract.address,
+       eth_uni_pairs.token0_id,
+       eth_uni_pairs.token1_id,
+       et.symbol
 from eth_uni_pairs
-left join eth_contracts lp_contract on eth_uni_pairs.contract = lp_contract.id
+join eth_contracts lp_contract on eth_uni_pairs.contract = lp_contract.id
+left join eth_tokens et on eth_uni_pairs.key_token = et.id
+-- where lower(lp_contract.address) = lower('0x4a9596e5d2f9bef50e4de092ad7181ae3c40353e')
+;
+
+-- pools
+select ec.name, reward_ec.name
+from eth_pools pool
+left join eth_contracts ec on ec.id = pool.contract
+left join eth_contracts reward_ec on reward_ec.id = pool.reward_token;
