@@ -2,7 +2,7 @@ namespace: stage
 nameOverride: "ethparser-hv3"
 
 image:
-  tag: "master-6ed7d08c1cec2c8f415d584d4f9bf138109f52d4"
+  tag: "master-ad7377b975c99a0e20c9ac17f6d35dfbbac4bd7a"
 
 javaArgs: "-Xmx1000m -Xms1000m"
 
