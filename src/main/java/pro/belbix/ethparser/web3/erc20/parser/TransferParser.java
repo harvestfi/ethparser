@@ -19,7 +19,7 @@ import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
@@ -75,7 +75,7 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
   }
 
   public TransferDTO parse(Log ethLog, String network) {
-    if (ethLog == null || !ContractConstants.FARM_TOKEN.equals(ethLog.getAddress())) {
+    if (ethLog == null || !ContractUtils.isFarmAddress(ethLog.getAddress())) {
       return null;
     }
 
