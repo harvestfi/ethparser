@@ -55,11 +55,10 @@ public class PriceControllerTest {
 
     @ParameterizedTest(name = "{index} => name={0}, address={1}")
     @CsvSource({
-            "UNI_LP_GUSD_ETH, 0x61247d8aca1c485a50728e1336d9b26c8339e701",
             "UNI_LP_DAI_BSG, 0x4a9596e5d2f9bef50e4de092ad7181ae3c40353e",
             "UNI_LP_BASv2_DAI, 0x3e78f2e7dade07ea685f8612f00477fd97162f1e",
             "UNI_LP_DAI_BSGS, 0x980a07e4f64d21a0cb2ef8d4af362a79b9f5c0da",
-            "UNI_LP_MAAPL_UST, 0xb022e08adc8ba2de6ba4fecb59c6d502f66e953b",
+            "UNI_LP_UST_mAAPL, 0xb022e08adc8ba2de6ba4fecb59c6d502f66e953b",
     })
     public void priceLPUnsupportedLP(String name, String address) throws Exception {
         String expectedResult = String.format("%.8f",
@@ -84,7 +83,15 @@ public class PriceControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ETH", "USDT", "DAI", "USDC", "ONEINCH", "RENBTC", "WBTC",})
+    @ValueSource(strings = {
+        "WETH",
+        "USDT",
+        "DAI",
+        "USDC",
+        "1INCH",
+        "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D",
+        "WBTC",
+    })
     public void priceTokenName(String token) throws Exception {
         String expectedResult = String.format("%.8f",
                 priceProvider.getPriceForCoin(token, 12393771, ETH_NETWORK)

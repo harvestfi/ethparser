@@ -1,28 +1,18 @@
 package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -36,8 +26,8 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @Log4j2
 public class PriceProvider {
 
+  private static final boolean CHECK_BLOCK_CREATED = false;
   private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
-  private final Pageable limitOne = PageRequest.of(0, 1);
 
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
@@ -141,7 +131,8 @@ public class PriceProvider {
   }
 
   private void updateUSDPrice(String address, long block, String network) {
-    if (contractDbService.getContractByAddress(address, network)
+    if (CHECK_BLOCK_CREATED
+        && contractDbService.getContractByAddress(address, network)
         .filter(c -> c.getCreated() < block)
         .isEmpty()) {
       savePrice(0.0, address, block);
@@ -170,12 +161,15 @@ public class PriceProvider {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
     log.debug("Oracle not deployed yet, use direct calculation for prices");
-    return getPriceForCoinFromEthLegacy(address, block, network, 0);
+    return getPriceForCoinFromEthLegacy(address, block, network, new HashSet<>());
   }
 
   //for compatibility with CRV prices without oracle
-  private double getPriceForCoinFromEthLegacy(String address, Long block, String network,
-      int deep) {
+  private double getPriceForCoinFromEthLegacy(
+      String address,
+      Long block,
+      String network,
+      Set<String> handled) {
     if (ContractUtils.isStableCoin(address)) {
       return 1.0;
     }
@@ -184,15 +178,16 @@ public class PriceProvider {
       address = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
     }
 
-    if (deep > 5) {
-      log.error("Recursive price detected! {} {}", address, network);
+    if (handled.contains(address)) {
+      log.error("Recursive price detected! {} {} {}", address, network, handled);
       return 0;
     }
+    handled.add(address);
 
     // if we don't have contract in DB use it anyway
     ContractEntity c = contractDbService.getContractByAddress(address, network)
         .orElse(null);
-    if (c != null && c.getCreated() > block) {
+    if (CHECK_BLOCK_CREATED && c != null && c.getCreated() > block) {
       return 0.0;
     }
     String lpHash = contractDbService
@@ -202,19 +197,14 @@ public class PriceProvider {
 
     if (lpHash == null) {
       try {
-        String curveUnderlying = curveUnderlying(address, block, network);
+        String curveUnderlying = curveUnderlying(address, network);
         if (curveUnderlying != null) {
-          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, deep + 1);
+          return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, handled);
         }
       } catch (Exception ignore) {
       }
-
-      String similarToken = tryToFindSimilarToken(address, block, network);
-      if (Strings.isBlank(similarToken)) {
-        log.error("Not found similar token for {}, use 1$ price", address);
-        return 1;
-      }
-      return getPriceForCoinFromEthLegacy(similarToken, block, network, deep + 1);
+      log.error("Not found lp for {}", address);
+      return 0;
     }
 
     Tuple2<Double, Double> reserves = functionsUtils
@@ -240,7 +230,7 @@ public class PriceProvider {
     } else {
       throw new IllegalStateException("Not found token in lp pair");
     }
-    price *= getPriceForCoinFromEthLegacy(otherTokenAddress, block, network, deep + 1);
+    price *= getPriceForCoinFromEthLegacy(otherTokenAddress, block, network, handled);
     if (Double.isNaN(price) || Double.isInfinite(price)) {
       price = 0.0;
     }
@@ -248,56 +238,10 @@ public class PriceProvider {
     return price;
   }
 
-  //todo replace to Curve/Ellipses token determination
-  private String tryToFindSimilarToken(String address, Long block, String network) {
-    String tokenName = functionsUtils.callStrByName(NAME, address, block, network)
-        .orElse("").toUpperCase();
-    if (tokenName.contains("CURVE")) {
-      try {
-        String curveUnderlyingToken = curveUnderlying(address, block, network);
-        if (curveUnderlyingToken != null) {
-          return curveUnderlyingToken;
-        }
-      } catch (ClassNotFoundException | IOException ignored) {
-      }
-    }
-    if (tokenName.contains("BTC")) {
-      return ContractUtils.getBtcAddress(network);
-    } else if (tokenName.contains("ETH")) {
-      return ContractUtils.getEthAddress(network);
-    } else if (
-        tokenName.contains("USD")
-            || tokenName.contains("UST")
-            || tokenName.contains("DAI")
-    ) {
-      return ContractUtils.getUsdAddress(network);
-    } else if (tokenName.contains("EUR")) {
-      return ContractUtils.getEurAddress(network);
-    } else if (tokenName.contains("LINK")) {
-      return ContractUtils.getLinkAddress(network);
-    }
-    return "";
-  }
-
-  private String curveUnderlying(String address, Long block, String network)
-      throws ClassNotFoundException, IOException {
-    String minterAddress = functionsUtils.callAddressByName(MINTER, address, block, network)
+  private String curveUnderlying(String address, String network) {
+    return contractDbService.getContractByAddress(address, network)
+        .map(ContractEntity::getUnderlying)
         .orElse(null);
-    if (minterAddress == null) {
-      return null;
-    }
-    //noinspection unchecked
-    String coinRaw = functionsUtils.callViewFunction(new Function(
-            COINS,
-            List.of(new Uint256(0)),
-            List.of(TypeReference.makeTypeReference("address"))
-        ),
-        minterAddress, block, network).orElse(null);
-    if (coinRaw == null) {
-      return null;
-    }
-    return (String) ObjectMapperFactory.getObjectMapper().readValue(coinRaw, List.class)
-        .get(0);
   }
 
   private boolean hasFreshPrice(String address, long block) {

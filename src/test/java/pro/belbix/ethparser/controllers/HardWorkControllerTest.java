@@ -52,7 +52,11 @@ public class HardWorkControllerTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"WBTC", "USDC", "CRV_HUSD"})
+  @ValueSource(strings = {
+      "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB",
+      "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+      "0x29780C39164Ebbd62e9DDDE50c151810070140f2"
+  })
   public void historyHardwork(String vault) throws Exception {
     String expectedResult = objectMapper.writeValueAsString(
         hardWorkRepository.findAllByVaultOrderByBlockDate(

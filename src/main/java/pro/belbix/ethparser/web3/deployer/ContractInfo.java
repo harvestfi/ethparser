@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.PlatformType;
+import pro.belbix.ethparser.web3.deployer.transform.PlatformType;
 
 @Data
 public class ContractInfo {

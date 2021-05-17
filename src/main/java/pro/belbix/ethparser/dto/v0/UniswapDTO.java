@@ -50,17 +50,6 @@ public class UniswapDTO implements DtoI {
   private Double ownerBalance;
   private Double ownerBalanceUsd;
 
-  public void setPrice(double price) {
-    double fee = (price * 0.003);
-    if (isBuy()) {
-      lastPrice = price - fee;
-    } else if (isSell()) {
-      lastPrice = price + fee;
-    } else {
-      lastPrice = price;
-    }
-  }
-
   public boolean isBuy() {
     return "BUY".equals(type);
   }

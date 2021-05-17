@@ -53,7 +53,7 @@ public class DoHardWorkEthTest {
         HardWorkDTO dto = assertOnBlock(
             10772976,
             "0xc1b16dd8552046d08237d48d243f79308d1069b9f7c52ecf69088398f9dd673e_251",
-            "USDC_V0",
+            "USDC",
             "-0.000405",
             "0.000000",
             "0.000000"
@@ -71,7 +71,7 @@ public class DoHardWorkEthTest {
         HardWorkDTO dto = assertOnBlock(
             12064923,
             "0x1ce56c85fee98049f2c957b38b72a51925434771303843fc0b0212a4c1ccd0a1_164",
-            "SUSHI_ETH_DAI",
+            "SUSHI_DAI_WETH",
             "0.000894",
             "15589.709554",
             "30.101816"
@@ -91,7 +91,7 @@ public class DoHardWorkEthTest {
             "0x0c9c9faabb9db06667ee0f3f59703e6aec0ee099dea466bd84770d6e13149e7b_40",
             "SUSHI_MIC_USDT",
             "0,000000",
-            "17800.133375",
+            "17832.184223",
             "81,694899"
         );
     }
@@ -101,9 +101,9 @@ public class DoHardWorkEthTest {
         HardWorkDTO dto = assertOnBlock(
             11698881,
             "0x640b6f13a78e17860e4bd0a111a0d1fe7d31cc73554c48963d3e5ae5aa0287ff_214",
-            "DAI_BSGS",
+            "UNI_DAI_BSGS_#V1",
             "0,000000",
-            "2696,891131",
+            "2691.253017",
             "7,188446"
         );
         assertNotNull(dto);
@@ -130,7 +130,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11299287,
             "0xfaff1b27f5f17252bea0a2a1cc452f282fc644ec8ccfa963941f2c83ce6414aa_207",
-            "SUSHI_ETH_USDC",
+            "SUSHI_USDC_WETH",
             "0,000073",
             "4278,343750",
             "10,740319"
@@ -142,7 +142,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11490124,
             "0xb63ea164db21279e9b4a09975ca5e3313cf897cf7118e733ca81708719c87b91_190",
-            "USDC",
+            "USDC_#V1",
             "0,000097",
             "6628,467329",
             "16,849470"
@@ -154,9 +154,9 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11687882,
             "0x25aed6e95e2ebb3bd66ca906bcb59cb762a286a273c1ce67052701697e4b2bc5_114",
-            "YCRV",
+            "CRV_yDAI_yUSDC_yUSDT_yTUSD_#V1",
             "0,000265",
-            "12574,560831",
+            "12595.547158",
             "32,585083"
         );
     }
@@ -166,9 +166,9 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11724037,
             "0x054b92d6bc7e846f40a4aea5a99f3ba77941be41107fad9a72e14d68a407148f_79",
-            "DAI_BSGS",
+            "UNI_DAI_BSGS_#V1",
             "0,000000",
-            "3673,968759",
+            "3678.432476",
             "8,454189"
         );
     }
@@ -178,7 +178,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11425987,
             "0xcaf98b04b4d779899e29d36833fc52955b2c887d62bd4b4c277abd998b4e355f_138",
-            "SUSHI_ETH_USDC",
+            "SUSHI_USDC_WETH",
             "0,000271",
             "16811,047116",
             "49,378887"
@@ -190,7 +190,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             11058343,
             "0x4a51db032f01770824b42f70d503f013a9a842cb4041836556bfe17aec185d03_159",
-            "UNI_ETH_DAI",
+            "UNI_DAI_WETH_#V1",
             "0,000000",
             "10017,482955",
             "2,804286"
@@ -202,7 +202,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             12149939,
             "0xfdcaaf8e5aeac3a97d4fdda8c5779ab6fa6ad178c2d5350f5c85ec7886b8be4f_94",
-            "DUDES20_ETH",
+            "UNI_DUDES20_WETH",
             "0,010783",
             "7698,248019",
             "16,798303"
@@ -214,7 +214,7 @@ public class DoHardWorkEthTest {
         assertOnBlock(
             12130332,
             "0x2462bc51b117c3b50e9e051e35a885e582737567e899c84ce6af98b16b51f217_44",
-            "MNFLX_UST",
+            "UNI_UST_mNFLX",
             "0,000000",
             "4552.389815",
             "17.223407"

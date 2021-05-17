@@ -8,7 +8,6 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
-import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +17,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractType;
-import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
-import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum;
-import pro.belbix.ethparser.web3.deployer.parser.DeployerEventToContractTransformer;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 
 @SpringBootTest(classes = Application.class)

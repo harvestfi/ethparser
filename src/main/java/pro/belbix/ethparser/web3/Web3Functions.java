@@ -305,8 +305,10 @@ public class Web3Functions {
         return null;
       }
       if (ethCall.getError() != null) {
-        log.warn("{} callFunction callback is error: {}",
-            function.getName(), ethCall.getError().getMessage());
+        if(!"execution reverted".equals(ethCall.getError().getMessage())) {
+          log.warn("{} callFunction callback is error: {}",
+              function.getName(), ethCall.getError().getMessage());
+        }
         if ("execution aborted (timeout = 5s)".equals(ethCall.getError().getMessage())) {
           return null;
         }

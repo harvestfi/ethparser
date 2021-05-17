@@ -228,7 +228,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "t.usdAmount >= :minAmount "
         + "and t.network = :network")
     Page<HarvestDTO> fetchPages(
-        @Param("minAmount") double minAmount,
+        @Param("minAmount") long minAmount,
         @Param("network") String network,
         Pageable pageable);
 

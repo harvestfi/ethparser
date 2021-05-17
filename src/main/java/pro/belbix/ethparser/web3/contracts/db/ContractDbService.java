@@ -89,22 +89,51 @@ public class ContractDbService {
         .map(ContractEntity::getAddress);
   }
 
-  public Optional<ContractEntity> getPoolContractByVaultAddress(String address, String network) {
+  public Optional<ContractEntity> getPoolContractByVaultAddress(
+      String address,
+      long block,
+      String network) {
     List<ContractEntity> pools =
         contractRepository.findPoolsByVaultAddress(address.toLowerCase(), network);
     if (pools == null || pools.isEmpty()) {
       return Optional.empty();
     }
-    return Optional.ofNullable(pools.get(0));
+    ContractEntity result = null;
+    for (ContractEntity pool : pools) {
+      if (pool.getCreated() > block) {
+        continue;
+      }
+      if (result == null || result.getCreated() < pool.getCreated()) {
+        result = pool;
+      }
+    }
+    return Optional.ofNullable(result);
   }
 
   public Tuple2<String, String> tokenAddressesByUniPairAddress(String address, String network) {
     UniPairEntity uniPair = Optional.ofNullable(uniPairRepository
         .findFirstByAddress(address.toLowerCase(), network))
         .orElseThrow(() -> new IllegalStateException("Not found uni pair by " + address));
+    ContractEntity token0 = uniPair.getToken0();
+    ContractEntity token1 = uniPair.getToken1();
+
+    // mooniswap contract has ETH/BSC as underlying
+    if (token0 == null) {
+      token0 = getBaseContractForNetwork(network)
+          .orElseThrow(
+              () -> new IllegalStateException("Not found base token for " + network)
+          );
+    }
+    if (token1 == null) {
+      token1 = getBaseContractForNetwork(network)
+          .orElseThrow(
+              () -> new IllegalStateException("Not found base token for " + network)
+          );
+    }
+
     return new Tuple2<>(
-        getBaseAddressInsteadOfZero(uniPair.getToken0().getAddress(), network),
-        getBaseAddressInsteadOfZero(uniPair.getToken1().getAddress(), network)
+        getBaseAddressInsteadOfZero(token0.getAddress(), network),
+        getBaseAddressInsteadOfZero(token1.getAddress(), network)
     );
   }
 
@@ -182,6 +211,39 @@ public class ContractDbService {
     return Optional.ofNullable(result);
   }
 
+  public Optional<TokenToUniPairEntity> findTokenByPair(
+      String lpAddress,
+      long block,
+      String network) {
+    List<TokenToUniPairEntity> pairs = tokenToUniPairRepository
+        .findByUniPair(lpAddress.toLowerCase(), network);
+    if (pairs == null || pairs.isEmpty()) {
+      return Optional.empty();
+    }
+    TokenToUniPairEntity result = null;
+    for (TokenToUniPairEntity pair : pairs) {
+      if (pair.getBlockStart() > block) {
+        continue;
+      }
+      if (result == null || result.getBlockStart() < pair.getBlockStart()) {
+        result = pair;
+      }
+    }
+    return Optional.ofNullable(result);
+  }
+
+  public Optional<String> findKeyTokenViaLinkForLp(
+      String lpAddress,
+      long block,
+      String network
+  ) {
+    return findTokenByPair(
+        lpAddress, block, network)
+        .map(TokenToUniPairEntity::getToken)
+        .map(TokenEntity::getContract)
+        .map(ContractEntity::getAddress);
+  }
+
   public List<VaultEntity> getAllVaults(String network) {
     return vaultRepository.fetchAllByNetwork(network);
   }
@@ -215,6 +277,11 @@ public class ContractDbService {
             .collect(Collectors.toList())
     );
     return new ArrayList<>(contracts);
+  }
+
+  public Optional<ContractEntity> getBaseContractForNetwork(String network) {
+    return getContractByAddress(
+        ContractUtils.getBaseNetworkWrappedTokenAddress(network), network);
   }
 
 }

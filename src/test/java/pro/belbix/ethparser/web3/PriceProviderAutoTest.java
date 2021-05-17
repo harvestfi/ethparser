@@ -59,6 +59,12 @@ public class PriceProviderAutoTest {
       "DSD",
       "ESD",
       "BSGS",
+      "?",
+      "aDAI",
+      "UNKNOWN",
+      "yDAI+yUSDC+yUSDT+yTUSD",
+      "cDAI+cUSDC",
+      "yDAI+yUSDC+yUSDT+yBUSD",
       "BSG"
   );
 

@@ -30,10 +30,14 @@ spring:
       classpath:sql/common.sql,
       classpath:sql/hardwork.sql,
       classpath:sql/harvest.sql,
-      classpath:sql/contracts.sql,
-      classpath:sql/uni_price_view.sql,
       classpath:sql/vault_actions_view.sql,
-      classpath:sql/functions.sql
+      classpath:sql/functions.sql,
+      classpath:sql/1_eth_contracts.sql,
+      classpath:sql/2_eth_tokens.sql,
+      classpath:sql/3_eth_vaults.sql,
+      classpath:sql/4_eth_pools.sql,
+      classpath:sql/5_eth_uni_pairs.sql,
+      classpath:sql/6_eth_token_to_uni_pair.sql
 
     initialization-mode: always
     generate-unique-name: true
