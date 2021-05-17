@@ -1,0 +1,24 @@
+namespace: stage
+nameOverride: "ethparser-hv3"
+
+image:
+  tag: "master-6ed7d08c1cec2c8f415d584d4f9bf138109f52d4"
+
+javaArgs: "-Xmx1000m -Xms1000m"
+
+# job = use with stopOnParseError (restartPolicy: Never)
+# deployment = default
+type: job
+
+ethparser: |-
+  networks: eth, bsc
+  stopOnParseError: true
+  eth:
+    web3Url: ${ETH_WEB3URL}
+    abiProviderKey: ${ETH_ABI_PROVIDER_KEY}
+    parsePrices: false
+  bsc:
+    web3-url: ${BSC_WEB3URL}
+    abiProviderKey: ${BSC_ABI_PROVIDER_KEY}
+    parsePrices: false
+

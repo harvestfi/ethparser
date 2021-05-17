@@ -1,7 +1,37 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: application-{{ .Chart.Name }}
+  name: application-{{ include "ethparser.name" . }}
   namespace: {{ .Values.namespace }}
 data:
-  {{ tpl (.Files.Get "values/application.yaml") . | nindent 2 }}
+  application.yml: |-
+    spring:
+      jpa:
+        #    open-in-view: true
+        database: postgresql
+        #    show-sql: true
+        hibernate:
+          ddl-auto: update
+        properties.hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          jdbc.lob.non_contextual_creation: true
+
+      datasource:
+        platform: postgresql
+        url: ${DB_URL}
+        username: ${$DB_USER}
+        password: ${DB_PASSWORD}
+        driver-class-name: org.postgresql.Driver
+        hikari:
+          maximum-pool-size: 3
+
+    server:
+      port: 8080
+
+    management:
+      server:
+        port: 9090
+
+    ethparser:
+      {{- tpl .Values.ethparser . | nindent 6 }}
+ 

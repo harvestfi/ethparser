@@ -83,3 +83,7 @@ tolerations: []
 affinity: {}
 
 javaArgs: ""
+
+# job = use with stopOnParseError (restartPolicy: Never)
+# deployment = default
+type: deployment
