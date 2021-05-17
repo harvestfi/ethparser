@@ -19,6 +19,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractType.INFRASTRUCTURE;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -59,7 +60,6 @@ public class ContractLoader {
   private final UniPairRepository uniPairRepository;
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
-  private final SourceResolver sourceResolver;
   private final ContractDbService contractDbService;
 
   public ContractLoader(AppProperties appProperties,
@@ -70,7 +70,6 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      SourceResolver sourceResolver,
       ContractDbService contractDbService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
@@ -80,25 +79,7 @@ public class ContractLoader {
     this.uniPairRepository = uniPairRepository;
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
-    this.sourceResolver = sourceResolver;
     this.contractDbService = contractDbService;
-  }
-
-  private void loadNetwork(String network, long block) {
-    loadVaults(network, block);
-    loadPools(network, block);
-    loadTokens(network, block);
-    loadUniPairs(network, block);
-    linkUniPairsToTokens(network, block);
-  }
-
-  private void loadTokens(String network, long block) {
-    for (TokenContract contract : sourceResolver.getTokens(network)) {
-      if (contract.getCreatedOnBlock() > block) {
-        log.info("Token not created yet, skip {}", contract.getName());
-      }
-      loadToken(contract, network, block);
-    }
   }
 
   public void loadToken(TokenContract contract, String network, long block) {
@@ -126,17 +107,6 @@ public class ContractLoader {
     }
   }
 
-  private void loadVaults(String network, long block) {
-    log.info("Start load vaults on block {}", block);
-    for (SimpleContract vault : sourceResolver.getVaults(network)) {
-      if (vault.getCreatedOnBlock() > block) {
-        log.info("Vault {} not created yet, skip", vault.getName());
-        continue;
-      }
-      loadVault(vault, network, block);
-    }
-  }
-
   public void loadVault(SimpleContract vault, String network, long block) {
     log.debug("Load {}", vault.getName());
     ContractEntity vaultContract =
@@ -157,17 +127,6 @@ public class ContractLoader {
     } else if (appProperties.isUpdateContracts()) {
       enrichVault(vaultEntity, block, network);
       vaultRepository.save(vaultEntity);
-    }
-  }
-
-  private void loadPools(String network, long block) {
-    log.info("Start load pools on block {}", block);
-    for (SimpleContract pool : sourceResolver.getPools(network)) {
-      if (pool.getCreatedOnBlock() > block) {
-        log.info("Pool {} not created yet, skip", pool.getName());
-        continue;
-      }
-      loadPool(pool, network, block);
     }
   }
 
@@ -196,13 +155,6 @@ public class ContractLoader {
 
   }
 
-  private void loadUniPairs(String network, long block) {
-    log.info("Start load uni pairs on block {}", block);
-    for (LpContract uniPair : sourceResolver.getLps(network)) {
-      loadUniPair(uniPair, network, block);
-    }
-  }
-
   /**
    * Load AFTER key token creation
    */
@@ -226,8 +178,6 @@ public class ContractLoader {
       enrichUniPair(uniPairEntity, block, network);
       uniPairRepository.save(uniPairEntity);
     }
-
-    keyTokenForLps(uniPair, network, block);
   }
 
   private void enrichToken(TokenEntity tokenEntity, long block, String network) {
@@ -254,7 +204,7 @@ public class ContractLoader {
     vaultEntity.setController(findOrCreateContract(
         functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -262,7 +212,7 @@ public class ContractLoader {
     vaultEntity.setGovernance(findOrCreateContract(
         functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -277,7 +227,7 @@ public class ContractLoader {
     vaultEntity.setStrategy(findOrCreateContract(
         functionsUtils.callAddressByName(STRATEGY, address, block, network).orElse(""),
         AddressType.UNKNOWN_STRATEGY.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -285,7 +235,7 @@ public class ContractLoader {
     vaultEntity.setUnderlying(findOrCreateContract(
         functionsUtils.callAddressByName(UNDERLYING, address, block, network).orElse(""),
         AddressType.UNKNOWN_UNDERLYING.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -310,7 +260,7 @@ public class ContractLoader {
     poolEntity.setController(findOrCreateContract(
         functionsUtils.callAddressByName(CONTROLLER, address, block, network).orElse(""),
         AddressType.CONTROLLER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -318,7 +268,7 @@ public class ContractLoader {
     poolEntity.setGovernance(findOrCreateContract(
         functionsUtils.callAddressByName(GOVERNANCE, address, block, network).orElse(""),
         AddressType.GOVERNANCE.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -326,7 +276,7 @@ public class ContractLoader {
     poolEntity.setOwner(findOrCreateContract(
         functionsUtils.callAddressByName(OWNER, address, block, network).orElse(""),
         AddressType.OWNER.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -334,7 +284,7 @@ public class ContractLoader {
     poolEntity.setLpToken(findOrCreateContract(
         functionsUtils.callAddressByName(LP_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_POOL_LP.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -342,7 +292,7 @@ public class ContractLoader {
     poolEntity.setRewardToken(findOrCreateContract(
         functionsUtils.callAddressByName(REWARD_TOKEN, address, block, network).orElse(""),
         AddressType.UNKNOWN_REWARD_TOKEN.name(),
-        ContractType.INFRASTRUCTURE.getId(),
+        INFRASTRUCTURE.getId(),
         0,
         false,
         network
@@ -358,8 +308,22 @@ public class ContractLoader {
     uniPairEntity.setDecimals(
         functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
             .orElse(BigInteger.ZERO).longValue());
+
+    String token0Adr = functionsUtils.callAddressByName(TOKEN0, address, block, network)
+        .orElse(null);
+    String token1Adr = functionsUtils.callAddressByName(TOKEN1, address, block, network)
+        .orElse(null);
+
+    if (token0Adr == null) {
+      token0Adr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
+
+    if (token1Adr == null) {
+      token1Adr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
+    }
+
     uniPairEntity.setToken0(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN0, address, block, network).orElse(""),
+        token0Adr,
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -367,7 +331,7 @@ public class ContractLoader {
         network
     ));
     uniPairEntity.setToken1(findOrCreateContract(
-        functionsUtils.callAddressByName(TOKEN1, address, block, network).orElse(""),
+        token1Adr,
         AddressType.UNKNOWN_TOKEN.name(),
         ContractType.TOKEN.getId(),
         0,
@@ -405,41 +369,6 @@ public class ContractLoader {
       }
     }
     return type;
-  }
-
-  private void keyTokenForLps(LpContract lpContract, String network, long block) {
-
-    String keyTokenAddressOrName = lpContract.getKeyToken();
-    if (Strings.isBlank(keyTokenAddressOrName)) {
-      return;
-    }
-    TokenEntity tokenEntity;
-    if (keyTokenAddressOrName.startsWith("0x")) {
-      tokenEntity = tokenRepository.findFirstByAddress(keyTokenAddressOrName, network);
-    } else {
-      tokenEntity = tokenRepository.findFirstByName(keyTokenAddressOrName, network);
-    }
-    if (tokenEntity == null) {
-      log.warn("Not found token for " + keyTokenAddressOrName);
-      return;
-    }
-
-    UniPairEntity uniPairEntity = uniPairRepository
-        .findFirstByAddress(lpContract.getAddress(), network);
-    if (uniPairEntity.getKeyToken() == null ||
-        !tokenEntity.getContract().getAddress()
-            .equals(uniPairEntity.getKeyToken().getContract().getAddress())) {
-      uniPairEntity.setKeyToken(tokenEntity);
-      uniPairRepository.save(uniPairEntity);
-    }
-
-  }
-
-  private void linkUniPairsToTokens(String network, long block) {
-    log.info("Start link UniPairs to Tokens on block {}", block);
-    for (TokenContract tokenContract : sourceResolver.getTokens(network)) {
-      linkUniPairsToToken(tokenContract, network);
-    }
   }
 
   /**
@@ -529,7 +458,7 @@ public class ContractLoader {
     return findOrCreateContract(address, name, type, created, rewrite, network, retry, null);
   }
 
-  private ContractEntity findOrCreateContract(String address,
+  ContractEntity findOrCreateContract(String address,
       String name,
       int type,
       long created,
@@ -551,35 +480,43 @@ public class ContractLoader {
       name = "UNKNOWN";
     }
 
+    ContractEntity contractWithTheSameName =
+        contractDbService.getContractByNameAndType(
+            name, ContractType.valueOfId(type), network)
+            .orElse(null);
+    if (!name.startsWith("UNKNOWN") &&
+        (contractWithTheSameName != null
+            && !contractWithTheSameName.getAddress().equalsIgnoreCase(address))) {
+      log.info("Not unique name for {} {}", name, address);
+      retry++;
+
+      return findOrCreateContract(
+          address, cleanName(name) + "_#V" + retry,
+          type, created, rewrite, network, retry, underlying);
+    }
+
     if (entity == null) {
-      if (!name.startsWith("UNKNOWN") &&
-          contractDbService.getContractByNameAndType(
-              name, ContractType.valueOfId(type), network).isPresent()) {
-        log.info("Not unique name for {} {}", name, address);
-        retry++;
-
-        return findOrCreateContract(
-            address, cleanName(name) + "_#V" + retry,
-            type, created, rewrite, network, retry);
-      }
-
       entity = new ContractEntity();
       entity.setAddress(address.toLowerCase());
       entity.setName(name);
       entity.setType(type);
       entity.setCreated(created);
       entity.setNetwork(network);
-      entity.setCurveUnderlying(underlying);
+      entity.setUnderlying(underlying);
       log.info("Created new contract {}", name);
       contractRepository.save(entity);
     } else if (rewrite) {
       if (!Strings.isBlank(name)) {
         entity.setName(name);
       }
-      entity.setType(type);
-      entity.setCreated(created);
-      if (underlying != null) {
-        entity.setCurveUnderlying(underlying);
+      entity.setUnderlying(underlying);
+      if (type != INFRASTRUCTURE.getId() && type != ContractType.UNKNOWN.getId()) {
+        entity.setType(type);
+      }
+      if (entity.getCreated() == null || entity.getCreated() == 0) {
+        entity.setCreated(created); // it should be created date, not updated
+      } else {
+        entity.setUpdated(created);
       }
       contractRepository.save(entity);
     }

@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
-import pro.belbix.ethparser.entity.contracts.ContractEntity;
-import pro.belbix.ethparser.entity.contracts.TokenEntity;
-import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
@@ -141,8 +138,8 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       return false;
     }
 
-    return contractDbService.findLpByAddress(log.getAddress(), network)
-        .filter(u -> u.getKeyToken() != null)
+    return contractDbService.findTokenByPair(
+        log.getAddress(), log.getBlockNumber().longValue(), network)
         .isPresent();
   }
 
@@ -200,7 +197,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
         .isPresent()) {
       isValid = true;
     } else {
-      log.warn("{} price from not actual LP {}", tokenAddress, sourceAddress);
+      log.debug("{} price from not actual LP {}", tokenAddress, sourceAddress);
       isValid = false;
     }
 
@@ -213,10 +210,8 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
     String lp = tx.getSource().toLowerCase();
 
-    String keyCoinName = contractDbService.findLpByAddress(lp, network)
-        .map(UniPairEntity::getKeyToken)
-        .map(TokenEntity::getContract)
-        .map(ContractEntity::getName)
+    String keyCoinAddress = contractDbService
+        .findKeyTokenViaLinkForLp(lp, dto.getBlock(), network)
         .orElse("");
 
     Tuple2<String, String> tokensAdr = contractDbService
@@ -231,20 +226,21 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     );
 
     boolean keyCoinFirst;
-    if (tokensNames.component1().equals(keyCoinName)) {
+    if (tokensAdr.component1().equals(keyCoinAddress)) {
       dto.setToken(tokensNames.component1());
       dto.setTokenAddress(tokensAdr.component1());
       dto.setOtherToken(tokensNames.component2());
       dto.setOtherTokenAddress(tokensAdr.component2());
       keyCoinFirst = true;
-    } else if (tokensNames.component2().equals(keyCoinName)) {
+    } else if (tokensAdr.component2().equals(keyCoinAddress)) {
       dto.setToken(tokensNames.component2());
       dto.setTokenAddress(tokensAdr.component2());
       dto.setOtherToken(tokensNames.component1());
       dto.setOtherTokenAddress(tokensAdr.component1());
       keyCoinFirst = false;
     } else {
-      throw new IllegalStateException("Swap doesn't contains key coin " + keyCoinName + " " + tx);
+      throw new IllegalStateException(
+          "Swap doesn't contains key coin " + keyCoinAddress + " " + tx);
     }
 
     log.trace("Price checked and filled {}", between(start, now()).toMillis());

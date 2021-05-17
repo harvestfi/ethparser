@@ -65,7 +65,8 @@ public class RewardDownloader {
                       .getAddressByName(vName, ContractType.VAULT, appProperties.getUtilNetwork())
                       .orElseThrow())
                   .map(vName -> contractDbService
-                      .getPoolContractByVaultAddress(vName, appProperties.getUtilNetwork())
+                      .getPoolContractByVaultAddress(
+                          vName, Long.MAX_VALUE, appProperties.getUtilNetwork())
                       .orElseThrow()
                       .getAddress())
                   .collect(Collectors.toList())

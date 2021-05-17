@@ -20,6 +20,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.deployer.db.DeployerDbService;
 import pro.belbix.ethparser.web3.deployer.decoder.DeployerDecoder;
+import pro.belbix.ethparser.web3.deployer.transform.DeployerEventToContractTransformer;
 
 @Service
 @Log4j2

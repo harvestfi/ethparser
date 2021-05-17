@@ -21,6 +21,7 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 
@@ -49,6 +50,10 @@ public class LPSeeker {
       String network,
       List<PureEthContractInfo> contracts
   ) {
+    String uniqueLp = UniqueLps.LPS.get(tokenAddress);
+    if (uniqueLp != null) {
+      return uniqueLp;
+    }
 //    if (PriceOracle.isAvailable(block, network)) {
 //      String largestKeyToken = priceOracle.getLargestKeyToken(tokenAddress, block, network);
 //      if (largestKeyToken != null) {
@@ -70,21 +75,14 @@ public class LPSeeker {
     for (String keyToken : tokenList) {
       for (String factory : UNI_FACTORIES.get(network).keySet()) {
         int factoryStart = UNI_FACTORIES.get(network).get(factory);
-        if (factoryStart > block) {
-          continue;
-        }
-        String lpAddress = lpForTokens(factory, tokenAddress, keyToken, block, network);
-        if (ZERO_ADDRESS.equalsIgnoreCase(lpAddress)) {
-          log.info("Zero pair for {} {} from {}", tokenAddress, keyToken, factoryStart);
+        if (factoryStart > block
+            || !isEligibleKeyToken(tokenAddress, keyToken, network)) {
           continue;
         }
 
-        if (contracts.stream().anyMatch(c -> c.getAddress().equalsIgnoreCase(lpAddress))
-            || contractDbService.findLpByAddress(lpAddress, network)
-            .filter(lp -> lp.getKeyToken() != null)
-            .isPresent()) {
-          log.warn("We already have lp {}, try to find another for {}",
-              lpAddress, tokenAddress);
+        String lpAddress = lpForTokens(factory, tokenAddress, keyToken, block, network);
+        if (ZERO_ADDRESS.equalsIgnoreCase(lpAddress)) {
+//          log.info("Zero pair for {} {} from {}", tokenAddress, keyToken, factoryStart);
           continue;
         }
 
@@ -98,6 +96,17 @@ public class LPSeeker {
     }
 
     return pairsLiquidity.lastEntry().getValue();
+  }
+
+  private boolean isEligibleKeyToken(String tokenAddress, String keyToken, String network) {
+    if (tokenAddress.equalsIgnoreCase(keyToken)) {
+      return false;
+    }
+    boolean tokenIsKeyToken =
+        ContractConstants.KEY_TOKENS.get(network).contains(tokenAddress.toLowerCase());
+    boolean keyTokenIsStablecoin = ContractUtils.isStableCoin(keyToken);
+    // for avoid recursion we should have keyToken -> Stablecoin pairs only
+    return !tokenIsKeyToken || keyTokenIsStablecoin;
   }
 
   private boolean isNotEnoughLiquidity(BigInteger liq, String token, long block, String network) {
@@ -141,9 +150,9 @@ public class LPSeeker {
   }
 
   private BigInteger getLiquidity(String pair, String token, long block, String network) {
-    String token0 = functionsUtils.callStrByName(TOKEN0, pair, block, network)
+    String token0 = functionsUtils.callAddressByName(TOKEN0, pair, block, network)
         .orElseThrow(() -> new IllegalStateException(
-            "Token0 not found for " + pair + " network: " + network
+            "Token0 not found for " + pair + " network: " + network + " " + block
         ));
     List<BigInteger> reserves = getReserves(pair, block, network);
     if (token.equalsIgnoreCase(token0)) {

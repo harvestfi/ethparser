@@ -72,8 +72,8 @@ public class HarvestOwnerBalanceCalculator {
       //migration process broken UnderlyingBalance for vault
       //but we have shortcut - after migration we can check balanceOf
       String stHash = contractDbService.getPoolContractByVaultAddress(
-          vaultHash, network
-      ).orElseThrow().getAddress();
+          vaultHash, block, network)
+          .orElseThrow().getAddress();
       balanceI = functionsUtils.callIntByNameWithAddressArg(BALANCE_OF, dto.getOwner(), stHash, block, network)
           .orElse(null);
     } else {
@@ -108,9 +108,6 @@ public class HarvestOwnerBalanceCalculator {
     if (contractDbService
         .getContractByAddressAndType(underlyingAddress, UNI_PAIR, network)
         .isPresent()) {
-      if (underlyingAddress == null) {
-        throw new IllegalStateException("Not found lp hash for " + vaultHash);
-      }
       double amountUsd = priceProvider
           .getLpTokenUsdPrice(underlyingAddress, balance, block, network);
       dto.setOwnerBalanceUsd(amountUsd);

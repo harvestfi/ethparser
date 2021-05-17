@@ -7,5 +7,5 @@ ethparser:
 #    startLogBlock: 10765094
     #  startLogBlock: 11799980
 
-server:
-  port: 4143
+#server:
+#  port: 4143

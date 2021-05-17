@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -22,16 +23,20 @@ public class RewardsDBService {
   private final RewardsRepository rewardsRepository;
   private final HarvestRepository harvestRepository;
   private final PriceProvider priceProvider;
+  private final AppProperties appProperties;
 
   public RewardsDBService(RewardsRepository rewardsRepository,
-      HarvestRepository harvestRepository, PriceProvider priceProvider) {
+      HarvestRepository harvestRepository, PriceProvider priceProvider,
+      AppProperties appProperties) {
     this.rewardsRepository = rewardsRepository;
     this.harvestRepository = harvestRepository;
     this.priceProvider = priceProvider;
+    this.appProperties = appProperties;
   }
 
   public boolean saveRewardDTO(RewardDTO dto) {
-    if (rewardsRepository.existsById(dto.getId())) {
+    if (rewardsRepository.existsById(dto.getId())
+        && !appProperties.isOverrideDuplicates()) {
       log.warn("Duplicate reward " + dto);
     }
     fillApy(dto);

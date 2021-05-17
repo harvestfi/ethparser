@@ -1,5 +1,10 @@
 package pro.belbix.ethparser.controllers;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,16 +12,17 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.model.PaginatedResponse;
+import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -95,10 +101,36 @@ public class HarvestControllerTest {
     @Test
     public void userBalances() throws Exception {
         String expectedResult = objectMapper.writeValueAsString(
-                harvestRepository.fetchOwnerBalances(ETH_NETWORK));
+            harvestRepository.fetchOwnerBalances(ETH_NETWORK));
 
         this.mockMvc.perform(get("/user_balances"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(expectedResult));
+            .andExpect(status().isOk())
+            .andExpect(content().string(expectedResult));
+    }
+
+    @Test
+    void harvestPages() throws Exception {
+        Page<HarvestDTO> pages =
+            harvestRepository.fetchPages(Integer.MIN_VALUE, "eth",
+                PageRequest.of(0, 1, Sort.by("blockDate")));
+        String expectedResult =
+            objectMapper.writeValueAsString(
+                RestResponse.ok(
+                    objectMapper.writeValueAsString(
+                        PaginatedResponse.builder()
+                            .currentPage(0)
+                            .previousPage(-1)
+                            .nextPage(1)
+                            .totalPages(pages.getTotalPages())
+                            .data(pages.getContent())
+                            .build()
+                    )
+                )
+            );
+
+        this.mockMvc.perform(get("/harvest/pages?"
+            + "pageSize=1&page=0"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(expectedResult));
     }
 }
