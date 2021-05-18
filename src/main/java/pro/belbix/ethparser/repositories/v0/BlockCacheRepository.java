@@ -6,7 +6,4 @@ import pro.belbix.ethparser.entity.v0.BlockCacheEntity;
 public interface BlockCacheRepository extends JpaRepository<BlockCacheEntity, Long> {
 
     BlockCacheEntity findFirstByBlockAndNetwork(Long block, String network);
-
-    boolean existsByBlockAndNetwork(Long block, String network);
-
 }
