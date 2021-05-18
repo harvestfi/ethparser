@@ -239,7 +239,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Page<HarvestDTO> fetchPagesByVault(
         @Param("vault") String vaultAddress,
         @Param("network") String network,
-        @Param("minAmount") double minAmount,
+        @Param("minAmount") long minAmount,
         Pageable pageable);
 
     @Query(nativeQuery = true, value = ""
