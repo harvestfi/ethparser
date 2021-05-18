@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
+import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
@@ -74,6 +76,7 @@ public class UniController {
     public RestResponse uniPages(
         @RequestParam("pageSize") String pageSize,
         @RequestParam("page") String page,
+        @RequestParam(value = "trades", required = false, defaultValue = "true") boolean trades,
         @RequestParam(value = "ordering", required = false) String ordering,
         @RequestParam(value = "token", required = false) String token,
         @RequestParam(value = "minAmount", required = false) Integer minAmount,
@@ -93,14 +96,20 @@ public class UniController {
             }
             if (Strings.isBlank(token)) {
                 pages = uniswapRepository
-                    .fetchPages(minAmount, PageRequest.of(start, size, sorting));
+                    .fetchPages(minAmount,
+                        trades ? List.of("SELL", "BUY") :
+                            List.of("SELL", "BUY", ADD_LIQ, REMOVE_LIQ),
+                        PageRequest.of(start, size, sorting));
             } else {
                 if (!token.startsWith("0x")) {
                     token = contractDbService.getAddressByName(token, ContractType.TOKEN, network)
                         .orElseThrow();
                 }
                 pages = uniswapRepository
-                    .fetchPagesByToken(token, minAmount,
+                    .fetchPagesByToken(token,
+                        minAmount,
+                        trades ? List.of("SELL", "BUY") :
+                            List.of("SELL", "BUY", ADD_LIQ, REMOVE_LIQ),
                         PageRequest.of(start, size, sorting));
             }
 
