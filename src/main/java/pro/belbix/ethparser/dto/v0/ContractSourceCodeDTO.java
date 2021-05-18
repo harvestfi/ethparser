@@ -40,10 +40,10 @@ public class ContractSourceCodeDTO {
   @Column(nullable = false)
   private String network;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT")
   private String sourceCode;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT")
   private String abi;
 
   @Column(nullable = false)

@@ -67,7 +67,7 @@ public class SimpleContractGenerator {
       ContractDbService contractDbService,
       ContractSourceCodeRepository contractSourceCodeRepository,
       AppProperties appProperties
-      ) {
+  ) {
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
@@ -77,20 +77,14 @@ public class SimpleContractGenerator {
     this.appProperties = appProperties;
   }
 
+
   public GeneratedContract getContract(String address, Long block, String selector,
       String network) {
-
-    Boolean isUseCache = appProperties.isUseContractSourceCache();
-    return getContract(address, block, selector, network, isUseCache);
-  }
-
-  public GeneratedContract getContract(String address, Long block, String selector,
-      String network, Boolean isUseCache) {
     GeneratedContract generatedContract = findInCache(address, block);
     if (generatedContract != null) {
       return generatedContract;
     }
-    return generateContract(address, block, false, selector, network, isUseCache)
+    return generateContract(address, block, false, selector, network)
         .map(newContract -> {
           log.info("Generated {} {}", newContract.getName(), newContract.getAddress());
           var implementations
@@ -120,58 +114,42 @@ public class SimpleContractGenerator {
       Long block,
       boolean isProxy,
       String selector,
-      String network,
-      Boolean isUseCache
+      String network
   ) {
 
     boolean isOverride = isOverrideAbi(address);
-    String abi = null;
-    String contractName = "UNKNOWN";
-    boolean etherscanIsProxy = false;
-    String etherscanProxyImpl = "";
+    boolean etherscanIsProxy;
+
     AbiProviderService.SourceCodeResult sourceCode;
-    if (isUseCache) {
-      ContractSourceCodeDTO cashed_source =
-          contractSourceCodeRepository.findByAddressNetwork(address, network);
-      if (cashed_source != null) {
-        log.info("Used cached contract sources code {}", cashed_source.getContractName());
-        sourceCode = ContractSourceModelConverter.toSourceCodeResult(cashed_source);
-      } else {
-        sourceCode = abiProviderService.contractSourceCode(
-            address, networkProperties.get(network).getAbiProviderKey(), network);
+    ContractSourceCodeDTO cashedSource =
+        contractSourceCodeRepository.findByAddressNetwork(address, network);
+
+    if (cashedSource == null) {
+      sourceCode = abiProviderService.contractSourceCode(
+          address, networkProperties.get(network).getAbiProviderKey(), network);
         ContractSourceCodeDTO csdto = ContractSourceModelConverter.toDTO(sourceCode);
         csdto.setAddress(address);
         csdto.setNetwork(network);
         contractSourceCodeRepository.save(csdto);
-      }
     } else {
-      sourceCode = abiProviderService.contractSourceCode(
-          address, networkProperties.get(network).getAbiProviderKey(), network);
+      log.info("Used cached contract sources code {}", cashedSource.getContractName());
+      sourceCode = ContractSourceModelConverter.toSourceCodeResult(cashedSource);
     }
 
-    if (sourceCode == null) {
-      if (!isOverride) {
+    if ("UNKNOWN".equals(sourceCode.getContractName()) && ! isOverride) {
         return Optional.empty();
-      }
-    } else {
-      etherscanIsProxy = "1".equals(sourceCode.getProxy());
-      if (etherscanIsProxy) {
-        etherscanProxyImpl = sourceCode.getImplementation();
-      }
-      abi = sourceCode.getAbi();
-      contractName = sourceCode.getContractName();
     }
 
-    abi = resolveAbi(address, abi);
-
+    String abi = resolveAbi(address, sourceCode.getAbi());
     List<AbiDefinition> abis = abiToDefinition(abi);
     GeneratedContract contract = new GeneratedContract(
-        contractName,
+        sourceCode.getContractName(),
         address,
         abiToEvents(abis),
         abiToFunctions(abis)
     );
 
+    etherscanIsProxy = "1".equals(sourceCode.getProxy());
     if (!isProxy && (etherscanIsProxy || isProxy(abis))) {
       log.info("Detect proxy {}", address);
       String proxyAddress = readProxyAddressOnChain(address, block, contract, selector, network);
@@ -179,12 +157,12 @@ public class SimpleContractGenerator {
         if (etherscanIsProxy) {
           log.info("Try to generate proxy from etherscan implementation");
           // only last implementation but it's better than nothing
-          return generateContract(etherscanProxyImpl, block, true, selector, network, isUseCache);
+          return generateContract(sourceCode.getImplementation(), block, true, selector, network);
         }
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
       }
-      return generateContract(proxyAddress, block, true, selector, network, isUseCache);
+      return generateContract(proxyAddress, block, true, selector, network);
     }
 
     contract.setProxy(isProxy);
