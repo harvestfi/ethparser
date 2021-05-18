@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -46,9 +47,12 @@ public class UniController {
     }
 
     @RequestMapping(value = "api/transactions/history/uni", method = RequestMethod.GET)
-    public Iterable<UniswapDTO> uniswapHistoryData(@RequestParam(value = "from", required = false) String from,
-                                                   @RequestParam(value = "to", required = false) String to) {
-        return uniswapDbService.fetchUni(from, to);
+    public Iterable<UniswapDTO> uniswapHistoryData(
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to
+    ) {
+        return reduceListElements(uniswapDbService.fetchUni(from, to), reduce);
     }
 
     @RequestMapping(value = "api/transactions/history/uni/ohcl/{name}", method = RequestMethod.GET)
