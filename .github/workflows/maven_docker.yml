@@ -124,7 +124,5 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_KEY }}
 
       - name: Note image tag
-        env:
-          TAG: ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}
         run: |
-          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${TAG}" >> images.txt'
+          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}" >> images.txt"
