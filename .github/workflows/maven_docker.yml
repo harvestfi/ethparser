@@ -125,4 +125,4 @@ jobs:
 
       - name: Note image tag
         run: |
-          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}" >> images.txt"
+          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}" >> images.txt'
