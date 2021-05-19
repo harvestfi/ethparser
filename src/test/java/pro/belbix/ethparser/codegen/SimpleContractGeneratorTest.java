@@ -93,8 +93,7 @@ class SimpleContractGeneratorTest {
   @Test
   void getCachedContract_USDT() {
     String address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-    GeneratedContract contract = simpleContractGenerator.getContract(address, 10800000L,
-        null, ETH_NETWORK);
+    simpleContractGenerator.getContract(address, 10800000L,null, ETH_NETWORK);
     ContractSourceCodeDTO cachedContractSource =
         contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
     assertNotNull(cachedContractSource);
@@ -105,13 +104,14 @@ class SimpleContractGeneratorTest {
   @Test
   void getEmptySourceCodeContract() {
     String address = "0x0000000000007F150Bd6f54c40A34d7C3d5e9f56";
-    GeneratedContract contract = simpleContractGenerator.getContract(address, 10800000L,
-        null, ETH_NETWORK);
+    simpleContractGenerator.getContract(address, 10800000L,null, ETH_NETWORK);
     ContractSourceCodeDTO cachedContractSource =
         contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
     assertNotNull(cachedContractSource);
     GeneratedContract cachedContract = simpleContractGenerator.getContract(address, 10800000L,
         null, ETH_NETWORK);
+
+    // when empty contract cached it handled as null
     assertNull(cachedContract);
 
   }

@@ -26,5 +26,4 @@ public class AppProperties {
     private boolean skipSimilarPrices = true;
     private int handleLoopStep = 1000;
     private boolean logBlockLimitations = true;
-    private boolean useContractSourceCache = true;
 }
