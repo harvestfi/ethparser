@@ -141,6 +141,7 @@ public class SimpleContractGenerator {
         sourceCode = abiProviderService.contractSourceCode(
             address, networkProperties.get(network).getAbiProviderKey(), network);
         ContractSourceModelConverter.updateDTO(cashedSource, sourceCode);
+        cashedSource.setUpdatedAt(new Date());
         contractSourceCodeRepository.save(cashedSource);
       } else {
         log.info("Used cached contract sources code {}", cashedSource.getContractName());

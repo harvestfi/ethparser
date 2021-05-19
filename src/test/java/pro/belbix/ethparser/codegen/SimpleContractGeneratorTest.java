@@ -2,16 +2,22 @@ package pro.belbix.ethparser.codegen;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.ContractSourceCodeDTO;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.ContractSourceCodeRepository;
 
 @SpringBootTest(classes = Application.class)
@@ -23,6 +29,9 @@ class SimpleContractGeneratorTest {
 
   @Autowired
   private ContractSourceCodeRepository contractSourceCodeRepository;
+
+  @MockBean
+  private AppProperties properties;
 
   @Test
   void getContract_USDT() {
@@ -116,4 +125,20 @@ class SimpleContractGeneratorTest {
 
   }
 
+  @Test
+  void contractCacheRefresh() throws InterruptedException {
+    String address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+    // Block=null to skip caching in memory
+    simpleContractGenerator.getContract(address, null,null, ETH_NETWORK);
+    ContractSourceCodeDTO cachedContract =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    Date cachedContractUpdatedDate = cachedContract.getUpdatedAt();
+    TimeUnit.SECONDS.sleep(1);
+
+    when(properties.getContractRefreshSeconds()).thenReturn(0);
+    simpleContractGenerator.getContract(address, null,null, ETH_NETWORK);
+    ContractSourceCodeDTO refreshedContract =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    assertNotEquals(cachedContractUpdatedDate, refreshedContract.getUpdatedAt());
+  }
 }
