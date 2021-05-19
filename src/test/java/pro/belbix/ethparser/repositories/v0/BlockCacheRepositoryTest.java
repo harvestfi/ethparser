@@ -19,14 +19,13 @@ public class BlockCacheRepositoryTest {
   @Autowired
   BlockCacheRepository blockCacheRepository;
 
-  private long id = 0;
-
   @Test
   public void test_findFirstByBlockAndNetwork() {
     // given
-    BlockCacheEntity cachedBlock = createDTO();
-    BlockCacheEntity cachedBlock2 = createDTO();
-    BlockCacheEntity cachedBlock3 = createDTO();
+    long id = 0;
+    BlockCacheEntity cachedBlock = createDTO(id);
+    BlockCacheEntity cachedBlock2 = createDTO(id);
+    BlockCacheEntity cachedBlock3 = createDTO(id);
 
     //when
     blockCacheRepository.save(cachedBlock);
@@ -56,7 +55,7 @@ public class BlockCacheRepositoryTest {
     blockCacheRepository.delete(cachedBlock3);
   }
 
-  private BlockCacheEntity createDTO() {
+  private BlockCacheEntity createDTO(long id) {
     id++;
     BlockCacheEntity cachedBlock = new BlockCacheEntity();
     cachedBlock.setBlock(id);
