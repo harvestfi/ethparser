@@ -127,4 +127,4 @@ jobs:
         env:
           TAG: ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}
         run: |
-          ssh ${{secrets.SSH_USER}}@$SERVER 'echo "$(date +"%Y-%m-%d %H:%M") ${TAG}" >> images.txt'
+          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${TAG}" >> images.txt'
