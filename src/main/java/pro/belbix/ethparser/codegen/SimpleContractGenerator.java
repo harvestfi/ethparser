@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,17 +128,27 @@ public class SimpleContractGenerator {
     if (cashedSource == null) {
       sourceCode = abiProviderService.contractSourceCode(
           address, networkProperties.get(network).getAbiProviderKey(), network);
-        ContractSourceCodeDTO csdto = ContractSourceModelConverter.toDTO(sourceCode);
-        csdto.setAddress(address);
-        csdto.setNetwork(network);
-        contractSourceCodeRepository.save(csdto);
+      ContractSourceCodeDTO csdto = ContractSourceModelConverter.toDTO(sourceCode);
+      csdto.setAddress(address);
+      csdto.setNetwork(network);
+      contractSourceCodeRepository.save(csdto);
     } else {
-      log.info("Used cached contract sources code {}", cashedSource.getContractName());
-      sourceCode = ContractSourceModelConverter.toSourceCodeResult(cashedSource);
+      long contractAgeSeconds =
+          (new Date().getTime() - cashedSource.getUpdatedAt().getTime()) / 1000;
+      // refresh contract
+      if (contractAgeSeconds > appProperties.getContractRefreshSeconds()) {
+        log.info("Refresh cached contract sources code {}", cashedSource.getContractName());
+        sourceCode = abiProviderService.contractSourceCode(
+            address, networkProperties.get(network).getAbiProviderKey(), network);
+        ContractSourceModelConverter.updateDTO(cashedSource, sourceCode);
+        contractSourceCodeRepository.save(cashedSource);
+      } else {
+        log.info("Used cached contract sources code {}", cashedSource.getContractName());
+        sourceCode = ContractSourceModelConverter.toSourceCodeResult(cashedSource);
+      }
     }
-
-    if ("UNKNOWN".equals(sourceCode.getContractName()) && ! isOverride) {
-        return Optional.empty();
+    if ("UNKNOWN".equals(sourceCode.getContractName()) && !isOverride) {
+      return Optional.empty();
     }
 
     String abi = resolveAbi(address, sourceCode.getAbi());

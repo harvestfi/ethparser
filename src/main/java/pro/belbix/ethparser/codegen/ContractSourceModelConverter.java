@@ -23,6 +23,24 @@ public class ContractSourceModelConverter {
     return csdto;
   }
 
+  public static ContractSourceCodeDTO updateDTO(
+      ContractSourceCodeDTO csdto, SourceCodeResult result){
+    csdto.setSourceCode(result.getSourceCode());
+    csdto.setAbi(result.getAbi());
+    csdto.setContractName(result.getContractName());
+    csdto.setCompilerVersion(result.getCompilerVersion());
+    csdto.setOptimizationUsed(Boolean.parseBoolean(result.getOptimizationUsed()));
+    csdto.setRuns(result.getRuns());
+    csdto.setConstructorArguments(result.getConstructorArguments());
+    csdto.setEVMVersion(result.getEVMVersion());
+    csdto.setLibrary(result.getLibrary());
+    csdto.setLicenseType(result.getLicenseType());
+    csdto.setProxy(Boolean.parseBoolean(result.getProxy()));
+    csdto.setImplementation(result.getImplementation());
+    csdto.setSwarmSource(result.getSwarmSource());
+    return csdto;
+  }
+
   public static SourceCodeResult toSourceCodeResult(ContractSourceCodeDTO csdto){
     SourceCodeResult result = new SourceCodeResult();
     result.setSourceCode(csdto.getSourceCode());
