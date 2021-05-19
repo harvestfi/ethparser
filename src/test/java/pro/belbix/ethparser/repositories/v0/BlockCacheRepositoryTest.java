@@ -16,51 +16,52 @@ import pro.belbix.ethparser.entity.v0.BlockCacheEntity;
 @ContextConfiguration
 public class BlockCacheRepositoryTest {
 
-  @Autowired
-  BlockCacheRepository blockCacheRepository;
+    @Autowired
+    BlockCacheRepository blockCacheRepository;
 
-  @Test
-  public void test_findFirstByBlockAndNetwork() {
-    // given
-    long id = 0;
-    BlockCacheEntity cachedBlock = createDTO(id);
-    BlockCacheEntity cachedBlock2 = createDTO(id);
-    BlockCacheEntity cachedBlock3 = createDTO(id);
 
-    //when
-    blockCacheRepository.save(cachedBlock);
-    blockCacheRepository.save(cachedBlock2);
 
-    BlockCacheEntity extractedCachedBlock = blockCacheRepository
-        .findFirstByBlockAndNetwork(1L, "TestNetwork");
-    BlockCacheEntity extractedCachedBlock2 = blockCacheRepository
-        .findFirstByBlockAndNetwork(2L, "TestNetwork");
+    @Test
+    public void test_findFirstByBlockAndNetwork() {
+        // given
+        long id = 0;
+        BlockCacheEntity cachedBlock = createDTO(++id);
+        BlockCacheEntity cachedBlock2 = createDTO(++id);
+        BlockCacheEntity cachedBlock3 = createDTO(++id);
 
-    //then
-    assertAll(
-        () -> assertModel(cachedBlock, extractedCachedBlock),
-        () -> assertModel(cachedBlock2, extractedCachedBlock2),
+        //when
+        blockCacheRepository.save(cachedBlock);
+        blockCacheRepository.save(cachedBlock2);
 
-        () -> assertNotNull(blockCacheRepository.findFirstByBlockAndNetwork(1L, "TestNetwork")),
-        () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(3L, "TestNetwork")),
-        () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(4L, "TestNetwork")),
-        () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(null, "TestNetwork")),
-        () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(null, null)),
-        () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(1L, null))
-    );
+        BlockCacheEntity extractedCachedBlock = blockCacheRepository
+                .findFirstByBlockAndNetwork(1L, "TestNetwork");
+        BlockCacheEntity extractedCachedBlock2 = blockCacheRepository
+                .findFirstByBlockAndNetwork(2L, "TestNetwork");
 
-    //after
-    blockCacheRepository.delete(cachedBlock);
-    blockCacheRepository.delete(cachedBlock2);
-    blockCacheRepository.delete(cachedBlock3);
-  }
+        //then
+        assertAll(
+                () -> assertModel(cachedBlock, extractedCachedBlock),
+                () -> assertModel(cachedBlock2, extractedCachedBlock2),
 
-  private BlockCacheEntity createDTO(long id) {
-    id++;
-    BlockCacheEntity cachedBlock = new BlockCacheEntity();
-    cachedBlock.setBlock(id);
-    cachedBlock.setBlockDate(id);
-    cachedBlock.setNetwork("TestNetwork");
-    return cachedBlock;
-  }
+                () -> assertNotNull(blockCacheRepository.findFirstByBlockAndNetwork(1L, "TestNetwork")),
+                () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(3L, "TestNetwork")),
+                () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(4L, "TestNetwork")),
+                () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(null, "TestNetwork")),
+                () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(null, null)),
+                () -> assertNull(blockCacheRepository.findFirstByBlockAndNetwork(1L, null))
+        );
+
+        //after
+        blockCacheRepository.delete(cachedBlock);
+        blockCacheRepository.delete(cachedBlock2);
+        blockCacheRepository.delete(cachedBlock3);
+    }
+
+    private BlockCacheEntity createDTO(long id) {
+        BlockCacheEntity cachedBlock = new BlockCacheEntity();
+        cachedBlock.setBlock(id);
+        cachedBlock.setBlockDate(id);
+        cachedBlock.setNetwork("TestNetwork");
+        return cachedBlock;
+    }
 }
