@@ -76,24 +76,22 @@ jobs:
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest
-          -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
-          #- name: Publish Unit Test Results
-          #  uses: EnricoMi/publish-unit-test-result-action@v1
-          #  if: always()
-          #  with:
-          #    files: target/surefire-reports/**/*.xml
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: target/surefire-reports/**/*.xml
 
-          #- name: Publish report to codecov
-          #  uses: codecov/codecov-action@v1
-          #  with:
-          #    token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          #    directory: target/site/jacoco/ # optional
-          #    name: codecov-ethparser # optional
-          #    fail_ci_if_error: true # optional (default = false)
-          #    verbose: true # optional (default = false)
-
+      - name: Publish report to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          directory: target/site/jacoco/ # optional
+          name: codecov-ethparser # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
 
       - name: Extract branch name
         shell: bash
