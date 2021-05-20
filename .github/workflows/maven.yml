@@ -42,8 +42,7 @@ jobs:
 
     needs: pre-ci
     # Run only if there are differences in the source code
-    #if: needs.pre-ci.outputs.diff
-    if: false
+    if: needs.pre-ci.outputs.diff
 
     runs-on: ubuntu-latest
 
@@ -84,7 +83,6 @@ jobs:
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest
-          -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
       - name: Upload Artifact
