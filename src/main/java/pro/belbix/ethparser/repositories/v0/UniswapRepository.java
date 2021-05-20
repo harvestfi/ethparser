@@ -62,17 +62,21 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     List<UniswapDTO> fetchAllWithoutAddresses();
 
     @Query("select t from UniswapDTO t where "
-        + "t.amount >= :minAmount ")
+        + "t.amount >= :minAmount "
+        + "and t.type in :types")
     Page<UniswapDTO> fetchPages(
         @Param("minAmount") double minAmount,
+        @Param("types") List<String> types,
         Pageable pageable);
 
     @Query("select t from UniswapDTO t where "
         + "t.coinAddress = :coinAddress "
-        + "and t.amount >= :minAmount ")
+        + "and t.amount >= :minAmount "
+        + "and t.type in :types")
     Page<UniswapDTO> fetchPagesByToken(
         @Param("coinAddress") String coinAddress,
         @Param("minAmount") double minAmount,
+        @Param("types") List<String> types,
         Pageable pageable);
 
     @Query(nativeQuery = true, value = "" +

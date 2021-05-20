@@ -15,7 +15,7 @@ import pro.belbix.ethparser.repositories.v0.PriceRepository;
 @Log4j2
 public class LastDbPricesService {
 
-  private static final int MAX_LIFE_TIME_MIN = 5;
+  private static final int TTL = 5;
 
   private final PriceRepository priceRepository;
 
@@ -29,7 +29,7 @@ public class LastDbPricesService {
     Tuple2<Instant, List<PriceDTO>> cachedPrices = cache.get(network);
     if (cachedPrices != null
         && Duration.between(cachedPrices.component1(), Instant.now()).toMinutes()
-        < MAX_LIFE_TIME_MIN) {
+        < TTL) {
       return cachedPrices.component2();
     }
     Instant start = Instant.now();

@@ -46,39 +46,45 @@ public class AbiProviderService {
         "apikey", apiKey
     );
     ResponseEntity<ResponseSourceCode> response;
+    SourceCodeResult emptyResult = new SourceCodeResult();
+
+    emptyResult.setContractName("UNKNOWN");
+    emptyResult.setProxy("0");
+    emptyResult.setImplementation("");
+
     try {
       response = sendRequest(uriVariables, network);
     } catch (Exception e) {
       log.error("Error fetch contract info for {}", address, e);
-      return null;
+      return emptyResult;
     }
     if (response.getStatusCodeValue() != 200) {
       log.error("Error response {}", response.getStatusCode());
     }
     if (response.getBody() == null) {
       log.error("Empty body");
-      return null;
+      return emptyResult;
     }
     if (!"1".equals(response.getBody().getStatus())) {
       log.error("Error status: {}", response.getBody().getMessage());
-      return null;
+      return emptyResult;
     }
     ResponseSourceCode code = response.getBody();
 
     if (code.getResult() == null || code.getResult().isEmpty()) {
       log.error("Empty response for {}", address);
-      return null;
+      return emptyResult;
     }
     SourceCodeResult result = code.getResult().get(0);
     if (result == null) {
       log.error("Empty code result for {}", address);
-      return null;
+      return emptyResult;
     }
 
     if (result.getAbi() == null
         || "Contract source code not verified".equals(result.getAbi())) {
       log.warn("Not verified source code for {} {}", result.getContractName(), address);
-      return null;
+      return emptyResult;
     }
 
     return result;

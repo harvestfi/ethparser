@@ -43,7 +43,7 @@ public class HarvestControllerTest {
     @Test
     public void transactionsLastHarvest() throws Exception {
         String expectedResult = objectMapper.writeValueAsString(
-                harvestRepository.fetchLastTvl(ETH_NETWORK));
+                harvestRepository.fetchLatest(ETH_NETWORK));
 
         this.mockMvc.perform(get("/api/transactions/last/harvest"))
                 .andExpect(status().isOk())
