@@ -21,7 +21,6 @@ public class HarvestTvlRepositoryTest {
   @Autowired
   private HarvestTvlRepository harvestTvlRepository;
 
-  private int id = 0;
 
   @Test
   public void test_testExpectedJpaSystemException() {
@@ -34,12 +33,12 @@ public class HarvestTvlRepositoryTest {
   @Test
   public void test_getHistoryOfAllTvl() {
     // given
-    id = 0;
-    HarvestTvlEntity first = createDto(id);
-    HarvestTvlEntity two = createDto(id);
-    HarvestTvlEntity three = createDto(id);
-    HarvestTvlEntity four = createDto(id);
-    HarvestTvlEntity five = createDto(id);
+    int id = 0;
+    HarvestTvlEntity first = createDto(++id,id);
+    HarvestTvlEntity two = createDto(++id,id);
+    HarvestTvlEntity three = createDto(++id,id);
+    HarvestTvlEntity four = createDto(++id,id);
+    HarvestTvlEntity five = createDto(++id,id);
 
     //when
     harvestTvlRepository.save(first);
@@ -96,12 +95,12 @@ public class HarvestTvlRepositoryTest {
   @Test
   public void test_findAllByOrderByCalculateTime() {
     // given
-    id = 0;
+    int id = 0;
 
-    HarvestTvlEntity first = createDto(3);
-    HarvestTvlEntity two = createDto(2);
-    HarvestTvlEntity three = createDto(1);
-    HarvestTvlEntity four = createDto(1);
+    HarvestTvlEntity first = createDto(3, ++id);
+    HarvestTvlEntity two = createDto(2, ++id);
+    HarvestTvlEntity three = createDto(1, ++id);
+    HarvestTvlEntity four = createDto(1, ++id);
 
     //when
     harvestTvlRepository.save(two);
@@ -122,15 +121,14 @@ public class HarvestTvlRepositoryTest {
     );
 
     //after
-    id=0;
+    id = 0;
     harvestTvlRepository.delete(two);
     harvestTvlRepository.delete(first);
     harvestTvlRepository.delete(three);
     harvestTvlRepository.delete(four);
   }
 
-  private HarvestTvlEntity createDto(int calculateTime) {
-    id++;
+  private HarvestTvlEntity createDto(int calculateTime, int id) {
     HarvestTvlEntity dto = new HarvestTvlEntity();
     dto.setCalculateHash(String.valueOf(id));
     dto.setNetwork("TestNetwork");
