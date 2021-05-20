@@ -134,7 +134,7 @@ public class HarvestRepositoryTest {
 
     @Test
     public void fetchLastTvl() {
-        assertNotNull(harvestRepository.fetchLastTvl(ETH_NETWORK));
+        assertNotNull(harvestRepository.fetchLatest(ETH_NETWORK));
     }
 
     @Test
