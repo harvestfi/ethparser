@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,11 @@ import org.web3j.protocol.core.methods.response.AbiDefinition;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.codegen.abi.StaticAbiMap;
+import pro.belbix.ethparser.dto.v0.ContractSourceCodeDTO;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.eth.ContractSourceCodeRepository;
 import pro.belbix.ethparser.service.AbiProviderService;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -53,19 +57,27 @@ public class SimpleContractGenerator {
   private final Web3Functions web3Functions;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
+  private final ContractSourceCodeRepository contractSourceCodeRepository;
+  private final AppProperties appProperties;
 
   private final Map<String, TreeMap<Long, GeneratedContract>> contracts = new HashMap<>();
 
   public SimpleContractGenerator(FunctionsUtils functionsUtils,
       Web3Functions web3Functions,
       NetworkProperties networkProperties,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      ContractSourceCodeRepository contractSourceCodeRepository,
+      AppProperties appProperties
+  ) {
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
     this.abiProviderService = new AbiProviderService();
+    this.contractSourceCodeRepository = contractSourceCodeRepository;
+    this.appProperties = appProperties;
   }
+
 
   public GeneratedContract getContract(String address, Long block, String selector,
       String network) {
@@ -87,7 +99,7 @@ public class SimpleContractGenerator {
               return newContract;
             }
           }
-          if(block != null) {
+          if (block != null) {
             implementations.put(block, newContract);
           }
           return newContract;
@@ -107,46 +119,57 @@ public class SimpleContractGenerator {
   ) {
 
     boolean isOverride = isOverrideAbi(address);
-    String abi = null;
-    String contractName = "UNKNOWN";
-    boolean etherscanIsProxy = false;
-    String etherscanProxyImpl = "";
+    boolean etherscanIsProxy;
 
-    AbiProviderService.SourceCodeResult sourceCode =
-        abiProviderService.contractSourceCode(
-            address, networkProperties.get(network).getAbiProviderKey(), network);
+    AbiProviderService.SourceCodeResult sourceCode;
+    ContractSourceCodeDTO cashedSource =
+        contractSourceCodeRepository.findByAddressNetwork(address, network);
 
-    if (sourceCode == null) {
-      if (!isOverride) {
-        return Optional.empty();
-      }
+    if (cashedSource == null) {
+      sourceCode = abiProviderService.contractSourceCode(
+          address, networkProperties.get(network).getAbiProviderKey(), network);
+      ContractSourceCodeDTO csdto = ContractSourceModelConverter.toDTO(sourceCode);
+      csdto.setAddress(address);
+      csdto.setNetwork(network);
+      contractSourceCodeRepository.save(csdto);
     } else {
-      etherscanIsProxy = "1".equals(sourceCode.getProxy());
-      if(etherscanIsProxy) {
-        etherscanProxyImpl = sourceCode.getImplementation();
+      long contractAgeSeconds =
+          (new Date().getTime() - cashedSource.getUpdatedAt().getTime()) / 1000;
+      // refresh contract
+      if (contractAgeSeconds > appProperties.getContractRefreshSeconds()) {
+        log.info("Refresh cached contract sources code {}", cashedSource.getContractName());
+        sourceCode = abiProviderService.contractSourceCode(
+            address, networkProperties.get(network).getAbiProviderKey(), network);
+        ContractSourceModelConverter.updateDTO(cashedSource, sourceCode);
+        cashedSource.setUpdatedAt(new Date());
+        contractSourceCodeRepository.save(cashedSource);
+      } else {
+        log.info("Used cached contract sources code {}", cashedSource.getContractName());
+        sourceCode = ContractSourceModelConverter.toSourceCodeResult(cashedSource);
       }
-      abi = sourceCode.getAbi();
-      contractName = sourceCode.getContractName();
+    }
+    if ("UNKNOWN".equals(sourceCode.getContractName()) && !isOverride) {
+      return Optional.empty();
     }
 
-    abi = resolveAbi(address, abi);
-
+    String abi = resolveAbi(address, sourceCode.getAbi());
     List<AbiDefinition> abis = abiToDefinition(abi);
     GeneratedContract contract = new GeneratedContract(
-        contractName,
+        sourceCode.getContractName(),
         address,
         abiToEvents(abis),
         abiToFunctions(abis)
     );
 
+    etherscanIsProxy = "1".equals(sourceCode.getProxy());
     if (!isProxy && (etherscanIsProxy || isProxy(abis))) {
       log.info("Detect proxy {}", address);
       String proxyAddress = readProxyAddressOnChain(address, block, contract, selector, network);
       if (proxyAddress == null) {
-        if(etherscanIsProxy) {
+        if (etherscanIsProxy) {
           log.info("Try to generate proxy from etherscan implementation");
           // only last implementation but it's better than nothing
-          return generateContract(etherscanProxyImpl, block, true, selector, network);
+          return generateContract(sourceCode.getImplementation(), block, true, selector, network);
         }
         log.error("Can't reach proxy impl adr for {} at {}", address, block);
         return Optional.empty();
@@ -310,9 +333,9 @@ public class SimpleContractGenerator {
         if (event == null) {
           return;
         }
-          String hash = MethodDecoder
-              .createMethodFullHex(event.getName(), event.getParameters());
-          eventsByHash.put(hash, event);
+        String hash = MethodDecoder
+            .createMethodFullHex(event.getName(), event.getParameters());
+        eventsByHash.put(hash, event);
       } catch (Exception e) {
         log.error("Error abi to event {}", abi.getName(), e);
       }

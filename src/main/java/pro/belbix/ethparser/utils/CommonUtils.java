@@ -2,15 +2,18 @@ package pro.belbix.ethparser.utils;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class CommonUtils {
 
-    public static long parseLong(String from, long def) {
+    public static long parseLong(String from, long defaultValue) {
         if (from != null) {
             return Long.parseLong(from);
         }
-        return def;
+        return defaultValue;
     }
 
     public static <K, V> Map<K, V> createUniqueMap(Object... objects) {
@@ -40,6 +43,13 @@ public class CommonUtils {
             }
         }
         return Collections.unmodifiableMap(result);
+    }
+
+    public static <T> List<T> reduceListElements(List<T> list, int divider) {
+        return IntStream.range(0, list.size())
+            .filter(i -> i % divider == 0)
+            .mapToObj(list::get)
+            .collect(Collectors.toList());
     }
 
 }
