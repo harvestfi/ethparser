@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 
 public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
@@ -177,7 +176,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         "select distinct on (vault_address) * from harvest_tx "
         + "where network = :network "
         + "order by vault_address, block_date desc")
-    List<HarvestDTO> fetchLastTvl(@Param("network") String network);
+    List<HarvestDTO> fetchLatest(@Param("network") String network);
 
     @Query("select t from HarvestDTO t where "
         + "t.blockDate > :from "
@@ -239,7 +238,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     Page<HarvestDTO> fetchPagesByVault(
         @Param("vault") String vaultAddress,
         @Param("network") String network,
-        @Param("minAmount") double minAmount,
+        @Param("minAmount") long minAmount,
         Pageable pageable);
 
     @Query(nativeQuery = true, value = ""
