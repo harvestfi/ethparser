@@ -1,7 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -65,30 +65,34 @@ public class RewardController {
     @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
     public List<RewardDTO> historyReward(
         @PathVariable("name") String address,
-        @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
+        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
-        ) {
+    ) {
         if (!address.startsWith("0x")) {
             address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
                 .orElseThrow();
         }
-        return rewardsRepository
-            .getAllByVaultOrderByBlockDate(address, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE), network);
+        return reduceListElements(rewardsRepository
+            .getAllByVaultOrderByBlockDate(address,
+                start,
+                end,
+                network), reduce);
     }
 
     @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
     public List<RewardDTO> historyReward(
-        @RequestParam(value = "start") String start,
-        @RequestParam(value = "end", required = false) String end,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
+        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        if (end == null) {
-            end = Long.MAX_VALUE + "";
-        }
-        return rewardsRepository
-            .getAllOrderByBlockDate(parseLong(start, 0), parseLong(end, Long.MAX_VALUE), network);
+        return reduceListElements(rewardsRepository
+            .getAllOrderByBlockDate(
+                start,
+                end,
+                network), reduce);
     }
 
 }

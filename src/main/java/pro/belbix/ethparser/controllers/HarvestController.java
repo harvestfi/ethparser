@@ -2,6 +2,7 @@ package pro.belbix.ethparser.controllers;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -22,6 +23,7 @@ import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository.UserBalance;
+import pro.belbix.ethparser.service.DtoCache;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
@@ -34,44 +36,60 @@ public class HarvestController {
     private final HarvestRepository harvestRepository;
     private final VaultActionsDBService vaultActionsDBService;
     private final ContractDbService contractDbService;
+    private final DtoCache dtoCache;
 
     public HarvestController(HarvestRepository harvestRepository,
         VaultActionsDBService vaultActionsDBService,
-        ContractDbService contractDbService) {
+        ContractDbService contractDbService, DtoCache dtoCache) {
         this.harvestRepository = harvestRepository;
         this.vaultActionsDBService = vaultActionsDBService;
         this.contractDbService = contractDbService;
+        this.dtoCache = dtoCache;
     }
 
     @RequestMapping(value = "api/transactions/last/harvest", method = RequestMethod.GET)
-    public List<HarvestDTO> lastTvl(
+    public List<HarvestDTO> fetchLatest(
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return harvestRepository.fetchLastTvl(network);
+        return harvestRepository.fetchLatest(network);
     }
 
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryDataForVault(
-        @PathVariable("name") String address,
-        @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "end", required = false) String end,
+        @PathVariable("name") String _address,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
+        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        if (!address.startsWith("0x")) {
-            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+        String address;
+        if (!_address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(_address, ContractType.VAULT, network)
                 .orElseThrow();
+        } else {
+            address = _address;
         }
-        return harvestRepository.findAllByVaultOrderByBlockDate(address, parseLong(start, 0),
-            parseLong(end, Long.MAX_VALUE), network);
+        return reduceListElements(
+            dtoCache.load("findAllByVaultOrderByBlockDate" +
+                address + start + end + network, () ->
+                harvestRepository.findAllByVaultOrderByBlockDate(
+                    address,
+                    start,
+                    end,
+                    network)), reduce);
     }
 
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryData(
         @RequestParam(value = "from", required = false) String from,
         @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        return vaultActionsDBService.fetchHarvest(from, to, network);
+        return reduceListElements(
+            dtoCache.load("findAllByVaultOrderByBlockDate" +
+                from + to + network, () ->
+                vaultActionsDBService.fetchHarvest(from, to, network)), reduce);
     }
 
     @GetMapping("/history/harvest/{address}")

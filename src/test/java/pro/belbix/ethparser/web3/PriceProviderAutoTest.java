@@ -65,7 +65,8 @@ public class PriceProviderAutoTest {
       "yDAI+yUSDC+yUSDT+yTUSD",
       "cDAI+cUSDC",
       "yDAI+yUSDC+yUSDT+yBUSD",
-      "BSG"
+      "BSG",
+      "KLON"
   );
 
   @TestFactory
