@@ -128,7 +128,7 @@ public class Web3Functions {
   public Stream<Block> findBlocksByBlockBatch(int start, int end, String network) {
     BatchResponse batchResponse = getWeb3Service(network).callWithRetry(() -> {
           BatchRequest batchRequest = getWeb3(network).newBatch();
-          for (int block = start; block < end; block++) {
+          for (int block = start; block <= end; block++) {
             batchRequest.add(getWeb3(network).ethGetBlockByNumber(
                 DefaultBlockParameter.valueOf(BigInteger.valueOf(block)), true));
           }

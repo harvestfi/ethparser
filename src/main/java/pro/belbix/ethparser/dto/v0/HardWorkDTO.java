@@ -68,7 +68,9 @@ public class HardWorkDTO implements DtoI {
    * {@link #fullRewardUsd} sum of all vaults for the last week
    */
   private double weeklyAllProfit;
+  @Deprecated
   private double apr;
+  @Deprecated
   private double perc;
   private double fullRewardUsdTotal;
   private double tvl;
