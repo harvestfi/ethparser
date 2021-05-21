@@ -3,7 +3,11 @@
 
 name: Java CICD with push to ecs
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - 'release-**'
 
 jobs:
   # Wait for up to a minute for previous run to complete, abort if not done by then
@@ -35,7 +39,7 @@ jobs:
 
     needs: pre-ci
     # Run only if there are differences in the source code
-    #if: needs.pre-ci.outputs.diff
+    if: needs.pre-ci.outputs.diff
 
     runs-on: ubuntu-latest
 
