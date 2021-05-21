@@ -2,21 +2,23 @@ package pro.belbix.ethparser.codegen;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
-import java.util.Arrays;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicBytes;
-import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.generated.Uint256;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.MethodDecoder;
+import pro.belbix.ethparser.dto.v0.ContractSourceCodeDTO;
+import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.repositories.eth.ContractSourceCodeRepository;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -24,6 +26,12 @@ class SimpleContractGeneratorTest {
 
   @Autowired
   private SimpleContractGenerator simpleContractGenerator;
+
+  @Autowired
+  private ContractSourceCodeRepository contractSourceCodeRepository;
+
+  @MockBean
+  private AppProperties properties;
 
   @Test
   void getContract_USDT() {
@@ -89,5 +97,48 @@ class SimpleContractGeneratorTest {
         () -> assertEquals(0, contract.getEvents().size(), "Events size"),
         () -> assertEquals(5, contract.getFunctions().size(), "Functions size")
     );
+  }
+
+  @Test
+  void getCachedContract_USDT() {
+    String address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+    simpleContractGenerator.getContract(address, 10800000L,null, ETH_NETWORK);
+    ContractSourceCodeDTO cachedContractSource =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    assertNotNull(cachedContractSource);
+    assertEquals(address, cachedContractSource.getAddress());
+    contractSourceCodeRepository.deleteById(cachedContractSource.getId());
+  }
+
+  @Test
+  void getEmptySourceCodeContract() {
+    String address = "0x0000000000007F150Bd6f54c40A34d7C3d5e9f56";
+    simpleContractGenerator.getContract(address, 10800000L,null, ETH_NETWORK);
+    ContractSourceCodeDTO cachedContractSource =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    assertNotNull(cachedContractSource);
+    GeneratedContract cachedContract = simpleContractGenerator.getContract(address, 10800000L,
+        null, ETH_NETWORK);
+
+    // when empty contract cached it handled as null
+    assertNull(cachedContract);
+
+  }
+
+  @Test
+  void contractCacheRefresh() throws InterruptedException {
+    String address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+    // Block=null to skip caching in memory
+    simpleContractGenerator.getContract(address, null,null, ETH_NETWORK);
+    ContractSourceCodeDTO cachedContract =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    Date cachedContractUpdatedDate = cachedContract.getUpdatedAt();
+    TimeUnit.SECONDS.sleep(1);
+
+    when(properties.getContractRefreshSeconds()).thenReturn(0);
+    simpleContractGenerator.getContract(address, null,null, ETH_NETWORK);
+    ContractSourceCodeDTO refreshedContract =
+        contractSourceCodeRepository.findByAddressNetwork(address, ETH_NETWORK);
+    assertNotEquals(cachedContractUpdatedDate, refreshedContract.getUpdatedAt());
   }
 }

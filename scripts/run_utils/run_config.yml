@@ -1,8 +1,8 @@
 ethparser:
-  startUtil: contract-updater
+  startUtil: deployer-download
   overrideDuplicates: false
   utilNetwork: eth
-  handleLoopStep: 1000
+  handleLoopStep: 300
 
 uniswap-download:
   contract:
@@ -48,7 +48,8 @@ price-download:
 block-download:
   from: 10765094
 deployer-download:
-#  from:
+  from: 12427320
+  to: 12459930
 deployer-recalculation:
   fill-addresses: true
 contract-updater:

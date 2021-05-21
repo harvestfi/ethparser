@@ -2,6 +2,7 @@ package pro.belbix.ethparser.controllers;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
+import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +22,7 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
+import pro.belbix.ethparser.service.DtoCache;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
@@ -33,13 +35,15 @@ public class HardWorkController {
     private final HardWorkRepository hardWorkRepository;
     private final HardWorkCalculator hardWorkCalculator;
     private final ContractDbService contractDbService;
+    private final DtoCache dtoCache;
 
     public HardWorkController(HardWorkRepository hardWorkRepository,
         HardWorkCalculator hardWorkCalculator,
-        ContractDbService contractDbService) {
+        ContractDbService contractDbService, DtoCache dtoCache) {
         this.hardWorkRepository = hardWorkRepository;
         this.hardWorkCalculator = hardWorkCalculator;
         this.contractDbService = contractDbService;
+        this.dtoCache = dtoCache;
     }
 
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
@@ -51,36 +55,43 @@ public class HardWorkController {
 
     @RequestMapping(value = "api/transactions/history/hardwork/{name}", method = RequestMethod.GET)
     public List<HardWorkDTO> historyHardWorkByName(
-        @PathVariable("name") String address,
+        @PathVariable("name") String _address,
         @RequestParam(value = "start", required = false) String start,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
         @RequestParam(value = "end", required = false) String end,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        if (!address.startsWith("0x")) {
-            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+        String address;
+        if (!_address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(_address, ContractType.VAULT, network)
                 .orElseThrow();
+        } else {
+            address = _address;
         }
-        return hardWorkRepository
-            .findAllByVaultOrderByBlockDate(address, network, parseLong(start, 0),
-                parseLong(end, Long.MAX_VALUE));
+        return reduceListElements(
+            dtoCache.load("findAllByVaultOrderByBlockDate"
+                + start + end + address + network, () ->
+                hardWorkRepository
+                    .findAllByVaultOrderByBlockDate(
+                        address,
+                        network,
+                        parseLong(start, 0),
+                        parseLong(end, Long.MAX_VALUE))
+            ), reduce);
     }
 
     @RequestMapping(value = "api/transactions/history/hardwork", method = RequestMethod.GET)
     public List<HardWorkDTO> historyHardWork(
-        @RequestParam(value = "from", required = false) String from,
-        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+        @RequestParam(value = "from", required = false, defaultValue = "0") String from,
+        @RequestParam(value = "to", required = false, defaultValue = Long.MAX_VALUE + "") String to,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
     ) {
-        long fromL = 0L;
-        long toL = Long.MAX_VALUE;
-        if (from != null) {
-            fromL = Long.parseLong(from);
-        }
-        if (to != null) {
-            toL = Long.parseLong(to);
-        }
-
-        return hardWorkRepository.fetchAllInRange(fromL, toL, network);
+        return reduceListElements(
+            dtoCache.load("fetchAllInRange" + from + to + network, () ->
+                hardWorkRepository
+                    .fetchAllInRange(Long.parseLong(from), Long.parseLong(to), network)
+            ), reduce);
     }
 
     @RequestMapping(value = "last_saved_gas_sum", method = RequestMethod.GET)
