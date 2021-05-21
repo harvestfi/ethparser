@@ -19,10 +19,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "eth_contract_source_codes", indexes = {
-    @Index(name = "idx_eth_contracts_address", columnList = "address"),
-    @Index(name = "idx_eth_contracts_name", columnList = "contractName")
+    @Index(name = "idx_eth_contract_source_codes_address", columnList = "address"),
+    @Index(name = "idx_eth_contract_source_codes_name", columnList = "contractName")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "eth_c_adr_net_pk", columnNames = {"address", "network"})
+    @UniqueConstraint(name = "eth_contract_source_codes_adr_net_pk", columnNames = {"address", "network"})
 })
 @Cacheable(false)
 @Data
