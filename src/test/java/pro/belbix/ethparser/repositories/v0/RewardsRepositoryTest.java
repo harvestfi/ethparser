@@ -11,6 +11,7 @@ import static pro.belbix.ethparser.TestUtils.assertModel;
 import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class RewardsRepositoryTest {
   RewardDTO five;
   RewardDTO six;
 
-  @BeforeEach
+  @AfterEach
   public void clearDbAfterTest(){
     clearDB();
   }
