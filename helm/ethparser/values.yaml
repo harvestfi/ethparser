@@ -24,7 +24,7 @@ serviceAccount:
   name: ""
 
 podAnnotations: 
-  prometheus.io/path: /metrics
+  prometheus.io/path: /actuator/prometheus
   prometheus.io/port: "9090"
   prometheus.io/scheme: http
   prometheus.io/scrape: "true"
