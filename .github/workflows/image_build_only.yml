@@ -33,10 +33,6 @@ jobs:
       - name: Build with Maven
         run: >
           mvn
-          -Dethparser.eth.web3Url="${{secrets.ETH_WEB3}}"
-          -Dethparser.bsc.web3Url="${{secrets.BSC_WEB3}}"
-          -Dethparser.eth.abiProviderKey=${{secrets.ETHERSCAN_TOKEN}}
-          -Dethparser.bsc.abiProviderKey=${{secrets.BSCSCAN_TOKEN}}
           -Dmaven.test.skip=true
           -B package -ff -T 1 --file pom.xml
 
