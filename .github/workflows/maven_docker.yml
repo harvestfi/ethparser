@@ -32,6 +32,8 @@ jobs:
         with:
           PATTERNS: |
             src/**/*.+(java|yml|xml)
+          FILES:
+            pom.xml
           
   build:
 
