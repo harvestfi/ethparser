@@ -50,4 +50,5 @@ public class FunctionsNames {
   public static final String MINIMUM_LIQUIDITY = "MINIMUM_LIQUIDITY";
   public static final String UNDERLYING_ASSET_ADDRESS = "UNDERLYING_ASSET_ADDRESS";
   public static final String UNSALVAGABLE_TOKENS = "unsalvagableTokens";
+  public static final String INVESTED_UNDERLYING_BALANCE = "investedUnderlyingBalance";
 }
