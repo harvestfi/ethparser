@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: {{ include "ethparser.fullname" . }}
   labels:
+    app: ethparser
     {{- include "ethparser.labels" . | nindent 4 }}
 spec:
 {{- if not .Values.autoscaling.enabled }}
