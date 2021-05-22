@@ -31,9 +31,7 @@ jobs:
         id: git-diff
         with:
           PATTERNS: |
-            src/**/*.+(java|yml)
-          FILES: |
-            pom.xml
+            src/**/*.+(java|yml|xml)
           
   build:
 
