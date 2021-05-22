@@ -10,6 +10,7 @@ public abstract class PureEthContractInfo {
   final String address;
   private ContractType contractType;
   private String network;
+  private String curveUnderlying;
 
   protected PureEthContractInfo(int createdOnBlock, String name, String address) {
     this.createdOnBlock = createdOnBlock;
@@ -43,6 +44,14 @@ public abstract class PureEthContractInfo {
 
   public void setNetwork(String network) {
     this.network = network;
+  }
+
+  public String getCurveUnderlying() {
+    return curveUnderlying;
+  }
+
+  public void setCurveUnderlying(String curveUnderlying) {
+    this.curveUnderlying = curveUnderlying;
   }
 
   @Override

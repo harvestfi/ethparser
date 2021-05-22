@@ -52,7 +52,28 @@ class DeployerEventToContractTransformerTest {
   }
 
   @Test
-  public void testCreateVault_FARM_WETH() {
+  public void testCreateStrategy_CRV_GUSD() {
+    String address = "0xa505917c1326670451eff9ea75fe0d49a3853acf".toLowerCase();
+    long block = 11745403;
+    String network = ETH_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0xd9ac3dd9636a4ccd8570f8eef872e4bd5e97b2ae916b96b873d2918fd087311e", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(4, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("S_CRV_gusd3CRV", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.STRATEGY, vault.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreatePool_FARM_WETH() {
     String address = "0x6555c79a8829b793f332f1535b0efb1fe4c11958".toLowerCase();
     long block = 11407437;
     String network = ETH_NETWORK;
@@ -66,7 +87,7 @@ class DeployerEventToContractTransformerTest {
     LpContract lpUnderlying = (LpContract) contracts.get(3);
     TokenContract token = (TokenContract) contracts.get(2);
     assertAll(
-        () -> assertEquals("ST_UNI_FARM_WETH", vault.getName(), "name"),
+        () -> assertEquals("P_UNI_FARM_WETH", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -106,7 +127,7 @@ class DeployerEventToContractTransformerTest {
     LpContract lpUnderlying = (LpContract) contracts.get(1);
     TokenContract token = (TokenContract) contracts.get(2);
     assertAll(
-        () -> assertEquals("ST_UNI_GRAIN_FARM", vault.getName(), "name"),
+        () -> assertEquals("P_UNI_GRAIN_FARM", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -144,7 +165,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(5, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("UNI_DAI_BSG", vault.getName(), "name"),
+        () -> assertEquals("V_UNI_DAI_BSG", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -165,7 +186,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("CRV_gusd3CRV", vault.getName(), "name"),
+        () -> assertEquals("V_CRV_gusd3CRV", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -188,7 +209,7 @@ class DeployerEventToContractTransformerTest {
     LpContract lpUnderlying = (LpContract) contracts.get(1);
     TokenContract token = (TokenContract) contracts.get(4);
     assertAll(
-        () -> assertEquals("UNI_UST_mTWTR", vault.getName(), "name"),
+        () -> assertEquals("V_UNI_UST_mTWTR", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -226,7 +247,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("EPS_fusdt3EPS", vault.getName(), "name"),
+        () -> assertEquals("V_EPS_fusdt3EPS", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -247,7 +268,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("BELT_bDAI_bUSDC_bUSDT_bBUSD", vault.getName(), "name"),
+        () -> assertEquals("V_BELT_bDAI_bUSDC_bUSDT_bBUSD", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -268,7 +289,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("PCS_WBNB_BUSD", vault.getName(), "name"),
+        () -> assertEquals("V_PCS_WBNB_BUSD", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -289,7 +310,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(7, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("ST_UNI_WBTC_KBTC", vault.getName(), "name"),
+        () -> assertEquals("P_UNI_WBTC_KBTC", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -310,7 +331,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(1, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("PS", vault.getName(), "name"),
+        () -> assertEquals("V_PS", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -366,7 +387,7 @@ class DeployerEventToContractTransformerTest {
     SimpleContract vault = (SimpleContract) contracts.get(0);
     LpContract lpUnderlying = (LpContract) contracts.get(1);
     assertAll(
-        () -> assertEquals("SUSHI_MIC_USDT", vault.getName(), "name"),
+        () -> assertEquals("V_SUSHI_MIC_USDT", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -394,7 +415,7 @@ class DeployerEventToContractTransformerTest {
     TokenContract token = (TokenContract) contracts.get(1);
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("USDC", vault.getName(), "vault name"),
+        () -> assertEquals("V_USDC", vault.getName(), "vault name"),
         () -> assertEquals(address, vault.getAddress(), "vault address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "vault created"),
         () -> assertEquals(network, vault.getNetwork(), "vault network"),
@@ -423,7 +444,7 @@ class DeployerEventToContractTransformerTest {
     SimpleContract vault = (SimpleContract) contracts.get(0);
     TokenContract token = (TokenContract) contracts.get(1);
     assertAll(
-        () -> assertEquals("CRV_tbtc_sbtc", vault.getName(), "name"),
+        () -> assertEquals("V_CRV_tbtc_sbtc", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
@@ -448,7 +469,7 @@ class DeployerEventToContractTransformerTest {
     SimpleContract vault = (SimpleContract) contracts.get(0);
     TokenContract token = (TokenContract) contracts.get(3);
     assertAll(
-        () -> assertEquals("CRV_yDAI_yUSDC_yUSDT_yTUSD", vault.getName(), "name"),
+        () -> assertEquals("V_CRV_yDAI_yUSDC_yUSDT_yTUSD", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
@@ -474,7 +495,7 @@ class DeployerEventToContractTransformerTest {
     TokenContract token = (TokenContract) contracts.get(2);
     LpContract lp = (LpContract) contracts.get(3);
     assertAll(
-        () -> assertEquals("1INCH_ETH_DAI", vault.getName(), "name"),
+        () -> assertEquals("V_1INCH_ETH_DAI", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
@@ -507,7 +528,7 @@ class DeployerEventToContractTransformerTest {
     LpContract lp0 = (LpContract) contracts.get(3);
     TokenContract token1 = (TokenContract) contracts.get(5);
     assertAll(
-        () -> assertEquals("ST_UNI_WETH_MASK20", vault.getName(), "name"),
+        () -> assertEquals("P_UNI_WETH_MASK20", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
 
@@ -542,7 +563,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("ST_PS", vault.getName(), "name"),
+        () -> assertEquals("P_PS", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
     );
@@ -561,14 +582,14 @@ class DeployerEventToContractTransformerTest {
     assertEquals(6, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("ST_BPT_YFV_FARM", vault.getName(), "name"),
+        () -> assertEquals("P_BPT_YFV_FARM", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
     );
   }
 
   @Test
-  public void testCreatePool_ST_UNI_DAI_fDAI() {
+  public void testCreatePool_P_UNI_DAI_fDAI() {
     String address = "0xb492faeda6c9ffb9b9854a58f28d5333ff7a11bc";
     long block = 10817095;
     String network = ETH_NETWORK;
@@ -580,7 +601,7 @@ class DeployerEventToContractTransformerTest {
     assertEquals(7, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
-        () -> assertEquals("ST_UNI_DAI_fDAI", vault.getName(), "name"),
+        () -> assertEquals("P_UNI_DAI_fDAI", vault.getName(), "name"),
         () -> assertEquals(address, vault.getAddress(), "address"),
         () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
     );
