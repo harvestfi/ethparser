@@ -11,5 +11,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+      name: monitoring
   selector:
     {{- include "ethparser.selectorLabels" . | nindent 4 }}

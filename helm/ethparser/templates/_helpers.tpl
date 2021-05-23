@@ -48,6 +48,7 @@ Selector labels
 {{- define "ethparser.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ethparser.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+monitoring: prometheus
 {{- end }}
 
 {{/*
