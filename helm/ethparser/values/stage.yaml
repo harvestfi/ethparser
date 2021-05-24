@@ -1,0 +1,36 @@
+namespace: stage
+nameOverride: ""
+
+image:
+  tag: ""
+
+javaArgs: "-Xmx1500m -Xms1500m"
+
+ethparser: |-
+  onlyParse: true
+  stopOnParseError: true
+  networks: eth, bsc
+  eth:
+    web3Url: ${ETH_WEB3URL}
+    abiProviderKey: ${ETH_ABI_PROVIDER_KEY}    
+    parseLog: false
+    parseTransactions: false
+    parseBlocks: true
+  bsc:
+    web3-url: ${BSC_WEB3URL}
+    abiProviderKey: ${BSC_ABI_PROVIDER_KEY}
+    parseLog: false
+    parseTransactions: false
+    parseBlocks: true
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: ethparser-stage.harvestfi.builders
+      paths:
+        - /

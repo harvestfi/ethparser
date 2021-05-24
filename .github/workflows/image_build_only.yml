@@ -1,0 +1,70 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Image build only
+
+on: workflow_dispatch
+
+jobs:
+  # Wait for up to a minute for previous run to complete, abort if not done by then
+  pre-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - name: 'Block Concurrent Executions'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 60
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 1.11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
+
+      - name: Build with Maven
+        run: >
+          mvn
+          -Dmaven.test.skip=true
+          -B package -ff -T 1 --file pom.xml
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
+        id: extract_branch
+
+      - name: Get short SHA
+        id: sha
+        run: echo "::set-output name=sha7::$(echo ${GITHUB_SHA} | cut -c1-7)"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Build and Push to ECR public
+        id: build-and-push
+        uses: pahud/ecr-public-action@8cd826db40befb59b0cd0b60b22a7ba72d06a7f7
+        with:
+          tags: |
+            public.ecr.aws/q3j2h8t6/ethparser:${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}
+
+      - name: Prepare note to server
+        uses: hughcube/deploy-action@1.0.0
+        with:
+          ssh_private_key: ${{ secrets.SSH_KEY }}
+
+      - name: Note image tag
+        run: |
+          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} 'echo "$(date +"%Y-%m-%d %H:%M") ${{ steps.extract_branch.outputs.branch }}-${{ steps.sha.outputs.sha7 }}" >> images.txt'
+
