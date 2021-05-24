@@ -1,0 +1,108 @@
+{{- if eq .Values.type "job" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ethparser.fullname" . }}
+  labels:
+    {{- include "ethparser.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "ethparser.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ethparser.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          env:
+          - name: ETH_WEB3URL
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: ethWeb3Url
+          - name: ETH_ABI_PROVIDER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: ethAbiProviderKey
+          - name: BSC_WEB3URL
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: bscWeb3Url
+          - name: BSC_ABI_PROVIDER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: bscAbiProviderKey
+          - name: DB_URL
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: dbUrl
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: dbUser
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: config-{{ include "ethparser.name" . }}
+                key: dbPassword
+          - name: JAVA_ARGS
+            value: {{ .Values.javaArgs }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          volumeMounts:
+          - mountPath: /dist/application.yml
+            name: application-config
+            subPath: application.yml
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: application-{{ include "ethparser.name" . }}
+        name: application-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,35 @@
+namespace: stage
+nameOverride: "ethparser-hv3"
+
+image:
+  tag: ""
+
+javaArgs: "-Xmx1500m -Xms1500m"
+
+# job = use with stopOnParseError (restartPolicy: Never)
+# deployment = default
+type: job
+
+ethparser: |-
+  networks: eth, bsc
+  stopOnParseError: true
+  eth:
+    web3Url: ${ETH_WEB3URL}
+    abiProviderKey: ${ETH_ABI_PROVIDER_KEY}
+    parsePrices: false
+  bsc:
+    web3-url: ${BSC_WEB3URL}
+    abiProviderKey: ${BSC_ABI_PROVIDER_KEY}
+    parsePrices: false
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: ethparser-hv3.harvestfi.builders
+      paths:
+        - /
