@@ -32,7 +32,7 @@ import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -41,7 +41,7 @@ public class Web3FunctionsTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private ContractDbService contractDbService;
+  private FunctionsUtils functionsUtils;
 
   @Test
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
@@ -101,7 +101,7 @@ public class Web3FunctionsTest {
         })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST, ETH_NETWORK);
     assertNotNull(types);
     assertFalse(types.isEmpty());
-    assertTrue(contractDbService.parseAmount((BigInteger) types.get(0).getValue(),
+    assertTrue(functionsUtils.parseAmount((BigInteger) types.get(0).getValue(),
         "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", ETH_NETWORK) > 0);
   }
 

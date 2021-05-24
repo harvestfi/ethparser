@@ -55,7 +55,7 @@ public class HarvestOwnerBalanceCalculator {
       log.warn("Can reach ps balance for " + dto.print());
       return false;
     }
-    double balance = contractDbService.parseAmount(balanceI, psHash, network);
+    double balance = functionsUtils.parseAmount(balanceI, psHash, network);
     dto.setOwnerBalance(balance);
 
     double price = priceProvider.getPriceForCoin(
@@ -91,7 +91,7 @@ public class HarvestOwnerBalanceCalculator {
       }
     }
 
-    double balance = contractDbService.parseAmount(balanceI, vaultHash, network);
+    double balance = functionsUtils.parseAmount(balanceI, vaultHash, network);
     if (balance == 0
         && dto.getAmount() != 0
         && "Deposit".equals(dto.getMethodName())) {
@@ -131,7 +131,7 @@ public class HarvestOwnerBalanceCalculator {
       log.warn("Can reach lp balance for " + dto.print());
       return false;
     }
-    double balance = contractDbService.parseAmount(balanceI, lpHash, network);
+    double balance = functionsUtils.parseAmount(balanceI, lpHash, network);
     dto.setOwnerBalance(balance);
 
     //fill USD value

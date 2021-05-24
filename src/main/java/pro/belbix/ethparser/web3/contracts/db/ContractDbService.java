@@ -137,41 +137,6 @@ public class ContractDbService {
     );
   }
 
-  public double parseAmount(BigInteger amount, String address, String network) {
-    if (amount == null || ZERO_ADDRESS.equalsIgnoreCase(address)) {
-      return 0.0;
-    }
-    return new BigDecimal(amount)
-        .divide(getDividerByAddress(address, network), 99, RoundingMode.HALF_UP)
-        .doubleValue();
-  }
-
-  public BigDecimal getDividerByAddress(String _address, String network) {
-    String address = _address.toLowerCase();
-    long decimals;
-    // unique addresses
-    if (ContractUtils.isPsAddress(address)) {
-      decimals = 18L;
-    } else {
-      ContractEntity contract = getContractByAddress(address, network)
-          .orElseThrow(
-              () -> new IllegalStateException("Not found contract for " + address)
-          );
-      if (contract.getType() == ContractType.VAULT.getId()) {
-        decimals = vaultRepository.findFirstByContract(address, network).getDecimals();
-      } else if (contract.getType() == ContractType.POOL.getId()) {
-        decimals = 18L;
-      } else if (contract.getType() == ContractType.UNI_PAIR.getId()) {
-        decimals = uniPairRepository.findFirstByAddress(address, network).getDecimals();
-      } else if (contract.getType() == ContractType.TOKEN.getId()) {
-        decimals = tokenRepository.findFirstByAddress(address, network).getDecimals();
-      } else {
-        throw new IllegalStateException("Unknown address " + address);
-      }
-    }
-    return new BigDecimal(10L).pow((int) decimals);
-  }
-
   public Optional<UniPairEntity> findLpForTokens(String token0, String token1, String network) {
     List<UniPairEntity> lps = uniPairRepository
         .findLpsForTokenPair(token0.toLowerCase(), token1.toLowerCase(), network);
@@ -264,6 +229,16 @@ public class ContractDbService {
   public Optional<VaultEntity> getVaultByAddress(String address, String network) {
     return Optional.ofNullable(vaultRepository
         .findFirstByContract(address.toLowerCase(), network));
+  }
+
+  public Optional<UniPairEntity> getLpByAddress(String address, String network) {
+    return Optional.ofNullable(uniPairRepository
+        .findFirstByAddress(address.toLowerCase(), network));
+  }
+
+  public Optional<TokenEntity> getTokenByAddress(String address, String network) {
+    return Optional.ofNullable(tokenRepository
+        .findFirstByAddress(address.toLowerCase(), network));
   }
 
   public List<String> getSubscriptions() {

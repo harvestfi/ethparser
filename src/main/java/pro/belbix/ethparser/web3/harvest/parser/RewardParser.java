@@ -132,7 +132,7 @@ public class RewardParser extends Web3Parser<RewardDTO, Log> {
             .map(p -> p.getRewardToken().getAddress())
             .orElseThrow(() -> new IllegalStateException("Reward token not found for " + poolAddress));
 
-    double rewardBalance = contractDbService.parseAmount(
+    double rewardBalance = functionsUtils.parseAmount(
             functionsUtils.callIntByNameWithAddressArg(
                     BALANCE_OF,
                     poolAddress,

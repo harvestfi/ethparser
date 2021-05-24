@@ -49,10 +49,6 @@ public class VaultActionsDBService {
     this.priceProvider = priceProvider;
   }
 
-  public static double aprToApy(double apr, double period) {
-    return (Math.pow(1 + (apr / period), period) - 1.0);
-  }
-
   public boolean saveHarvestDTO(HarvestDTO dto) {
     if (!appProperties.isOverrideDuplicates() && harvestRepository.existsById(dto.getId())) {
       log.info("Duplicate Harvest entry " + dto.getId());

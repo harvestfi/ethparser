@@ -171,7 +171,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     String poolAddress = ContractUtils.getPsPool(vaultHash);
     Double price = priceProvider.getPriceForCoin(
         ContractUtils.getFarmAddress(network), dto.getBlock(), network);
-    double vaultBalance = contractDbService.parseAmount(
+    double vaultBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, dto.getBlock(), network)
             .orElse(BigInteger.ZERO),
         vaultHash, network);
@@ -184,7 +184,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
   }
 
   private double farmTotalAmount(long block, String network) {
-    return contractDbService.parseAmount(
+    return functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY,
             ContractUtils.getFarmAddress(network), block, network)
             .orElse(BigInteger.ZERO),
@@ -289,7 +289,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     );
 
     migrationDto.setAmount(
-            contractDbService.parseAmount(
+        functionsUtils.parseAmount(
                 migrationTx.getIntFromArgs()[1],
                 contractDbService
                     .getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
@@ -327,7 +327,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     if (BigInteger.ONE.equals(sharePriceInt)) {
       sharePrice = 0.0;
     } else {
-      sharePrice = contractDbService
+      sharePrice = functionsUtils
           .parseAmount(sharePriceInt, dto.getVaultAddress(), network);
     }
     dto.setSharePrice(sharePrice);
@@ -364,7 +364,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     }
     dto.setUnderlyingAddress(underlyingAddress);
     dto.setUnderlyingPrice(priceUnderlying);
-    double vaultBalance = contractDbService.parseAmount(
+    double vaultBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         vaultHash, network);
@@ -381,12 +381,12 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
   public void fillUsdValuesForLP(HarvestDTO dto, String vaultHash, String lpHash, String network) {
     long dtoBlock = dto.getBlock();
-    double vaultBalance = contractDbService.parseAmount(
+    double vaultBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, vaultHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         vaultHash, network);
     double sharePrice = dto.getSharePrice();
-    double lpTotalSupply = contractDbService.parseAmount(
+    double lpTotalSupply = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, dtoBlock, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + vaultHash)),
         lpHash, network);
@@ -470,9 +470,9 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     dto.setVaultAddress(tx.getVault().getValue());
     dto.setConfirmed(1);
     dto.setMethodName(tx.getMethodName());
-    dto.setAmount(contractDbService.parseAmount(tx.getAmount(), tx.getVault().getValue(), network));
+    dto.setAmount(functionsUtils.parseAmount(tx.getAmount(), tx.getVault().getValue(), network));
     if (tx.getAmountIn() != null) {
-      dto.setAmountIn(contractDbService
+      dto.setAmountIn(functionsUtils
           .parseAmount(tx.getAmountIn(), tx.getFToken().getValue(), network));
     }
     dto.setOwner(tx.getOwner());

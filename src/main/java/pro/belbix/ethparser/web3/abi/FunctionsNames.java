@@ -51,4 +51,16 @@ public class FunctionsNames {
   public static final String UNDERLYING_ASSET_ADDRESS = "UNDERLYING_ASSET_ADDRESS";
   public static final String UNSALVAGABLE_TOKENS = "unsalvagableTokens";
   public static final String INVESTED_UNDERLYING_BALANCE = "investedUnderlyingBalance";
+  public static final String POOL = "pool";
+  public static final String CLAIMABLE_TOKENS = "claimable_tokens";
+  public static final String INFLATION_RATE = "inflation_rate";
+  public static final String GAUGE_RELATIVE_WEIGHT = "gauge_relative_weight";
+  public static final String INTEGRATE_CHECKPOINT_OF = "integrate_checkpoint_of";
+  public static final String WORKING_SUPPLY = "working_supply";
+  public static final String INTEGRATE_INV_SUPPLY_OF = "integrate_inv_supply_of";
+  public static final String WORKING_BALANCES = "working_balances";
+  public static final String INTEGRATE_FRACTION = "integrate_fraction";
+  public static final String MINTED = "minted";
+  public static final String INTEGRATE_INV_SUPPLY = "integrate_inv_supply";
+  public static final String PERIOD = "period";
 }

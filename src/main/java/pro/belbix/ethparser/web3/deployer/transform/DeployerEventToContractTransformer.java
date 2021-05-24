@@ -111,7 +111,7 @@ public class DeployerEventToContractTransformer {
     log.info("Start transform {}", address);
 
     ContractInfo contractInfo =
-        collectVaultOrPoolContractInfo(address, block, network, type);
+        collectHarvestContractInfo(address, block, network, type);
 
     if (contractInfo == null) {
       return List.of();
@@ -168,7 +168,7 @@ public class DeployerEventToContractTransformer {
         || "initializeVault".equals(methodName);
   }
 
-  private ContractInfo collectVaultOrPoolContractInfo(
+  private ContractInfo collectHarvestContractInfo(
       String address,
       long block,
       String network,
@@ -238,6 +238,12 @@ public class DeployerEventToContractTransformer {
         // LP UNDERLYING
         name = prefix + "_" + tokenNames;
       }
+    }
+
+    if (type == STRATEGY) {
+      contractInfo.setRewardAddress(functionsUtils.callAddressByName(
+          REWARD_TOKEN, address, block, network)
+          .orElse(null));
     }
 
     if (name.endsWith("_")) {
@@ -321,6 +327,8 @@ public class DeployerEventToContractTransformer {
 
     tokenTransformer
         .createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
+    tokenTransformer
+        .createTokenAndLpContracts(contractInfo.getRewardAddress(), block, network, contracts);
     contractInfo.getUnderlyingTokens().forEach(c ->
         tokenTransformer.createTokenAndLpContracts(c, block, network, contracts));
   }
