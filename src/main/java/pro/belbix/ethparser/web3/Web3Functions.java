@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
@@ -25,6 +26,7 @@ import org.web3j.protocol.core.BatchRequest;
 import org.web3j.protocol.core.BatchResponse;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.Response.Error;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -39,7 +41,6 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
 @Log4j2
@@ -67,6 +68,7 @@ public class Web3Functions {
   }
 
   private Web3j getWeb3(String network) {
+    getWeb3Service(network).waitInit();
     return getWeb3Service(network).getWeb3();
   }
 
@@ -208,29 +210,12 @@ public class Web3Functions {
       Integer end,
       String network,
       String... topics) {
-    DefaultBlockParameter fromBlock;
-    DefaultBlockParameter toBlock;
-    if (start == null) {
-      fromBlock = EARLIEST;
-    } else {
-      if(start < 0) {
-        return List.of();
-      }
-      fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
+    Request<?, EthLog> request = prepareEthLogRequest(addresses, start, end, network, topics);
+    if (request == null) {
+      return List.of();
     }
-    if (end == null) {
-      toBlock = LATEST;
-    } else {
-      if(end<0) {
-        return List.of();
-      }
-      toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
-    }
-    EthFilter filter = new EthFilter(fromBlock,
-        toBlock, addresses);
-    filter.addOptionalTopics(topics);
     EthLog result = getWeb3Service(network).callWithRetry(() -> {
-      EthLog ethLog = getWeb3(network).ethGetLogs(filter).send();
+      EthLog ethLog = request.send();
       if (ethLog == null) {
         log.error("get logs null result");
         return null;
@@ -247,9 +232,93 @@ public class Web3Functions {
     return result.getLogs();
   }
 
+  public List<LogResult> fetchContractLogsBatch(
+      List<String> addresses,
+      Integer start,
+      Integer end,
+      String network,
+      String... topics
+  ) {
+    if (start == null || end == null) {
+      throw new IllegalStateException("Null ranges doesn't supported");
+    }
+    if ((end - start) / appProperties.getHandleLoopStep() > appProperties.getHandleLoopStep()) {
+      throw new IllegalStateException("Too big range! " + start + " " + end);
+    }
+    int step = appProperties.getHandleLoopStep();
+
+    BatchResponse batchResponse = getWeb3Service(network).callWithRetry(() -> {
+      BatchRequest batchRequest = getWeb3(network).newBatch();
+
+      int from = start;
+      int to = Math.min(end, start + step);
+      while (true) {
+        var req = prepareEthLogRequest(
+            addresses,
+            from,
+            to,
+            network,
+            topics
+        );
+        if (req != null) {
+          batchRequest.add(req);
+        }
+        if (to >= end) {
+          break;
+        }
+        from = to;
+        to += step;
+        to = Math.min(to, end);
+      }
+
+      return batchRequest.send();
+    }, "fetchEthLogsBatch " + start + " " + end + " " + network);
+
+    if (batchResponse == null) {
+      return List.of();
+    }
+
+    //noinspection unchecked
+    return batchResponse.getResponses().stream()
+        .map(r -> ((EthLog) r).getLogs())
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
+
+  public Request<?, EthLog> prepareEthLogRequest(
+      List<String> addresses,
+      Integer start,
+      Integer end,
+      String network,
+      String... topics
+  ) {
+    DefaultBlockParameter fromBlock;
+    DefaultBlockParameter toBlock;
+    if (start == null) {
+      fromBlock = EARLIEST;
+    } else {
+      if (start < 0) {
+        return null;
+      }
+      fromBlock = new DefaultBlockParameterNumber(new BigInteger(start + ""));
+    }
+    if (end == null) {
+      toBlock = LATEST;
+    } else {
+      if (end < 0) {
+        return null;
+      }
+      toBlock = new DefaultBlockParameterNumber(new BigInteger(end + ""));
+    }
+    EthFilter filter = new EthFilter(fromBlock,
+        toBlock, addresses);
+    filter.addOptionalTopics(topics);
+    return getWeb3(network).ethGetLogs(filter);
+  }
+
   public BigInteger fetchBalance(String hash, Long block, String network) {
     DefaultBlockParameter blockP;
-    if(block != null) {
+    if (block != null) {
       blockP = new DefaultBlockParameterNumber(BigInteger.valueOf(block));
     } else {
       blockP = LATEST;
@@ -305,7 +374,7 @@ public class Web3Functions {
         return null;
       }
       if (ethCall.getError() != null) {
-        if(!"execution reverted".equals(ethCall.getError().getMessage())) {
+        if (!"execution reverted".equals(ethCall.getError().getMessage())) {
           log.warn("{} callFunction callback is error: {}",
               function.getName(), ethCall.getError().getMessage());
         }

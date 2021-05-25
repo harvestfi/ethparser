@@ -15,6 +15,10 @@ public class StratInfo {
   private final long block;
   private final String network;
 
+  //contract info
+  private Long strategyCreated;
+  private String strategyName;
+
   // strategy info
   private String strategyUnderlyingAddress;
   private String strategyUnderlyingName;

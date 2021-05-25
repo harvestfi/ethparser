@@ -33,6 +33,7 @@ import pro.belbix.ethparser.web3.abi.CommonMethods;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class MethodDecoder {
+
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();
   protected Map<String, String> methodNamesByMethodId = new HashMap<>();
   protected Map<String, String> methodIdByFullHex = new HashMap<>();
@@ -138,7 +139,10 @@ public abstract class MethodDecoder {
     return sb.toString();
   }
 
-  protected Optional<String> parseMethodId(Log ethLog) {
+  public Optional<String> parseMethodId(Log ethLog) {
+    if (ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
+      return Optional.empty();
+    }
     String topic0 = ethLog.getTopics().get(0);
     return Optional.ofNullable(methodIdByFullHex.get(topic0));
   }
@@ -280,17 +284,17 @@ public abstract class MethodDecoder {
     }
   }
 
-    private void initParameters() {
-        if (parametersByMethodId.isEmpty()) {
-            Map<String, List<TypeReference<Type>>> parameters = new HashMap<>();
-            try {
-                parameters = CommonMethods.getMethods();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            writeParameters(parameters);
-        }
+  private void initParameters() {
+    if (parametersByMethodId.isEmpty()) {
+      Map<String, List<TypeReference<Type>>> parameters = new HashMap<>();
+      try {
+        parameters = CommonMethods.getMethods();
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      }
+      writeParameters(parameters);
     }
+  }
 
   public Map<String, String> getMethodNamesByMethodId() {
     return methodNamesByMethodId;

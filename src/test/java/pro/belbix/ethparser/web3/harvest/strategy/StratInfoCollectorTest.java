@@ -32,5 +32,35 @@ class StratInfoCollectorTest {
         stratInfo);
   }
 
+  @Test
+  void collect_CRV_EURS_shouldBeZero() throws Exception {
+    String strategyAddress = "0x807a637A1C82ca37d4bac0aB2684b33600c4a60A";
+    long block = 12474706;
+    String network = ETH_NETWORK;
+    StratInfo stratInfo = stratInfoCollector.collect(strategyAddress, block, network);
+    assertModel(StratInfo.builder()
+            .strategyAddress(strategyAddress)
+            .block(block)
+            .network(network)
+            .apr(0.0)
+            .build(),
+        stratInfo);
+  }
+
+  @Test
+  void collect_CRV_EURS() throws Exception {
+    String strategyAddress = "0x807a637A1C82ca37d4bac0aB2684b33600c4a60A";
+    long block = 12504539;
+    String network = ETH_NETWORK;
+    StratInfo stratInfo = stratInfoCollector.collect(strategyAddress, block, network);
+    assertModel(StratInfo.builder()
+            .strategyAddress(strategyAddress)
+            .block(block)
+            .network(network)
+            .apr(19.225898342222536)
+            .build(),
+        stratInfo);
+  }
+
 
 }
