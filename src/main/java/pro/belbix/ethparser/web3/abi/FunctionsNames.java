@@ -63,4 +63,13 @@ public class FunctionsNames {
   public static final String MINTED = "minted";
   public static final String INTEGRATE_INV_SUPPLY = "integrate_inv_supply";
   public static final String PERIOD = "period";
+  public static final String COMPTROLLER = "comptroller";
+  public static final String GET_ACCOUNT_LIQUIDITY = "getAccountLiquidity";
+  public static final String COMP_BORROW_STATE = "compBorrowState";
+  public static final String GET_ASSETS_IN = "getAssetsIn";
+  public static final String BALANCE_OF_UNDERLYING = "balanceOfUnderlying";
+  public static final String TOTAL_BORROWS_CURRENT = "totalBorrowsCurrent";
+  public static final String COMP_SUPPLY_STATE = "compSupplyState";
+  public static final String COMP_SUPPLIER_INDEX = "compSupplierIndex";
+  public static final String COMP_ACCRUED = "compAccrued";
 }

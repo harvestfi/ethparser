@@ -740,6 +740,13 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("address"),
                 TypeReference.makeTypeReference("uint256")
             ));
+        parameters.put("DistributedSupplierComp",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint"),
+                TypeReference.makeTypeReference("uint")
+            ));
         return parameters;
     }
 

@@ -28,12 +28,14 @@ public class StratInfo {
   private Double strategyBalanceUsd;
 
   private String rewardTokenAddress;
+  private String rewardTokenName;
   private Double rewardTokenPrice;
 
   private String poolAddress;
   private Double poolBalance;
   private Double poolTotalSupply;
   private Double poolRewardsBalance;
+  private String poolSpecificUnderlying;
 
   // how much we invested
   private Double percentOfPool;
@@ -52,7 +54,7 @@ public class StratInfo {
   }
 
   public boolean isPlatform(PlatformType platformType) {
-    return PlatformType.valueOfName(strategyUnderlyingName) == platformType;
+    return PlatformType.valueOf(platform) == platformType;
   }
 
 }

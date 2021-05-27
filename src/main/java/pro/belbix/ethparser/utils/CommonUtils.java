@@ -2,6 +2,8 @@ package pro.belbix.ethparser.utils;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

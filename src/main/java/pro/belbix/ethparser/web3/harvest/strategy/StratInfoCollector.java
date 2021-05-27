@@ -2,10 +2,9 @@ package pro.belbix.ethparser.web3.harvest.strategy;
 
 import static pro.belbix.ethparser.utils.CommonUtils.aprToApy;
 import static pro.belbix.ethparser.utils.CommonUtils.calculateApr;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.INVESTED_UNDERLYING_BALANCE;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
-import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 
 import java.time.Duration;
@@ -26,17 +25,20 @@ public class StratInfoCollector {
 
   private final FunctionsUtils functionsUtils;
   private final PriceProvider priceProvider;
-  private final CurveUtils curveUtils;
+  private final CurveFiller curveFiller;
   private final ContractDbService contractDbService;
+  private final CompFiller compFiller;
 
   public StratInfoCollector(Web3Functions web3Functions,
       FunctionsUtils functionsUtils, PriceProvider priceProvider,
-      CurveUtils curveUtils,
-      ContractDbService contractDbService) {
-    this.curveUtils = curveUtils;
+      CurveFiller curveFiller,
+      ContractDbService contractDbService,
+      CompFiller compFiller) {
+    this.curveFiller = curveFiller;
     this.functionsUtils = functionsUtils;
     this.priceProvider = priceProvider;
     this.contractDbService = contractDbService;
+    this.compFiller = compFiller;
   }
 
   public StratInfo collect(String strategyAddress, long block, String network) {
@@ -46,13 +48,21 @@ public class StratInfoCollector {
 
     fillStrategyUnderlyingInfo(stratInfo);
 
-    // farmable pool
-    fillFarmablePool(stratInfo);
-    fillPoolBalance(stratInfo);
-    fillPoolTotalSupply(stratInfo);
+    fillRewardToken(stratInfo);
 
-    fillRewardsInPool(stratInfo);
+    fillFarmablePoolInfo(stratInfo);
+
+    fillRewards(stratInfo);
     return stratInfo;
+  }
+
+  private FarmableProjectFiller getFiller(StratInfo stratInfo) {
+    if (stratInfo.isPlatform(PlatformType.CURVE)) {
+      return curveFiller;
+    } else if (stratInfo.isPlatform(PlatformType.COMPOUND)) {
+      return compFiller;
+    }
+    throw new IllegalStateException("Unknown platform for " + stratInfo);
   }
 
   private void fillContractStats(StratInfo stratInfo) {
@@ -66,10 +76,8 @@ public class StratInfoCollector {
     stratInfo.setStrategyName(strategyContract.getName());
   }
 
-  private void fillRewardsInPool(StratInfo stratInfo) {
-    if (stratInfo.isPlatform(PlatformType.CURVE)) {
-      curveUtils.fillRewards(stratInfo);
-    }
+  private void fillRewards(StratInfo stratInfo) {
+    getFiller(stratInfo).fillRewards(stratInfo);
 
     double apr = calculateApr(stratInfo.getRewardPeriod(),
         stratInfo.getClaimableTokensUsd(),
@@ -85,17 +93,9 @@ public class StratInfoCollector {
         apr, apy);
   }
 
-  private void fillPoolTotalSupply(StratInfo stratInfo) {
-    String poolAddress = stratInfo.getPoolAddress();
-    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
-    long block = stratInfo.getBlock();
-    String network = stratInfo.getNetwork();
-    stratInfo.setPoolTotalSupply(functionsUtils.fetchUint256Field(
-        TOTAL_SUPPLY,
-        poolAddress,
-        underlyingAddress,
-        block,
-        network));
+
+  private void fillFarmablePoolInfo(StratInfo stratInfo) {
+    getFiller(stratInfo).fillPoolInfo(stratInfo);
 
     stratInfo.setPercentOfPool(
         (stratInfo.getPoolBalance() / stratInfo.getPoolTotalSupply()) * 100);
@@ -103,27 +103,6 @@ public class StratInfoCollector {
     stratInfo.setPercentOfInvested(
         100 - (((stratInfo.getStrategyBalance() - stratInfo.getPoolBalance())
             / stratInfo.getStrategyBalance()) * 100));
-  }
-
-  private void fillPoolBalance(StratInfo stratInfo) {
-    String poolAddress = stratInfo.getPoolAddress();
-    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
-    String strategyAddress = stratInfo.getStrategyAddress();
-    long block = stratInfo.getBlock();
-    String network = stratInfo.getNetwork();
-    stratInfo.setPoolBalance(functionsUtils.fetchUint256Field(
-        BALANCE_OF,
-        poolAddress,
-        underlyingAddress,
-        block,
-        network,
-        strategyAddress));
-  }
-
-  private void fillFarmablePool(StratInfo stratInfo) {
-    if (stratInfo.isPlatform(PlatformType.CURVE)) {
-      curveUtils.fillPoolAddress(stratInfo);
-    }
   }
 
   private void fillStrategyUnderlyingInfo(StratInfo stratInfo) {
@@ -147,10 +126,50 @@ public class StratInfoCollector {
                     + stratInfo.getStrategyUnderlyingAddress())
             )
     );
+
     stratInfo.setPlatform(
         PlatformType.valueOfName(stratInfo.getStrategyUnderlyingName()).toString());
 
+    if (stratInfo.isPlatform(PlatformType.UNKNOWN)) {
+      //try to detect platform by other metrics
+      String strategyRewardToken = functionsUtils.callAddressByName(
+          REWARD_TOKEN,
+          stratInfo.getStrategyAddress(),
+          stratInfo.getBlock(),
+          stratInfo.getNetwork()
+      ).orElseThrow(
+          () -> new IllegalStateException("Can't fetch reward token for "
+              + stratInfo.getStrategyAddress())
+      );
+      String strategyRewardTokenName = functionsUtils.callStrByName(
+          NAME,
+          strategyRewardToken,
+          stratInfo.getBlock(),
+          stratInfo.getNetwork()
+      ).orElseThrow();
+      stratInfo.setPlatform(
+          PlatformType.valueOfName(strategyRewardTokenName).toString());
+    }
+
     fillStrategyBalance(stratInfo);
+  }
+
+  private void fillRewardToken(StratInfo stratInfo) {
+    getFiller(stratInfo).fillRewardTokenAddress(stratInfo);
+
+    stratInfo.setRewardTokenPrice(
+        priceProvider.getPriceForCoin(stratInfo.getRewardTokenAddress(),
+            stratInfo.getBlock(), stratInfo.getNetwork()));
+
+    stratInfo.setRewardTokenName(functionsUtils.callStrByName(
+        NAME,
+        stratInfo.getRewardTokenAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).orElseThrow(
+        () -> new IllegalStateException("Can't fetch reward token for "
+            + stratInfo.getRewardTokenAddress())
+    ));
   }
 
   private void fillStrategyBalance(StratInfo stratInfo) {
