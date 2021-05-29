@@ -69,6 +69,7 @@ public class CommonUtils {
       return 0;
     }
     return (Math.pow(1.0 + ((apr / 100) / period), period) - 1.0) * 100;
+    //  return (Math.pow(1 + (apr / period), period) - 1.0);
   }
 
 }

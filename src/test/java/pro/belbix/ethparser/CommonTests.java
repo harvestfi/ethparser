@@ -9,8 +9,8 @@ public class CommonTests {
 
   @Test
   public void testAprToApy() {
-    double apr = 0.743;
+    double apr = 74.3;
     double period = 365.0;
-    assertEquals(110.06457410361162, aprToApy(apr, period) * 100, 0.0);
+    assertEquals(110.06457410361162, aprToApy(apr, period), 0.0);
   }
 }

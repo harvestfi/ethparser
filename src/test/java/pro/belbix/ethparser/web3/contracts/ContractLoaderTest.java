@@ -57,6 +57,7 @@ public class ContractLoaderTest {
     ContractEntity result = new ContractEntity();
     result.setAddress(adr);
     result.setName(name + "_#V1");
+    result.setType(type.getId());
     result.setCreated(1L);
     result.setUnderlying(und);
     result.setNetwork(net);
@@ -99,6 +100,7 @@ public class ContractLoaderTest {
     result.setCreated(1L);
     result.setUnderlying(und);
     result.setNetwork(net);
+    result.setType(type.getId());
     verify(contractRepository, times(1)).save(result);
   }
 }
