@@ -36,6 +36,9 @@ public class StratInfo {
   private Double poolBalance;
   private Double poolTotalSupply;
   private String poolSpecificUnderlying;
+  private String poolExtraInfo1;
+  private String poolExtraInfo2;
+  private String poolExtraInfo3;
 
   // how much we invested
   private Double percentOfPool;

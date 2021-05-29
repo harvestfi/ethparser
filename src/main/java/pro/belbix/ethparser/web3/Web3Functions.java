@@ -304,7 +304,7 @@ public class Web3Functions {
     while (true) {
       List<LogResult> results =
           fetchContractLogsBatch(List.of(address), from, to, network, topics);
-      Optional<Log> lastLog = findLastClaimLogBlockNumber(results, predicate);
+      Optional<Log> lastLog = SIMPLE_DECODER.findLogByPredicate(results, predicate);
       if (lastLog.isPresent()) {
         return lastLog;
       }
@@ -315,13 +315,6 @@ public class Web3Functions {
       from = Math.max(from - step, _from);
     }
     return Optional.empty();
-  }
-
-  private Optional<Log> findLastClaimLogBlockNumber(
-      List<LogResult> results,
-      Predicate<? super List<Type>> predicate
-  ) {
-    return SIMPLE_DECODER.findLogByPredicate(results, predicate);
   }
 
   public Request<?, EthLog> prepareEthLogRequest(

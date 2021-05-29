@@ -4,13 +4,18 @@ import pro.belbix.ethparser.model.StratInfo;
 
 public interface FarmableProjectFiller {
 
-  void fillRewards(StratInfo stratInfo);
+  void fillPoolAddress(StratInfo stratInfo);
+
+  /**
+   * <p>PoolSpecificUnderlying</p>
+   * <p>PoolBalance</p>
+   * <p>PoolTotalSupply</p>
+   */
+  void fillRewardTokenAddress(StratInfo stratInfo);
 
   void fillPoolInfo(StratInfo stratInfo);
 
-  void fillRewardTokenAddress(StratInfo stratInfo);
+  void fillRewards(StratInfo stratInfo);
 
   int lastClaimBlock(StratInfo stratInfo);
-
-  void fillPoolAddress(StratInfo stratInfo);
 }

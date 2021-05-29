@@ -63,6 +63,47 @@ public class IdleFiller implements FarmableProjectFiller {
     this.compFiller = compFiller;
   }
 
+  @Override
+  public void fillPoolAddress(StratInfo stratInfo) {
+    stratInfo.setPoolAddress(functionsUtils.callAddressByName(
+        IDLE_UNDERLYING,
+        stratInfo.getStrategyAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).orElseThrow(
+        () -> new IllegalStateException("Can't fetch IDLE_UNDERLYING for "
+            + stratInfo.getStrategyAddress())
+    ));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public void fillRewardTokenAddress(StratInfo stratInfo) {
+    List govTokens = functionsUtils.callViewFunction(
+        new Function(
+            GET_GOV_TOKENS,
+            List.of(),
+            List.of(silentCall(() -> TypeReference.makeTypeReference("address[]")).orElseThrow())
+        ),
+        stratInfo.getPoolAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork())
+        .flatMap(raw -> silentCall(() -> (String) om.readValue(raw, List.class).get(0)))
+        .flatMap(raw -> silentCall(() -> om.readValue(raw, List.class)))
+        .orElseThrow();
+
+    for (Object govToken : govTokens) {
+      stratInfo.getRewardTokens()
+          .add(new StratRewardInfo(swapTokenToUnderlying((String) govToken)));
+    }
+  }
+
+  @Override
+  public void fillPoolInfo(StratInfo stratInfo) {
+    fillPoolBalance(stratInfo);
+    fillPoolTotalSupply(stratInfo);
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public void fillRewards(StratInfo stratInfo) {
@@ -159,6 +200,8 @@ public class IdleFiller implements FarmableProjectFiller {
           network
       );
 
+      //TODO fix calculation
+      claimablePretty = 0.;
       rewardInfo.setAmount(claimablePretty);
     }
 
@@ -184,6 +227,24 @@ public class IdleFiller implements FarmableProjectFiller {
 //          claimable, rewardInfo.getAddress(), network);
 //      rewardInfo.setAmount(claimablePretty);
 //    }
+  }
+
+  @Override
+  public int lastClaimBlock(StratInfo stratInfo) {
+    // idle claim doesn't have their own events, so just parse transfer
+    return web3Functions.findLastLogEvent(
+        IDLE_TOKEN,
+        Objects.requireNonNullElse(
+            stratInfo.getStrategyCreated(),
+            stratInfo.getBlock() - 100000)
+            .intValue(),
+        (int) stratInfo.getBlock(),
+        stratInfo.getNetwork(),
+        lastClaimPredicate(stratInfo),
+        TRANSFER_EVENT
+    ).map(Log::getBlockNumber)
+        .map(BigInteger::intValue)
+        .orElse(0);
   }
 
   private double underlyingClaimable(StratInfo stratInfo, String address) {
@@ -234,25 +295,6 @@ public class IdleFiller implements FarmableProjectFiller {
     compFiller.fillRewards(underlyingInfo);
   }
 
-  @Override
-  public void fillPoolAddress(StratInfo stratInfo) {
-    stratInfo.setPoolAddress(functionsUtils.callAddressByName(
-        IDLE_UNDERLYING,
-        stratInfo.getStrategyAddress(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).orElseThrow(
-        () -> new IllegalStateException("Can't fetch IDLE_UNDERLYING for "
-            + stratInfo.getStrategyAddress())
-    ));
-  }
-
-  @Override
-  public void fillPoolInfo(StratInfo stratInfo) {
-    fillPoolBalance(stratInfo);
-    fillPoolTotalSupply(stratInfo);
-  }
-
   private void fillPoolTotalSupply(StratInfo stratInfo) {
     stratInfo.setPoolTotalSupply(functionsUtils.parseAmount(
         functionsUtils.callIntByName(
@@ -280,28 +322,6 @@ public class IdleFiller implements FarmableProjectFiller {
         ), IDLE_TOKEN, stratInfo.getNetwork()));
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public void fillRewardTokenAddress(StratInfo stratInfo) {
-    List govTokens = functionsUtils.callViewFunction(
-        new Function(
-            GET_GOV_TOKENS,
-            List.of(),
-            List.of(silentCall(() -> TypeReference.makeTypeReference("address[]")).orElseThrow())
-        ),
-        stratInfo.getPoolAddress(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork())
-        .flatMap(raw -> silentCall(() -> (String) om.readValue(raw, List.class).get(0)))
-        .flatMap(raw -> silentCall(() -> om.readValue(raw, List.class)))
-        .orElseThrow();
-
-    for (Object govToken : govTokens) {
-      stratInfo.getRewardTokens()
-          .add(new StratRewardInfo(swapTokenToUnderlying((String) govToken)));
-    }
-  }
-
   private String swapTokenToUnderlying(String govToken) {
     if (govToken.equalsIgnoreCase(ST_AAVE_TOKEN)) {
       return AAVE_TOKEN;
@@ -314,24 +334,6 @@ public class IdleFiller implements FarmableProjectFiller {
       return ST_AAVE_TOKEN;
     }
     return token;
-  }
-
-  @Override
-  public int lastClaimBlock(StratInfo stratInfo) {
-    // idle claim doesn't have their own events, so just parse transfer
-    return web3Functions.findLastLogEvent(
-        IDLE_TOKEN,
-        Objects.requireNonNullElse(
-            stratInfo.getStrategyCreated(),
-            stratInfo.getBlock() - 100000)
-            .intValue(),
-        (int) stratInfo.getBlock(),
-        stratInfo.getNetwork(),
-        lastClaimPredicate(stratInfo),
-        TRANSFER_EVENT
-    ).map(Log::getBlockNumber)
-        .map(BigInteger::intValue)
-        .orElse(0);
   }
 
   private Predicate<? super List<Type>> lastClaimPredicate(StratInfo stratInfo) {

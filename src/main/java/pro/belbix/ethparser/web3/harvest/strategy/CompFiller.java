@@ -42,6 +42,7 @@ public class CompFiller implements FarmableProjectFiller {
     this.web3Functions = web3Functions;
   }
 
+  @Override
   public void fillPoolAddress(StratInfo stratInfo) {
     stratInfo.setPoolAddress(functionsUtils.callAddressByName(
         COMPTROLLER,
@@ -54,7 +55,21 @@ public class CompFiller implements FarmableProjectFiller {
     ));
   }
 
+  @Override
+  public void fillRewardTokenAddress(StratInfo stratInfo) {
+    stratInfo.getRewardTokens().add(new StratRewardInfo(functionsUtils.callAddressByName(
+        REWARD_TOKEN,
+        stratInfo.getStrategyAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).orElseThrow(
+        () -> new IllegalStateException("Can't fetch reward token for "
+            + stratInfo.getStrategyAddress())
+    )));
+  }
+
   // comptroller has a role pool for COMP
+  @Override
   public void fillPoolInfo(StratInfo stratInfo) {
     stratInfo.setPoolSpecificUnderlying(functionsUtils.callViewFunction(
         new Function(
@@ -77,36 +92,8 @@ public class CompFiller implements FarmableProjectFiller {
     fillPoolTotalSupply(stratInfo);
   }
 
-  private void fillPoolBalance(StratInfo stratInfo) {
-    stratInfo.setPoolBalance(functionsUtils.callViewFunction(
-        new Function(
-            BALANCE_OF_UNDERLYING,
-            List.of(new Address(stratInfo.getStrategyAddress())),
-            List.of(silentCall(() -> TypeReference.makeTypeReference("uint")).orElseThrow())
-        ),
-        stratInfo.getPoolSpecificUnderlying(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).flatMap(raw -> silentCall(() -> (String) om.readValue(raw, List.class).get(0)))
-        .map(BigInteger::new)
-        .map(x -> functionsUtils.parseAmount(
-            x, stratInfo.getStrategyUnderlyingAddress(), stratInfo.getNetwork()))
-        .orElseThrow());
-  }
-
-  private void fillPoolTotalSupply(StratInfo stratInfo) {
-    stratInfo.setPoolTotalSupply(functionsUtils.callIntByName(
-        TOTAL_BORROWS_CURRENT,
-        stratInfo.getPoolSpecificUnderlying(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).map(x -> functionsUtils.parseAmount(
-        x, stratInfo.getStrategyUnderlyingAddress(), stratInfo.getNetwork()))
-        .orElseThrow());
-  }
-
+  @Override
   public void fillRewards(StratInfo stratInfo) {
-
     String network = stratInfo.getNetwork();
 
     BigDecimal claimableTokens = CompUtils.calculateRewards(
@@ -143,21 +130,37 @@ public class CompFiller implements FarmableProjectFiller {
         .orElse(0);
   }
 
+  private void fillPoolBalance(StratInfo stratInfo) {
+    stratInfo.setPoolBalance(functionsUtils.callViewFunction(
+        new Function(
+            BALANCE_OF_UNDERLYING,
+            List.of(new Address(stratInfo.getStrategyAddress())),
+            List.of(silentCall(() -> TypeReference.makeTypeReference("uint")).orElseThrow())
+        ),
+        stratInfo.getPoolSpecificUnderlying(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).flatMap(raw -> silentCall(() -> (String) om.readValue(raw, List.class).get(0)))
+        .map(BigInteger::new)
+        .map(x -> functionsUtils.parseAmount(
+            x, stratInfo.getStrategyUnderlyingAddress(), stratInfo.getNetwork()))
+        .orElseThrow());
+  }
+
+  private void fillPoolTotalSupply(StratInfo stratInfo) {
+    stratInfo.setPoolTotalSupply(functionsUtils.callIntByName(
+        TOTAL_BORROWS_CURRENT,
+        stratInfo.getPoolSpecificUnderlying(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).map(x -> functionsUtils.parseAmount(
+        x, stratInfo.getStrategyUnderlyingAddress(), stratInfo.getNetwork()))
+        .orElseThrow());
+  }
+
   private Predicate<? super List<Type>> lastClaimPredicate(StratInfo stratInfo) {
     return l ->
         ((Address) l.get(0)).getValue().equalsIgnoreCase(stratInfo.getPoolSpecificUnderlying())
             && ((Address) l.get(1)).getValue().equalsIgnoreCase(stratInfo.getStrategyAddress());
-  }
-
-  public void fillRewardTokenAddress(StratInfo stratInfo) {
-    stratInfo.getRewardTokens().add(new StratRewardInfo(functionsUtils.callAddressByName(
-        REWARD_TOKEN,
-        stratInfo.getStrategyAddress(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).orElseThrow(
-        () -> new IllegalStateException("Can't fetch reward token for "
-            + stratInfo.getStrategyAddress())
-    )));
   }
 }

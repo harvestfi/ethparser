@@ -55,19 +55,6 @@ public class CurveFiller implements FarmableProjectFiller {
     this.appProperties = appProperties;
   }
 
-
-  public void fillRewards(StratInfo stratInfo) {
-    double claimableTokens = new BigDecimal(functionsUtils.callIntByNameWithAddressArg(
-        CLAIMABLE_TOKENS,
-        stratInfo.getStrategyAddress(),
-        stratInfo.getPoolAddress(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).orElseThrow()).divide(D18, 99, HALF_UP).doubleValue();
-
-    stratInfo.getRewardTokens().get(0).setAmount(claimableTokens);
-  }
-
   @Override
   public void fillPoolAddress(StratInfo stratInfo) {
     stratInfo.setPoolAddress(
@@ -79,37 +66,28 @@ public class CurveFiller implements FarmableProjectFiller {
             ));
   }
 
+  @Override
+  public void fillRewardTokenAddress(StratInfo stratInfo) {
+    stratInfo.getRewardTokens().add(new StratRewardInfo(CRV_TOKEN));
+  }
+
+  @Override
   public void fillPoolInfo(StratInfo stratInfo) {
     fillPoolBalance(stratInfo);
     fillPoolTotalSupply(stratInfo);
   }
 
-  private void fillPoolBalance(StratInfo stratInfo) {
-    String poolAddress = stratInfo.getPoolAddress();
-    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
-    String strategyAddress = stratInfo.getStrategyAddress();
-    long block = stratInfo.getBlock();
-    String network = stratInfo.getNetwork();
-    stratInfo.setPoolBalance(functionsUtils.fetchUint256Field(
-        BALANCE_OF,
-        poolAddress,
-        underlyingAddress,
-        block,
-        network,
-        strategyAddress));
-  }
+  @Override
+  public void fillRewards(StratInfo stratInfo) {
+    double claimableTokens = new BigDecimal(functionsUtils.callIntByNameWithAddressArg(
+        CLAIMABLE_TOKENS,
+        stratInfo.getStrategyAddress(),
+        stratInfo.getPoolAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).orElseThrow()).divide(D18, 99, HALF_UP).doubleValue();
 
-  private void fillPoolTotalSupply(StratInfo stratInfo) {
-    String poolAddress = stratInfo.getPoolAddress();
-    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
-    long block = stratInfo.getBlock();
-    String network = stratInfo.getNetwork();
-    stratInfo.setPoolTotalSupply(functionsUtils.fetchUint256Field(
-        TOTAL_SUPPLY,
-        poolAddress,
-        underlyingAddress,
-        block,
-        network));
+    stratInfo.getRewardTokens().get(0).setAmount(claimableTokens);
   }
 
   @Override
@@ -140,13 +118,37 @@ public class CurveFiller implements FarmableProjectFiller {
         .orElse(0);
   }
 
+  private void fillPoolBalance(StratInfo stratInfo) {
+    String poolAddress = stratInfo.getPoolAddress();
+    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
+    String strategyAddress = stratInfo.getStrategyAddress();
+    long block = stratInfo.getBlock();
+    String network = stratInfo.getNetwork();
+    stratInfo.setPoolBalance(functionsUtils.fetchUint256Field(
+        BALANCE_OF,
+        poolAddress,
+        underlyingAddress,
+        block,
+        network,
+        strategyAddress));
+  }
+
+  private void fillPoolTotalSupply(StratInfo stratInfo) {
+    String poolAddress = stratInfo.getPoolAddress();
+    String underlyingAddress = stratInfo.getStrategyUnderlyingAddress();
+    long block = stratInfo.getBlock();
+    String network = stratInfo.getNetwork();
+    stratInfo.setPoolTotalSupply(functionsUtils.fetchUint256Field(
+        TOTAL_SUPPLY,
+        poolAddress,
+        underlyingAddress,
+        block,
+        network));
+  }
+
   private Predicate<? super List<Type>> lastClaimPredicate(StratInfo stratInfo) {
     return l ->
         ((Address) l.get(0)).getValue().equalsIgnoreCase(stratInfo.getStrategyAddress())
             && ((Address) l.get(1)).getValue().equalsIgnoreCase(stratInfo.getPoolAddress());
-  }
-
-  public void fillRewardTokenAddress(StratInfo stratInfo) {
-    stratInfo.getRewardTokens().add(new StratRewardInfo(CRV_TOKEN));
   }
 }

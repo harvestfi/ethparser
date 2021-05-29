@@ -747,6 +747,11 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("uint"),
                 TypeReference.makeTypeReference("uint")
             ));
+        parameters.put("Claimed",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
         return parameters;
     }
 

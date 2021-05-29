@@ -31,13 +31,15 @@ public class StratInfoCollector {
   private final CompFiller compFiller;
   private final IdleFiller idleFiller;
   private final EthBlockService ethBlockService;
+  private final LpStratFiller lpStratFiller;
 
   public StratInfoCollector(
       FunctionsUtils functionsUtils, PriceProvider priceProvider,
       CurveFiller curveFiller,
       ContractDbService contractDbService,
       CompFiller compFiller, IdleFiller idleFiller,
-      EthBlockService ethBlockService) {
+      EthBlockService ethBlockService,
+      LpStratFiller lpStratFiller) {
     this.curveFiller = curveFiller;
     this.functionsUtils = functionsUtils;
     this.priceProvider = priceProvider;
@@ -45,6 +47,7 @@ public class StratInfoCollector {
     this.compFiller = compFiller;
     this.idleFiller = idleFiller;
     this.ethBlockService = ethBlockService;
+    this.lpStratFiller = lpStratFiller;
   }
 
   public StratInfo collect(String strategyAddress, long block, String network) {
@@ -71,6 +74,8 @@ public class StratInfoCollector {
       return compFiller;
     } else if (stratInfo.isPlatform(PlatformType.IDLE)) {
       return idleFiller;
+    } else if (stratInfo.isPlatform(PlatformType.UNISWAP)) {
+      return lpStratFiller;
     }
     throw new IllegalStateException("Unknown platform for " + stratInfo);
   }

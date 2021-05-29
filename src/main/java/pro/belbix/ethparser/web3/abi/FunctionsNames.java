@@ -85,4 +85,16 @@ public class FunctionsNames {
   public static final String IDLE_SUPPLIER_INDEX = "idleSupplierIndex";
   public static final String IDLE_ACCRUED = "idleAccrued";
   public static final String GOV_TOKENS_LAST_BALANCES = "govTokensLastBalances";
+  public static final String REWARD_POOL = "rewardPool";
+  public static final String USER_POOL_INFO = "userPoolInfo";
+  public static final String POOL_ID = "poolId";
+  public static final String POOL_INFO = "poolInfo";
+  public static final String END_BLOCK = "endBlock";
+  public static final String REWARD_PER_BLOCK = "rewardPerBlock";
+  public static final String TOTAL_ALLOC_POINT = "totalAllocPoint";
+  public static final String REWARDS = "rewards";
+  public static final String UNLOCKS = "unlocks";
+  public static final String UNLOCK_COUNT = "unlockCount";
+  public static final String UNLOCKS_TOTAL_QUOTATION = "unlocksTotalQuotation";
+  public static final String CLAIMED_REWARDS = "claimedRewards";
 }

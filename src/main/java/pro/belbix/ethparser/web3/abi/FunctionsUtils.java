@@ -1,7 +1,9 @@
 package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
+import static org.web3j.abi.TypeReference.makeTypeReference;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -300,6 +303,21 @@ public class FunctionsUtils {
       }
     }
     return new BigDecimal(10L).pow((int) decimals);
+  }
+
+  public static TypeReference typeReferenceByName(String name) {
+    return silentCall(() -> makeTypeReference(name))
+        .orElseThrow(
+            () -> new IllegalStateException("Error make type reference for " + name)
+        );
+  }
+
+  public static List<TypeReference<?>> typeReferencesList(String... names) {
+    List<TypeReference<?>> types = new ArrayList<>();
+    for (String name : names) {
+      types.add(typeReferenceByName(name));
+    }
+    return types;
   }
 
   // ************ PRIVATE METHODS **************************
