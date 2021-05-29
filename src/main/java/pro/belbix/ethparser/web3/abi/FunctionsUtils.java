@@ -169,10 +169,16 @@ public class FunctionsUtils {
       String hash,
       Long block,
       String network) {
+    List<Type> argTypes;
+    if (arg.startsWith("0x")) {
+      argTypes = Collections.singletonList(new Address(arg));
+    } else {
+      argTypes = Collections.singletonList(new Uint256(Integer.parseInt(arg)));
+    }
     return callStringFunction(
         new Function(
             functionName,
-            Collections.singletonList(new Address(arg)),
+            argTypes,
             Collections.singletonList(new TypeReference<Address>() {
             })),
         hash,

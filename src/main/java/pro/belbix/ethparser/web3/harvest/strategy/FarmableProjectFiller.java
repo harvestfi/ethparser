@@ -9,4 +9,8 @@ public interface FarmableProjectFiller {
   void fillPoolInfo(StratInfo stratInfo);
 
   void fillRewardTokenAddress(StratInfo stratInfo);
+
+  int lastClaimBlock(StratInfo stratInfo);
+
+  void fillPoolAddress(StratInfo stratInfo);
 }

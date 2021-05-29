@@ -12,6 +12,7 @@ public enum PlatformType {
   ELLIPSIS("EPS"),
   BELT("BELT"),
   COMPOUND("COMP"),
+  IDLE("IDLE"),
   BALANCER("BPT");
 
   private final String prettyName;
@@ -52,6 +53,8 @@ public enum PlatformType {
       return PlatformType.BELT;
     } else if (name.startsWith("Compound")) {
       return PlatformType.COMPOUND;
+    } else if (name.startsWith("Idle")) {
+      return PlatformType.IDLE;
     }
     return PlatformType.UNKNOWN;
   }

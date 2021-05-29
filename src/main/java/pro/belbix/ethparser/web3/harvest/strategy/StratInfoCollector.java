@@ -13,7 +13,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.StratInfo;
-import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.model.StratRewardInfo;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.deployer.transform.PlatformType;
@@ -28,17 +29,22 @@ public class StratInfoCollector {
   private final CurveFiller curveFiller;
   private final ContractDbService contractDbService;
   private final CompFiller compFiller;
+  private final IdleFiller idleFiller;
+  private final EthBlockService ethBlockService;
 
-  public StratInfoCollector(Web3Functions web3Functions,
+  public StratInfoCollector(
       FunctionsUtils functionsUtils, PriceProvider priceProvider,
       CurveFiller curveFiller,
       ContractDbService contractDbService,
-      CompFiller compFiller) {
+      CompFiller compFiller, IdleFiller idleFiller,
+      EthBlockService ethBlockService) {
     this.curveFiller = curveFiller;
     this.functionsUtils = functionsUtils;
     this.priceProvider = priceProvider;
     this.contractDbService = contractDbService;
     this.compFiller = compFiller;
+    this.idleFiller = idleFiller;
+    this.ethBlockService = ethBlockService;
   }
 
   public StratInfo collect(String strategyAddress, long block, String network) {
@@ -47,6 +53,8 @@ public class StratInfoCollector {
     fillContractStats(stratInfo);
 
     fillStrategyUnderlyingInfo(stratInfo);
+
+    getFiller(stratInfo).fillPoolAddress(stratInfo);
 
     fillRewardToken(stratInfo);
 
@@ -61,6 +69,8 @@ public class StratInfoCollector {
       return curveFiller;
     } else if (stratInfo.isPlatform(PlatformType.COMPOUND)) {
       return compFiller;
+    } else if (stratInfo.isPlatform(PlatformType.IDLE)) {
+      return idleFiller;
     }
     throw new IllegalStateException("Unknown platform for " + stratInfo);
   }
@@ -79,16 +89,34 @@ public class StratInfoCollector {
   private void fillRewards(StratInfo stratInfo) {
     getFiller(stratInfo).fillRewards(stratInfo);
 
+    int lastClaimBlock = getFiller(stratInfo).lastClaimBlock(stratInfo);
+
+    long currentTs = ethBlockService
+        .getTimestampSecForBlock(stratInfo.getBlock(), stratInfo.getNetwork());
+    long lastClaimTs = ethBlockService
+        .getTimestampSecForBlock(lastClaimBlock, stratInfo.getNetwork());
+    stratInfo.setRewardPeriod(currentTs - lastClaimTs);
+
+    double rewardAmountUsdSum = 0;
+    for (StratRewardInfo rewardInfo : stratInfo.getRewardTokens()) {
+      double rewardAmountUsd = rewardInfo.getAmount() * rewardInfo.getPrice();
+      rewardAmountUsdSum += rewardAmountUsd;
+      rewardInfo.setAmountUsd(rewardAmountUsd);
+      log.info("Pool has reward {} {} (${} for price {})",
+          rewardInfo.getAmount(), rewardInfo.getName(),
+          rewardInfo.getAmountUsd(), rewardInfo.getPrice());
+    }
+
     double apr = calculateApr(stratInfo.getRewardPeriod(),
-        stratInfo.getClaimableTokensUsd(),
+        rewardAmountUsdSum,
         stratInfo.getStrategyBalanceUsd());
     double apy = aprToApy(apr, 365);
 
     stratInfo.setApr(apr);
     stratInfo.setApy(apy);
 
-    log.info("Pool has rewards {} (${}) for period {} hours, apr {}(apy {})",
-        stratInfo.getClaimableTokens(), stratInfo.getClaimableTokensUsd(),
+    log.info("Pool has  total rewards ${} for period {} hours, apr {}(apy {})",
+        rewardAmountUsdSum,
         Duration.of(stratInfo.getRewardPeriod(), ChronoUnit.SECONDS).toHours(),
         apr, apy);
   }
@@ -157,19 +185,21 @@ public class StratInfoCollector {
   private void fillRewardToken(StratInfo stratInfo) {
     getFiller(stratInfo).fillRewardTokenAddress(stratInfo);
 
-    stratInfo.setRewardTokenPrice(
-        priceProvider.getPriceForCoin(stratInfo.getRewardTokenAddress(),
-            stratInfo.getBlock(), stratInfo.getNetwork()));
+    for (StratRewardInfo rewardInfo : stratInfo.getRewardTokens()) {
+      rewardInfo.setPrice(
+          priceProvider.getPriceForCoin(rewardInfo.getAddress(),
+              stratInfo.getBlock(), stratInfo.getNetwork()));
 
-    stratInfo.setRewardTokenName(functionsUtils.callStrByName(
-        NAME,
-        stratInfo.getRewardTokenAddress(),
-        stratInfo.getBlock(),
-        stratInfo.getNetwork()
-    ).orElseThrow(
-        () -> new IllegalStateException("Can't fetch reward token for "
-            + stratInfo.getRewardTokenAddress())
-    ));
+      rewardInfo.setName(functionsUtils.callStrByName(
+          NAME,
+          rewardInfo.getAddress(),
+          stratInfo.getBlock(),
+          stratInfo.getNetwork()
+      ).orElseThrow(
+          () -> new IllegalStateException("Can't fetch reward token for "
+              + rewardInfo.getAddress())
+      ));
+    }
   }
 
   private void fillStrategyBalance(StratInfo stratInfo) {

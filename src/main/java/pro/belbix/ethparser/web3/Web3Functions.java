@@ -10,7 +10,9 @@ import io.reactivex.Flowable;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,6 +40,7 @@ import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -46,6 +49,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 @Log4j2
 public class Web3Functions {
 
+  private final static SimpleDecoder SIMPLE_DECODER = new SimpleDecoder();
   private final AppProperties appProperties;
   private final Web3EthService web3EthService;
   private final Web3BscService web3BscService;
@@ -282,7 +286,42 @@ public class Web3Functions {
     return batchResponse.getResponses().stream()
         .map(r -> ((EthLog) r).getLogs())
         .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
+  }
+
+  @SuppressWarnings("rawtypes")
+  public Optional<Log> findLastLogEvent(
+      String address,
+      int _from,
+      int _to,
+      String network,
+      Predicate<? super List<Type>> predicate,
+      String... topics) {
+    int step = appProperties.getHandleLoopStep();
+    int from = Math.max(_from, _to - step);
+    int to = _to;
+    while (true) {
+      List<LogResult> results =
+          fetchContractLogsBatch(List.of(address), from, to, network, topics);
+      Optional<Log> lastLog = findLastClaimLogBlockNumber(results, predicate);
+      if (lastLog.isPresent()) {
+        return lastLog;
+      }
+      if (from <= _from) {
+        break;
+      }
+      to = from;
+      from = Math.max(from - step, _from);
+    }
+    return Optional.empty();
+  }
+
+  private Optional<Log> findLastClaimLogBlockNumber(
+      List<LogResult> results,
+      Predicate<? super List<Type>> predicate
+  ) {
+    return SIMPLE_DECODER.findLogByPredicate(results, predicate);
   }
 
   public Request<?, EthLog> prepareEthLogRequest(

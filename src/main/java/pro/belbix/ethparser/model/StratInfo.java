@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,22 +29,18 @@ public class StratInfo {
   private Double strategyBalance;
   private Double strategyBalanceUsd;
 
-  private String rewardTokenAddress;
-  private String rewardTokenName;
-  private Double rewardTokenPrice;
+  private List<StratRewardInfo> rewardTokens = new ArrayList<>();
 
+  // pool can be a token or gauge or another governance contract
   private String poolAddress;
   private Double poolBalance;
   private Double poolTotalSupply;
-  private Double poolRewardsBalance;
   private String poolSpecificUnderlying;
 
   // how much we invested
   private Double percentOfPool;
   private Double percentOfInvested;
 
-  private Double claimableTokens;
-  private Double claimableTokensUsd;
   private Long rewardPeriod;
   private Double apr;
   private Double apy;

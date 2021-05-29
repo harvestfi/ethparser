@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.strategy;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.model.StratInfo;
+import pro.belbix.ethparser.model.StratRewardInfo;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -18,17 +20,48 @@ class StratInfoCollectorTest {
   private StratInfoCollector stratInfoCollector;
 
   @Test
+  void collect_IDLE_USDC() throws Exception {
+    String strategyAddress = "0xa5F125c0D571FD67D564C05a234E9a6f4E5d0624";
+    long block = 12509892;
+    String network = ETH_NETWORK;
+    StratInfo stratInfo = stratInfoCollector.collect(strategyAddress, block, network);
+    assertAll(
+        () -> assertModel(StratInfo.builder()
+                .strategyAddress(strategyAddress)
+                .block(block)
+                .network(network)
+                .apr(2.5538694223189324)
+                .build(),
+            stratInfo),
+        () -> assertModel(StratRewardInfo.builder()
+            .name("Compound")
+            .amount(1.62177931868884E-4)
+            .amountUsd(0.07488118119033772)
+            .build(), stratInfo.getRewardTokens().get(0)),
+        () -> assertModel(StratRewardInfo.builder()
+            .name("Aave Token")
+            .amount(1.37006599596929E-4)
+            .amountUsd(0.053431010887844)
+            .build(), stratInfo.getRewardTokens().get(1)),
+        () -> assertModel(StratRewardInfo.builder()
+            .name("Idle")
+            .amount(363.5427787384573)
+            .amountUsd(3396.5884878178)
+            .build(), stratInfo.getRewardTokens().get(2))
+    );
+  }
+
+  @Test
   void collect_WETH_COMPOUND() throws Exception {
     String strategyAddress = "0x1Dcaf36c8c4222139899690945f4382f298f8735";
-    long block = 12517513;
+    long block = 12502649;
     String network = ETH_NETWORK;
     StratInfo stratInfo = stratInfoCollector.collect(strategyAddress, block, network);
     assertModel(StratInfo.builder()
             .strategyAddress(strategyAddress)
             .block(block)
             .network(network)
-            .claimableTokens(0.14907161525799628)
-            .apr(0.08648392641207807)
+            .apr(0.07059267359362291)
             .build(),
         stratInfo);
   }
@@ -73,9 +106,6 @@ class StratInfoCollectorTest {
             .strategyAddress(strategyAddress)
             .block(block)
             .network(network)
-            .rewardTokenPrice(1.5288226293846845)
-            .rewardTokenName("Curve DAO Token")
-            .rewardTokenAddress("0xd533a949740bb3306d119cc777fa900ba034cd52")
             .apr(19.225898342222536)
             .build(),
         stratInfo);

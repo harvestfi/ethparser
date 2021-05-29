@@ -72,4 +72,17 @@ public class FunctionsNames {
   public static final String COMP_SUPPLY_STATE = "compSupplyState";
   public static final String COMP_SUPPLIER_INDEX = "compSupplierIndex";
   public static final String COMP_ACCRUED = "compAccrued";
+  public static final String IDLE_UNDERLYING = "idleUnderlying";
+  public static final String IDLE_CONTROLLER = "idleController";
+  public static final String USERS_GOV_TOKENS_INDEXES = "usersGovTokensIndexes";
+  public static final String GOV_TOKENS_INDEXES = "govTokensIndexes";
+  public static final String FEE = "fee";
+  public static final String GET_GOV_TOKENS_AMOUNTS = "getGovTokensAmounts";
+  public static final String GET_GOV_TOKENS = "getGovTokens";
+  public static final String ALL_AVAILABLE_TOKENS = "allAvailableTokens";
+  public static final String IDLE_SUPPLY_STATE = "idleSupplyState";
+  public static final String IDLE_SPEEDS = "idleSpeeds";
+  public static final String IDLE_SUPPLIER_INDEX = "idleSupplierIndex";
+  public static final String IDLE_ACCRUED = "idleAccrued";
+  public static final String GOV_TOKENS_LAST_BALANCES = "govTokensLastBalances";
 }
