@@ -34,6 +34,9 @@ public class EthAppProperties implements NetworkPropertiesI {
   private boolean parseDeployerTransactions = true;
   private boolean parseDeployerEvents = true;
 
+  // strat info grabber
+  private boolean grabStratInfo = false;
+
   // block parsing
   private boolean parseBlocks = false;
   private String parseBlocksFrom = "";

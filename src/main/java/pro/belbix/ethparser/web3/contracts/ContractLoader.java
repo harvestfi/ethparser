@@ -43,6 +43,7 @@ import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -65,6 +66,7 @@ public class ContractLoader {
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
   private final ContractDbService contractDbService;
+  private final EthBlockService ethBlockService;
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,
@@ -75,7 +77,8 @@ public class ContractLoader {
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      EthBlockService ethBlockService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.contractRepository = contractRepository;
@@ -86,6 +89,7 @@ public class ContractLoader {
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
     this.contractDbService = contractDbService;
+    this.ethBlockService = ethBlockService;
   }
 
   public ContractEntity load(PureEthContractInfo contractInfo) {
@@ -492,6 +496,9 @@ public class ContractLoader {
     if (appProperties.isOnlyApi()) {
       return entity;
     }
+
+    long blockDate = ethBlockService.getTimestampSecForBlock(created, network);
+
     if (Strings.isBlank(name)) {
       name = "UNKNOWN";
     }
@@ -517,6 +524,7 @@ public class ContractLoader {
       entity.setName(name);
       entity.setType(type);
       entity.setCreated(created);
+      entity.setCreatedDate(blockDate);
       entity.setNetwork(network);
       entity.setUnderlying(underlying);
       log.info("Created new contract {}", name);
@@ -530,9 +538,11 @@ public class ContractLoader {
         entity.setType(type);
       }
       if (entity.getCreated() == null || entity.getCreated() == 0) {
-        entity.setCreated(created); // it should be created date, not updated
+        entity.setCreated(created); // it should be created, not updated
+        entity.setCreatedDate(blockDate);
       } else {
         entity.setUpdated(created);
+        entity.setUpdatedDate(blockDate);
       }
       contractRepository.save(entity);
     }

@@ -19,7 +19,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.model.StratInfo;
+import pro.belbix.ethparser.entity.StratInfo;
 import pro.belbix.ethparser.model.StratRewardInfo;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.EthBlockService;

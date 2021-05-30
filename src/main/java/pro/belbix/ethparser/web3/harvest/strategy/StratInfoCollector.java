@@ -6,13 +6,14 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.INVESTED_UNDERLYING_B
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.entity.StratInfo;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
-import pro.belbix.ethparser.model.StratInfo;
 import pro.belbix.ethparser.model.StratRewardInfo;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -51,7 +52,8 @@ public class StratInfoCollector {
   }
 
   public StratInfo collect(String strategyAddress, long block, String network) {
-    StratInfo stratInfo = new StratInfo(strategyAddress, block, network);
+    long blockTs = ethBlockService.getTimestampSecForBlock(block, network);
+    StratInfo stratInfo = new StratInfo(strategyAddress, block, blockTs, network);
 
     fillContractStats(stratInfo);
 
@@ -88,7 +90,15 @@ public class StratInfoCollector {
       return;
     }
     stratInfo.setStrategyCreated(strategyContract.getCreated());
+    stratInfo.setStrategyCreatedDate(strategyContract.getCreatedDate());
     stratInfo.setStrategyName(strategyContract.getName());
+
+    stratInfo.setVaultAddress(functionsUtils.callAddressByName(
+        VAULT,
+        stratInfo.getStrategyAddress(),
+        stratInfo.getBlock(),
+        stratInfo.getNetwork()
+    ).orElseThrow());
   }
 
   private void fillRewards(StratInfo stratInfo) {

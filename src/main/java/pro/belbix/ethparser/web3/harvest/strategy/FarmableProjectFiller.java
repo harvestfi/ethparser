@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.harvest.strategy;
 
-import pro.belbix.ethparser.model.StratInfo;
+import pro.belbix.ethparser.entity.StratInfo;
 
 public interface FarmableProjectFiller {
 

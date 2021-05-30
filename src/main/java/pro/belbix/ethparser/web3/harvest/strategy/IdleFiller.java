@@ -29,7 +29,7 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.Log;
-import pro.belbix.ethparser.model.StratInfo;
+import pro.belbix.ethparser.entity.StratInfo;
 import pro.belbix.ethparser.model.StratRewardInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
