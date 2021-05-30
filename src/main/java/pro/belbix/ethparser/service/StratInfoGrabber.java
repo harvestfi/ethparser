@@ -59,7 +59,8 @@ public class StratInfoGrabber {
         try {
           grabStratInfo(vault.getContract().getAddress(), network);
         } catch (Exception e) {
-          log.error("Error grab strat info for {}", vault);
+          log.error("Error grab strat info for {} {} {}",
+              network, vault.getContract().getName(), e.getMessage());
           if (appProperties.isStopOnParseError()) {
             System.exit(-1);
           }
