@@ -175,12 +175,17 @@ public class DeployerEventToContractTransformer {
       ContractType type
   ) {
     ContractInfo contractInfo = new ContractInfo(address, block, network, type);
+    // use only vault address for name creation
     if (POOL == type) {
       address = functionsUtils.callAddressByName(
           LP_TOKEN, address, block, network)
           .orElseThrow(
               () -> new IllegalStateException("Can't fetch vault for pool " + contractInfo)
-          ); // use only vault address for name creation
+          );
+    } else if (STRATEGY == type) {
+      address = functionsUtils.callAddressByName(
+          FunctionsNames.VAULT, address, block, network)
+          .orElse(address);
     }
 
     String underlyingAddress = functionsUtils.callAddressByName(

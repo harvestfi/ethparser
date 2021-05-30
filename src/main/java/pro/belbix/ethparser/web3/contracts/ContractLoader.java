@@ -98,7 +98,7 @@ public class ContractLoader {
     return findOrCreateContract(
         contractInfo.getAddress(),
         contractInfo.getName(),
-        ContractType.TOKEN.getId(),
+        contractInfo.getContractType().getId(),
         contractInfo.getCreatedOnBlock(),
         true,
         network,

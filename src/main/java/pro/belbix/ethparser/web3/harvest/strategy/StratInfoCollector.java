@@ -117,7 +117,8 @@ public class StratInfoCollector {
       double rewardAmountUsd = rewardInfo.getAmount() * rewardInfo.getPrice();
       rewardAmountUsdSum += rewardAmountUsd;
       rewardInfo.setAmountUsd(rewardAmountUsd);
-      log.info("Pool has reward {} {} (${} for price {})",
+      log.debug("{}({}) has reward {} {} (${} for price {})",
+          stratInfo.getStrategyName(), stratInfo.getStrategyAddress(),
           rewardInfo.getAmount(), rewardInfo.getName(),
           rewardInfo.getAmountUsd(), rewardInfo.getPrice());
     }
@@ -130,7 +131,8 @@ public class StratInfoCollector {
     stratInfo.setApr(apr);
     stratInfo.setApy(apy);
 
-    log.info("Pool has  total rewards ${} for period {} hours, apr {}(apy {})",
+    log.info("{}({}) has total rewards ${} for period {} hours, apr {}(apy {})",
+        stratInfo.getStrategyName(), stratInfo.getStrategyAddress(),
         rewardAmountUsdSum,
         Duration.of(stratInfo.getRewardPeriod(), ChronoUnit.SECONDS).toHours(),
         apr, apy);
