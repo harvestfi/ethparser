@@ -12,16 +12,19 @@ public class GeneratedContract {
   private final String name;
   private final String address;
   private final Map<String, Event> eventsByHash;
+  private final Map<String, String> eventHashByName;
   private final Map<String, FunctionWrapper> functionsByMethodId;
   private boolean proxy = false;
 
 
   public GeneratedContract(String name, String address,
       Map<String, Event> eventsByHash,
+      Map<String, String> eventHashByName,
       Map<String, FunctionWrapper> functionsByMethodId) {
     this.name = name;
     this.address = address;
     this.eventsByHash = eventsByHash;
+    this.eventHashByName = eventHashByName;
     this.functionsByMethodId = functionsByMethodId;
   }
 
@@ -35,6 +38,10 @@ public class GeneratedContract {
 
   public Event getEvent(String hash) {
     return eventsByHash.get(hash);
+  }
+
+  public String getEventHashByName(String name) {
+    return eventHashByName.get(name);
   }
 
   public FunctionWrapper getFunction(String hash) {

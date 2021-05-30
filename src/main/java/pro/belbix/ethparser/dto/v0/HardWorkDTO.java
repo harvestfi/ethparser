@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import pro.belbix.ethparser.dto.DtoI;
 
 @Entity
@@ -50,6 +51,9 @@ public class HardWorkDTO implements DtoI {
   private Double profitSharingRate;
   private Double buyBackRate;
   private Integer autoStake;
+  @ColumnDefault("0")
+  private long idleTimeChain;
+
 
   // todo move to another table or parse it from chain
   // ------------- GENERATED VALUES -----------------------

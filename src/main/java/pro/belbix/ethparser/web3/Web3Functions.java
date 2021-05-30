@@ -214,7 +214,7 @@ public class Web3Functions {
       Integer end,
       String network,
       String... topics) {
-    Request<?, EthLog> request = prepareEthLogRequest(addresses, start, end, network, topics);
+    Request<?, EthLog> request = prepareEthLogRequest(addresses, start, end, network, topics, new String[0]);
     if (request == null) {
       return List.of();
     }
@@ -241,7 +241,8 @@ public class Web3Functions {
       Integer start,
       Integer end,
       String network,
-      String... topics
+      String[] optionalTopics,
+      String[] mandatoryTopics
   ) {
     if (start == null || end == null) {
       throw new IllegalStateException("Null ranges doesn't supported");
@@ -262,7 +263,8 @@ public class Web3Functions {
             from,
             to,
             network,
-            topics
+            optionalTopics,
+            mandatoryTopics
         );
         if (req != null) {
           batchRequest.add(req);
@@ -303,7 +305,7 @@ public class Web3Functions {
     int to = _to;
     while (true) {
       List<LogResult> results =
-          fetchContractLogsBatch(List.of(address), from, to, network, topics);
+          fetchContractLogsBatch(List.of(address), from, to, network, topics, new String[0]);
       Optional<Log> lastLog = SIMPLE_DECODER.findLogByPredicate(results, predicate);
       if (lastLog.isPresent()) {
         return lastLog;
@@ -317,12 +319,47 @@ public class Web3Functions {
     return Optional.empty();
   }
 
+  @SuppressWarnings("rawtypes")
+  public List<LogResult> findLastLogBatchByEventMandatoryTopics(
+      String address,
+      int _from,
+      int _to,
+      String network,
+      String... mandatoryTopics) {
+    int step = appProperties.getHandleLoopStep();
+    int from = Math.max(_from, _to - step);
+    int to = _to;
+    int batchNumber = 1;
+    while (true) {
+      if (batchNumber > 1000) {
+        log.info("Processed 1000 batches, no logs found");
+        return List.of();
+      }
+      List<LogResult> results =
+          fetchContractLogsBatch(List.of(address), from, to, network, new String[0],
+              mandatoryTopics);
+      if (results.size() > 0) {
+        log.info("Processed: " + batchNumber + " batches");
+        return results;
+      }
+      if (from <= _from) {
+        break;
+      }
+      to = from;
+      from = Math.max(from - step, _from);
+      batchNumber += 1;
+    }
+    log.info("Processed: " + batchNumber + " batches");
+    return List.of();
+  }
+
   public Request<?, EthLog> prepareEthLogRequest(
       List<String> addresses,
       Integer start,
       Integer end,
       String network,
-      String... topics
+      String[] optionalTopics,
+      String[] mandatoryTopics
   ) {
     DefaultBlockParameter fromBlock;
     DefaultBlockParameter toBlock;
@@ -344,7 +381,10 @@ public class Web3Functions {
     }
     EthFilter filter = new EthFilter(fromBlock,
         toBlock, addresses);
-    filter.addOptionalTopics(topics);
+    for (String topic : mandatoryTopics) {
+      filter.addSingleTopic(topic);
+    }
+    filter.addOptionalTopics(optionalTopics);
     return getWeb3(network).ethGetLogs(filter);
   }
 

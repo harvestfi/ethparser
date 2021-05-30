@@ -158,6 +158,7 @@ public class SimpleContractGenerator {
         sourceCode.getContractName(),
         address,
         abiToEvents(abis),
+        getEventNameHashMapFromAbi(abis),
         abiToFunctions(abis)
     );
 
@@ -341,6 +342,23 @@ public class SimpleContractGenerator {
       }
     });
     return eventsByHash;
+  }
+
+  private static Map<String, String> getEventNameHashMapFromAbi(List<AbiDefinition> abis) {
+    Map<String, String> nameToHash = new HashMap<>();
+    abis.forEach(abi -> {
+      try {
+        Event event = abiToEvent(abi);
+        if (event == null) {
+          return;
+        }
+        String hash = MethodDecoder.createMethodFullHex(event.getName(), event.getParameters());
+        nameToHash.put(event.getName(), hash);
+      } catch (Exception e) {
+        log.error("Error abi to event {}", abi.getName(), e);
+      }
+    });
+    return nameToHash;
   }
 
   private static FunctionWrapper abiToFunction(AbiDefinition abi) throws ClassNotFoundException {

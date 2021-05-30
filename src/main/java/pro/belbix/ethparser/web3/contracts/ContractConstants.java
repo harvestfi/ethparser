@@ -67,6 +67,11 @@ public class ContractConstants {
       BSC_NETWORK, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()
   );
 
+  public final static Map<String, Integer> CONTROLLER_CREATION_BLOCK = Map.of(
+      ETH_NETWORK, 10770087,
+      BSC_NETWORK, 5990839
+  );
+
   public final static Map<String, String> NOTIFY_HELPER = Map.of(
       ETH_NETWORK, "0xe20c31e3d08027f5aface84a3a46b7b3b165053c".toLowerCase(),
       BSC_NETWORK, "0xf71042c88458ff1702c3870f62f4c764712cc9f0".toLowerCase()

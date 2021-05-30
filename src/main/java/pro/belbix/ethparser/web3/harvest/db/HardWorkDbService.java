@@ -18,6 +18,7 @@ import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.harvest.log.IdleTimeService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -31,14 +32,16 @@ public class HardWorkDbService {
   private final HarvestRepository harvestRepository;
   private final AppProperties appProperties;
   private final PriceProvider priceProvider;
+  private IdleTimeService idleTimeService;
 
   public HardWorkDbService(HardWorkRepository hardWorkRepository,
       HarvestRepository harvestRepository,
-      AppProperties appProperties, PriceProvider priceProvider) {
+      AppProperties appProperties, PriceProvider priceProvider, IdleTimeService idleTimeService) {
     this.hardWorkRepository = hardWorkRepository;
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.priceProvider = priceProvider;
+    this.idleTimeService = idleTimeService;
   }
 
   public boolean save(HardWorkDTO dto) {
@@ -207,5 +210,9 @@ public class HardWorkDbService {
     if (lastHardWorkBlockDate != null) {
       dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
     }
+
+    Long lastEventBlockDate = idleTimeService.GetLastEventBlockDate(dto.getNetwork(),
+        dto.getVaultAddress(), (int) dto.getBlock() - 1);
+    dto.setIdleTimeChain(dto.getBlockDate() - lastEventBlockDate);
   }
 }

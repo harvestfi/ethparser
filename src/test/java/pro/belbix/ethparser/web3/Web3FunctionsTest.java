@@ -36,6 +36,8 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
@@ -49,6 +51,11 @@ public class Web3FunctionsTest {
   private FunctionsUtils functionsUtils;
   @Autowired
   private AppProperties appProperties;
+  @Autowired
+  private ContractDbService contractDbService;
+
+  private final HardWorkLogDecoder hardWorkLogDecoder = new HardWorkLogDecoder();
+
 
   @Test
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
@@ -177,7 +184,7 @@ public class Web3FunctionsTest {
   void ethLogBatchOneBlock() {
     int block = 12_000_000;
     List<LogResult> results =
-        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block, ETH_NETWORK);
+        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block, ETH_NETWORK, new String[0], new String[0]);
     Assertions.assertEquals(7, results.size());
     Set<Integer> blocks = new HashSet<>();
     results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
@@ -189,7 +196,7 @@ public class Web3FunctionsTest {
   void ethLogBatchTwoBlock() {
     int block = 12_000_000;
     List<LogResult> results =
-        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block + 1, ETH_NETWORK);
+        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block + 1, ETH_NETWORK, new String[0], new String[0]);
     Assertions.assertEquals(13, results.size());
     Set<Integer> blocks = new HashSet<>();
     results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
@@ -203,7 +210,7 @@ public class Web3FunctionsTest {
     int step = appProperties.getHandleLoopStep() * 2;
     List<LogResult> results =
         web3Functions.fetchContractLogsBatch(List.of(USDC), block,
-            block + step, ETH_NETWORK);
+            block + step, ETH_NETWORK, new String[0], new String[0]);
     Assertions.assertEquals(18649, results.size());
     Set<Integer> blocks = new HashSet<>();
     results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
