@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -9,9 +10,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.dto.v0.RewardDTO;
+import pro.belbix.ethparser.model.PaginatedResponse;
+import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.RewardsRepository;
 
 import java.time.Instant;
@@ -130,5 +138,31 @@ public class RewardControllerTest {
         this.mockMvc.perform(get("/api/transactions/history/reward?start=0"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(expectedResult)));
+    }
+
+    @Test
+    void pages() throws Exception {
+        Page<RewardDTO> pages =
+            rewardsRepository.fetchPages(Integer.MIN_VALUE,1, "eth",
+                PageRequest.of(0, 1, Sort.by("blockDate")));
+        String expectedResult =
+            objectMapper.writeValueAsString(
+                RestResponse.ok(
+                    objectMapper.writeValueAsString(
+                        PaginatedResponse.builder()
+                            .currentPage(0)
+                            .previousPage(-1)
+                            .nextPage(1)
+                            .totalPages(pages.getTotalPages())
+                            .data(pages.getContent())
+                            .build()
+                    )
+                )
+            );
+
+        this.mockMvc.perform(get("/reward/pages?"
+            + "pageSize=1&page=0"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(expectedResult));
     }
 }
