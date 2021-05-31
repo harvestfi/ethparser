@@ -80,7 +80,7 @@ public class DoHardWorkBscTest {
         assertModel(
             HardWorkDTO.builder()
                 .id("0xa244cf7c9a934b526404c03af7b28acb4926a128be85ef85f2911961c0c116b7_329")
-                .vault("VAI")
+                .vault("V_VAI")
                 .block(6168762)
                 .blockDate(1617219879)
                 .shareChange(8.0323703167537E-5)
@@ -120,7 +120,7 @@ public class DoHardWorkBscTest {
         assertModel(
             HardWorkDTO.builder()
                 .id("0x3cd8edeba0ff0937c692e1fc130e8db08d605c02c7d62352c328c6412f1f56d0_277")
-                .vault("BETH_#V1")
+                .vault("V_BETH_#V1")
                 .block(6166719)
                 .blockDate(1617213744)
                 .shareChange(5.84328668143E-7)

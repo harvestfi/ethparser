@@ -99,8 +99,7 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
     dto.setTokenAddress(tx.getTokenAddress());
     dto.setOwner(tx.getOwner());
     dto.setRecipient(tx.getRecipient());
-    dto.setValue(
-        contractDbService.parseAmount(tx.getValue(), tx.getTokenAddress(), ETH_NETWORK));
+    dto.setValue(functionsUtils.parseAmount(tx.getValue(), tx.getTokenAddress(), ETH_NETWORK));
 
     fillMethodName(dto);
     fillTransferType(dto);
@@ -162,6 +161,6 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
     BigInteger balanceI = functionsUtils.callIntByNameWithAddressArg(
         BALANCE_OF, holder, tokenAddress, block, ETH_NETWORK)
         .orElseThrow(() -> new IllegalStateException("Error get balance for " + tokenAddress));
-    return contractDbService.parseAmount(balanceI, tokenAddress, ETH_NETWORK);
+    return functionsUtils.parseAmount(balanceI, tokenAddress, ETH_NETWORK);
   }
 }

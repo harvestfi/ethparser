@@ -8,6 +8,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.BELT_POOL_AD
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CURVE_REGISTRY_ADDRESS;
 
 import java.util.List;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,10 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 @Log4j2
 public class UnderlyingTransformer {
 
+  private final static Set<String> excluded = Set.of(
+      "0xD533a949740bb3306d119CC777fa900bA034cd52".toLowerCase() // CRV token
+  );
+
   private final FunctionsUtils functionsUtils;
 
   public UnderlyingTransformer(FunctionsUtils functionsUtils) {
@@ -36,6 +41,9 @@ public class UnderlyingTransformer {
       long block,
       String network
   ) {
+    if (excluded.contains(address)) {
+      return null;
+    }
 
     String name = functionsUtils.callStrByName(NAME, address, block, network).orElse("");
     PlatformType platformType = PlatformType.valueOfName(name);

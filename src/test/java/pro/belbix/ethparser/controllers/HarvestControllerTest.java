@@ -51,7 +51,7 @@ public class HarvestControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"WBTC", "USDC"})
+    @ValueSource(strings = {"V_WBTC", "V_USDC"})
     public void historyHarvest(String vault) throws Exception {
         String expectedResult = objectMapper.writeValueAsString(
                 harvestRepository.findAllByVaultOrderByBlockDate(

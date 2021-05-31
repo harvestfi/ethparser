@@ -126,7 +126,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     dto.setBlockDate(tx.getBlockDate());
     dto.setVault(vaultName);
     dto.setVaultAddress(tx.getVault());
-    dto.setShareChange(contractDbService.parseAmount(
+    dto.setShareChange(functionsUtils.parseAmount(
         tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault(), network));
 
     parseRates(dto, tx.getStrategy(), network);
@@ -191,9 +191,9 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
             .orElseThrow();
     double rewardTokenPrice =
         priceProvider.getPriceForCoin(rewardTokenAdr, dto.getBlock(), network);
-    double rewardBalance = contractDbService
+    double rewardBalance = functionsUtils
         .parseAmount(profitLog.getProfitAmount(), rewardTokenAdr, network);
-    double feeAmount = contractDbService
+    double feeAmount = functionsUtils
         .parseAmount(profitLog.getFeeAmount(), rewardTokenAdr, network);
 
     dto.setFullRewardUsd(rewardTokenPrice * rewardBalance);

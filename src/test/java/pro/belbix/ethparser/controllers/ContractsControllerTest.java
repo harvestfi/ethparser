@@ -15,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
+import pro.belbix.ethparser.repositories.eth.StrategyRepository;
 import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
@@ -38,6 +39,9 @@ public class ContractsControllerTest {
   private PoolRepository poolRepository;
 
   @Autowired
+  private StrategyRepository strategyRepository;
+
+  @Autowired
   private TokenRepository tokenRepository;
 
   @Autowired
@@ -59,6 +63,15 @@ public class ContractsControllerTest {
         .andExpect(content().string(containsString(
             objectMapper.writeValueAsString(
                 poolRepository.fetchAllByNetwork(ETH_NETWORK)))));
+  }
+
+  @Test
+  public void contractStrategies() throws Exception {
+    this.mockMvc.perform(get("/contracts/strategies"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString(
+            objectMapper.writeValueAsString(
+                strategyRepository.fetchAllByNetwork(ETH_NETWORK)))));
   }
 
   @Test

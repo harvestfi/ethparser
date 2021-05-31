@@ -145,6 +145,7 @@ public class LPSeeker {
       return (String) ObjectMapperFactory.getObjectMapper().readValue(result, List.class)
           .get(0);
     } catch (Exception e) {
+      log.error("Error get lp for tokens {} {}", token0, token1);
       throw new RuntimeException(e);
     }
   }

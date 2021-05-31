@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static pro.belbix.ethparser.TestAddresses.V_USDC;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,28 +27,28 @@ public class CSVControllerTest {
 
   @Test
   public void harvestHistoryDataForVault() throws Exception {
-    this.mockMvc.perform(get("/csv/transactions/history/harvest/USDC"))
+    this.mockMvc.perform(get("/csv/transactions/history/harvest/" + V_USDC))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(CSVController.collectFields(HarvestDTO.class)[0])));
   }
 
   @Test
   public void rewardHistoryDataForVault() throws Exception {
-    this.mockMvc.perform(get("/csv/transactions/history/reward/USDC"))
+    this.mockMvc.perform(get("/csv/transactions/history/reward/" + V_USDC))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(CSVController.collectFields(RewardDTO.class)[0])));
   }
 
   @Test
   public void hardworkHistoryDataForVault() throws Exception {
-    this.mockMvc.perform(get("/csv/transactions/history/hardwork/USDC"))
+    this.mockMvc.perform(get("/csv/transactions/history/hardwork/" + V_USDC))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(CSVController.collectFields(HardWorkDTO.class)[0])));
   }
 
   @Test
   public void tvlHistoryDataForVault() throws Exception {
-    this.mockMvc.perform(get("/csv/transactions/history/tvl/USDC"))
+    this.mockMvc.perform(get("/csv/transactions/history/tvl/" + V_USDC))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(CSVController.collectFields(TvlHistory.class)[0])));
   }

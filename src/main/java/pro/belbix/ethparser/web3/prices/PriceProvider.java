@@ -62,7 +62,7 @@ public class PriceProvider {
     if (lpPooled == null) {
       throw new IllegalStateException("Can't reach reserves for " + lpAddress);
     }
-    double lpBalance = contractDbService.parseAmount(
+    double lpBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpAddress, block, network)
             .orElseThrow(() -> new IllegalStateException("Error get supply from " + lpAddress)),
         lpAddress, network);

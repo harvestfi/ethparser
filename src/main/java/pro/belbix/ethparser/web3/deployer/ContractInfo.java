@@ -19,6 +19,7 @@ public class ContractInfo {
   private String underlyingName;
   private List<String> underlyingTokens = new ArrayList<>();
   private PlatformType platformType;
+  private String rewardAddress;
 
   public ContractInfo(String address, long block, String network,
       ContractType contractType) {

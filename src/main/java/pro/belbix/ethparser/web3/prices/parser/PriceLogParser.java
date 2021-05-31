@@ -150,7 +150,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
     }
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         dto.getSourceAddress(), dto.getBlock(), network);
-    double lpBalance = contractDbService.parseAmount(
+    double lpBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, dto.getSourceAddress(), dto.getBlock(), network)
             .orElseThrow(() -> new IllegalStateException(
                 "Error get supply from " + dto.getSourceAddress())),
@@ -296,7 +296,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
   }
 
   private double parseAmountFromTx(PriceTx tx, int i, String address, String network) {
-    return contractDbService.parseAmount(tx.getIntegers()[i], address, network);
+    return functionsUtils.parseAmount(tx.getIntegers()[i], address, network);
   }
 
   private static boolean isZero(PriceTx tx, int i) {

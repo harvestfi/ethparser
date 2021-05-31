@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pro.belbix.ethparser.dto.v0.RewardDTO;
 import pro.belbix.ethparser.repositories.v0.RewardsRepository;
+import pro.belbix.ethparser.service.DtoCache;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
@@ -24,75 +25,86 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @Log4j2
 public class RewardController {
 
-    private final RewardsRepository rewardsRepository;
-    private final ContractDbService contractDbService;
+  private final RewardsRepository rewardsRepository;
+  private final ContractDbService contractDbService;
+  private final DtoCache dtoCache;
 
-    public RewardController(RewardsRepository rewardsRepository,
-        ContractDbService contractDbService) {
-        this.rewardsRepository = rewardsRepository;
-        this.contractDbService = contractDbService;
-    }
+  public RewardController(RewardsRepository rewardsRepository,
+      ContractDbService contractDbService, DtoCache dtoCache) {
+    this.rewardsRepository = rewardsRepository;
+    this.contractDbService = contractDbService;
+    this.dtoCache = dtoCache;
+  }
 
-    @GetMapping(value = "/history/rewards/{pool}")
-    List<RewardDTO> rewardsHistory(
-        @PathVariable("pool") String address,
-        @RequestParam(value = "days", required = false) String days,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
-    ) {
-        int daysI = 7;
-        if (days != null) {
-            daysI = Integer.parseInt(days);
-        }
-        if (!address.startsWith("0x")) {
-            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
-                .orElseThrow();
-        }
-        return rewardsRepository.fetchRewardsByVaultAfterBlockDate(
-            address,
-            Instant.now().minus(daysI, ChronoUnit.DAYS).getEpochSecond(),
-            Long.MAX_VALUE,
-            network
-        );
+  @GetMapping(value = "/history/rewards/{pool}")
+  List<RewardDTO> rewardsHistory(
+      @PathVariable("pool") String address,
+      @RequestParam(value = "days", required = false) String days,
+      @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+  ) {
+    int daysI = 7;
+    if (days != null) {
+      daysI = Integer.parseInt(days);
     }
+    if (!address.startsWith("0x")) {
+      address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
+          .orElseThrow();
+    }
+    return rewardsRepository.fetchRewardsByVaultAfterBlockDate(
+        address,
+        Instant.now().minus(daysI, ChronoUnit.DAYS).getEpochSecond(),
+        Long.MAX_VALUE,
+        network
+    );
+  }
 
-    @RequestMapping(value = "api/transactions/last/reward", method = RequestMethod.GET)
-    public List<RewardDTO> lastReward(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
-    ) {
-        return rewardsRepository.fetchLastRewards(network);
-    }
+  @RequestMapping(value = "api/transactions/last/reward", method = RequestMethod.GET)
+  public List<RewardDTO> lastReward(
+      @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+  ) {
+    return rewardsRepository.fetchLastRewards(network);
+  }
 
-    @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
-    public List<RewardDTO> historyReward(
-        @PathVariable("name") String address,
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
-        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
-    ) {
-        if (!address.startsWith("0x")) {
-            address = contractDbService.getAddressByName(address, ContractType.VAULT, network)
-                .orElseThrow();
-        }
-        return reduceListElements(rewardsRepository
-            .getAllByVaultOrderByBlockDate(address,
-                start,
-                end,
-                network), reduce);
+  @RequestMapping(value = "api/transactions/history/reward/{name}", method = RequestMethod.GET)
+  public List<RewardDTO> historyRewardByVault(
+      @PathVariable("name") String _address,
+      @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+      @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
+      @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
+      @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+  ) {
+    String address;
+    if (!_address.startsWith("0x")) {
+      address = contractDbService.getAddressByName(_address, ContractType.VAULT, network)
+          .orElseThrow();
+    } else {
+      address = _address;
     }
+    return reduceListElements(
+        dtoCache.load("historyRewardByVault" +
+            address + start + end + network, () ->
+            rewardsRepository
+                .getAllByVaultOrderByBlockDate(address,
+                    start,
+                    end,
+                    network)), reduce);
+  }
 
-    @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
-    public List<RewardDTO> historyReward(
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
-        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
-    ) {
-        return reduceListElements(rewardsRepository
-            .getAllOrderByBlockDate(
-                start,
-                end,
-                network), reduce);
-    }
+  @RequestMapping(value = "api/transactions/history/reward", method = RequestMethod.GET)
+  public List<RewardDTO> historyAllRewards(
+      @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
+      @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
+      @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
+      @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+  ) {
+    return reduceListElements(
+        dtoCache.load("historyAllRewards" +
+            start + end + network, () ->
+            rewardsRepository
+                .getAllOrderByBlockDate(
+                    start,
+                    end,
+                    network)), reduce);
+  }
 
 }

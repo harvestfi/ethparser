@@ -7,6 +7,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractType.UNI_PAIR;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionService;
@@ -51,6 +52,9 @@ public class TokenTransformer {
       String network,
       List<PureEthContractInfo> contracts
   ) {
+    if (Strings.isBlank(address)) {
+      return;
+    }
     if (functionService.isLp(address, block, network)) {
       createSimpleLpContract(address, block, network, contracts);
     } else {

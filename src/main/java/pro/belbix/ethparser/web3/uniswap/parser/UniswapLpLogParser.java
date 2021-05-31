@@ -18,6 +18,7 @@ import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -41,6 +42,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
   private final UniOwnerBalanceCalculator uniOwnerBalanceCalculator;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
+  private final FunctionsUtils functionsUtils;
 
   public UniswapLpLogParser(Web3Functions web3Functions,
       Web3Subscriber web3Subscriber, UniswapDbService uniswapDbService,
@@ -51,7 +53,8 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       UniOwnerBalanceCalculator uniOwnerBalanceCalculator,
       AppProperties appProperties,
       NetworkProperties networkProperties,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      FunctionsUtils functionsUtils) {
     super(parserInfo, appProperties);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
@@ -62,6 +65,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     this.uniOwnerBalanceCalculator = uniOwnerBalanceCalculator;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
+    this.functionsUtils = functionsUtils;
   }
 
   @Override
@@ -166,12 +170,12 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
     if (tx.getCoinAddress().equalsIgnoreCase(tx.getCoinIn().getValue())) {
       assertBuy(false, tx.getBuy());
-      uniswapDTO.setAmount(contractDbService
+      uniswapDTO.setAmount(functionsUtils
           .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
       uniswapDTO.setOtherCoin(addrToStr(tx.getCoinOut()));
       uniswapDTO.setOtherCoinAddress(tx.getCoinOut().getValue());
       uniswapDTO.setOtherAmount(
-          contractDbService
+          functionsUtils
               .parseAmount(tx.getAmountOut(), tx.getCoinOut().getValue(), ETH_NETWORK));
       if (tx.getType().equals(SWAP)) {
         uniswapDTO.setType("SELL");
@@ -180,11 +184,11 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       }
     } else if (tx.getCoinAddress().equalsIgnoreCase(tx.getCoinOut().getValue())) {
       assertBuy(true, tx.getBuy());
-      uniswapDTO.setAmount(contractDbService
+      uniswapDTO.setAmount(functionsUtils
           .parseAmount(tx.getAmountOut(), tx.getCoinOut().getValue(), ETH_NETWORK));
       uniswapDTO.setOtherCoin(addrToStr(tx.getCoinIn()));
       uniswapDTO.setOtherCoinAddress(tx.getCoinIn().getValue());
-      uniswapDTO.setOtherAmount(contractDbService
+      uniswapDTO.setOtherAmount(functionsUtils
               .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
       if (tx.getType().equals(SWAP)) {
         uniswapDTO.setType("BUY");

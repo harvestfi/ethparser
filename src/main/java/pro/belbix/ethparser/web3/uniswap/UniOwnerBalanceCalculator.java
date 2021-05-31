@@ -65,7 +65,7 @@ public class UniOwnerBalanceCalculator {
       log.warn("Can reach lp balance for " + dto.print());
       return false;
     }
-    double balance = contractDbService.parseAmount(balanceI, lpHash, ETH_NETWORK);
+    double balance = functionsUtils.parseAmount(balanceI, lpHash, ETH_NETWORK);
     dto.setOwnerBalance(balance);
 
     //fill USD value

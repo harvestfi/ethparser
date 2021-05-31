@@ -11,6 +11,8 @@ public enum PlatformType {
   VENUS("VENUS"),
   ELLIPSIS("EPS"),
   BELT("BELT"),
+  COMPOUND("COMP"),
+  IDLE("IDLE"),
   BALANCER("BPT");
 
   private final String prettyName;
@@ -28,6 +30,9 @@ public enum PlatformType {
   }
 
   public static PlatformType valueOfName(String name) {
+    if (name == null) {
+      return UNKNOWN;
+    }
     if (name.startsWith("Curve")) {
       return PlatformType.CURVE;
     } else if (name.startsWith("Uniswap")) {
@@ -43,9 +48,13 @@ public enum PlatformType {
     } else if (name.startsWith("Pancake")) {
       return PlatformType.PANCAKESWAP;
     } else if (name.startsWith("Belt.fi")
-    || name.startsWith("bDAI+bUSDC+bUSDT+bBUSD") // belt used another symbol/name than curve
+        || name.startsWith("bDAI+bUSDC+bUSDT+bBUSD") // belt used another symbol/name than curve
     ) {
       return PlatformType.BELT;
+    } else if (name.startsWith("Compound")) {
+      return PlatformType.COMPOUND;
+    } else if (name.startsWith("Idle")) {
+      return PlatformType.IDLE;
     }
     return PlatformType.UNKNOWN;
   }

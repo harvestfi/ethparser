@@ -33,7 +33,7 @@ public class ContractLoaderTest {
   @Test
   void saveContractTest_DuplicateNames() {
     String adr = "adr";
-    String net = "fake_net";
+    String net = "eth";
     String name = "cName";
     String und = "undrAdr";
     ContractType type = ContractType.VAULT;
@@ -57,7 +57,9 @@ public class ContractLoaderTest {
     ContractEntity result = new ContractEntity();
     result.setAddress(adr);
     result.setName(name + "_#V1");
+    result.setType(type.getId());
     result.setCreated(1L);
+    result.setCreatedDate(1438269988L);
     result.setUnderlying(und);
     result.setNetwork(net);
     verify(contractRepository, times(1)).save(result);
@@ -67,7 +69,7 @@ public class ContractLoaderTest {
   void saveContractTest_Rewrite() {
     ContractEntity contractEntity = new ContractEntity();
     String adr = "adr";
-    String net = "fake_net";
+    String net = "eth";
     String name = "cName";
     String und = "undrAdr";
 
@@ -97,8 +99,10 @@ public class ContractLoaderTest {
     result.setAddress(adr);
     result.setName(name);
     result.setCreated(1L);
+    result.setCreatedDate(1438269988L);
     result.setUnderlying(und);
     result.setNetwork(net);
+    result.setType(type.getId());
     verify(contractRepository, times(1)).save(result);
   }
 }

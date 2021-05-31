@@ -1,7 +1,8 @@
 package pro.belbix.ethparser.web3.harvest.db;
 
 import static pro.belbix.ethparser.service.ApyService.calculateAverageApy;
-import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_OF_YEAR;
+import static pro.belbix.ethparser.utils.CommonUtils.aprToApy;
+import static pro.belbix.ethparser.utils.CommonUtils.calculateApr;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -72,7 +73,7 @@ public class RewardsDBService {
       return;
     }
     dto.setTvl(tvl);
-    double apr = calculateApr(dto.getPeriodFinish(), dto.getBlockDate(), reward, tvl);
+    double apr = calculateApr(dto.getPeriodFinish() - dto.getBlockDate(), reward, tvl);
     if (Double.isInfinite(apr) || Double.isNaN(apr)) {
       log.warn("Wrong apr " + dto);
       apr = 0;
@@ -92,21 +93,5 @@ public class RewardsDBService {
         dto.getVaultAddress(), weekAgo, dto.getBlockDate(), dto.getNetwork());
     double averageApy = calculateAverageApy(rewards);
     dto.setWeeklyApy(averageApy);
-  }
-
-  private static double calculateApr(double periodFinish, double blockDate, double reward,
-      double tvl) {
-    if (tvl == 0) {
-      return 0;
-    }
-    double period = SECONDS_OF_YEAR / (periodFinish - blockDate);
-    return (reward / tvl) * period * 100;
-  }
-
-  public static double aprToApy(double apr, double period) {
-    if (period == 0) {
-      return 0;
-    }
-    return (Math.pow(1.0 + ((apr / 100) / period), period) - 1.0) * 100;
   }
 }
