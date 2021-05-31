@@ -61,7 +61,7 @@ class DeployerEventToContractTransformerTest {
         "0xd9ac3dd9636a4ccd8570f8eef872e4bd5e97b2ae916b96b873d2918fd087311e", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(9, contracts.size());
+    assertEquals(4, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
         () -> assertEquals("S_CRV_gusd3CRV", vault.getName(), "name"),

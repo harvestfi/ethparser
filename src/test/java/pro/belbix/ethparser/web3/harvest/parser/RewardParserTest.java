@@ -38,7 +38,7 @@ public class RewardParserTest {
     public void shouldParseReward_ST_UNI_WBTC_KLON() throws Exception {
         assertModel(RewardDTO.builder()
                         .id("0xf310afbf5090cb8dc7834760029f7dd692069514adde0c1ff3bd71161f6337d3_167")
-                        .vault("UNI_WBTC_KlonX")
+                        .vault("V_UNI_WBTC_KlonX")
                         .vaultAddress("0xb4e3fc276532f27bd0f738928ce083a3b064ba61")
                         .poolAddress("0x719d70457658358f2e785b38307cfe24071b7417")
                         .block(12014122)
@@ -60,7 +60,7 @@ public class RewardParserTest {
     public void shouldParseRewardST_WETH() throws Exception {
         assertModel(RewardDTO.builder()
                         .id("0x94897c3575bdf2c715e8b8bb563b492b7342a4dd235f88eed9f804bf9d053728_19")
-                        .vault("WETH_#V1")
+                        .vault("V_WETH_#V1")
                         .vaultAddress("0xfe09e53a81fe2808bc493ea64319109b5baa573e")
                         .poolAddress("0x3da9d911301f8144bdf5c3c67886e5373dcdff8e")
                         .block(11778576)
@@ -82,7 +82,7 @@ public class RewardParserTest {
     public void shouldParseRewardST_SUSHI_ETH_DAI() throws Exception {
         assertModel(RewardDTO.builder()
                         .id("0xe27248ecb7576f83b643b8a8a9d134bc41d481c1d1f336c966c5b1c00339c2fb_118")
-                        .vault("SUSHI_DAI_WETH")
+                        .vault("V_SUSHI_DAI_WETH")
                         .vaultAddress("0x203e97aa6eb65a1a02d9e80083414058303f241e")
                         .poolAddress("0x76aef359a33c02338902aca543f37de4b01ba1fa")
                         .block(11733131)
@@ -104,7 +104,7 @@ public class RewardParserTest {
     public void shouldParseRewardST_WBTC() throws Exception {
         assertModel(RewardDTO.builder()
                         .id("0xe27248ecb7576f83b643b8a8a9d134bc41d481c1d1f336c966c5b1c00339c2fb_91")
-                        .vault("WBTC")
+                        .vault("V_WBTC")
                         .vaultAddress("0x5d9d25c7c457dd82fc8668ffc6b9746b674d4ecb")
                         .poolAddress("0x917d6480ec60cbddd6cbd0c8ea317bcc709ea77b")
                         .block(11733131)
@@ -126,7 +126,7 @@ public class RewardParserTest {
     public void shouldParseRewardDAI_BSG() throws Exception {
         assertModel(RewardDTO.builder()
                         .id("0x58a005b6d7bb6534361076cda6c86c74ae4b43e753d67d2e276ac600ae8b0c5d_5")
-                        .vault("UNI_DAI_BSG_#V1")
+                        .vault("V_UNI_DAI_BSG_#V1")
                         .vaultAddress("0x639d4f3f41daa5f4b94d63c2a5f3e18139ba9e54")
                         .poolAddress("0xf5b221e1d9c3a094fb6847bc3e241152772bbbf8")
                         .block(11662009)
@@ -148,7 +148,7 @@ public class RewardParserTest {
     public void shouldParseRewardPS() throws Exception {
         assertModel(RewardDTO.builder()
                 .id("0x05ea65f5a5954a1b7d7422b566164009cdbcfa90e099c5ea9b345de1156543fe_103")
-                .vault("PS_#V1")
+                .vault("V_PS_#V1")
                 .vaultAddress("0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50")
                 .poolAddress("0x8f5adc58b32d4e5ca02eac0e293d35855999436c")
                 .block(11434688)

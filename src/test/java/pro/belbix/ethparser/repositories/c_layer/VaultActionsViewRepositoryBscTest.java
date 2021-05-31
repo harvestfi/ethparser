@@ -61,7 +61,7 @@ class VaultActionsViewRepositoryBscTest {
             .address("0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34")
             .blockNumber(6101208L)
             .blockHash("0xd29618f07ac3e0ae8df9af7a1ab49d9225ddd3589975eb08a6779fdd220fb031")
-            .sourceName("PCS_WBNB_BUSD")
+            .sourceName("V_PCS_WBNB_BUSD")
             .network("bsc")
             .txHash("0x2beda2c174968f2f7170d1a1722d29f0a15d29104cb1ff3ae8a63247a9656af2")
             .funcName("deposit")
