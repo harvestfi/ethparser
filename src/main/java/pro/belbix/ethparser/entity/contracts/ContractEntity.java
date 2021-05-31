@@ -25,15 +25,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String address;
-    private String name;
-    private Long created;
-    private Long updated;
-    private int type;
-    private String network;
-    private String underlying;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+  private String address;
+  private String name;
+  private Long created;
+  private Long createdDate;
+  private Long updated;
+  private Long updatedDate;
+  private int type = -1;
+  private String network;
+  private String underlying;
 
 }

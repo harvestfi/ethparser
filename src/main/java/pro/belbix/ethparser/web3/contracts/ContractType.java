@@ -6,7 +6,8 @@ public enum ContractType {
   POOL(1),
   UNI_PAIR(2),
   INFRASTRUCTURE(3),
-  TOKEN(4);
+  TOKEN(4),
+  STRATEGY(5);
   private final int id;
 
   ContractType(int id) {

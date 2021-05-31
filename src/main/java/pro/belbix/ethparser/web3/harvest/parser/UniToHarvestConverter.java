@@ -119,11 +119,11 @@ public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
     }
     String poolAddress = poolContract.getAddress();
 
-    double lpBalance = contractDbService.parseAmount(
+    double lpBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, lpHash, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + lpHash)),
         lpHash, ETH_NETWORK);
-    double stBalance = contractDbService.parseAmount(
+    double stBalance = functionsUtils.parseAmount(
         functionsUtils.callIntByName(TOTAL_SUPPLY, poolAddress, block, ETH_NETWORK)
             .orElseThrow(() -> new IllegalStateException("Error get supply for " + poolAddress)),
         lpHash, ETH_NETWORK);

@@ -1,8 +1,11 @@
 package pro.belbix.ethparser.web3.abi;
 
 import static java.math.BigInteger.ZERO;
+import static org.web3j.abi.TypeReference.makeTypeReference;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
@@ -10,7 +13,10 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,8 +38,10 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
@@ -81,16 +89,16 @@ public class FunctionsUtils {
     String coin1 = callAddressByName(TOKEN1, lpAddress, block, network)
         .orElseThrow(() -> new IllegalStateException("Error get token1 for " + lpAddress));
 
-    double coin0Balance = contractDbService.parseAmount(
+    double coin0Balance = parseAmount(
         callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin0, block, network)
             .orElse(ZERO), coin0, network);
-    double coin1Balance = contractDbService.parseAmount(
+    double coin1Balance = parseAmount(
         callIntByNameWithAddressArg(BALANCE_OF, lpAddress, coin1, block, network)
             .orElse(ZERO), coin1, network);
     String baseAdr = ContractUtils.getBaseNetworkWrappedTokenAddress(network);
-    double baseBalance = contractDbService.parseAmount(
+    double baseBalance = parseAmount(
         web3Functions.fetchBalance(lpAddress, block, network), baseAdr, network);
-    if(coin0Balance == 0 || coin1Balance == 0) {
+    if (coin0Balance == 0 || coin1Balance == 0) {
       if (ZERO_ADDRESS.equals(coin0)) {
         coin0Balance = baseBalance;
       } else if (ZERO_ADDRESS.equals(coin1)) {
@@ -121,9 +129,34 @@ public class FunctionsUtils {
     BigInteger v1 = (BigInteger) types.get(0).getValue();
     BigInteger v2 = (BigInteger) types.get(1).getValue();
     return new Tuple2<>(
-        contractDbService.parseAmount(v1, tokens.component1(), network),
-        contractDbService.parseAmount(v2, tokens.component2(), network)
+        parseAmount(v1, tokens.component1(), network),
+        parseAmount(v2, tokens.component2(), network)
     );
+  }
+
+  public double fetchUint256Field(
+      String functionName,
+      String address,
+      String underlyingAddress,
+      long block,
+      String network,
+      String... args
+  ) {
+    if (args == null || args.length == 0) {
+      return parseAmount(
+          callIntByName(functionName, address, block, network)
+              .orElseThrow(
+                  () -> new IllegalStateException(
+                      "Can't fetch " + functionName + " for " + address)
+              ), underlyingAddress, network);
+    } else {
+      return parseAmount(
+          callIntByNameWithAddressArg(functionName, args[0], address, block, network)
+              .orElseThrow(
+                  () -> new IllegalStateException(
+                      "Can't fetch " + functionName + " for " + address)
+              ), underlyingAddress, network);
+    }
   }
 
   // ****************************************************************************
@@ -139,10 +172,16 @@ public class FunctionsUtils {
       String hash,
       Long block,
       String network) {
+    List<Type> argTypes;
+    if (arg.startsWith("0x")) {
+      argTypes = Collections.singletonList(new Address(arg));
+    } else {
+      argTypes = Collections.singletonList(new Uint256(Integer.parseInt(arg)));
+    }
     return callStringFunction(
         new Function(
             functionName,
-            Collections.singletonList(new Address(arg)),
+            argTypes,
             Collections.singletonList(new TypeReference<Address>() {
             })),
         hash,
@@ -221,6 +260,66 @@ public class FunctionsUtils {
     }
   }
 
+  public double parseAmount(BigInteger amount, String address, String network) {
+    if (amount == null || ZERO_ADDRESS.equalsIgnoreCase(address)) {
+      return 0.0;
+    }
+    return new BigDecimal(amount)
+        .divide(getDividerByAddress(address, network), 99, RoundingMode.HALF_UP)
+        .doubleValue();
+  }
+
+  public BigDecimal getDividerByAddress(String _address, String network) {
+    String address = _address.toLowerCase();
+    long decimals;
+    // unique addresses
+    if (ContractUtils.isPsAddress(address)) {
+      decimals = 18L;
+    } else {
+      ContractEntity contract = contractDbService.getContractByAddress(address, network)
+          .orElse(new ContractEntity());
+      if (contract.getType() == ContractType.VAULT.getId()) {
+        decimals = contractDbService.getVaultByAddress(address, network)
+            .orElseThrow(
+                () -> new IllegalStateException("Vault Not found by " + address)
+            ).getDecimals();
+      } else if (contract.getType() == ContractType.POOL.getId()) {
+        decimals = 18L;
+      } else if (contract.getType() == ContractType.UNI_PAIR.getId()) {
+        decimals = contractDbService.getLpByAddress(address, network)
+            .orElseThrow(
+                () -> new IllegalStateException("LP Not found by " + address)
+            ).getDecimals();
+      } else if (contract.getType() == ContractType.TOKEN.getId()) {
+        decimals = contractDbService.getTokenByAddress(address, network)
+            .orElseThrow(
+                () -> new IllegalStateException("Token Not found by " + address)
+            ).getDecimals();
+      } else {
+        decimals = callIntByName(DECIMALS, address, null, network)
+            .orElseThrow(
+                () -> new IllegalStateException("Can't fetch decimals for " + address)
+            ).longValue();
+      }
+    }
+    return new BigDecimal(10L).pow((int) decimals);
+  }
+
+  public static TypeReference typeReferenceByName(String name) {
+    return silentCall(() -> makeTypeReference(name))
+        .orElseThrow(
+            () -> new IllegalStateException("Error make type reference for " + name)
+        );
+  }
+
+  public static List<TypeReference<?>> typeReferencesList(String... names) {
+    List<TypeReference<?>> types = new ArrayList<>();
+    for (String name : names) {
+      types.add(typeReferenceByName(name));
+    }
+    return types;
+  }
+
   // ************ PRIVATE METHODS **************************
 
   private Function findSimpleFunction(String name, String returnType) {
@@ -281,7 +380,8 @@ public class FunctionsUtils {
     return Optional.ofNullable((BigInteger) types.get(0).getValue());
   }
 
-  private Optional<Boolean> callBoolFunction(Function function, String hash, Long block, String network) {
+  private Optional<Boolean> callBoolFunction(Function function, String hash, Long block,
+      String network) {
     List<Type> types = web3Functions.callFunction(function, hash, resolveBlock(block), network);
     if (types == null || types.isEmpty()) {
       // we use an absent function for determination a contract type

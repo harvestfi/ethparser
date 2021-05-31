@@ -20,6 +20,7 @@ public interface NetworkPropertiesI {
   boolean isParsePrices();
   boolean isParseDeployerTransactions();
   boolean isParseDeployerEvents();
+  boolean isGrabStratInfo();
   int getBlockStep();
   int getWeb3Timeout();
 }

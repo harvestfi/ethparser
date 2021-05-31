@@ -37,7 +37,8 @@ spring:
       classpath:sql/3_eth_vaults.sql,
       classpath:sql/4_eth_pools.sql,
       classpath:sql/5_eth_uni_pairs.sql,
-      classpath:sql/6_eth_token_to_uni_pair.sql
+      classpath:sql/6_eth_token_to_uni_pair.sql,
+      classpath:sql/7_eth_strategies.sql
 
     initialization-mode: always
     generate-unique-name: true

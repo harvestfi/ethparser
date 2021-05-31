@@ -29,6 +29,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
+import pro.belbix.ethparser.entity.contracts.StrategyEntity;
 import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
 import pro.belbix.ethparser.entity.contracts.UniPairEntity;
@@ -36,15 +37,18 @@ import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.eth.ContractRepository;
 import pro.belbix.ethparser.repositories.eth.PoolRepository;
+import pro.belbix.ethparser.repositories.eth.StrategyRepository;
 import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.web3.AddressType;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.LpContract;
+import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
 import pro.belbix.ethparser.web3.contracts.models.SimpleContract;
 import pro.belbix.ethparser.web3.contracts.models.TokenContract;
 
@@ -56,43 +60,54 @@ public class ContractLoader {
   private final FunctionsUtils functionsUtils;
   private final ContractRepository contractRepository;
   private final PoolRepository poolRepository;
+  private final StrategyRepository strategyRepository;
   private final VaultRepository vaultRepository;
   private final UniPairRepository uniPairRepository;
   private final TokenRepository tokenRepository;
   private final TokenToUniPairRepository tokenToUniPairRepository;
   private final ContractDbService contractDbService;
+  private final EthBlockService ethBlockService;
 
   public ContractLoader(AppProperties appProperties,
       FunctionsUtils functionsUtils,
       ContractRepository contractRepository,
       PoolRepository poolRepository,
+      StrategyRepository strategyRepository,
       VaultRepository vaultRepository,
       UniPairRepository uniPairRepository,
       TokenRepository tokenRepository,
       TokenToUniPairRepository tokenToUniPairRepository,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      EthBlockService ethBlockService) {
     this.appProperties = appProperties;
     this.functionsUtils = functionsUtils;
     this.contractRepository = contractRepository;
     this.poolRepository = poolRepository;
+    this.strategyRepository = strategyRepository;
     this.vaultRepository = vaultRepository;
     this.uniPairRepository = uniPairRepository;
     this.tokenRepository = tokenRepository;
     this.tokenToUniPairRepository = tokenToUniPairRepository;
     this.contractDbService = contractDbService;
+    this.ethBlockService = ethBlockService;
   }
 
-  public void loadToken(TokenContract contract, String network, long block) {
-    log.debug("Load {}", contract.getName());
-    ContractEntity tokenContract = findOrCreateContract(
-        contract.getAddress(),
-        contract.getName(),
-        ContractType.TOKEN.getId(),
-        contract.getCreatedOnBlock(),
+  public ContractEntity load(PureEthContractInfo contractInfo) {
+    String network = contractInfo.getNetwork();
+    log.debug("Load {}", contractInfo.getName());
+    return findOrCreateContract(
+        contractInfo.getAddress(),
+        contractInfo.getName(),
+        contractInfo.getContractType().getId(),
+        contractInfo.getCreatedOnBlock(),
         true,
         network,
         0,
-        contract.getCurveUnderlying());
+        contractInfo.getCurveUnderlying());
+  }
+
+  public void loadToken(TokenContract contract, String network, long block) {
+    ContractEntity tokenContract = load(contract);
 
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
@@ -108,15 +123,8 @@ public class ContractLoader {
   }
 
   public void loadVault(SimpleContract vault, String network, long block) {
-    log.debug("Load {}", vault.getName());
-    ContractEntity vaultContract =
-        findOrCreateContract(
-            vault.getAddress(),
-            vault.getName(),
-            ContractType.VAULT.getId(),
-            vault.getCreatedOnBlock(),
-            true,
-            network);
+    ContractEntity vaultContract = load(vault);
+
     VaultEntity vaultEntity = vaultRepository
         .findFirstByContract(vaultContract.getAddress(), network);
     if (vaultEntity == null) {
@@ -131,17 +139,8 @@ public class ContractLoader {
   }
 
   public void loadPool(SimpleContract pool, String network, long block) {
-    String name = pool.getName();
-    String hash = pool.getAddress();
-    log.debug("Load {}", name);
-    ContractEntity poolContract =
-        findOrCreateContract(
-            hash,
-            name,
-            ContractType.POOL.getId(),
-            pool.getCreatedOnBlock(),
-            true,
-            network);
+    ContractEntity poolContract = load(pool);
+
     PoolEntity poolEntity = poolRepository.findFirstByAddress(poolContract.getAddress(), network);
     if (poolEntity == null) {
       poolEntity = new PoolEntity();
@@ -153,6 +152,22 @@ public class ContractLoader {
       poolRepository.save(poolEntity);
     }
 
+  }
+
+  public void loadStrategy(SimpleContract strategy, String network, int block) {
+    ContractEntity strategyContract = load(strategy);
+
+    StrategyEntity strategyEntity = strategyRepository
+        .findFirstByAddress(strategyContract.getAddress(), network);
+    if (strategyEntity == null) {
+      strategyEntity = new StrategyEntity();
+      strategyEntity.setContract(strategyContract);
+      enrichStrategy(strategyEntity, block, network);
+      strategyRepository.save(strategyEntity);
+    } else if (appProperties.isUpdateContracts()) {
+      enrichStrategy(strategyEntity, block, network);
+      strategyRepository.save(strategyEntity);
+    }
   }
 
   /**
@@ -299,6 +314,11 @@ public class ContractLoader {
     ));
     poolEntity.setUpdatedBlock(block);
   }
+
+  private void enrichStrategy(StrategyEntity strategyEntity, int block, String network) {
+    //TODO
+  }
+
 
   private void enrichUniPair(UniPairEntity uniPairEntity, long block, String network) {
     if (appProperties.isOnlyApi()) {
@@ -476,6 +496,9 @@ public class ContractLoader {
     if (appProperties.isOnlyApi()) {
       return entity;
     }
+
+    long blockDate = ethBlockService.getTimestampSecForBlock(created, network);
+
     if (Strings.isBlank(name)) {
       name = "UNKNOWN";
     }
@@ -501,6 +524,7 @@ public class ContractLoader {
       entity.setName(name);
       entity.setType(type);
       entity.setCreated(created);
+      entity.setCreatedDate(blockDate);
       entity.setNetwork(network);
       entity.setUnderlying(underlying);
       log.info("Created new contract {}", name);
@@ -514,9 +538,11 @@ public class ContractLoader {
         entity.setType(type);
       }
       if (entity.getCreated() == null || entity.getCreated() == 0) {
-        entity.setCreated(created); // it should be created date, not updated
+        entity.setCreated(created); // it should be created, not updated
+        entity.setCreatedDate(blockDate);
       } else {
         entity.setUpdated(created);
+        entity.setUpdatedDate(blockDate);
       }
       contractRepository.save(entity);
     }

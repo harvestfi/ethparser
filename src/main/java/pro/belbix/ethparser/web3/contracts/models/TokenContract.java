@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class TokenContract extends SimpleContract {
   private final Map<String, Integer> lps = new HashMap<>();
-  private String curveUnderlying;
 
   public TokenContract(int createdOnBlock, String name, String address) {
     super(createdOnBlock, name, address);
@@ -34,13 +33,5 @@ public class TokenContract extends SimpleContract {
       result.add(contract);
     }
     return result;
-  }
-
-  public String getCurveUnderlying() {
-    return curveUnderlying;
-  }
-
-  public void setCurveUnderlying(String curveUnderlying) {
-    this.curveUnderlying = curveUnderlying;
   }
 }

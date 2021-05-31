@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
+import static pro.belbix.ethparser.TestAddresses.USDC;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
@@ -13,7 +14,9 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -29,10 +32,12 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthLog;
+import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
-import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -41,7 +46,9 @@ public class Web3FunctionsTest {
   @Autowired
   private Web3Functions web3Functions;
   @Autowired
-  private ContractDbService contractDbService;
+  private FunctionsUtils functionsUtils;
+  @Autowired
+  private AppProperties appProperties;
 
   @Test
   public void fetchDataForTxSwapWETHtoFARM() throws ClassNotFoundException {
@@ -101,7 +108,7 @@ public class Web3FunctionsTest {
         })), "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", LATEST, ETH_NETWORK);
     assertNotNull(types);
     assertFalse(types.isEmpty());
-    assertTrue(contractDbService.parseAmount((BigInteger) types.get(0).getValue(),
+    assertTrue(functionsUtils.parseAmount((BigInteger) types.get(0).getValue(),
         "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB", ETH_NETWORK) > 0);
   }
 
@@ -137,7 +144,7 @@ public class Web3FunctionsTest {
   @Test
   void testRequestWithTopics() {
     List<EthLog.LogResult> results = web3Functions.fetchContractLogs(
-        List.of("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+        List.of(USDC),
         12317814,
         12317814,
         ETH_NETWORK,
@@ -164,5 +171,44 @@ public class Web3FunctionsTest {
         .collect(Collectors.toList());
     assertNotNull(blocks, "block not null");
     Assertions.assertEquals(2, blocks.size(), "block size");
+  }
+
+  @Test
+  void ethLogBatchOneBlock() {
+    int block = 12_000_000;
+    List<LogResult> results =
+        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block, ETH_NETWORK);
+    Assertions.assertEquals(7, results.size());
+    Set<Integer> blocks = new HashSet<>();
+    results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
+    Assertions.assertTrue(blocks.contains(block), "result contains " + block);
+    Assertions.assertEquals(1, blocks.size(), "blocks contains only our range");
+  }
+
+  @Test
+  void ethLogBatchTwoBlock() {
+    int block = 12_000_000;
+    List<LogResult> results =
+        web3Functions.fetchContractLogsBatch(List.of(USDC), block, block + 1, ETH_NETWORK);
+    Assertions.assertEquals(13, results.size());
+    Set<Integer> blocks = new HashSet<>();
+    results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
+    Assertions.assertTrue(blocks.contains(block), "result contains " + block);
+    Assertions.assertEquals(2, blocks.size(), "blocks contains only our range");
+  }
+
+  @Test
+  void ethLogBatchLimitX2() {
+    int block = 12_000_000;
+    int step = appProperties.getHandleLoopStep() * 2;
+    List<LogResult> results =
+        web3Functions.fetchContractLogsBatch(List.of(USDC), block,
+            block + step, ETH_NETWORK);
+    Assertions.assertEquals(18649, results.size());
+    Set<Integer> blocks = new HashSet<>();
+    results.forEach(l -> blocks.add(((Log) l.get()).getBlockNumber().intValue()));
+    Assertions.assertTrue(blocks.contains(block), "result contains first block" + block);
+    Assertions.assertTrue(blocks.contains(block + step), "result contains last block" + block);
+    Assertions.assertEquals(1967, blocks.size(), "blocks contains only our range");
   }
 }

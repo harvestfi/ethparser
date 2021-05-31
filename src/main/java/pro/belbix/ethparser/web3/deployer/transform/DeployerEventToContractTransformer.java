@@ -5,10 +5,12 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.REWARD_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.SYMBOL;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNSALVAGABLE_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USER_REWARD_PER_TOKEN_PAID;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
+import static pro.belbix.ethparser.web3.contracts.ContractType.STRATEGY;
 import static pro.belbix.ethparser.web3.contracts.ContractType.UNKNOWN;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 import static pro.belbix.ethparser.web3.deployer.decoder.DeployerActivityEnum.CONTRACT_CREATION;
@@ -67,6 +69,9 @@ public class DeployerEventToContractTransformer {
       } else if (POOL == contract.getContractType()) {
         contractLoader.loadPool((SimpleContract) contract,
             contract.getNetwork(), contract.getCreatedOnBlock());
+      } else if (STRATEGY == contract.getContractType()) {
+        contractLoader.loadStrategy((SimpleContract) contract,
+            contract.getNetwork(), contract.getCreatedOnBlock());
       } else if (ContractType.TOKEN == contract.getContractType()) {
         contractLoader.loadToken((TokenContract) contract,
             contract.getNetwork(), contract.getCreatedOnBlock());
@@ -96,7 +101,7 @@ public class DeployerEventToContractTransformer {
     }
 
     ContractType type = detectContractType(dto);
-    if (!isEligibleVaultOrPool(dto, type)) {
+    if (!isEligibleType(dto, type)) {
       return List.of();
     }
 
@@ -106,7 +111,7 @@ public class DeployerEventToContractTransformer {
     log.info("Start transform {}", address);
 
     ContractInfo contractInfo =
-        collectVaultOrPoolContractInfo(address, block, network, type);
+        collectHarvestContractInfo(address, block, network, type);
 
     if (contractInfo == null) {
       return List.of();
@@ -144,8 +149,8 @@ public class DeployerEventToContractTransformer {
     return CONTRACT_CREATION.name().equals(dto.getType());
   }
 
-  private boolean isEligibleVaultOrPool(DeployerDTO dto, ContractType type) {
-    if (VAULT != type && POOL != type) {
+  private boolean isEligibleType(DeployerDTO dto, ContractType type) {
+    if (VAULT != type && POOL != type && STRATEGY != type) {
       log.info("Not vault or pool, skip contract transform");
       return false;
     }
@@ -163,19 +168,24 @@ public class DeployerEventToContractTransformer {
         || "initializeVault".equals(methodName);
   }
 
-  private ContractInfo collectVaultOrPoolContractInfo(
+  private ContractInfo collectHarvestContractInfo(
       String address,
       long block,
       String network,
       ContractType type
   ) {
     ContractInfo contractInfo = new ContractInfo(address, block, network, type);
+    // use only vault address for name creation
     if (POOL == type) {
       address = functionsUtils.callAddressByName(
           LP_TOKEN, address, block, network)
           .orElseThrow(
               () -> new IllegalStateException("Can't fetch vault for pool " + contractInfo)
-          ); // use only vault address for name creation
+          );
+    } else if (STRATEGY == type) {
+      address = functionsUtils.callAddressByName(
+          FunctionsNames.VAULT, address, block, network)
+          .orElse(address);
     }
 
     String underlyingAddress = functionsUtils.callAddressByName(
@@ -235,11 +245,21 @@ public class DeployerEventToContractTransformer {
       }
     }
 
+    if (type == STRATEGY) {
+      contractInfo.setRewardAddress(functionsUtils.callAddressByName(
+          REWARD_TOKEN, address, block, network)
+          .orElse(null));
+    }
+
     if (name.endsWith("_")) {
       name = name.substring(0, name.length() - 1);
     }
     if (type == POOL) {
-      name = "ST_" + name;
+      name = "P_" + name;
+    } else if (type == STRATEGY) {
+      name = "S_" + name;
+    } else if (type == VAULT) {
+      name = "V_" + name;
     }
     contractInfo.setName(name);
     return contractInfo;
@@ -277,6 +297,7 @@ public class DeployerEventToContractTransformer {
     if (type != null) {
       return type;
     }
+    // we can determine contract type only be exist functions
     try {
       if (functionsUtils.callIntByName(
           VAULT_FRACTION_TO_INVEST_NUMERATOR,
@@ -289,6 +310,12 @@ public class DeployerEventToContractTransformer {
           dto.getToAddress(),
           dto.getBlock(), dto.getNetwork()).isPresent()) {
         return POOL;
+      } else if (functionsUtils.callBoolByNameWithAddressArg(
+          UNSALVAGABLE_TOKENS,
+          dto.getToAddress(), // any address
+          dto.getToAddress(),
+          dto.getBlock(), dto.getNetwork()).isPresent()) {
+        return STRATEGY;
       }
     } catch (Exception e) {
       log.info("Can't determinate contract type {}", dto);
@@ -305,6 +332,8 @@ public class DeployerEventToContractTransformer {
 
     tokenTransformer
         .createTokenAndLpContracts(contractInfo.getUnderlyingAddress(), block, network, contracts);
+    tokenTransformer
+        .createTokenAndLpContracts(contractInfo.getRewardAddress(), block, network, contracts);
     contractInfo.getUnderlyingTokens().forEach(c ->
         tokenTransformer.createTokenAndLpContracts(c, block, network, contracts));
   }

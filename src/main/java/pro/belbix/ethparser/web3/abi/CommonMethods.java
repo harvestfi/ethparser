@@ -734,6 +734,24 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("address"),
                 TypeReference.makeTypeReference("address[]")
             ));
+        parameters.put("Minted",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address"),
+                TypeReference.makeTypeReference("uint256")
+            ));
+        parameters.put("DistributedSupplierComp",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint"),
+                TypeReference.makeTypeReference("uint")
+            ));
+        parameters.put("Claimed",
+            Arrays.asList(
+                TypeReference.makeTypeReference("address", true, false),
+                TypeReference.makeTypeReference("uint256")
+            ));
         return parameters;
     }
 
