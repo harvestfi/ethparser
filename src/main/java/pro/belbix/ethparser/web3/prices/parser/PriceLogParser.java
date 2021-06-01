@@ -145,7 +145,7 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
 
   private void fillLpStats(PriceDTO dto, String network) {
     // reduce web3 calls
-    if (!ContractUtils.isFullParsableLp(dto.getTokenAddress(), dto.getNetwork())) {
+    if (!ContractUtils.isFullParsableLp(dto.getSourceAddress(), dto.getNetwork())) {
       return;
     }
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
