@@ -8,6 +8,7 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.TestAddresses.USDC;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 
 import java.math.BigInteger;
@@ -32,10 +33,12 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthLog;
+import org.web3j.protocol.core.methods.response.EthLog.LogObject;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.entity.StratInfo;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.properties.AppProperties;
@@ -218,4 +221,49 @@ public class Web3FunctionsTest {
     Assertions.assertTrue(blocks.contains(block + step), "result contains last block" + block);
     Assertions.assertEquals(1967, blocks.size(), "blocks contains only our range");
   }
+
+  @Test
+  void ethLogBatchMandatoryTopics() {
+    String eventSignatureHash =
+        "0x43ffccb0abea5304f42c5d67d56e479f21f76ecc142c39a770725e99125243bc";
+    String vault =
+        "0x000000000000000000000000145f39b3c6e6a885aa6a8fade4ca69d64bab69c8";
+
+    List<LogResult> results =
+        web3Functions.fetchContractLogsBatch(
+            List.of(CONTROLLERS.get(ETH_NETWORK)),
+            12589294, 12589335, ETH_NETWORK,
+            new String[0],
+            new String[]{ eventSignatureHash, vault});
+    Assertions.assertEquals(1, results.size());
+
+    List<String> topics = ((LogObject) results.get(0)).getTopics();
+    Assertions.assertEquals(eventSignatureHash, topics.get(0));
+    Assertions.assertEquals(vault, topics.get(1));
+  }
+
+  @Test
+  void ethLogBatchOptionalTopics() {
+    String eventSignatureHash =
+        "0x43ffccb0abea5304f42c5d67d56e479f21f76ecc142c39a770725e99125243bc";
+    String vault =
+        "0x000000000000000000000000145f39b3c6e6a885aa6a8fade4ca69d64bab69c8";
+
+    List<LogResult> results =
+        web3Functions.fetchContractLogsBatch(
+            List.of(CONTROLLERS.get(ETH_NETWORK)),
+            12589294,12589335, ETH_NETWORK,
+            new String[]{ eventSignatureHash, vault},
+            new String[0]);
+    Assertions.assertEquals(2, results.size());
+    List<String> topics0 = ((LogObject) results.get(0)).getTopics();
+
+    Assertions.assertEquals(eventSignatureHash, topics0.get(0));
+    Assertions.assertNotEquals(vault, topics0.get(1));
+
+    List<String> topics1 = ((LogObject) results.get(1)).getTopics();
+    Assertions.assertEquals(eventSignatureHash, topics1.get(0));
+    Assertions.assertEquals(vault, topics1.get(1));
+  }
+
 }

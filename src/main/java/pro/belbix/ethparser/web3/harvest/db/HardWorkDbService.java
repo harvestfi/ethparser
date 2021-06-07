@@ -32,7 +32,6 @@ public class HardWorkDbService {
   private final HarvestRepository harvestRepository;
   private final AppProperties appProperties;
   private final PriceProvider priceProvider;
-  private IdleTimeService idleTimeService;
 
   public HardWorkDbService(HardWorkRepository hardWorkRepository,
       HarvestRepository harvestRepository,
@@ -41,7 +40,6 @@ public class HardWorkDbService {
     this.harvestRepository = harvestRepository;
     this.appProperties = appProperties;
     this.priceProvider = priceProvider;
-    this.idleTimeService = idleTimeService;
   }
 
   public boolean save(HardWorkDTO dto) {
@@ -210,9 +208,5 @@ public class HardWorkDbService {
     if (lastHardWorkBlockDate != null) {
       dto.setIdleTime(dto.getBlockDate() - lastHardWorkBlockDate);
     }
-
-    Long lastEventBlockDate = idleTimeService.GetLastEventBlockDate(dto.getNetwork(),
-        dto.getVaultAddress(), (int) dto.getBlock() - 1);
-    dto.setIdleTimeChain(dto.getBlockDate() - lastEventBlockDate);
   }
 }

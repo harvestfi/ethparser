@@ -30,7 +30,7 @@ public class IdleTimeService {
     this.simpleContractGenerator = simpleContractGenerator;
   }
 
-  public long GetLastEventBlockDate(String network, String vault, int toBlock) {
+  public long getLastEventBlockDate(String network, String vault, int toBlock) {
     log.info("Reading last call time from blockchain");
 
     GeneratedContract controllerContract = simpleContractGenerator.getContract(

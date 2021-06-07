@@ -38,6 +38,7 @@ import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
+import pro.belbix.ethparser.web3.harvest.log.IdleTimeService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -56,6 +57,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
   private final HardWorkDbService hardWorkDbService;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
+  private IdleTimeService idleTimeService;
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -64,7 +66,9 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
       ParserInfo parserInfo,
       AppProperties appProperties,
       NetworkProperties networkProperties,
-      ContractDbService contractDbService) {
+      ContractDbService contractDbService,
+      IdleTimeService idleTimeService
+      ) {
     super(parserInfo, appProperties);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
@@ -73,6 +77,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     this.hardWorkDbService = hardWorkDbService;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
+    this.idleTimeService = idleTimeService;
   }
 
   @Override
@@ -115,10 +120,9 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     }
     String vaultName = contractDbService.getNameByAddress(tx.getVault(), network)
         .orElseThrow(() -> new IllegalStateException("Not found name by " + tx.getVault()));
-//    if (vaultName.endsWith("_V0")) {
-//      // skip old strategies
-//      return null;
-//    }
+    long lastEventBlockDate = idleTimeService.getLastEventBlockDate(
+        network, tx.getVault(), (int) tx.getBlockDate() - 1);
+
     HardWorkDTO dto = new HardWorkDTO();
     dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
@@ -128,7 +132,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     dto.setVaultAddress(tx.getVault());
     dto.setShareChange(functionsUtils.parseAmount(
         tx.getNewSharePrice().subtract(tx.getOldSharePrice()), tx.getVault(), network));
-
+    dto.setIdleTimeChain(tx.getBlockDate() - lastEventBlockDate);
     parseRates(dto, tx.getStrategy(), network);
     parseRewards(dto, tx.getHash(), tx.getStrategy(), network);
     parseVaultInvestedFunds(dto, network);

@@ -21,7 +21,7 @@ public class IdleTimeServiceTest {
 
   @Test
   public void ethVaultTest() {
-    var res = idleTimeService.GetLastEventBlockDate(
+    var res = idleTimeService.getLastEventBlockDate(
         ETH_NETWORK, "0x00000000000000000000000001bd09a1124960d9be04b638b142df9df942b04a",
         12564067);
     // https://etherscan.io/tx/0xb771e148668184d85df2c18f7382d809facca5badcb35a7926e3091488449efe
@@ -31,7 +31,7 @@ public class IdleTimeServiceTest {
 
   @Test
   public void bscVaultTest() {
-    var res = idleTimeService.GetLastEventBlockDate(
+    var res = idleTimeService.getLastEventBlockDate(
         BSC_NETWORK, "0x0000000000000000000000006d386490e2367fc31b4acc99ab7c7d4d998a3121",
         7985745);
     //https://bscscan.com/tx/0xb2c1a8c8975281abbe90bc8746a26297dbd0b89d188bfc2758958d3c85ead6e3
