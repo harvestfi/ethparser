@@ -50,7 +50,7 @@ public class ApyController {
                     .orElseThrow();
             }
             return RestResponse.ok(String.format("%.8f",
-                apyService.averageApyForPool(address, daysI, network)));
+                apyService.averageApyForPool(address.toLowerCase(), daysI, network)));
         } catch (Exception e) {
             log.error("Error get average apy for " + address + " with days " + days);
             return RestResponse.error("Server error during calculation average apy");
