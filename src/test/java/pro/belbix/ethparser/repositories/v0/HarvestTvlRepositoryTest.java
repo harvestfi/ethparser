@@ -12,7 +12,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.context.ContextConfiguration;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
+import pro.belbix.ethparser.entity.v0.HarvestTvlViewEntity;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -21,6 +24,40 @@ public class HarvestTvlRepositoryTest {
   @Autowired
   private HarvestTvlRepository harvestTvlRepository;
 
+  @Autowired
+  private HarvestTvlViewRepository harvestTvlViewRepository;
+
+  @Autowired
+  private HarvestRepository harvestRepository;
+
+
+  @Test
+  public void myTest() {
+    // given
+    int id = 0;
+
+    id++;
+    HarvestDTO dto = new HarvestDTO();
+    dto.setId(String.valueOf(id));
+    dto.setNetwork("TestNetwork");
+    dto.setBlockDate((long) id);
+    dto.setVaultAddress("TestVault");
+    dto.setLastUsdTvl((double) id);
+    dto.setOwner("TestOwner");
+    dto.setOwnerBalanceUsd((double) id * 10);
+    dto.setOwnerBalance((double) id * 10);
+    dto.setMethodName("TestMethodName");
+    dto.setUsdAmount((long) id);
+
+    harvestRepository.save(dto);
+
+
+
+    List<HarvestTvlViewEntity> material_testNetwork = harvestTvlViewRepository
+        .findAllByNetworkOrderByCalculateTime("TestNetwork");
+    System.out.println();
+
+  }
 
   @Test
   public void test_testExpectedJpaSystemException() {
@@ -34,11 +71,11 @@ public class HarvestTvlRepositoryTest {
   public void test_getHistoryOfAllTvl() {
     // given
     int id = 0;
-    HarvestTvlEntity first = createDto(++id,id);
-    HarvestTvlEntity two = createDto(++id,id);
-    HarvestTvlEntity three = createDto(++id,id);
-    HarvestTvlEntity four = createDto(++id,id);
-    HarvestTvlEntity five = createDto(++id,id);
+    HarvestTvlEntity first = createDto(++id, id);
+    HarvestTvlEntity two = createDto(++id, id);
+    HarvestTvlEntity three = createDto(++id, id);
+    HarvestTvlEntity four = createDto(++id, id);
+    HarvestTvlEntity five = createDto(++id, id);
 
     //when
     harvestTvlRepository.save(first);

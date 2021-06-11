@@ -4,12 +4,11 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pro.belbix.ethparser.entity.c_layer.UniPriceViewEntity;
-import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.entity.v0.HarvestTvlViewEntity;
 
-public interface HarvestTvlViewRepository extends JpaRepository<HarvestTvlViewEntity, Long> {
-  List<HarvestTvlEntity> findAllByNetworkOrderByCalculateTime(String network);
+public interface HarvestTvlViewRepository extends JpaRepository<HarvestTvlViewEntity, String> {
+
+  List<HarvestTvlViewEntity> findAllByNetworkOrderByCalculateTime(String network);
 
 //  @Query(nativeQuery = true, value = "" +
 //      "select " +
@@ -37,14 +36,15 @@ public interface HarvestTvlViewRepository extends JpaRepository<HarvestTvlViewEn
 //      "group by agg.grp  " +
 //      "order by calculate_time")
 
-  //TODO вопрос про groupBy и order?
   @Query("select t from HarvestTvlViewEntity t where "
       + "t.calculateTime between :startTime and :endTime "
       + "and t.network = :network "
+      + "order by t.calculateTime"
   )
-  List<HarvestTvlEntity> getHistoryOfAllTvl(
+  List<HarvestTvlViewEntity> getHistoryOfAllTvl(
       @Param("startTime") long startTime,
       @Param("endTime") long endTime,
       @Param("network") String network
   );
+
 }
