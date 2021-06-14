@@ -78,10 +78,18 @@ spec:
             httpGet:
               path: /
               port: 8080
+            initialDelaySeconds: 50
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /
               port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           volumeMounts:
           - mountPath: /dist/application.yml
             name: application-config

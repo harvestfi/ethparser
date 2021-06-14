@@ -37,7 +37,7 @@ public class ApyControllerTest {
   }
 
   @Test
-  public void poolUDT() throws Exception {
+  public void poolUSDC() throws Exception {
     this.mockMvc.perform(get("/apy/average/" + V_USDC + "?days=1000"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString(String.format("%.8f",
