@@ -71,6 +71,7 @@ public class PriceProviderAutoTest {
   );
 
   @TestFactory
+  @Disabled("it is too unstable test, only manual checking")
   public Stream<DynamicTest> tokenPricesEth() throws Exception {
     long block = web3Functions.fetchCurrentBlock(ETH_NETWORK).longValue();
     return runTests(fetchPrices(ETH_NETWORK), block, ETH_NETWORK);
