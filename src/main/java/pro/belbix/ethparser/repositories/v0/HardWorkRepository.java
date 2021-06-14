@@ -19,7 +19,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         Pageable pageable);
 
     @Query("select t from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.fullRewardUsd >= :minAmount "
         + "and t.network = :network")
     Page<HardWorkDTO> fetchPagesByVault(
