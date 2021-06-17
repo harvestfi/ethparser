@@ -2,13 +2,16 @@ package pro.belbix.ethparser.web3.uniswap;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.isFullParsableLpAddressAndDate;
 
+import java.math.BigInteger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,57 @@ public class UniswapParserTest {
   private PriceProvider priceProvider;
   @Autowired
   private UniToHarvestConverter uniToHarvestConverter;
+
+  @Test
+  public void test_isFullParsableLpAddressAndDate_right_address_same_date() {
+    boolean sameDate = isFullParsableLpAddressAndDate(
+        "0x56feAccb7f750B997B36A68625C7C596F0B41A58",
+        11407437,
+        ETH_NETWORK);
+
+    assertFalse(sameDate);
+  }
+
+  @Test
+  public void test_isFullParsableLpAddressAndDate_right_address_less_date() {
+    boolean lessDate =
+        isFullParsableLpAddressAndDate(
+            "0x56feAccb7f750B997B36A68625C7C596F0B41A58",
+            11407436,
+            ETH_NETWORK);
+
+    assertFalse(lessDate);
+  }
+
+  @Test
+  public void test_isFullParsableLpAddressAndDate_wrong_address() {
+    boolean wrongAddress = isFullParsableLpAddressAndDate(
+        "0x0",
+        10777067,
+        ETH_NETWORK);
+    assertFalse(wrongAddress);
+  }
+
+  @Test
+  public void test_isFullParsableLpAddressAndDate_right_address_right_date() {
+    boolean allFine =
+        isFullParsableLpAddressAndDate(
+            "0x56feAccb7f750B997B36A68625C7C596F0B41A58",
+            11407438, ETH_NETWORK);
+    assertTrue(allFine);
+  }
+
+  @Test
+  public void test_fetchContractLogs_wrong_contract() {
+    List<LogResult> logResult = web3Functions
+        .fetchContractLogs(singletonList("0x56feAccb7f750B997B36A68625C7C596F0B41A58"),
+            10777652,
+            10777652, ETH_NETWORK);
+
+    UniswapDTO dto = uniswapLpLogParser.parse((Log) logResult.get(0).get(), ETH_NETWORK);
+
+    assertNull(dto);
+  }
 
   @Test
   public void parseUNI_LP_USDC_FARM_ADD2() {

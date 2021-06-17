@@ -55,7 +55,7 @@ public class ContractConstants {
   public static final String iPS_ADDRESS = "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651"
       .toLowerCase();
   public static final String ST_PS_ADDRESS = "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"
-          .toLowerCase();
+      .toLowerCase();
 
   public final static Map<String, String> DEPLOYERS = Map.of(
       ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),
@@ -91,13 +91,13 @@ public class ContractConstants {
           "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
   );
 
-  static final Map<String, Set<String>> FULL_PARSABLE_UNI_PAIRS = Map.of(
-      ETH_NETWORK, Set.of(
-          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
-          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM
-          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase() // UNI_LP_GRAIN_FARM - GRAIN
+  static final Map<String, Map<String, Integer>> FULL_PARSABLE_UNI_PAIRS = Map.of(
+      ETH_NETWORK, Map.of(
+          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), 10777067, // UNI_LP_USDC_FARM - FARM
+          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), 11407437, // UNI_LP_WETH_FARM - FARM
+          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202 // UNI_LP_GRAIN_FARM - GRAIN
       ),
-      BSC_NETWORK, Set.of()
+      BSC_NETWORK, Map.of()
   );
 
   public static final Set<String> PS_ADDRESSES = Set.of(

@@ -16,6 +16,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import java.math.BigInteger;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -170,6 +171,12 @@ public class ContractUtils {
   }
 
   public static boolean isFullParsableLp(String address, String network) {
-    return FULL_PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
+    return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase());
+  }
+
+  public static boolean isFullParsableLpAddressAndDate(String address, int date,
+      String network) {
+    return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase())
+        && date > FULL_PARSABLE_UNI_PAIRS.get(network).get(address.toLowerCase());
   }
 }
