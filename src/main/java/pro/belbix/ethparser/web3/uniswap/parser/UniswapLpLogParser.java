@@ -139,7 +139,8 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     if (ethLog == null || ethLog.getTopics() == null || ethLog.getTopics().isEmpty()) {
       return false;
     }
-    return ContractUtils.isFullParsableLp(ethLog.getAddress(), ETH_NETWORK)
+    return ContractUtils
+        .isFullParsableLpAddressAndDate(ethLog.getAddress(), ethLog.getBlockNumber(), ETH_NETWORK)
         && contractDbService.getContractByAddressAndType(
         ethLog.getAddress(), ContractType.UNI_PAIR, network).isPresent();
   }

@@ -91,13 +91,16 @@ public class ContractConstants {
           "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
   );
 
-  static final Map<String, Set<String>> FULL_PARSABLE_UNI_PAIRS = Map.of(
-      ETH_NETWORK, Set.of(
-          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), // UNI_LP_USDC_FARM - FARM
-          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), // UNI_LP_WETH_FARM - FARM
-          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase() // UNI_LP_GRAIN_FARM - GRAIN
+  static final Map<String, Map<String, Integer>> FULL_PARSABLE_UNI_PAIRS = Map.of(
+      ETH_NETWORK, Map.of(
+          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), 10777067,
+          // UNI_LP_USDC_FARM - FARM
+          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), 11407437,
+          // UNI_LP_WETH_FARM - FARM
+          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202
+          // UNI_LP_GRAIN_FARM - GRAIN
       ),
-      BSC_NETWORK, Set.of()
+      BSC_NETWORK, Map.of()
   );
 
   public static final Set<String> PS_ADDRESSES = Set.of(
