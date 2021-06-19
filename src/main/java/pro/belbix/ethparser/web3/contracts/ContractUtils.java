@@ -16,7 +16,6 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
-import java.math.BigInteger;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
