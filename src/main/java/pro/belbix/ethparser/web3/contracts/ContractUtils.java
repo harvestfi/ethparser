@@ -170,6 +170,12 @@ public class ContractUtils {
   }
 
   public static boolean isFullParsableLp(String address, String network) {
-    return FULL_PARSABLE_UNI_PAIRS.get(network).contains(address.toLowerCase());
+    return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase());
+  }
+
+  public static boolean isFullParsableLpAddressAndDate(String address, int date,
+      String network) {
+    return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase())
+        && date > FULL_PARSABLE_UNI_PAIRS.get(network).get(address.toLowerCase());
   }
 }
