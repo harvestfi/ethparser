@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.contracts.db;
 
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseAddressInsteadOfZero;
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWorkAllByNetwork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByNetwork;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -243,7 +243,7 @@ public class ContractDbService {
     Set<String> contracts = new HashSet<>(Set.of(
         ContractConstants.FARM_TOKEN
     ));
-    contracts.addAll(Objects.requireNonNull(getDoHardWorkAllByNetwork(ETH_NETWORK)));
+    contracts.addAll(Objects.requireNonNull(getControllerAddressByNetwork(ETH_NETWORK)));
     contracts.addAll(
         contractRepository.findAll().stream()
             .map(ContractEntity::getAddress)

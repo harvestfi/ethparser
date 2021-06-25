@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWork;
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWorkAllByNetwork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByBlockAndNetwork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByNetwork;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,18 +41,18 @@ public class DoHardWorkEthTest {
 
   @Test
   public void test_getDoHardWork_lower_block() {
-    assertNull(getDoHardWork(10770086L, ETH_NETWORK));
+    assertNull(getControllerAddressByBlockAndNetwork(10770086L, ETH_NETWORK));
   }
 
   @Test
   public void test_getDoHardWork_same_block() {
-    assertEquals(getDoHardWork(10770087L, ETH_NETWORK),
+    assertEquals(getControllerAddressByBlockAndNetwork(10770087L, ETH_NETWORK),
         "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C");
   }
 
   @Test
   public void test_getDoHardWork_larger_block() {
-    assertEquals(getDoHardWork(10770088L, ETH_NETWORK),
+    assertEquals(getControllerAddressByBlockAndNetwork(10770088L, ETH_NETWORK),
         "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C");
   }
 
@@ -70,12 +70,12 @@ public class DoHardWorkEthTest {
 
   @Test
   public void test_getDoHardWorkAllByNetwork_ETH_NETWORK() {
-    assertNotNull(getDoHardWorkAllByNetwork(ETH_NETWORK));
+    assertNotNull(getControllerAddressByNetwork(ETH_NETWORK));
   }
 
   @Test
   public void test_getDoHardWorkAllByNetwork_BSC_NETWORK() {
-    assertNotNull(getDoHardWorkAllByNetwork(BSC_NETWORK));
+    assertNotNull(getControllerAddressByNetwork(BSC_NETWORK));
   }
 
   @Test
@@ -275,7 +275,8 @@ public class DoHardWorkEthTest {
     String farmBuyback = numberFormat(_farmBuyback);
     //noinspection rawtypes
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(Collections.singletonList(getDoHardWork(onBlock, ETH_NETWORK)),
+        .fetchContractLogs(Collections.singletonList(
+            getControllerAddressByBlockAndNetwork(onBlock, ETH_NETWORK)),
             onBlock, onBlock, ETH_NETWORK);
     assertNotNull(logResults);
     assertFalse(logResults.isEmpty());

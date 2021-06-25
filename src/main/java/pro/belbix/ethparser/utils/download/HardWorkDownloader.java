@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.utils.download;
 
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWorkAllByNetwork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByNetwork;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -48,7 +48,7 @@ public class HardWorkDownloader {
 
   private void parse(Integer start, Integer end) {
     List<LogResult> logResults = web3Functions
-        .fetchContractLogs(getDoHardWorkAllByNetwork(appProperties.getUtilNetwork()),
+        .fetchContractLogs(getControllerAddressByNetwork(appProperties.getUtilNetwork()),
             start, end, appProperties.getUtilNetwork());
     if (logResults.isEmpty()) {
       log.info("Empty log {} {}", start, end);

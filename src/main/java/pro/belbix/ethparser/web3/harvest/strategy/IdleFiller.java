@@ -14,7 +14,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.IDLE_UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USERS_GOV_TOKENS_INDEXES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByBlockAndNetwork;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -34,7 +34,6 @@ import pro.belbix.ethparser.entity.StratInfo;
 import pro.belbix.ethparser.model.StratRewardInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
 
 @Service
 @Log4j2
@@ -341,6 +340,6 @@ public class IdleFiller implements FarmableProjectFiller {
     return l ->
         ((Address) l.get(0)).getValue().equalsIgnoreCase(stratInfo.getStrategyAddress())
             && ((Address) l.get(1)).getValue()
-            .equalsIgnoreCase(getDoHardWork(stratInfo.getBlock(),ETH_NETWORK));
+            .equalsIgnoreCase(getControllerAddressByBlockAndNetwork(stratInfo.getBlock(),ETH_NETWORK));
   }
 }

@@ -16,7 +16,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INV
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.VAULT_FRACTION_TO_INVEST_NUMERATOR;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
-import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWork;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByBlockAndNetwork;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -93,7 +93,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
   @Override
   public HardWorkDTO parse(Log ethLog, String network) {
     if (ethLog == null
-        || !getDoHardWork(ethLog.getBlockNumber().longValue(),network).equalsIgnoreCase(ethLog.getAddress())) {
+        || !getControllerAddressByBlockAndNetwork(ethLog.getBlockNumber().longValue(),network).equalsIgnoreCase(ethLog.getAddress())) {
       return null;
     }
 

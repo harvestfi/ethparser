@@ -102,7 +102,7 @@ public class ContractUtils {
     return "";
   }
 
-  public static List<String> getDoHardWorkAllByNetwork(String network) {
+  public static List<String> getControllerAddressByNetwork(String network) {
     Map<Long, String> entry = CONTROLLERS.get(network);
     if (entry == null) {
       return null;
@@ -110,7 +110,7 @@ public class ContractUtils {
     return new ArrayList<>(entry.values());
   }
 
-  public static String getDoHardWork(long block, String network) {
+  public static String getControllerAddressByBlockAndNetwork(long block, String network) {
     Entry<Long, String> entry = new TreeMap<>(CONTROLLERS.get(network)).floorEntry(block);
     if (entry == null) {
       return null;
