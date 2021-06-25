@@ -13,6 +13,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAdd
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,13 +48,13 @@ public class DoHardWorkEthTest {
   @Test
   public void test_getDoHardWork_same_block() {
     assertEquals(getControllerAddressByBlockAndNetwork(10770087L, ETH_NETWORK),
-        "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C");
+        "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase());
   }
 
   @Test
   public void test_getDoHardWork_larger_block() {
     assertEquals(getControllerAddressByBlockAndNetwork(10770088L, ETH_NETWORK),
-        "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C");
+        "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase());
   }
 
   @Test
