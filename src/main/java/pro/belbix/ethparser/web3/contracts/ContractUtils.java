@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_18_MARCH_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
@@ -16,6 +17,9 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -96,6 +100,22 @@ public class ContractUtils {
       return "WBNB";
     }
     return "";
+  }
+
+  public static List<String> getControllerAddressByNetwork(String network) {
+    Map<Long, String> entry = CONTROLLERS.get(network);
+    if (entry == null) {
+      return null;
+    }
+    return new ArrayList<>(entry.values());
+  }
+
+  public static String getControllerAddressByBlockAndNetwork(long block, String network) {
+    Entry<Long, String> entry = new TreeMap<>(CONTROLLERS.get(network)).floorEntry(block);
+    if (entry == null) {
+      return null;
+    }
+    return entry.getValue();
   }
 
   public static String getPriceOracle(long block, String network) {
