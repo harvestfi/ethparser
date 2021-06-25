@@ -14,6 +14,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.IDLE_UNDERLYING;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.USERS_GOV_TOKENS_INDEXES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D18;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWork;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -340,6 +341,6 @@ public class IdleFiller implements FarmableProjectFiller {
     return l ->
         ((Address) l.get(0)).getValue().equalsIgnoreCase(stratInfo.getStrategyAddress())
             && ((Address) l.get(1)).getValue()
-            .equalsIgnoreCase(ContractConstants.CONTROLLERS.get(ETH_NETWORK));
+            .equalsIgnoreCase(getDoHardWork(stratInfo.getBlock(),ETH_NETWORK));
   }
 }

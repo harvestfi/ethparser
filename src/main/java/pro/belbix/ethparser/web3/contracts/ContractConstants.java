@@ -62,9 +62,12 @@ public class ContractConstants {
       BSC_NETWORK, "0xf00dd244228f51547f0563e60bca65a30fbf5f7f".toLowerCase()
   );
 
-  public final static Map<String, String> CONTROLLERS = Map.of(
-      ETH_NETWORK, "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase(),
-      BSC_NETWORK, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()
+  final static Map<String, Map<Long, String>> CONTROLLERS = Map.of(
+      ETH_NETWORK, Map.of(
+          10770087L, "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase(),
+          12652885L, "0x3cc47874dc50d98425ec79e647d83495637c55e3".toLowerCase()),
+      BSC_NETWORK, Map.of(
+          5990839L, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase())
   );
 
   public final static Map<String, String> NOTIFY_HELPER = Map.of(
@@ -93,9 +96,12 @@ public class ContractConstants {
 
   static final Map<String, Map<String, Integer>> FULL_PARSABLE_UNI_PAIRS = Map.of(
       ETH_NETWORK, Map.of(
-          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), 10777067, // UNI_LP_USDC_FARM - FARM
-          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), 11407437, // UNI_LP_WETH_FARM - FARM
-          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202 // UNI_LP_GRAIN_FARM - GRAIN
+          "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), 10777067,
+          // UNI_LP_USDC_FARM - FARM
+          "0x56feaccb7f750b997b36a68625c7c596f0b41a58".toLowerCase(), 11407437,
+          // UNI_LP_WETH_FARM - FARM
+          "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202
+          // UNI_LP_GRAIN_FARM - GRAIN
       ),
       BSC_NETWORK, Map.of()
   );

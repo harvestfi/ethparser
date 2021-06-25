@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.harvest.hardwork;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getDoHardWork;
 
 import java.util.Collections;
 import java.util.List;
@@ -157,7 +157,7 @@ public class DoHardWorkBscTest {
     private HardWorkDTO loadHardWork(int onBlock) {
         //noinspection rawtypes
         List<LogResult> logResults = web3Functions.fetchContractLogs(
-            Collections.singletonList(CONTROLLERS.get(BSC_NETWORK)),
+            Collections.singletonList(getDoHardWork(onBlock,BSC_NETWORK)),
             onBlock, onBlock, BSC_NETWORK);
         assertNotNull(logResults);
         Assertions.assertFalse(logResults.isEmpty());
