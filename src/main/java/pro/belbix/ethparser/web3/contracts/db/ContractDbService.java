@@ -1,15 +1,13 @@
 package pro.belbix.ethparser.web3.contracts.db;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseAddressInsteadOfZero;
+import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAddressByNetwork;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -245,7 +243,7 @@ public class ContractDbService {
     Set<String> contracts = new HashSet<>(Set.of(
         ContractConstants.FARM_TOKEN
     ));
-    contracts.addAll(CONTROLLERS.values());
+    contracts.addAll(Objects.requireNonNull(getControllerAddressByNetwork(ETH_NETWORK)));
     contracts.addAll(
         contractRepository.findAll().stream()
             .map(ContractEntity::getAddress)
