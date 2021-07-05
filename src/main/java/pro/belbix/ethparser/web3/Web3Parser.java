@@ -1,8 +1,5 @@
 package pro.belbix.ethparser.web3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,10 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import pro.belbix.ethparser.dto.DtoI;
-import pro.belbix.ethparser.dto.v0.ErrorWeb3Dto;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 
 @Log4j2
 public abstract class Web3Parser<T extends DtoI, K> {
@@ -32,14 +27,10 @@ public abstract class Web3Parser<T extends DtoI, K> {
   private final ParserInfo parserInfo;
   protected final AppProperties appProperties;
 
-  private final ErrorsRepository errorsRepository;
-
   protected Web3Parser(ParserInfo parserInfo,
-      AppProperties appProperties,
-      ErrorsRepository errorsRepository) {
+      AppProperties appProperties) {
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
-    this.errorsRepository = errorsRepository;
   }
 
 
@@ -74,7 +65,6 @@ public abstract class Web3Parser<T extends DtoI, K> {
           if (run.get()) {
             log.error("Error in loop {} with {}",
                 this.getClass().getSimpleName(), web3Model, e);
-            saveErrorWeb3ModelToDb(web3Model);
           } else {
             log.debug("After shutdown - Error in loop {} with {}",
                 this.getClass().getSimpleName(), web3Model, e);
@@ -129,23 +119,4 @@ public abstract class Web3Parser<T extends DtoI, K> {
   public Instant getLastTx() {
     return lastTx;
   }
-
-  public String web3ModelToJson(Web3Model<K> web3Model) {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    try {
-      return ow.writeValueAsString(web3Model.getValue());
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  public void saveErrorWeb3ModelToDb(Web3Model<K> web3Model) {
-    ErrorWeb3Dto error = new ErrorWeb3Dto();
-    error.setErrorClass(getClass().getSimpleName());
-    error.setJson(web3ModelToJson(web3Model));
-    error.setNetwork(web3Model.getNetwork());
-    errorsRepository.save(error);
-  }
-
 }
