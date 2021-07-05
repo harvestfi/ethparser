@@ -13,6 +13,7 @@ import pro.belbix.ethparser.dto.v0.DeployerDTO;
 import pro.belbix.ethparser.model.tx.DeployerTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -44,8 +45,10 @@ public class DeployerTransactionsParser extends Web3Parser<DeployerDTO, Transact
       SimpleContractGenerator simpleContractGenerator,
       Web3Functions web3Functions,
       DeployerEventToContractTransformer deployerEventToContractTransformer,
-      NetworkProperties networkProperties, Web3Subscriber web3Subscriber) {
-    super(parserInfo, appProperties);
+      NetworkProperties networkProperties,
+      Web3Subscriber web3Subscriber,
+      ErrorsRepository errorsRepository) {
+    super(parserInfo, appProperties, errorsRepository);
     this.deployerDbService = deployerDbService;
     this.ethBlockService = ethBlockService;
     this.simpleContractGenerator = simpleContractGenerator;
