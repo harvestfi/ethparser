@@ -212,6 +212,18 @@
       <version>2.10.3</version>
     </dependency>
 
+    <!--swagger -->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations</artifactId>
+      <version>2.1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+
     <!-- metrics for prometheus -->
     <dependency>
       <groupId>io.micrometer</groupId>

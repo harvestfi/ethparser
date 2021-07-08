@@ -4,6 +4,14 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
@@ -31,6 +39,7 @@ import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @Log4j2
+@Tag(name = "HarvestController", description = "Obtaining data on Harvest")
 public class HarvestController {
 
     private final HarvestRepository harvestRepository;
@@ -47,20 +56,49 @@ public class HarvestController {
         this.dtoCache = dtoCache;
     }
 
+    @Operation(summary = "Returns the latest data",
+        description = "Obtaining a list of data of unique 'vault_address' in the same network."
+            + " The list is sorted by 'vault_address' and 'block date'")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HarvestDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/last/harvest", method = RequestMethod.GET)
     public List<HarvestDTO> fetchLatest(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network") String network
     ) {
         return harvestRepository.fetchLatest(network);
     }
 
+    @Operation(summary = "Returns the Harvest data history for a Vault", description = "")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HarvestDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryDataForVault(
-        @PathVariable("name") String _address,
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "start", required = false, defaultValue = "0") Long start,
-        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "") Long end,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @PathVariable("name") @Parameter(description = "Address") String _address,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1")
+        @Parameter(description = "")Integer reduce,
+        @RequestParam(value = "start", required = false, defaultValue = "0")
+        @Parameter(description = "Block creation time from") Long start,
+        @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "")
+        @Parameter(description = "Block creation time to") Long end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network") String network
     ) {
         String address;
         if (!_address.startsWith("0x")) {
@@ -79,12 +117,27 @@ public class HarvestController {
                     network)), reduce);
     }
 
+    @Operation(summary = "Returns the history of the harvest data", description = "")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HarvestDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/history/harvest", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryData(
-        @RequestParam(value = "from", required = false) String from,
-        @RequestParam(value = "to", required = false) String to,
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "from", required = false)
+        @Parameter(description = "Block creation time from") String from,
+        @RequestParam(value = "to", required = false)
+        @Parameter(description = "Block creation time to (inclusive)") String to,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1")
+        @Parameter(description = "") Integer reduce,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network") String network
     ) {
         return reduceListElements(
             dtoCache.load("findAllByVaultOrderByBlockDate" +
@@ -92,32 +145,74 @@ public class HarvestController {
                 vaultActionsDBService.fetchHarvest(from, to, network)), reduce);
     }
 
+    @Operation(summary = "Returns the history of Harvest addresses", description = "")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HarvestDTO.class)))
+            })
+    })
     @GetMapping("/history/harvest/{address}")
     public List<HarvestDTO> addressHistoryHarvest(
-        @PathVariable("address") String address,
-        @RequestParam(value = "from", required = false) String from,
-        @RequestParam(value = "to", required = false) String to,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @PathVariable("address") @Parameter(description = "Contract") String address,
+        @RequestParam(value = "from", required = false)
+        @Parameter(description = "Block creation time from (inclusive)") String from,
+        @RequestParam(value = "to", required = false)
+        @Parameter(description = "Block creation time to") String to,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network")String network
     ) {
         return harvestRepository.fetchAllByOwner(address.toLowerCase(), parseLong(from, 0),
             parseLong(to, Long.MAX_VALUE), network);
     }
 
+    @Operation(summary = "Returns balances of owners", description = "")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = UserBalance.class)))
+            })
+    })
     @GetMapping("/user_balances")
     public List<UserBalance> userBalances(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network") String network
     ) {
         return harvestRepository.fetchOwnerBalances(network);
     }
 
+    @Operation(summary = "Returns pages Harvest", description = "")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RestResponse.class))
+            })
+    })
     @GetMapping(value = "/harvest/pages")
     public RestResponse harvestPages(
-        @RequestParam("pageSize") String pageSize,
-        @RequestParam("page") String page,
-        @RequestParam(value = "ordering", required = false) String ordering,
-        @RequestParam(value = "vault", required = false) String vault,
-        @RequestParam(value = "minAmount", required = false) Integer minAmount,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam("pageSize")
+        @Parameter(description = "Number of items per page") String pageSize,
+        @RequestParam("page") @Parameter(description = "Page number") String page,
+        @RequestParam(value = "ordering", required = false)
+        @Parameter(description = "Sorting type(desc)") String ordering,
+        @RequestParam(value = "vault", required = false)
+        @Parameter(description = "Vault address") String vault,
+        @RequestParam(value = "minAmount", required = false)
+        @Parameter(description = "Minimum amount in dollars") Integer minAmount,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network") String network
     ) {
         try {
             int start = Integer.parseInt(page);
