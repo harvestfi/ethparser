@@ -20,6 +20,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
@@ -38,8 +39,8 @@ public class UniToHarvestConverter extends Web3Parser<HarvestDTO, UniswapDTO> {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.vaultActionsDBService = vaultActionsDBService;

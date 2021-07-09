@@ -37,6 +37,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.db.HardWorkDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.HardWorkLogDecoder;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -66,8 +67,8 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
     this.web3Functions = web3Functions;

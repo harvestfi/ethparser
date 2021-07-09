@@ -22,6 +22,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -49,8 +50,8 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
       FunctionsUtils functionsUtils, AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;

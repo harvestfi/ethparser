@@ -16,7 +16,6 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.model.tx.PriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -24,6 +23,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.prices.db.PriceDBService;
 import pro.belbix.ethparser.web3.prices.decoder.PriceDecoder;
 
@@ -48,8 +48,8 @@ public class PriceLogParser extends Web3Parser<PriceDTO, Log> {
       NetworkProperties networkProperties,
       FunctionsUtils functionsUtils,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
     this.priceDBService = priceDBService;

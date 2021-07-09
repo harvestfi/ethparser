@@ -31,6 +31,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.db.RewardsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
 
@@ -58,8 +59,8 @@ public class RewardParser extends Web3Parser<RewardDTO, Log> {
       ParserInfo parserInfo, Web3Functions web3Functions,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.functionsUtils = functionsUtils;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;

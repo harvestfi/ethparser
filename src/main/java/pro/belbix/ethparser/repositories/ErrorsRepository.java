@@ -1,7 +1,8 @@
 package pro.belbix.ethparser.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pro.belbix.ethparser.dto.v0.ErrorWeb3Dto;
+import pro.belbix.ethparser.entity.ErrorEntity;
 
-public interface ErrorsRepository extends JpaRepository<ErrorWeb3Dto, String> {
+public interface ErrorsRepository extends JpaRepository<ErrorEntity, String> {
+
 }

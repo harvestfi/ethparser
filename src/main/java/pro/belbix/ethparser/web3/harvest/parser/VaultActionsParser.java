@@ -38,6 +38,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -77,8 +78,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       FunctionService functionService,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.vaultActionsDBService = vaultActionsDBService;
     this.ethBlockService = ethBlockService;

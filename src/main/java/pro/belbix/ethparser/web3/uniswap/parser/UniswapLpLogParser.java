@@ -13,7 +13,6 @@ import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.model.tx.UniswapTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -23,6 +22,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
@@ -56,8 +56,8 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
       FunctionsUtils functionsUtils,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;

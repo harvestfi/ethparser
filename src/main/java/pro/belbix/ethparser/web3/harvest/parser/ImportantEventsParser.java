@@ -15,7 +15,6 @@ import pro.belbix.ethparser.model.ImportantEventsInfo;
 import pro.belbix.ethparser.model.tx.ImportantEventsTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -23,6 +22,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.db.ImportantEventsDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.ImportantEventsLogDecoder;
 
@@ -47,8 +47,8 @@ public class ImportantEventsParser extends Web3Parser<ImportantEventsDTO, Log> {
       FunctionsUtils functionsUtils, AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorsRepository errorsRepository) {
-    super(parserInfo, appProperties, errorsRepository);
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Subscriber = web3Subscriber;
     this.importantEventsDbService = importantEventsDbService;
     this.ethBlockService = ethBlockService;
