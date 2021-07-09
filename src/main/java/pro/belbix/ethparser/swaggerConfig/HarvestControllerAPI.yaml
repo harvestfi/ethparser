@@ -41,14 +41,14 @@ paths:
     get:
       tags:
       - HarvestController
-      summary: "Returns the history of Harvest addresses"
+      summary: "Returns vault history for a given owner address"
       description: ""
       operationId: "addressHistoryHarvest"
       parameters:
       - name: address
         in: path
         required: true
-        description: "Contract"
+        description: "Owner's address"
         schema:
           type: string
       - name: from   
@@ -83,7 +83,7 @@ paths:
     get:
       tags:
       - HarvestController
-      summary: "Returns pages Harvest"
+      summary: "Return whole vaults history by page pattern"
       description: ""
       operationId: "harvestPages"
       parameters:
@@ -102,7 +102,7 @@ paths:
       - name: ordering
         in: query
         required: false
-        description: "Sorting type(desc)"
+        description: "Sorting (asc/desc)"
         schema:
           type: string
       - name: vault
@@ -136,7 +136,7 @@ paths:
     get:
       tags:
       - HarvestController
-      summary: "Returns the latest data"
+      summary: "Returns the latest data for each vault"
       description: "Obtaining a list of data of unique 'vault_address' in the same network. The list is sorted by 'vault_address' and 'block date'"
       operationId: "fetchLatest"
       parameters:
@@ -160,7 +160,7 @@ paths:
     get:
       tags:
       - HarvestController
-      summary: "Returns the history of the harvest data"
+      summary: "Returns whole history for all vaults"
       description: ""
       operationId: "harvestHistoryData"
       parameters:
@@ -179,7 +179,7 @@ paths:
       - name: reduce
         in: query
         required: false
-        description: ""
+        description: "Reduces the amount of result data"
         schema:
           type: integer
           format: int32
@@ -197,25 +197,27 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
   /api/transactions/history/harvest/{name}:
     get:
       tags:
       - HarvestController
-      summary: "Returns the Harvest data history for a Vault"
+      summary: "Returns history data of vault for a given address"
       description: ""
       operationId: "harvestHistoryDataForVault_1"
       parameters:
       - name: name
         in: path
         required: true
-        description: "Address"
+        description: "Repository address name"
         schema:
           type: string
       - name: reduce
         in: query
         required: false
-        description: ""
+        description: "Reduces the amount of result data"
         schema:
           type: integer
           format: int32
@@ -249,7 +251,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
 components:
   schemas:
     UserBalance:

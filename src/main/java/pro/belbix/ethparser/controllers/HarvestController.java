@@ -56,7 +56,7 @@ public class HarvestController {
         this.dtoCache = dtoCache;
     }
 
-    @Operation(summary = "Returns the latest data",
+    @Operation(summary = "Returns the latest data for each vault",
         description = "Obtaining a list of data of unique 'vault_address' in the same network."
             + " The list is sorted by 'vault_address' and 'block date'")
     @ApiResponses(value = {
@@ -77,7 +77,7 @@ public class HarvestController {
         return harvestRepository.fetchLatest(network);
     }
 
-    @Operation(summary = "Returns the Harvest data history for a Vault", description = "")
+    @Operation(summary = "Returns history data of vault for a given address", description = "")
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
@@ -90,9 +90,9 @@ public class HarvestController {
     })
     @RequestMapping(value = "api/transactions/history/harvest/{name}", method = RequestMethod.GET)
     public Iterable<HarvestDTO> harvestHistoryDataForVault(
-        @PathVariable("name") @Parameter(description = "Address") String _address,
+        @PathVariable("name") @Parameter(description = "Repository address name") String _address,
         @RequestParam(value = "reduce", required = false, defaultValue = "1")
-        @Parameter(description = "")Integer reduce,
+        @Parameter(description = "Reduces the amount of result data")Integer reduce,
         @RequestParam(value = "start", required = false, defaultValue = "0")
         @Parameter(description = "Block creation time from") Long start,
         @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "")
@@ -117,7 +117,7 @@ public class HarvestController {
                     network)), reduce);
     }
 
-    @Operation(summary = "Returns the history of the harvest data", description = "")
+    @Operation(summary = "Returns whole history for all vaults", description = "")
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
@@ -135,7 +135,7 @@ public class HarvestController {
         @RequestParam(value = "to", required = false)
         @Parameter(description = "Block creation time to (inclusive)") String to,
         @RequestParam(value = "reduce", required = false, defaultValue = "1")
-        @Parameter(description = "") Integer reduce,
+        @Parameter(description = "Reduces the amount of result data") Integer reduce,
         @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
         @Parameter(description = "Working network") String network
     ) {
@@ -145,7 +145,7 @@ public class HarvestController {
                 vaultActionsDBService.fetchHarvest(from, to, network)), reduce);
     }
 
-    @Operation(summary = "Returns the history of Harvest addresses", description = "")
+    @Operation(summary = "Returns vault history for a given owner address", description = "")
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
@@ -158,7 +158,7 @@ public class HarvestController {
     })
     @GetMapping("/history/harvest/{address}")
     public List<HarvestDTO> addressHistoryHarvest(
-        @PathVariable("address") @Parameter(description = "Contract") String address,
+        @PathVariable("address") @Parameter(description = "Owner's address") String address,
         @RequestParam(value = "from", required = false)
         @Parameter(description = "Block creation time from (inclusive)") String from,
         @RequestParam(value = "to", required = false)
@@ -189,7 +189,7 @@ public class HarvestController {
         return harvestRepository.fetchOwnerBalances(network);
     }
 
-    @Operation(summary = "Returns pages Harvest", description = "")
+    @Operation(summary = "Return whole vaults history by page pattern", description = "")
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
@@ -206,7 +206,7 @@ public class HarvestController {
         @Parameter(description = "Number of items per page") String pageSize,
         @RequestParam("page") @Parameter(description = "Page number") String page,
         @RequestParam(value = "ordering", required = false)
-        @Parameter(description = "Sorting type(desc)") String ordering,
+        @Parameter(description = "Sorting (asc/desc)") String ordering,
         @RequestParam(value = "vault", required = false)
         @Parameter(description = "Vault address") String vault,
         @RequestParam(value = "minAmount", required = false)
