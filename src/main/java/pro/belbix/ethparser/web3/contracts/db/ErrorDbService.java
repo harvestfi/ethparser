@@ -4,12 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.ErrorEntity;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.repositories.ErrorsRepository;
 
-
+@Log4j2
 @Service
 public class ErrorDbService {
 
@@ -40,7 +41,7 @@ public class ErrorDbService {
     try {
       return ow.writeValueAsString(web3Model);
     } catch (JsonProcessingException e) {
-      e.printStackTrace();
+      log.error("Can't convertWeb3ModelToJson:"+e.getMessage());
     }
     return null;
   }
@@ -50,7 +51,7 @@ public class ErrorDbService {
     try {
       return ow.writeValueAsString(web3Model.getValue());
     } catch (JsonProcessingException e) {
-      e.printStackTrace();
+      log.error("Can't convertWeb3ModelValueToJson:"+e.getMessage());
     }
     return null;
   }
