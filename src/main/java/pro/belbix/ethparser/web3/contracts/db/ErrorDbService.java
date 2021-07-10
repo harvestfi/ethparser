@@ -41,7 +41,7 @@ public class ErrorDbService {
     try {
       return ow.writeValueAsString(web3Model);
     } catch (JsonProcessingException e) {
-      log.error("Can't convertWeb3ModelToJson:"+e.getMessage());
+      log.error("Can't convertWeb3ModelToJson: "+e);
     }
     return null;
   }
@@ -51,7 +51,7 @@ public class ErrorDbService {
     try {
       return ow.writeValueAsString(web3Model.getValue());
     } catch (JsonProcessingException e) {
-      log.error("Can't convertWeb3ModelValueToJson:"+e.getMessage());
+      log.error("Can't convertWeb3ModelValueToJson: "+e);
     }
     return null;
   }
