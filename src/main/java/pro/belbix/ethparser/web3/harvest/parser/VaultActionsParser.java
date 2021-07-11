@@ -27,6 +27,7 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -37,6 +38,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.HarvestOwnerBalanceCalculator;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -75,8 +77,9 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       Web3Subscriber web3Subscriber,
       FunctionService functionService,
       HarvestOwnerBalanceCalculator harvestOwnerBalanceCalculator,
-      ContractDbService contractDbService) {
-    super(parserInfo, appProperties);
+      ContractDbService contractDbService,
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.vaultActionsDBService = vaultActionsDBService;
     this.ethBlockService = ethBlockService;
@@ -290,14 +293,14 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
     migrationDto.setAmount(
         functionsUtils.parseAmount(
-                migrationTx.getIntFromArgs()[1],
-                contractDbService
-                    .getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
-                    .orElseThrow(() -> new IllegalStateException(
-                        "Not found address by " + migrationDto.getVault())),
-                network
-            )
-        );
+            migrationTx.getIntFromArgs()[1],
+            contractDbService
+                .getAddressByName(migrationDto.getVault(), ContractType.VAULT, network)
+                .orElseThrow(() -> new IllegalStateException(
+                    "Not found address by " + migrationDto.getVault())),
+            network
+        )
+    );
 
     fillSharePrice(migrationDto, network);
     fillUsdPrice(migrationDto, network);
@@ -308,7 +311,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
 
   private boolean isMigration(HarvestTx harvestTx, String currentPool, String network) {
     String v = harvestTx.getAddressFromArgs2().getValue();
-    return  contractDbService
+    return contractDbService
         .getContractByAddressAndType(v, POOL, network)
         .isPresent()
         //it is transfer to stacking
@@ -358,7 +361,8 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
             () -> new IllegalStateException(
                 "Can't fetch underlying token for " + vaultHash));
 
-    Double priceUnderlying = priceProvider.getPriceForCoin(underlyingAddress, dto.getBlock(), network);
+    Double priceUnderlying = priceProvider
+        .getPriceForCoin(underlyingAddress, dto.getBlock(), network);
     if (priceUnderlying == null) {
       throw new IllegalStateException("Unknown coin " + dto.getVault());
     }

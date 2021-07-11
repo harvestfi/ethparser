@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import pro.belbix.ethparser.dto.DtoI;
 import pro.belbix.ethparser.model.Web3Model;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 
 @Log4j2
 public abstract class Web3Parser<T extends DtoI, K> {
@@ -27,10 +28,14 @@ public abstract class Web3Parser<T extends DtoI, K> {
   private final ParserInfo parserInfo;
   protected final AppProperties appProperties;
 
+  private final ErrorDbService errorDbService;
+
   protected Web3Parser(ParserInfo parserInfo,
-      AppProperties appProperties) {
+      AppProperties appProperties,
+      ErrorDbService errorDbService) {
     this.parserInfo = parserInfo;
     this.appProperties = appProperties;
+    this.errorDbService = errorDbService;
   }
 
 
@@ -65,6 +70,7 @@ public abstract class Web3Parser<T extends DtoI, K> {
           if (run.get()) {
             log.error("Error in loop {} with {}",
                 this.getClass().getSimpleName(), web3Model, e);
+            errorDbService.saveErrorWeb3ModelToDb(web3Model, getClass().getSimpleName());
           } else {
             log.debug("After shutdown - Error in loop {} with {}",
                 this.getClass().getSimpleName(), web3Model, e);

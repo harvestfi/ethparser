@@ -13,6 +13,7 @@ import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.model.tx.TokenTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -21,6 +22,7 @@ import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.erc20.TransferType;
 import pro.belbix.ethparser.web3.erc20.db.TransferDBService;
 import pro.belbix.ethparser.web3.erc20.decoder.ERC20Decoder;
@@ -47,8 +49,9 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
       PriceProvider priceProvider,
       FunctionsUtils functionsUtils, AppProperties appProperties,
       NetworkProperties networkProperties,
-      ContractDbService contractDbService) {
-    super(parserInfo, appProperties);
+      ContractDbService contractDbService,
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.ethBlockService = ethBlockService;
@@ -154,7 +157,8 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
   }
 
   public void fillPrice(TransferDTO dto) {
-    dto.setPrice(priceProvider.getPriceForCoin(dto.getTokenAddress(), dto.getBlock(), dto.getNetwork()));
+    dto.setPrice(
+        priceProvider.getPriceForCoin(dto.getTokenAddress(), dto.getBlock(), dto.getNetwork()));
   }
 
   private double getBalance(String holder, String tokenAddress, long block) {
