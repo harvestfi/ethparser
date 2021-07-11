@@ -22,6 +22,7 @@ import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
 import pro.belbix.ethparser.web3.harvest.parser.UniToHarvestConverter;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 import pro.belbix.ethparser.web3.uniswap.UniOwnerBalanceCalculator;
@@ -54,8 +55,9 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      FunctionsUtils functionsUtils) {
-    super(parserInfo, appProperties);
+      FunctionsUtils functionsUtils,
+      ErrorDbService errorDbService) {
+    super(parserInfo, appProperties, errorDbService);
     this.web3Functions = web3Functions;
     this.web3Subscriber = web3Subscriber;
     this.uniswapDbService = uniswapDbService;
@@ -140,7 +142,8 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       return false;
     }
     return ContractUtils
-        .isFullParsableLpAddressAndDate(ethLog.getAddress(), ethLog.getBlockNumber().intValue(), ETH_NETWORK)
+        .isFullParsableLpAddressAndDate(ethLog.getAddress(), ethLog.getBlockNumber().intValue(),
+            ETH_NETWORK)
         && contractDbService.getContractByAddressAndType(
         ethLog.getAddress(), ContractType.UNI_PAIR, network).isPresent();
   }
@@ -190,7 +193,7 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
       uniswapDTO.setOtherCoin(addrToStr(tx.getCoinIn()));
       uniswapDTO.setOtherCoinAddress(tx.getCoinIn().getValue());
       uniswapDTO.setOtherAmount(functionsUtils
-              .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
+          .parseAmount(tx.getAmountIn(), tx.getCoinIn().getValue(), ETH_NETWORK));
       if (tx.getType().equals(SWAP)) {
         uniswapDTO.setType("BUY");
       } else {
