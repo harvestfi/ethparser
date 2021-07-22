@@ -29,7 +29,6 @@ import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -95,8 +94,17 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
 
   @Override
   public HardWorkDTO parse(Log ethLog, String network) {
-    if (ethLog == null
-        || !getControllerAddressByBlockAndNetwork(ethLog.getBlockNumber().longValue(),network).equalsIgnoreCase(ethLog.getAddress())) {
+    if (ethLog == null) {
+      return null;
+    }
+
+    String controller = getControllerAddressByBlockAndNetwork(
+        ethLog.getBlockNumber().longValue(), network);
+    if (controller == null) {
+      log.error("Controller not found for {} {}", ethLog.getBlockNumber().longValue(), network);
+      return null;
+    }
+    if (!controller.equalsIgnoreCase(ethLog.getAddress())) {
       return null;
     }
 

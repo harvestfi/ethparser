@@ -425,7 +425,8 @@ public class Web3Functions {
     try {
       return FunctionReturnDecoder.decode(result.getValue(), function.getOutputParameters());
     } catch (Exception e) {
-      log.warn("Error decode response {} for {}", function.getName(), contractAddress);
+      log.warn("Error decode response {} for {} on {}",
+          function.getName(), contractAddress, network);
     }
     return List.of();
   }
