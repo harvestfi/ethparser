@@ -1,5 +1,5 @@
 ethparser:
-  startUtil: deployer-download
+  startUtil: hardwork-download
   overrideDuplicates: false
   utilNetwork: eth
   handleLoopStep: 300
@@ -14,7 +14,7 @@ reward-download:
   to: 13000000
 #  exclude: ST_PS, ST_DAI_BSG, ST_DAI_BSGS, ST_SUSHI_MIC_USDT, ST_SUSHI_MIS_USDT, ST_MAAPL_UST, ST_MAAPL_UST, ST_MAMZN_UST, ST_MGOOGL_UST, ST_MTSLA_UST, ST_MNFLX_UST, ST_MTWTR_UST, ST_UNI_BAC_DAI, ST_UNI_DAI_BAS, ST_UNI_WBTC_KLON, ST_UNI_WBTC_KBTC, ST_SUSHI_HODL, ST_ETH_DAI_HODL, ST_ETH_USDC_HODL, ST_ETH_USDT_HODL, ST_ETH_WBTC_HODL, ST_MUSE_ETH, ST_DUDES20_ETH, ST_MASK20_ETH, ST_ROPE20_ETH
 hardwork-download:
-  from: 12037500
+  from: 12807886
 #  to: 11445244
 harvest-download:
   contract: SUSHI_HODL

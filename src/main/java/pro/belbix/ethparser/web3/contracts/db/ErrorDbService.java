@@ -28,30 +28,34 @@ public class ErrorDbService {
     errorsRepository.delete(errorEntity);
   }
 
-  public synchronized void saveErrorWeb3ModelToDb(Web3Model web3Model, String errorClassName) {
-    ErrorEntity error = new ErrorEntity();
-    error.setErrorClass(errorClassName);
-    error.setJson(web3ModelValueToJson(web3Model));
-    error.setNetwork(web3Model.getNetwork());
-    errorsRepository.save(error);
+  public synchronized <T> void saveErrorWeb3ModelToDb(Web3Model<T> web3Model, String errorClassName) {
+    try {
+      ErrorEntity error = new ErrorEntity();
+      error.setErrorClass(errorClassName);
+      error.setJson(web3ModelValueToJson(web3Model));
+      error.setNetwork(web3Model.getNetwork());
+      errorsRepository.save(error);
+    } catch (Exception e) {
+      log.error("Errors save web3 error!", e);
+    }
   }
 
-  public String web3ModelToJson(Web3Model web3Model) {
+  public <T> String web3ModelToJson(Web3Model<T> web3Model) {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     try {
       return ow.writeValueAsString(web3Model);
     } catch (JsonProcessingException e) {
-      log.error("Can't convertWeb3ModelToJson: "+e);
+      log.error("Can't convertWeb3ModelToJson: " + e);
     }
     return null;
   }
 
-  public String web3ModelValueToJson(Web3Model web3Model) {
+  public <T> String web3ModelValueToJson(Web3Model<T> web3Model) {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     try {
       return ow.writeValueAsString(web3Model.getValue());
     } catch (JsonProcessingException e) {
-      log.error("Can't convertWeb3ModelValueToJson: "+e);
+      log.error("Can't convertWeb3ModelValueToJson: " + e);
     }
     return null;
   }
