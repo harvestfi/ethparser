@@ -1,0 +1,712 @@
+openapi: 3.0.3
+info:
+  title: "Ethparser Swagger API"
+  description: "Obtaining data on Harvest and HardWork"
+  version: "1.0.0"
+servers:
+  - url: "https://ethparser-api.herokuapp.com"
+    description: "Prod server"
+  - url: "https://ethparser-stage.harvestfi.builders"
+    description: "Stage server"
+  - url: "http://localhost:8082"
+    description: "Local server"
+paths:
+  /user_balances:
+    get:
+      tags:
+        - HarvestController
+      summary: "Returns balances of owners"
+      operationId: "userBalances"
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserBalance'
+        404:
+          description: Not found response
+  /history/harvest/{address}:
+    get:
+      tags:
+        - HarvestController
+      summary: "Returns vault history for a given owner address"
+      operationId: "addressHistoryHarvest"
+      parameters:
+        - name: address
+          in: path
+          required: true
+          description: "Owner's address"
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          description: "Block creation time from (inclusive)"
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          description: "Block creation time to"
+          schema:
+            type: string
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
+  /harvest/pages:
+    get:
+      tags:
+        - HarvestController
+      summary: "Return whole vaults history by page pattern"
+      operationId: "harvestPages"
+      parameters:
+        - name: pageSize
+          in: query
+          required: true
+          description: "Number of items per page"
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          description: "Page number"
+          schema:
+            type: string
+        - name: ordering
+          in: query
+          required: false
+          description: "Sorting (asc/desc)"
+          schema:
+            type: string
+        - name: vault
+          in: query
+          required: false
+          description: "Vault address"
+          schema:
+            type: string
+        - name: minAmount
+          in: query
+          required: false
+          description: "Minimum amount in dollars"
+          schema:
+            type: integer
+            format: int32
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestResponse'
+  /api/transactions/last/harvest:
+    get:
+      tags:
+        - HarvestController
+      summary: "Returns the latest data for each vault"
+      description: "Obtaining a list of data of unique 'vault_address' in the same network. The list is sorted by 'vault_address' and 'block date'"
+      operationId: "fetchLatest"
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
+  /api/transactions/history/harvest:
+    get:
+      tags:
+        - HarvestController
+      summary: "Returns whole history for all vaults"
+      operationId: "harvestHistoryData"
+      parameters:
+        - name: from
+          in: query
+          required: false
+          description: "Block creation time from"
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          description: "Block creation time to (inclusive)"
+          schema:
+            type: string
+        - name: reduce
+          in: query
+          required: false
+          description: "Reduces the amount of result data"
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
+  /api/transactions/history/harvest/{name}:
+    get:
+      tags:
+        - HarvestController
+      summary: "Returns history data of vault for a given address"
+      operationId: "harvestHistoryDataForVault_1"
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: "Repository address name"
+          schema:
+            type: string
+        - name: reduce
+          in: query
+          required: false
+          description: "Reduces the amount of result data"
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: start
+          in: query
+          required: false
+          description: "Block creation time from"
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: end
+          in: query
+          required: false
+          description: "Block creation time to"
+          schema:
+            type: integer
+            format: int64
+            default: 9223372036854775807
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HarvestDTO'
+  /total_saved_gas_fee_by_address:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns the total saved gas fee the ETH address"
+      operationId: "totalSavedGasFeeByEthAddress"
+      parameters:
+        - name: address
+          in: query
+          required: true
+          description: "Owner's address"
+          schema:
+            type: string
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: ETH
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RestResponse'
+  /last_saved_gas_sum:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns the last saved amount of gas"
+      operationId: "lastSavedGasSum"
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RestResponse'
+  /last/hardwork:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns the latest data for HardWork"
+      operationId: "lastHardWork"
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HardWorkDTO'
+  /hardwork/pages:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Return whole HardWork history by page pattern"
+      operationId: "hardworkPages"
+      parameters:
+        - name: pageSize
+          in: query
+          required: true
+          description: "Number of items per page"
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          description: "Page number"
+          schema:
+            type: string
+        - name: ordering
+          in: query
+          required: false
+          description: "Sorting (asc/desc)"
+          schema:
+            type: string
+        - name: vault
+          in: query
+          required: false
+          description: "Vault address"
+          schema:
+            type: string
+        - name: minAmount
+          in: query
+          required: false
+          description: "Minimum amount in dollars"
+          schema:
+            type: integer
+            format: int32
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RestResponse'
+  /api/transactions/last/hardwork:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns the latest data for HardWorks"
+      operationId: "lastHardWorks"
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HardWorkDTO'
+  /api/transactions/history/hardwork:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns whole history for HardWork"
+      operationId: "historyHardWork"
+      parameters:
+        - name: reduce
+          in: query
+          required: false
+          description: "Reduces the amount of result data"
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: from
+          in: query
+          required: false
+          description: "Block creation time from"
+          schema:
+            type: string
+            default: 0
+        - name: to
+          in: query
+          required: false
+          description: "Block creation time to (inclusive)"
+          schema:
+            type: string
+            default: 9223372036854775807
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HardWorkDTO'
+  /api/transactions/history/hardwork/{name}:
+    get:
+      tags:
+        - HardWorkController
+      summary: "Returns history HardWork for a given address"
+      operationId: "historyHardWorkByName"
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: "Repository address name"
+          schema:
+            type: string
+        - name: start
+          in: query
+          required: false
+          description: "Block creation time from"
+          schema:
+            type: string
+        - name: reduce
+          in: query
+          required: false
+          description: "Reduces the amount of result data"
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: end
+          in: query
+          required: false
+          description: "Block creation time to"
+          schema:
+            type: string
+        - name: network
+          in: query
+          required: false
+          description: "Working network"
+          schema:
+            type: string
+            default: eth
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HardWorkDTO'
+tags:
+  - name: HarvestController
+    description: "Obtaining data on Harvest"
+  - name: HardWorkController
+    description: "Obtaining data on HardWork"
+components:
+  schemas:
+    UserBalance:
+      type: object
+      properties:
+        owner:
+          type: string
+        balance:
+          type: number
+          format: double
+    HarvestDTO:
+      properties:
+        id:
+          type: string
+        hash:
+          type: string
+        block:
+          type: integer
+          format: int64
+        network:
+          type: string
+        confirmed:
+          type: integer
+        blockDate:
+          type: integer
+          format: int64
+        methodName:
+          type: string
+        owner:
+          type: string
+        amount:
+          type: number
+          format: double
+        amountIn:
+          type: number
+          format: double
+        vault:
+          type: string
+        vaultAddress:
+          type: string
+        lastGas:
+          type: number
+          format: double
+        lastTvl:
+          type: number
+          format: double
+        lastUsdTvl:
+          type: number
+          format: double
+        ownerCount:
+          type: integer
+        sharePrice:
+          type: number
+          format: double
+        usdAmount:
+          type: integer
+          format: int64
+        lpStat:
+          type: string
+        ownerBalance:
+          type: number
+          format: double
+        ownerBalanceUsd:
+          type: number
+          format: double
+        allOwnersCount:
+          type: integer
+        allPoolsOwnersCount:
+          type: integer
+        migrated:
+          type: boolean
+        underlyingPrice:
+          type: number
+          format: double
+        underlyingAddress:
+          type: string
+        migration:
+          type: object
+        profit:
+          type: number
+          format: double
+        profitUsd:
+          type: number
+          format: double
+        totalAmount:
+          type: number
+          format: double
+    RestResponse:
+      type: object
+      properties:
+        data:
+          type: string
+        code:
+          type: string
+        status:
+          type: string
+        block:
+          type: integer
+          format: int64
+    HardWorkDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        vault:
+          type: string
+        vaultAddress:
+          type: string
+        block:
+          type: integer
+          format: int64
+        blockDate:
+          type: integer
+          format: int64
+        network:
+          type: string
+        shareChange:
+          type: number
+          format: double
+        fullRewardUsd:
+          type: number
+          format: double
+        farmBuyback:
+          type: number
+          format: double
+        fee:
+          type: number
+          format: double
+        farmBuybackEth:
+          type: number
+          format: double
+        gasUsed:
+          type: number
+          format: double
+        invested:
+          type: number
+          format: double
+        investmentTarget:
+          type: number
+          format: double
+        farmPrice:
+          type: number
+          format: double
+        ethPrice:
+          type: number
+          format: double
+        profitSharingRate:
+          type: number
+          format: double
+        buyBackRate:
+          type: number
+          format: double
+        autoStake:
+          type: integer
+          format: int32
+        idleTime:
+          type: integer
+          format: int64
+        feeEth:
+          type: number
+          format: double
+        weeklyAverageTvl:
+          type: number
+          format: double
+        savedGasFeesSum:
+          type: number
+          format: double
+        savedGasFees:
+          type: number
+          format: double
+        poolUsers:
+          type: integer
+          format: int32
+        callsQuantity:
+          type: integer
+          format: int32
+        farmBuybackSum:
+          type: number
+          format: double
+        psApr:
+          type: number
+          format: double
+        psTvlUsd:
+          type: number
+          format: double
+        weeklyProfit:
+          type: number
+          format: double
+        weeklyAllProfit:
+          type: number
+          format: double
+        fullRewardUsdTotal:
+          type: number
+          format: double
+        tvl:
+          type: number
+          format: double
+        allProfit:
+          type: number
+          format: double
+        periodOfWork:
+          type: integer
+          format: int64
+        psPeriodOfWork:
+          type: integer
+          format: int64
+  
+  
+      
+  
