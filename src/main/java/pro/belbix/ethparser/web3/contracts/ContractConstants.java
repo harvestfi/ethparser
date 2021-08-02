@@ -77,11 +77,13 @@ public class ContractConstants {
 
   final static Map<String, Map<Long, String>> ORACLES = Map.of(
       ETH_NETWORK,
-      Map.of(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
+      Map.of(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase(),
+          12820106L, "0x1358c91D5b25D3eDAc2b7B26A619163d78f1717d".toLowerCase()),
       BSC_NETWORK,
       Map.of(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(),
-          6952687L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase())
-  );
+          6952687L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase(),
+          9142012L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase()
+      ));
 
   final static Map<String, Map<String, String>> ORACLES_BY_FACTORY = Map.of(
       ETH_NETWORK,
