@@ -105,10 +105,7 @@ public class HardWorkDbService {
                   dto.getBlockDate(),
                   dto.getNetwork(),
                   limitOne))
-              .filter(Caller::isNotEmptyList)
-              .ifPresentOrElse(avgTvlD -> {
-                dto.setWeeklyAverageTvl(avgTvlD.get(0));
-              }, () -> log.warn("Not found average tvl for period for " + dto.print()));
+              .filter(Caller::isNotEmptyList);
 
         }, () -> log.warn("Not found harvest for " + dto.print()));
 

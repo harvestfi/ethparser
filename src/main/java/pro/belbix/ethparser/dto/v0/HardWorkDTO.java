@@ -55,7 +55,6 @@ public class HardWorkDTO implements DtoI {
   // ------------- GENERATED VALUES -----------------------
   private long idleTime;
   private double feeEth;
-  private Double weeklyAverageTvl;
   private double savedGasFeesSum;
   private double savedGasFees;
   private int poolUsers;
