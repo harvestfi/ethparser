@@ -98,15 +98,6 @@ public class HardWorkDbService {
                 dto.setWeeklyProfit(sumOfProfit);
               }, () -> log.warn("Not found profit for period for " + dto.print()));
 
-          silentCall(() -> harvestRepository
-              .fetchAverageTvl(
-                  dto.getVaultAddress(),
-                  dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                  dto.getBlockDate(),
-                  dto.getNetwork(),
-                  limitOne))
-              .filter(Caller::isNotEmptyList);
-
         }, () -> log.warn("Not found harvest for " + dto.print()));
 
     silentCall(() -> hardWorkRepository

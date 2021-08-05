@@ -9,12 +9,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.belbix.ethparser.Application;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
 import pro.belbix.ethparser.service.HarvestTvlDBService;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +35,9 @@ public class TvlControllerTest {
 
     @Autowired
     private HarvestTvlRepository harvestTvlRepository;
+
+    @Autowired
+    private HarvestRepository harvestRepository;
 
     @Autowired
     private HarvestTvlDBService harvestTvlDBService;
@@ -75,6 +81,20 @@ public class TvlControllerTest {
         this.mockMvc.perform(get("/api/transactions/history/alltvl"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedResult));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+        "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"})
+    public void transactionsHistoryAverageTVL(String vault) throws Exception {
+        String expectedResult = String.format("%.8f", harvestRepository
+            .fetchAverageTvl(vault, 0, Long.MAX_VALUE, ETH_NETWORK,
+                PageRequest.of(0, 1)).get(0));
+
+        this.mockMvc.perform(get("/api/transactions/history/average_tvl?vault=" + vault))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString(expectedResult)));
     }
 
 }
