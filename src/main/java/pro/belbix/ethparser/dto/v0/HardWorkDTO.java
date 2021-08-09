@@ -72,7 +72,6 @@ public class HardWorkDTO implements DtoI {
   @Deprecated
   private double perc;
   private double fullRewardUsdTotal;
-  private double tvl;
   private double allProfit;
   private long periodOfWork;
   private long psPeriodOfWork;

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.v0.HarvestTvlEntity;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.model.TvlHistory;
@@ -105,5 +106,35 @@ public class TvlController {
             return RestResponse.error("Server error during getting average TVL");
         }
     }
+
+    @RequestMapping(value = "/api/transactions/history/last_tvl/{name}", method = RequestMethod.GET)
+    public RestResponse lastTvl(
+        @PathVariable("name") String _address,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network,
+        @RequestParam(value = "limitToDate", required = false)
+        @Parameter(description = "Block creation time from (inclusive)") String limitToDate
+    ) {
+        String address;
+        if (!_address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(_address, ContractType.VAULT, network)
+                .orElseThrow();
+        } else {
+            address = _address;
+        }
+
+        try {
+            HarvestDTO harvestDTO = harvestRepository.fetchLastByVaultAndDateNotZero(address, network,
+                parseLong(limitToDate, Long.MAX_VALUE));
+            if(harvestDTO==null){
+                return RestResponse.error("Not found last TVL for address" + address);
+            }
+
+            return RestResponse.ok((String.format("%.8f", harvestDTO.getLastUsdTvl())));
+        } catch (Exception e) {
+            log.warn("Error get last TVL", e);
+            return RestResponse.error("Server error during get last TVL");
+        }
+    }
+
 
 }
