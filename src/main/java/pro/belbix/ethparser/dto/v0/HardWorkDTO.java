@@ -73,7 +73,6 @@ public class HardWorkDTO implements DtoI {
   private double perc;
   private double fullRewardUsdTotal;
   private double allProfit;
-  private long periodOfWork;
   private long psPeriodOfWork;
 
   public String print() {

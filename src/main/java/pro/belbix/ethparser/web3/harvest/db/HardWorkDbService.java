@@ -69,19 +69,6 @@ public class HardWorkDbService {
   private void calculateVaultProfits(HardWorkDTO dto) {
 
     silentCall(() -> hardWorkRepository
-        .fetchPercentForPeriod(
-            dto.getVaultAddress(), dto.getBlockDate() - 1, dto.getNetwork(), limitOne))
-        .filter(Caller::isNotEmptyList)
-        .ifPresentOrElse(sumOfPercL -> {
-          silentCall(() -> harvestRepository
-              .fetchPeriodOfWork(dto.getVaultAddress(), dto.getBlockDate(), dto.getNetwork(), limitOne))
-              .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
-              .ifPresentOrElse(periodL -> {
-                dto.setPeriodOfWork(periodL.get(0));
-              }, () -> log.warn("Not found period for " + dto.print()));
-        }, () -> log.warn("Not found profit for period for " + dto.print()));
-
-    silentCall(() -> hardWorkRepository
         .fetchProfitForPeriod(
             dto.getVaultAddress(),
             dto.getBlockDate() - (long) SECONDS_IN_WEEK,
