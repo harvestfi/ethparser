@@ -126,7 +126,6 @@ public class HardWorkDbService {
           period += PS_DEPLOYED - PS_OLD_DEPLOYED;
         }
 
-        dto.setPsPeriodOfWork((long) period);
 
         if (period != 0.0) {
           double apr = (SECONDS_OF_YEAR / period) * psProfitPerc;
