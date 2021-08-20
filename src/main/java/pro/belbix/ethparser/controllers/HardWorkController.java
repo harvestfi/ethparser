@@ -30,6 +30,7 @@ import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
 @ConditionalOnExpression("!${ethparser.onlyParse:false}")
 @RestController
 @Log4j2
+@Tag(name = "HardWorkController", description = "Obtaining data on HardWork")
 public class HardWorkController {
 
     private final HardWorkRepository hardWorkRepository;
@@ -46,20 +47,47 @@ public class HardWorkController {
         this.dtoCache = dtoCache;
     }
 
+    @Operation(summary = "Returns the latest data for HardWorks")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HardWorkDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/last/hardwork", method = RequestMethod.GET)
     public List<HardWorkDTO> lastHardWorks(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         return hardWorkRepository.fetchLatest(network);
     }
 
+    @Operation(summary = "Returns history HardWork for a given address")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HardWorkDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/history/hardwork/{name}", method = RequestMethod.GET)
     public List<HardWorkDTO> historyHardWorkByName(
-        @PathVariable("name") String _address,
-        @RequestParam(value = "start", required = false) String start,
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "end", required = false) String end,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @PathVariable("name") @Parameter(description = "Repository address name")  String _address,
+        @RequestParam(value = "start", required = false)
+            @Parameter(description = "Block creation time from") String start,
+        @RequestParam(value = "reduce", required = false, defaultValue = "1")
+            @Parameter(description = "Reduces the amount of result data") Integer reduce,
+        @RequestParam(value = "end", required = false)
+            @Parameter(description = "Block creation time to") String end,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         String address;
         if (!_address.startsWith("0x")) {
@@ -80,12 +108,27 @@ public class HardWorkController {
             ), reduce);
     }
 
+    @Operation(summary = "Returns whole history for HardWork")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HardWorkDTO.class)))
+            })
+    })
     @RequestMapping(value = "api/transactions/history/hardwork", method = RequestMethod.GET)
     public List<HardWorkDTO> historyHardWork(
-        @RequestParam(value = "reduce", required = false, defaultValue = "1") Integer reduce,
-        @RequestParam(value = "from", required = false, defaultValue = "0") String from,
-        @RequestParam(value = "to", required = false, defaultValue = Long.MAX_VALUE + "") String to,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "reduce", required = false, defaultValue = "1")
+            @Parameter(description = "Reduces the amount of result data") Integer reduce,
+        @RequestParam(value = "from", required = false, defaultValue = "0")
+            @Parameter(description = "Block creation time from") String from,
+        @RequestParam(value = "to", required = false, defaultValue = Long.MAX_VALUE + "")
+            @Parameter(description = "Block creation time to (inclusive)") String to,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         return reduceListElements(
             dtoCache.load("fetchAllInRange" + from + to + network, () ->
@@ -94,9 +137,21 @@ public class HardWorkController {
             ), reduce);
     }
 
+    @Operation(summary = "Returns the last saved amount of gas")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = RestResponse.class)))
+            })
+    })
     @RequestMapping(value = "last_saved_gas_sum", method = RequestMethod.GET)
     public RestResponse lastSavedGasSum(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         try {
             return RestResponse.ok((String.format("%.8f",
@@ -108,10 +163,22 @@ public class HardWorkController {
 
     }
 
+    @Operation(summary = "Returns the total saved gas fee the ETH address")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = RestResponse.class)))
+            })
+    })
     @RequestMapping(value = "total_saved_gas_fee_by_address", method = RequestMethod.GET)
     public RestResponse totalSavedGasFeeByEthAddress(
-        @RequestParam(value = "address") String address,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "address") @Parameter(description = "Owner's address")  String address,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         try {
             return RestResponse.ok((String.format("%.8f",
@@ -126,21 +193,48 @@ public class HardWorkController {
         }
     }
 
+    @Operation(summary = "Returns the latest data for HardWork")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = HardWorkDTO.class)))
+            })
+    })
     @GetMapping(value = "/last/hardwork")
     public HardWorkDTO lastHardWork(
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         return hardWorkRepository.findFirstByNetworkOrderByBlockDateDesc(network);
     }
 
+    @Operation(summary = "Return whole HardWork history by page pattern")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successful response",
+            content = {
+                @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = RestResponse.class)))
+            })
+    })
     @GetMapping(value = "/hardwork/pages")
     public RestResponse hardworkPages(
-        @RequestParam("pageSize") String pageSize,
-        @RequestParam("page") String page,
-        @RequestParam(value = "ordering", required = false) String ordering,
-        @RequestParam(value = "vault", required = false) String vault,
-        @RequestParam(value = "minAmount", required = false) Integer minAmount,
-        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network
+        @RequestParam("pageSize") @Parameter(description = "Number of items per page") String pageSize,
+        @RequestParam("page") @Parameter(description = "Page number") String page,
+        @RequestParam(value = "ordering", required = false)
+            @Parameter(description = "Sorting (asc/desc)") String ordering,
+        @RequestParam(value = "vault", required = false)
+            @Parameter(description = "Vault address") String vault,
+        @RequestParam(value = "minAmount", required = false)
+            @Parameter(description = "Minimum amount in dollars") Integer minAmount,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+            @Parameter(description = "Working network") String network
     ) {
         try {
             int start = Integer.parseInt(page);

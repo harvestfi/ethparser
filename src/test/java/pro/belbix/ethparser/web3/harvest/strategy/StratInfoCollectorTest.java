@@ -150,7 +150,7 @@ class StratInfoCollectorTest {
             .block(block)
             .network(network)
             .percentOfPool(0.09986601814315672)
-            .apr(12.197759919575764)
+            .apr(0.002035847877828889)
             .build(),
         stratInfo);
   }
@@ -182,7 +182,7 @@ class StratInfoCollectorTest {
             .block(block)
             .network(network)
             .percentOfPool(0.480075466787842)
-            .apr(19.225898342222536)
+            .apr(0.004738105494888786)
             .build(),
         stratInfo);
   }
