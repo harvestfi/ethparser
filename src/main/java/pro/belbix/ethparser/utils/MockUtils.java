@@ -84,7 +84,6 @@ public class MockUtils {
     hardWorkDTO.setShareChange(seed / 1000.0);
     hardWorkDTO.setFullRewardUsd(seed / 69.0);
     hardWorkDTO.setFullRewardUsdTotal(seed);
-    hardWorkDTO.setTvl(seed * 60);
     hardWorkDTO.setPerc((double) seed / 633.0);
     hardWorkDTO.setPsApr((double) seed / 63.0);
     hardWorkDTO.setNetwork("net");

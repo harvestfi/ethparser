@@ -261,4 +261,29 @@ public class HarvestController {
         }
     }
 
+    @Operation(summary = "Returns period of work in seconds for vault", description = "")
+    @GetMapping("api/transactions/history/harvest/period_of_work/{address}")
+    public RestResponse vaultPeriodOfWork(
+        @PathVariable("address") @Parameter(description = "Vault address") String _address,
+        @RequestParam(value = "toBlockDate", required = false)
+        @Parameter(description = "Block creation time to (inclusive)") String limitToDate,
+        @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK)
+        @Parameter(description = "Working network")String network
+    ) {
+        String address;
+        if (!_address.startsWith("0x")) {
+            address = contractDbService.getAddressByName(_address, ContractType.VAULT, network)
+                .orElseThrow();
+        } else {
+            address = _address;
+        }
+        List<Long> periods = harvestRepository.fetchPeriodOfWork(address, parseLong(limitToDate,
+            Long.MAX_VALUE), network, PageRequest.of(0, 1));
+
+        if(periods.isEmpty() || periods.get(0) == null) {
+            return RestResponse.error("Not found period for address " + address);
+        }
+        return RestResponse.ok(periods.get(0).toString());
+    }
+
 }

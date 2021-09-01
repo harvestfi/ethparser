@@ -3,6 +3,7 @@ package pro.belbix.ethparser.web3.harvest.parser;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.abi.FunctionsUtils.SECONDS_IN_WEEK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BUYBACK_RATIO;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.LIQUIDATE_REWARD_TO_WETH_IN_SUSHI;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_DENOMINATOR;
@@ -20,15 +21,21 @@ import static pro.belbix.ethparser.web3.contracts.ContractUtils.getControllerAdd
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
+import pro.belbix.ethparser.dto.v0.HardWorkResponseDTO;
+import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.model.tx.HardWorkTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
+import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.utils.Caller;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
@@ -57,6 +64,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
   private final HardWorkDbService hardWorkDbService;
   private final NetworkProperties networkProperties;
   private final ContractDbService contractDbService;
+  private final HarvestRepository harvestRepository;
 
   public HardWorkParser(PriceProvider priceProvider,
       FunctionsUtils functionsUtils,
@@ -66,7 +74,8 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
       AppProperties appProperties,
       NetworkProperties networkProperties,
       ContractDbService contractDbService,
-      ErrorDbService errorDbService) {
+      ErrorDbService errorDbService,
+      HarvestRepository harvestRepository) {
     super(parserInfo, appProperties, errorDbService);
     this.priceProvider = priceProvider;
     this.functionsUtils = functionsUtils;
@@ -75,6 +84,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     this.hardWorkDbService = hardWorkDbService;
     this.networkProperties = networkProperties;
     this.contractDbService = contractDbService;
+    this.harvestRepository = harvestRepository;
   }
 
   @Override
@@ -90,6 +100,71 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
   @Override
   protected boolean isActiveForNetwork(String network) {
     return networkProperties.get(network).isParseHardWorkLog();
+  }
+
+  @Override
+  protected void sendToWs(HardWorkDTO hardWorkDTO) {
+
+    HardWorkResponseDTO hardWorkResponseDTO = new HardWorkResponseDTO(hardWorkDTO);
+    hardWorkResponseDTO.setTvl(fetchLastUsdTvl(hardWorkDTO.getVaultAddress(), hardWorkDTO.getNetwork()));
+    hardWorkResponseDTO.setWeeklyAverageTvl(fetchAverageTvl(hardWorkDTO.getVaultAddress(),
+        (hardWorkDTO.getBlockDate() - (long) SECONDS_IN_WEEK), hardWorkDTO.getBlockDate(),
+        hardWorkDTO.getNetwork()));
+    hardWorkResponseDTO.setPeriodOfWork(fetchPeriod(hardWorkDTO.getVaultAddress(), hardWorkDTO.getBlockDate(),
+            hardWorkDTO.getNetwork()));
+
+    try {
+      while (run.get()) {
+        boolean recorded = output.offer(hardWorkResponseDTO, 5, TimeUnit.SECONDS);
+        if (recorded) {
+          log.trace("Put dto to WS {}", hardWorkResponseDTO);
+          break;
+        }
+        log.warn("Output queue is full for {}", this.getClass().getSimpleName());
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private double fetchAverageTvl(String vault, long from, long to, String network) {
+    try {
+      List<Double> avgTvlD;
+          avgTvlD = harvestRepository
+          .fetchAverageTvl(
+              vault,
+              from,
+              to,
+              network,
+              PageRequest.of(0, 1));
+      if (!Caller.isNotEmptyList(avgTvlD)) {
+        return 0;
+      }
+
+      return avgTvlD.get(0);
+    } catch (Exception e) {
+      log.warn("Error average TVL", e);
+      return 0;
+    }
+  }
+
+  private double fetchLastUsdTvl(String vault, String network) {
+    HarvestDTO harvestDTO = harvestRepository
+        .fetchLastByVaultAndDateNotZero(vault, network, Long.MAX_VALUE);
+    if (harvestDTO == null) {
+      return 0;
+    }
+    return harvestDTO.getLastUsdTvl();
+  }
+
+  private Long fetchPeriod(String vault, long from, String network) {
+    List<Long> periods = harvestRepository
+        .fetchPeriodOfWork(vault, from, network, PageRequest.of(0, 1));
+
+    if (periods.isEmpty() || periods.get(0) == null) {
+      return 0L;
+    }
+    return periods.get(0);
   }
 
   @Override

@@ -67,50 +67,19 @@ public class HardWorkDbService {
 
   // todo fetch all info from chain
   private void calculateVaultProfits(HardWorkDTO dto) {
-    silentCall(
-        () -> harvestRepository
-            .fetchLastByVaultAndDateNotZero(dto.getVaultAddress(), dto.getNetwork(), dto.getBlockDate()))
-        .ifPresentOrElse(harvestDTO -> {
-          dto.setTvl(harvestDTO.getLastUsdTvl());
-          silentCall(() -> hardWorkRepository
-              .fetchPercentForPeriod(
-                  dto.getVaultAddress(), dto.getBlockDate() - 1, dto.getNetwork(), limitOne))
-              .filter(Caller::isNotEmptyList)
-              .ifPresentOrElse(sumOfPercL -> {
-                silentCall(() -> harvestRepository
-                    .fetchPeriodOfWork(dto.getVaultAddress(), dto.getBlockDate(), dto.getNetwork(), limitOne))
-                    .filter(periodL -> !periodL.isEmpty() && periodL.get(0) != null)
-                    .ifPresentOrElse(periodL -> {
-                      dto.setPeriodOfWork(periodL.get(0));
-                    }, () -> log.warn("Not found period for " + dto.print()));
-              }, () -> log.warn("Not found profit for period for " + dto.print()));
 
-          silentCall(() -> hardWorkRepository
-              .fetchProfitForPeriod(
-                  dto.getVaultAddress(),
-                  dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                  dto.getBlockDate() - 1,
-                  dto.getNetwork(),
-                  limitOne))
-              .filter(Caller::isNotEmptyList)
-              .ifPresentOrElse(sumOfProfitL -> {
-                double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
-                dto.setWeeklyProfit(sumOfProfit);
-              }, () -> log.warn("Not found profit for period for " + dto.print()));
-
-          silentCall(() -> harvestRepository
-              .fetchAverageTvl(
-                  dto.getVaultAddress(),
-                  dto.getBlockDate() - (long) SECONDS_IN_WEEK,
-                  dto.getBlockDate(),
-                  dto.getNetwork(),
-                  limitOne))
-              .filter(Caller::isNotEmptyList)
-              .ifPresentOrElse(avgTvlD -> {
-                dto.setWeeklyAverageTvl(avgTvlD.get(0));
-              }, () -> log.warn("Not found average tvl for period for " + dto.print()));
-
-        }, () -> log.warn("Not found harvest for " + dto.print()));
+    silentCall(() -> hardWorkRepository
+        .fetchProfitForPeriod(
+            dto.getVaultAddress(),
+            dto.getBlockDate() - (long) SECONDS_IN_WEEK,
+            dto.getBlockDate() - 1,
+            dto.getNetwork(),
+            limitOne))
+        .filter(Caller::isNotEmptyList)
+        .ifPresentOrElse(sumOfProfitL -> {
+          double sumOfProfit = sumOfProfitL.get(0) + dto.getFullRewardUsd();
+          dto.setWeeklyProfit(sumOfProfit);
+        }, () -> log.warn("Not found profit for period for " + dto.print()));
 
     silentCall(() -> hardWorkRepository
         .fetchAllProfitForPeriod(dto.getBlockDate() - (long) SECONDS_IN_WEEK,
@@ -157,7 +126,6 @@ public class HardWorkDbService {
           period += PS_DEPLOYED - PS_OLD_DEPLOYED;
         }
 
-        dto.setPsPeriodOfWork((long) period);
 
         if (period != 0.0) {
           double apr = (SECONDS_OF_YEAR / period) * psProfitPerc;

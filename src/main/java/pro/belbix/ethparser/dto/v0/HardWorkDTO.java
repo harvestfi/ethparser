@@ -26,57 +26,53 @@ import pro.belbix.ethparser.dto.DtoI;
 public class HardWorkDTO implements DtoI {
 
   @Id
-  private String id;
-  private String vault;
-  private String vaultAddress;
-  private long block;
-  private long blockDate;
-  private String network;
+  protected String id;
+  protected String vault;
+  protected String vaultAddress;
+  protected long block;
+  protected long blockDate;
+  protected String network;
   // don't use it, share price doesn't change for AutoStake strats
   // keep for compatibility and statistic
-  private double shareChange;
+  protected double shareChange;
   /**
    * strategy + ps sum of earns
    */
-  private double fullRewardUsd;
-  private double farmBuyback;
-  private double fee;
-  private double farmBuybackEth;
-  private double gasUsed;
-  private double invested;
-  private double investmentTarget;
-  private double farmPrice;
-  private double ethPrice;
-  private Double profitSharingRate;
-  private Double buyBackRate;
-  private Integer autoStake;
+  protected double fullRewardUsd;
+  protected double farmBuyback;
+  protected double fee;
+  protected double farmBuybackEth;
+  protected double gasUsed;
+  protected double invested;
+  protected double investmentTarget;
+  protected double farmPrice;
+  protected double ethPrice;
+  protected Double profitSharingRate;
+  protected Double buyBackRate;
+  protected Integer autoStake;
 
   // todo move to another table or parse it from chain
   // ------------- GENERATED VALUES -----------------------
-  private long idleTime;
-  private double feeEth;
-  private Double weeklyAverageTvl;
-  private double savedGasFeesSum;
-  private double savedGasFees;
-  private int poolUsers;
-  private int callsQuantity;
-  private double farmBuybackSum;
-  private double psApr;
-  private double psTvlUsd;
-  private double weeklyProfit;
+  protected long idleTime;
+  protected double feeEth;
+  protected double savedGasFeesSum;
+  protected double savedGasFees;
+  protected int poolUsers;
+  protected int callsQuantity;
+  protected double farmBuybackSum;
+  protected double psApr;
+  protected double psTvlUsd;
+  protected double weeklyProfit;
   /**
    * {@link #fullRewardUsd} sum of all vaults for the last week
    */
-  private double weeklyAllProfit;
+  protected double weeklyAllProfit;
   @Deprecated
-  private double apr;
+  protected double apr;
   @Deprecated
-  private double perc;
-  private double fullRewardUsdTotal;
-  private double tvl;
-  private double allProfit;
-  private long periodOfWork;
-  private long psPeriodOfWork;
+  protected double perc;
+  protected double fullRewardUsdTotal;
+  protected double allProfit;
 
   public String print() {
     return Instant.ofEpochSecond(blockDate) + " "
