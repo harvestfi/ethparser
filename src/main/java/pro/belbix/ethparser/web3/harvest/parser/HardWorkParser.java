@@ -105,7 +105,6 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
   @Override
   protected void sendToWs(HardWorkDTO hardWorkDTO) {
 
-    log.info("before {}",hardWorkDTO.toString());
     HardWorkResponseDTO hardWorkResponseDTO = new HardWorkResponseDTO(hardWorkDTO);
     hardWorkResponseDTO.setTvl(fetchLastUsdTvl(hardWorkDTO.getVaultAddress(), hardWorkDTO.getNetwork()));
     hardWorkResponseDTO.setWeeklyAverageTvl(fetchAverageTvl(hardWorkDTO.getVaultAddress(),
@@ -114,7 +113,6 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
     hardWorkResponseDTO.setPeriodOfWork(fetchPeriod(hardWorkDTO.getVaultAddress(), hardWorkDTO.getBlockDate(),
             hardWorkDTO.getNetwork()));
 
-    log.info("after {}",hardWorkResponseDTO.toString());
     try {
       while (run.get()) {
         boolean recorded = output.offer(hardWorkResponseDTO, 5, TimeUnit.SECONDS);
@@ -131,7 +129,6 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
 
   private double fetchAverageTvl(String vault, long from, long to, String network) {
     try {
-      log.info("avg variables " + vault +" "+ from + " " + to +" "+ network);
       List<Double> avgTvlD;
           avgTvlD = harvestRepository
           .fetchAverageTvl(
@@ -140,7 +137,6 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
               to,
               network,
               PageRequest.of(0, 1));
-      log.info("avg {}",avgTvlD.toString());
       if (!Caller.isNotEmptyList(avgTvlD)) {
         return 0;
       }
