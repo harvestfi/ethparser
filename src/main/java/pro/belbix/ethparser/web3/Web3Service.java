@@ -122,11 +122,11 @@ abstract class Web3Service {
       if (count > RETRY_COUNT) {
         if (lastError != null) {
           lastError.printStackTrace();
-          log.error("Retry limit, last error:", lastError);
+          log.error("Retry limit {}, last error:", logMessage, lastError);
         }
         return null;
       }
-      log.warn("Fail call web3, retry {}, error: {}", count,
+      log.warn("Fail call web3 {}, retry {}, error: {}", logMessage, count,
           lastError != null ? lastError.getMessage() : "Unknown error");
       try {
         //noinspection BusyWait
