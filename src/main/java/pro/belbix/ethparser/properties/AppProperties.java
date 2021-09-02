@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class AppProperties {
 
-    private String[] networks = new String[]{"eth", "bsc"};
+    private String[] networks = new String[]{"eth", "bsc", "matic"};
 
     private boolean onlyApi = false;
     private boolean onlyParse = false;
