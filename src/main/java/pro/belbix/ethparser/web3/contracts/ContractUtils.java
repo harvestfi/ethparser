@@ -2,12 +2,14 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_18_MARCH_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
@@ -70,7 +72,10 @@ public class ContractUtils {
       return ETH_BLOCK_NUMBER_30_AUGUST_2020.getBlockNumber().intValue();
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_BLOCK_NUMBER_18_MARCH_2021.getBlockNumber().intValue();
-    } else {
+    }else if (MATIC_NETWORK.equals(network)) {
+      return MATIC_BLOCK_NUMBER_06_JUL_2021.getBlockNumber().intValue();
+    }
+    else {
       throw new IllegalStateException("Unknown network " + network);
     }
   }

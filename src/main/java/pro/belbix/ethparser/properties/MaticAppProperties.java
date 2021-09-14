@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class MaticAppProperties implements NetworkPropertiesI {
 
-  private String web3Url = "https://polygon-mainnet.g.alchemy.com/v2/peKX0mesvYU3VvfACwT4YT-P6TV_33SY";
+  private String web3Url = "";
   private String abiProviderKey = "";
   private int blockStep = 100;
   private int web3Timeout = 60;

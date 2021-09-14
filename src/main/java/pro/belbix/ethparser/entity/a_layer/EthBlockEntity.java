@@ -2,6 +2,7 @@ package pro.belbix.ethparser.entity.a_layer;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -100,6 +101,8 @@ public class EthBlockEntity implements DtoI {
                 return ETH_NETWORK;
             case 1:
                 return BSC_NETWORK;
+            case 2:
+                return MATIC_NETWORK;
             default:
                 throw new IllegalStateException("Unknown network " + network);
         }
@@ -111,6 +114,8 @@ public class EthBlockEntity implements DtoI {
                 return 0;
             case BSC_NETWORK:
                 return 1;
+            case MATIC_NETWORK:
+                return 2;
             default:
                 throw new IllegalStateException("Unknown network " + network);
         }
