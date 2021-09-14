@@ -10,6 +10,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NU
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
@@ -190,6 +191,8 @@ public class ContractUtils {
       return FARM_TOKEN;
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_FARM_TOKEN;
+    } else if (MATIC_NETWORK.equals(network)) {
+      return MATIC_FARM_TOKEN;
     }
     return null;
   }

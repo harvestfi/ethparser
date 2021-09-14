@@ -49,6 +49,8 @@ public class ContractConstants {
       .toLowerCase();
   public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"
       .toLowerCase();
+  public static final String MATIC_FARM_TOKEN = "0xab0b2ddb9c7e440fac8e140a89c0dbcbf2d7bbff"
+      .toLowerCase();
   public static final String GRAIN_TOKEN = "0x6589fe1271A0F29346796C6bAf0cdF619e25e58e"
       .toLowerCase();
   public static final String PS_ADDRESS = "0x25550Cccbd68533Fa04bFD3e3AC4D09f9e00Fc50"
