@@ -92,8 +92,10 @@ public class ContractConstants {
       BSC_NETWORK,
       Map.of(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(),
           6952687L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase(),
-          9142012L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase()
-      ));
+          9142012L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase()),
+     MATIC_NETWORK,
+      Map.of(16841617L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase())
+      );
 
   final static Map<String, Map<String, String>> ORACLES_BY_FACTORY = Map.of(
       ETH_NETWORK,
@@ -115,7 +117,8 @@ public class ContractConstants {
           "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202
           // UNI_LP_GRAIN_FARM - GRAIN
       ),
-      BSC_NETWORK, Map.of()
+      BSC_NETWORK, Map.of(),
+      MATIC_NETWORK, Map.of()
   );
 
   public static final Set<String> PS_ADDRESSES = Set.of(
@@ -154,6 +157,15 @@ public class ContractConstants {
           "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c".toLowerCase(), //WBNB
           "0x4BD17003473389A42DAF6a0a729f6Fdb328BbBd7".toLowerCase(), //VAI
           "0x111111111117dC0aa78b770fA6A738034120C302".toLowerCase() //1INCH
+      ),
+      MATIC_NETWORK, Set.of(
+          "0x2791bca1f2de4661ed88a30c99a7a9449aa84174".toLowerCase(), //USDC
+          "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619".toLowerCase(), //ETH
+          "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063".toLowerCase(), //DAI
+          "0xc2132d05d31c914a87c6611c10748aeb04b58e8f".toLowerCase(), //USDT
+          "0x692597b009d13c4049a947cab2239b7d6517875f".toLowerCase(), //UST
+          "0xdab529f40e671a1d4bf91361c21bf9f0c9712ab7".toLowerCase(), //BUSD
+          "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6".toLowerCase() //WBTC
       )
   );
 
@@ -176,6 +188,6 @@ public class ContractConstants {
       ), BSC_NETWORK, Map.of(
           PCS_V1_FACTORY_ADDRESS, 586851,
           PCS_V2_FACTORY_ADDRESS, 6809737
-      )
+      ), MATIC_NETWORK, Map.of()
   );
 }
