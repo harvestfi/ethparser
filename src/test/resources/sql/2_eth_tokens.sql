@@ -134,3 +134,5 @@ INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contra
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (134, 18, 'ETHx5 USDC 1Jun21 LP', 'ETHx5-USDC-1Jun21-LP', 12427325, 1080);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (135, 18, 'Lift.Kitchen BTC', 'LFBTC', 12505208, 1104);
 INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (136, 18, 'LIFT.Kitchen', 'LIFT', 12505208, 1105);
+INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (10008, 6, 'USD Coin (PoS)', 'USDC', 16645038, 10070);
+INSERT INTO public.eth_tokens (id, decimals, name, symbol, updated_block, contract) VALUES (10006, 18, 'Wrapped Ether', 'WETH', 16645038, 10062);

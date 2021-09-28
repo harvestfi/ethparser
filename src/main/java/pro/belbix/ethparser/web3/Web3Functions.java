@@ -4,6 +4,7 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import io.reactivex.Flowable;
@@ -53,12 +54,15 @@ public class Web3Functions {
   private final AppProperties appProperties;
   private final Web3EthService web3EthService;
   private final Web3BscService web3BscService;
+  private final Web3MaticService web3MaticService;
 
   public Web3Functions(AppProperties appProperties,
-      Web3EthService web3EthService, Web3BscService web3BscService) {
+      Web3EthService web3EthService, Web3BscService web3BscService,
+      Web3MaticService web3MaticService) {
     this.appProperties = appProperties;
     this.web3EthService = web3EthService;
     this.web3BscService = web3BscService;
+    this.web3MaticService = web3MaticService;
   }
 
   private Web3Service getWeb3Service(String network) {
@@ -66,7 +70,10 @@ public class Web3Functions {
       return web3EthService;
     } else if (BSC_NETWORK.equals(network)) {
       return web3BscService;
-    } else {
+    }else if (MATIC_NETWORK.equals(network)) {
+      return web3MaticService;
+    }
+    else {
       throw new IllegalStateException("Unknown network " + network);
     }
   }
