@@ -145,3 +145,4 @@ INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, t
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (145, 18, 1, 12375452, 1059, 1060, 371);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (146, 18, 2, 12505208, 1103, 1104, 1105);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (147, 18, 2, 12505208, 1106, 409, 1104);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10008, 18, 0, 16645038, 10069, 10070, 10062);

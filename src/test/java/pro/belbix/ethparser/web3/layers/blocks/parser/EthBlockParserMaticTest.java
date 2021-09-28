@@ -3,8 +3,12 @@ package pro.belbix.ethparser.web3.layers.blocks.parser;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
+import static pro.belbix.ethparser.web3.layers.blocks.parser.EthBlockAssertions.assertContracts;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +49,19 @@ public class EthBlockParserMaticTest {
             () -> assertEquals(1590824836, block.getTimestamp(), "block timestamp")
         );
         assertNotNull(ethBlockDbService.save(block), "persist result");
+    }
+
+    @Test
+    void testBlockParsing_19570473() throws IOException, URISyntaxException {
+        EthBlockEntity ethBlockEntity = ethBlockParser.parse(
+            web3Functions.findBlockByNumber(19570473, true, MATIC_NETWORK),
+            MATIC_NETWORK);
+        assertContracts(ethBlockEntity, "data/19570473_matic_contracts.txt");
+
+        EthBlockEntity persisted = ethBlockDbService.save(ethBlockEntity);
+        assertNotNull(persisted);
+        assertContracts(persisted, "data/19570473_matic_contracts.txt");
+        assertNull(ethBlockDbService.save(ethBlockEntity));
     }
 
 

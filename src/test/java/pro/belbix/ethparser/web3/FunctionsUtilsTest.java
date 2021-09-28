@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.PROFITSHARING_NUMERATOR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING_UNIT;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
@@ -55,5 +57,14 @@ public class FunctionsUtilsTest {
             UNDERLYING_UNIT, "0x3D5B0a8CD80e2A87953525fC136c33112E4b885a", null, BSC_NETWORK)
             .orElse(BigInteger.ZERO).longValue(),
         "test " + UNDERLYING_UNIT);
+  }
+
+  @Test
+  public void testNAME_POOL() {
+    assertEquals("pbfSLP",
+        functionsUtils.callStrByName(
+            NAME, "0xb25e2c1efdd4b79cd5d63c0f5a45326fa4ca2139", null, MATIC_NETWORK)
+            .orElse(""),
+        "test " + NAME);
   }
 }
