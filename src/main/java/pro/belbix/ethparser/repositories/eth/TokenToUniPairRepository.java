@@ -17,9 +17,9 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.contract f2f1 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where f1f1.address = :tokenAdr "
+        + "where lower(f1f1.address) = lower(:tokenAdr) "
         + "and f1f1.network = :network "
-        + "and f2f1.address = :uniPairAdr "
+        + "and lower(f2f1.address) = lower(:uniPairAdr) "
         + "and f2f1.network = :network"
     )
     TokenToUniPairEntity findFirstByTokenAndUniPair(
@@ -35,7 +35,7 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.contract f2f1 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where f1f1.address = :tokenAdr and f1f1.network = :network "
+        + "where lower(f1f1.address) = lower(:tokenAdr) and f1f1.network = :network "
         + "order by t.blockStart desc"
     )
     List<TokenToUniPairEntity> findByToken(
@@ -50,7 +50,7 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         + "left join fetch f2.contract f2f1 "
         + "left join fetch f2.token1 f2f3 "
         + "left join fetch f2.token0 f2f4 "
-        + "where f2f1.address = :uniPairAdr and f2f1.network = :network "
+        + "where lower(f2f1.address) = lower(:uniPairAdr) and f2f1.network = :network "
         + "order by t.blockStart desc"
     )
     List<TokenToUniPairEntity> findByUniPair(

@@ -41,7 +41,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
 
     @Query(""
         + "select sum(t.fullRewardUsd) from HardWorkDTO t "
-        + "where t.vaultAddress = :vault "
+        + "where lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate <= :blockDate "
         + "and t.network = :network")
     Double getSumForVault(
@@ -51,7 +51,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     );
 
     @Query("select sum(t.perc) from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate <= :to "
         + "and t.network = :network")
     List<Double> fetchPercentForPeriod(
@@ -61,7 +61,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         Pageable pageable);
 
     @Query("select sum(t.fullRewardUsd) from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate between :from and :to "
         + "and t.network = :network")
     List<Double> fetchProfitForPeriod(
@@ -97,7 +97,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         Pageable pageable);
 
     @Query("select count(t) from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate <= :blockDate "
         + "and t.network = :network")
     Integer countAtBlockDate(
@@ -106,7 +106,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
         @Param("blockDate") long blockDate);
 
     @Query("select sum(t.savedGasFees) from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.network = :network "
         + "and t.blockDate < :blockDate")
     Double sumSavedGasFees(
@@ -116,7 +116,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     );
 
     @Query("select t from HardWorkDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.network = :network "
         + "and t.blockDate between :startTime and :endTime "
         + "order by t.blockDate")
@@ -143,7 +143,7 @@ public interface HardWorkRepository extends JpaRepository<HardWorkDTO, String> {
     Double fetchLastGasSaved(@Param("network") String network);
 
     @Query(nativeQuery = true, value = "select block_date from hard_work "
-        + "where vault_address = :vault "
+        + "where lower(vault_address) = lower(:vault) "
         + "and block_date < :block_date "
         + "and network = :network "
         + "order by block_date desc limit 1")

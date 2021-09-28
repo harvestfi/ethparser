@@ -7,7 +7,7 @@ import pro.belbix.ethparser.dto.v0.ContractSourceCodeDTO;
 
 public interface ContractSourceCodeRepository extends JpaRepository<ContractSourceCodeDTO, Integer> {
   @Query("select t from ContractSourceCodeDTO t "
-      + "where t.address = :address and t.network = :network")
+      + "where lower(t.address) = lower(:address) and t.network = :network")
   ContractSourceCodeDTO findByAddressNetwork(
       @Param("address") String address,
       @Param("network") String network
