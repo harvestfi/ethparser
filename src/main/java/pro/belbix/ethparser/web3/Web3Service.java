@@ -17,7 +17,7 @@ import pro.belbix.ethparser.properties.NetworkProperties;
 abstract class Web3Service {
 
   private static final AtomicBoolean run = new AtomicBoolean(true);
-  public final static int RETRY_COUNT = 5000;
+  public final static int RETRY_COUNT = 100;
   private final String network;
   final AppProperties appProperties;
   final NetworkProperties networkProperties;
@@ -122,10 +122,12 @@ abstract class Web3Service {
       if (count > RETRY_COUNT) {
         if (lastError != null) {
           lastError.printStackTrace();
+          log.error("Retry limit {}, last error:", logMessage, lastError);
         }
         return null;
       }
-      log.warn("Fail call web3, retry " + count);
+      log.warn("Fail call web3 {}, retry {}, error: {}", logMessage, count,
+          lastError != null ? lastError.getMessage() : "Unknown error");
       try {
         //noinspection BusyWait
         Thread.sleep(1000);

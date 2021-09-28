@@ -1,11 +1,14 @@
 package pro.belbix.ethparser.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -132,5 +135,20 @@ public class HarvestControllerTest {
             + "pageSize=1&page=0"))
             .andExpect(status().isOk())
             .andExpect(content().string(expectedResult));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+        "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB"
+    })
+    public void vaultPeriodOfWork(String address) throws Exception {
+
+        List<Long> periods = harvestRepository.fetchPeriodOfWork(address, Long.MAX_VALUE,
+            ETH_NETWORK, PageRequest.of(0, 1));
+
+        this.mockMvc.perform(get("/api/transactions/history/harvest/period_of_work/" + address))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString(periods.get(0).toString())));
     }
 }

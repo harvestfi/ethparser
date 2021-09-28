@@ -96,7 +96,7 @@ public abstract class Web3Parser<T extends DtoI, K> {
 
   protected abstract boolean save(T dto);
 
-  private void sendToWs(T dto) {
+  protected void sendToWs(T dto) {
     try {
       while (run.get()) {
         boolean recorded = output.offer(dto, 5, TimeUnit.SECONDS);

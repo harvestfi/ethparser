@@ -120,7 +120,7 @@ public class TransferParser extends Web3Parser<TransferDTO, Log> {
       Transaction ethTx = web3Functions.findTransaction(hash, ETH_NETWORK);
       methodName = erc20Decoder.decodeMethodName(ethTx.getInput());
       if (methodName == null) {
-        log.warn("Can't decode method for " + hash);
+        log.warn("Cant decode method for " + hash);
         dto.setMethodName(ethTx.getInput().substring(0, 10));
         return;
       }
