@@ -10,7 +10,7 @@ import pro.belbix.ethparser.entity.c_layer.VaultActionsViewEntity;
 public interface VaultActionsViewRepository extends JpaRepository<VaultActionsViewEntity, Long> {
 
   @Query("select t from VaultActionsViewEntity t where "
-      + "t.address in :addresses "
+      + "lower(t.address) in :addresses "
       + "and t.blockNumber between :startBlock and :endBlock"
   )
   List<VaultActionsViewEntity> findByAddresses(

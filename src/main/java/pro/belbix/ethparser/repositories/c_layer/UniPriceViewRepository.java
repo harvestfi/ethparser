@@ -10,7 +10,7 @@ import pro.belbix.ethparser.entity.c_layer.UniPriceViewEntity;
 public interface UniPriceViewRepository extends JpaRepository<UniPriceViewEntity, Long> {
 
   @Query("select t from UniPriceViewEntity t where "
-      + "t.address in :addresses "
+      + "lower(t.address) in :addresses "
       + "and t.blockNumber between :startBlock and :endBlock"
   )
   List<UniPriceViewEntity> findByAddresses(

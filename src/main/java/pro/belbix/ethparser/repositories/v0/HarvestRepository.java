@@ -86,7 +86,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "      cast(SUBSTRING_INDEX(cast(MAX(CONCAT(block_date, SUBSTRING_INDEX(cast(id as text), cast('_' as text), cast(-1 as integer)), '|', "
         + "                 coalesce(owner_balance_usd, 0))) as text), '|', -1) as DOUBLE PRECISION) b "
         + "          from harvest_tx "
-        + "          where vault_address in :vaults "
+        + "          where lower(vault_address) in :vaults "
         + "          and block_date < :block_date "
         + "          and network = :network "
         + "          group by vault, owner) t "
