@@ -26,10 +26,10 @@ public interface TransferRepository extends JpaRepository<TransferDTO, String> {
     @Query(nativeQuery = true, value = ""
         + "select  coalesce(buys.buy, 0) - coalesce(sells.sell, 0) sum from "
         + "(select sum(value) buy from transfers "
-        + "where block_date <= :before and recipient = :address and network = :network) buys "
+        + "where block_date <= :before and lower(recipient) = lower(:address) and network = :network) buys "
         + "    left join "
         + "(select sum(value) sell from transfers "
-        + "where block_date <= :before and owner = :address and network = :network) sells on 1=1")
+        + "where block_date <= :before and lower(owner) = lower(:address) and network = :network) sells on 1=1")
     Double getBalanceForOwner(
         @Param("address") String address,
         @Param("before") long before,

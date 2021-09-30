@@ -89,7 +89,7 @@ public class VaultActionsDBService {
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
         contractDbService.getAllVaults(dto.getNetwork()).stream()
-            .map(v -> v.getContract().getAddress())
+            .map(v -> v.getContract().getAddress().toLowerCase())
             .filter(v -> !ContractUtils.isPsAddress(v))
             .filter(v -> !v.equalsIgnoreCase(iPS_ADDRESS))
             .collect(Collectors.toList()),

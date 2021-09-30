@@ -766,19 +766,19 @@ public class HarvestRepositoryTest {
     fillDB();
 
     Integer block0 = harvestRepository
-        .fetchAllPoolsUsersQuantity(List.of("TestVault"), 0, "TestNetwork");
+        .fetchAllPoolsUsersQuantity(List.of("TestVault".toLowerCase()), 0, "TestNetwork");
 
     Integer blockMax = harvestRepository
-        .fetchAllPoolsUsersQuantity(List.of("TestVault"), Long.MAX_VALUE, "TestNetwork");
+        .fetchAllPoolsUsersQuantity(List.of("TestVault".toLowerCase()), Long.MAX_VALUE, "TestNetwork");
 
     Integer block5 = harvestRepository
-        .fetchAllPoolsUsersQuantity(List.of("TestVault"), 5, "TestNetwork");
+        .fetchAllPoolsUsersQuantity(List.of("TestVault".toLowerCase()), 5, "TestNetwork");
 
     Integer otherVault = harvestRepository
-        .fetchAllPoolsUsersQuantity(List.of("OtherVault"), Long.MAX_VALUE, "TestNetwork");
+        .fetchAllPoolsUsersQuantity(List.of("OtherVault".toLowerCase()), Long.MAX_VALUE, "TestNetwork");
 
     Integer otherNetwork = harvestRepository
-        .fetchAllPoolsUsersQuantity(List.of("TestVault"), Long.MAX_VALUE, "OtherNetwork");
+        .fetchAllPoolsUsersQuantity(List.of("TestVault".toLowerCase()), Long.MAX_VALUE, "OtherNetwork");
 
     //then
     assertAll(
