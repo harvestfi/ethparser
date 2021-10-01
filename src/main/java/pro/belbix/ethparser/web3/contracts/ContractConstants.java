@@ -62,6 +62,11 @@ public class ContractConstants {
   public static final String ST_PS_ADDRESS = "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"
       .toLowerCase();
 
+  public static final String QUICK_FACTORY_ADDRESS = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
+      .toLowerCase();
+  public static final String SUSHI_FACTORY_ADDRESS = "0xc35dadb65012ec5796536bd9864ed8773abc74c4"
+      .toLowerCase();
+
   public final static Map<String, String> DEPLOYERS = Map.of(
       ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),
       BSC_NETWORK, "0xf00dd244228f51547f0563e60bca65a30fbf5f7f".toLowerCase(),
@@ -188,6 +193,9 @@ public class ContractConstants {
       ), BSC_NETWORK, Map.of(
           PCS_V1_FACTORY_ADDRESS, 586851,
           PCS_V2_FACTORY_ADDRESS, 6809737
-      ), MATIC_NETWORK, Map.of()
+      ), MATIC_NETWORK, Map.of(
+          QUICK_FACTORY_ADDRESS, 4931780,
+          SUSHI_FACTORY_ADDRESS, 11333218
+      )
   );
 }
