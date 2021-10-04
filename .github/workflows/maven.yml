@@ -78,8 +78,10 @@ jobs:
           mvn
           -Dethparser.eth.web3Url="${{secrets.ETH_WEB3}}"
           -Dethparser.bsc.web3Url="${{secrets.BSC_WEB3}}"
+          -Dethparser.matic.web3Url="${{secrets.MATIC_WEB3}}"
           -Dethparser.eth.abiProviderKey=${{secrets.ETHERSCAN_TOKEN}}
           -Dethparser.bsc.abiProviderKey=${{secrets.BSCSCAN_TOKEN}}
+          -Dethparser.matic.abiProviderKey=${{secrets.POLYSCAN_TOKEN}}
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/harvest
           -Dspring.datasource.username=harvest
           -Dspring.datasource.password=harvest

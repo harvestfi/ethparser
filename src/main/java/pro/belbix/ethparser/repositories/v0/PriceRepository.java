@@ -10,7 +10,7 @@ import pro.belbix.ethparser.dto.v0.PriceDTO;
 public interface PriceRepository extends JpaRepository<PriceDTO, String> {
 
     @Query("select t from PriceDTO t where "
-        + "t.sourceAddress = :source "
+        + "lower(t.sourceAddress) = lower(:source) "
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
@@ -22,7 +22,7 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
     );
 
     @Query("select t from PriceDTO t where "
-        + "t.tokenAddress = :address "
+        + "lower(t.tokenAddress) = lower(:address) "
         + "and t.block <= :block "
         + "and t.network = :network "
         + "order by t.block desc")
