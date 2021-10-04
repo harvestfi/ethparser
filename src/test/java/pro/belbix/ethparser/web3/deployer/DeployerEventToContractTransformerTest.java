@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -398,6 +400,53 @@ class DeployerEventToContractTransformerTest {
         () -> assertEquals(block, lpUnderlying.getCreatedOnBlock(), "created"),
         () -> assertEquals(network, lpUnderlying.getNetwork(), "vault network"),
         () -> assertEquals(ContractType.UNI_PAIR, lpUnderlying.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreateVault_SUSHI_USDC_WETH() {
+    String address = "0xf76a0c5083b895c76ecbf30121f036849137d545";
+    long block = 16645020;
+    String network = MATIC_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0x5ffdc02d4a2b4a8cbdf91907ef471177dbbad6e2500d56c69f80823ce7c69a91", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(4, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    LpContract lpUnderlying = (LpContract) contracts.get(1);
+    assertAll(
+        () -> assertEquals("V_SUSHI_USDC_WETH", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, vault.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.VAULT, vault.getContractType(), "contract type"),
+
+        () -> assertEquals("SUSHI_LP_USDC_WETH", lpUnderlying.getName(), "name"),
+        () -> assertEquals("0x34965ba0ac2451a34a0471f04cca3f990b8dea27", lpUnderlying.getAddress(), "address"),
+        () -> assertEquals(block, lpUnderlying.getCreatedOnBlock(), "created"),
+        () -> assertEquals(network, lpUnderlying.getNetwork(), "vault network"),
+        () -> assertEquals(ContractType.UNI_PAIR, lpUnderlying.getContractType(), "contract type")
+    );
+  }
+
+  @Test
+  public void testCreatePool_SUSHI_USDC_WETH() {
+    String address = "0xb25e2c1efdd4b79cd5d63c0f5a45326fa4ca2139";
+    long block = 16645038;
+    String network = MATIC_NETWORK;
+
+    DeployerDTO dto = loadDto(
+        "0xcd3a2fb96ffdfa9cda8e79428a0497e8b55766211a774aee207f9faf5e3c9c69", network);
+    List<PureEthContractInfo> contracts =
+        deployerEventToContractTransformer.transform(dto);
+    assertEquals(7, contracts.size());
+    SimpleContract vault = (SimpleContract) contracts.get(0);
+    assertAll(
+        () -> assertEquals("P_SUSHI_USDC_WETH", vault.getName(), "name"),
+        () -> assertEquals(address, vault.getAddress(), "address"),
+        () -> assertEquals(block, vault.getCreatedOnBlock(), "created")
     );
   }
 
