@@ -38,7 +38,7 @@ public class MaticAppProperties implements NetworkPropertiesI {
   private boolean grabStratInfo = false;
 
   // block parsing
-  private boolean parseBlocks = true;
+  private boolean parseBlocks = false;
   private String parseBlocksFrom = "";
 
 }
