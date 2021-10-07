@@ -48,7 +48,7 @@ public class ViewRouter {
     if (isUniPrice(event, network)) {
       sendToWs(
           uniPriceViewRepository.findByAddresses(
-              List.of(event.getContract().getAddress()),
+              List.of(event.getContract().getAddress().toLowerCase()),
               event.getBlock().getNumber(),
               event.getBlock().getNumber(),
               PageRequest.of(0, 1, DESC_SORT)
@@ -58,7 +58,7 @@ public class ViewRouter {
     } else if (isVaultAction(event, network)) {
       sendToWs(
           vaultActionsViewRepository.findByAddresses(
-              List.of(event.getContract().getAddress()),
+              List.of(event.getContract().getAddress().toLowerCase()),
               event.getBlock().getNumber(),
               event.getBlock().getNumber(),
               PageRequest.of(0, 1, DESC_SORT)

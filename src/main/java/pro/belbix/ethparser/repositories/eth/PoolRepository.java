@@ -16,7 +16,7 @@ public interface PoolRepository extends JpaRepository<PoolEntity, Integer> {
         + "left join fetch t.owner f4 "
         + "left join fetch t.lpToken f5 "
         + "left join fetch t.rewardToken f6 "
-        + "where f1.address = :address and f1.network = :network")
+        + "where lower(f1.address) = lower(:address) and f1.network = :network")
     PoolEntity findFirstByAddress(
         @Param("address") String address,
         @Param("network") String network

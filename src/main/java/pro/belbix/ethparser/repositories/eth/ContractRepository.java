@@ -10,14 +10,14 @@ import pro.belbix.ethparser.entity.contracts.ContractEntity;
 public interface ContractRepository extends JpaRepository<ContractEntity, Integer> {
 
     @Query("select t from ContractEntity t "
-        + "where t.address = :address and t.network = :network")
+        + "where lower(t.address) = lower(:address) and t.network = :network")
     ContractEntity findFirstByAddress(
         @Param("address") String address,
         @Param("network") String network
     );
 
     @Query("select t from ContractEntity t "
-        + "where t.address = :address and t.type = :type and t.network = :network")
+        + "where lower(t.address) = lower(:address) and t.type = :type and t.network = :network")
     ContractEntity findFirstByAddressAndType(
         @Param("address") String address,
         @Param("type") int type,
@@ -38,7 +38,7 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
 
     @Query("select p_ctr from PoolEntity p "
         + "join p.contract p_ctr "
-        + "where p.lpToken.address = :address "
+        + "where lower(p.lpToken.address) = lower(:address) "
         + "and p.contract.network = :network "
         + "order by p_ctr.created desc")
     List<ContractEntity> findPoolsByVaultAddress(
