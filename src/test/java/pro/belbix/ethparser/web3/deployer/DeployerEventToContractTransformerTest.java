@@ -413,7 +413,7 @@ class DeployerEventToContractTransformerTest {
         "0x5ffdc02d4a2b4a8cbdf91907ef471177dbbad6e2500d56c69f80823ce7c69a91", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(4, contracts.size());
+    assertEquals(5, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     LpContract lpUnderlying = (LpContract) contracts.get(1);
     assertAll(
@@ -441,7 +441,7 @@ class DeployerEventToContractTransformerTest {
         "0xcd3a2fb96ffdfa9cda8e79428a0497e8b55766211a774aee207f9faf5e3c9c69", network);
     List<PureEthContractInfo> contracts =
         deployerEventToContractTransformer.transform(dto);
-    assertEquals(7, contracts.size());
+    assertEquals(9, contracts.size());
     SimpleContract vault = (SimpleContract) contracts.get(0);
     assertAll(
         () -> assertEquals("P_SUSHI_USDC_WETH", vault.getName(), "name"),

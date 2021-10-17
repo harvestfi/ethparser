@@ -118,3 +118,7 @@ INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (118, 12323304, 132, 144);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (119, 12375452, 133, 145);
 INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (120, 12505208, 135, 147);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (10006, 16572678, 10005, 10008);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (10007, 16572694, 10008, 10009);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (10008, 16572694, 10009, 10010);
+INSERT INTO public.eth_token_to_uni_pair (id, block_start, token_id, uni_pair_id) VALUES (10009, 16644916, 10010, 10012);
