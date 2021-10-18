@@ -49,7 +49,7 @@ public class VaulActionstParserMaticTest {
         .methodName("Deposit")
         .owner("0x5c70052919c4cb622e0dffd774ed6a31ad43a22b")
         .amount(0.000000149036230053)
-        .vault("V_SUSHI_USDC_WETH")
+        .vault("V_SUSHI_USDC_WETH_#V1")
         .lastUsdTvl(573391.)
         .sharePrice(1.0112412359971954)
         .usdAmount(19L)
