@@ -120,7 +120,7 @@ public class BancorPriceParser extends Web3Parser<BancorDTO, Log> {
 
   @Override
   protected boolean isActiveForNetwork(String network) {
-    return networkProperties.get(network).isParsePrices();
+    return networkProperties.get(network).isParseBancorLog();
   }
 
 }

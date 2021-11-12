@@ -20,6 +20,7 @@ public class MaticAppProperties implements NetworkPropertiesI {
   private boolean parseLog = true;
   private String startLogBlock = "";
   private boolean parseUniswapLog = false;
+  private boolean parseBancorLog = false;
   private boolean parseHarvestLog = true;
   private boolean parseHardWorkLog = true;
   private boolean parseRewardsLog = true;

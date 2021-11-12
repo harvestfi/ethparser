@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import org.springframework.stereotype.Service;
+import pro.belbix.ethparser.dto.v0.BancorDTO;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
@@ -32,6 +33,19 @@ public class MockUtils {
 
   public MockUtils(ContractDbService contractDbService) {
     this.contractDbService = contractDbService;
+  }
+
+  public BancorDTO createBancorDTO(long seed) {
+    double currentCount = seed * new Random().nextDouble();
+    BancorDTO bancorDTO = new BancorDTO();
+    bancorDTO.setId("0x" + (seed * 1000000));
+    bancorDTO.setBlock(seed * 1000000);
+    bancorDTO.setAmountBnt(currentCount);
+    bancorDTO.setAmountFarm(currentCount);
+    bancorDTO.setFarmAsSource(true);
+    bancorDTO.setPriceBnt(currentCount);
+    bancorDTO.setPriceFarm(currentCount);
+    return bancorDTO;
   }
 
   public UniswapDTO createUniswapDTO(long seed) {

@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.properties.AppProperties;
+import pro.belbix.ethparser.utils.download.BancorDownloader;
 import pro.belbix.ethparser.utils.download.DeployerTransactionsDownloader;
 import pro.belbix.ethparser.utils.download.EthBlockDownloader;
 import pro.belbix.ethparser.utils.download.HardWorkDownloader;
@@ -51,6 +52,7 @@ public class UtilsStarter {
   private final AddressFiller addressFiller;
   private final DeployerRecalculation deployerRecalculation;
   private final ContractUpdater contractUpdater;
+  private final BancorDownloader bancorDownloader;
 
   public UtilsStarter(AppProperties appProperties,
       UniswapLpDownloader uniswapLpDownloader,
@@ -73,7 +75,8 @@ public class UtilsStarter {
       EthBlockDownloader ethBlockDownloader,
       AddressFiller addressFiller,
       DeployerRecalculation deployerRecalculation,
-      ContractUpdater contractUpdater) {
+      ContractUpdater contractUpdater,
+      BancorDownloader bancorDownloader) {
     this.appProperties = appProperties;
     this.uniswapLpDownloader = uniswapLpDownloader;
     this.vaultActionsDownloader = vaultActionsDownloader;
@@ -96,6 +99,7 @@ public class UtilsStarter {
     this.addressFiller = addressFiller;
     this.deployerRecalculation = deployerRecalculation;
     this.contractUpdater = contractUpdater;
+    this.bancorDownloader = bancorDownloader;
   }
 
   public void startUtils() {
@@ -142,6 +146,8 @@ public class UtilsStarter {
       deployerRecalculation.start();
     }else if ("contract-updater".equals(appProperties.getStartUtil())) {
       contractUpdater.start();
+    }else if ("bancor-download".equals(appProperties.getStartUtil())) {
+      bancorDownloader.start();
     }
     log.info("Utils completed");
     System.exit(0);
