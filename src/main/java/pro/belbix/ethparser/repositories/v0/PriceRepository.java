@@ -47,4 +47,9 @@ public interface PriceRepository extends JpaRepository<PriceDTO, String> {
         + "group by source_address")
     List<String> fetchAllSourceAddresses(@Param("network") String network);
 
+    @Query(nativeQuery = true, value = ""
+        + "delete from prices "
+        + "where block_date < :delete_all_before")
+    void deleteAllBefore(@Param("delete_all_before") Long deleteAllBefore);
+
 }
