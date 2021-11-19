@@ -16,6 +16,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FAC
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_BANCOR_TRANSACTIONS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -214,5 +215,11 @@ public class ContractUtils {
       String network) {
     return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase())
         && date > FULL_PARSABLE_UNI_PAIRS.get(network).get(address.toLowerCase());
+  }
+
+  public static boolean isParsableBancorTransaction(String address, int date,
+      String network) {
+    return PARSABLE_BANCOR_TRANSACTIONS.get(network).containsKey(address.toLowerCase())
+        && date > PARSABLE_BANCOR_TRANSACTIONS.get(network).get(address.toLowerCase());
   }
 }

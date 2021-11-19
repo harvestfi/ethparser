@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -16,6 +17,8 @@ public class ContractConstants {
   public static final double D6 = 1000_000.0;
   public static final double D8 = 100_000_000.0;
   public static final double D18 = 1000_000_000_000_000_000.0;
+
+  public static final long L18 = 1000_000_000_000_000_000L;
 
   public static final int PAIR_TYPE_UNISWAP = 1;
   public static final int PAIR_TYPE_SUSHI = 2;
@@ -66,6 +69,7 @@ public class ContractConstants {
       .toLowerCase();
   public static final String SUSHI_FACTORY_ADDRESS = "0xc35dadb65012ec5796536bd9864ed8773abc74c4"
       .toLowerCase();
+  public static final String BANCOR_CONVERSION_ADDRESS = "0x2f9ec37d6ccfff1cab21733bdadede11c823ccb0";
 
   public final static Map<String, String> DEPLOYERS = Map.of(
       ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),
@@ -121,6 +125,20 @@ public class ContractConstants {
           // UNI_LP_WETH_FARM - FARM
           "0xb9fa44b0911f6d777faab2fa9d8ef103f25ddf49".toLowerCase(), 11407202
           // UNI_LP_GRAIN_FARM - GRAIN
+      ),
+      BSC_NETWORK, Map.of(),
+      MATIC_NETWORK, Map.of()
+  );
+
+  public static final List<String> BANCOR_USDC_CONVERT_PATH = List.of(
+      "0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C".toLowerCase(), // BNT
+      "0x874d8dE5b26c9D9f6aA8d7bab283F9A9c6f777f4".toLowerCase(), // Liquidity Pool (USDCBNT)
+      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase()  // USDC
+  );
+
+  static final Map<String, Map<String, Integer>> PARSABLE_BANCOR_TRANSACTIONS = Map.of(
+      ETH_NETWORK, Map.of(
+          BANCOR_CONVERSION_ADDRESS, 10285676
       ),
       BSC_NETWORK, Map.of(),
       MATIC_NETWORK, Map.of()

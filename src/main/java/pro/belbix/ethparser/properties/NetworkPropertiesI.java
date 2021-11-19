@@ -11,6 +11,7 @@ public interface NetworkPropertiesI {
   boolean isParseBlocks();
   String getParseBlocksFrom();
   boolean isParseUniswapLog();
+  boolean isParseBancorLog();
   boolean isParseHarvestLog();
   boolean isParseHardWorkLog();
   boolean isParseRewardsLog();

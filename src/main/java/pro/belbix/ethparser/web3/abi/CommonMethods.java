@@ -43,6 +43,16 @@ public class CommonMethods {
                 TypeReference.makeTypeReference("address")
 
             ));
+      parameters.put("Conversion",
+          Arrays.asList(
+              TypeReference.makeTypeReference("address", true, false),
+              TypeReference.makeTypeReference("address", true, false),
+              TypeReference.makeTypeReference("address", true, false),
+              TypeReference.makeTypeReference("uint256"),
+              TypeReference.makeTypeReference("uint256"),
+              TypeReference.makeTypeReference("address")
+
+          ));
         parameters.put("Withdraw",
             Arrays.asList(
                 TypeReference.makeTypeReference("address", true, false),

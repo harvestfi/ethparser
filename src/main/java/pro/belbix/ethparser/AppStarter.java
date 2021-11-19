@@ -1,5 +1,6 @@
 package pro.belbix.ethparser;
 
+import static pro.belbix.ethparser.ws.WsService.BANCOR_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.DEPLOYER_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
@@ -20,6 +21,7 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.utils.MockUtils;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
+import pro.belbix.ethparser.web3.bancor.BancorPriceParser;
 import pro.belbix.ethparser.web3.deployer.parser.DeployerTransactionsParser;
 import pro.belbix.ethparser.web3.erc20.parser.TransferParser;
 import pro.belbix.ethparser.web3.harvest.parser.HardWorkParser;
@@ -39,6 +41,7 @@ public class AppStarter {
 
     private final Web3Subscriber web3Subscriber;
     private final UniswapLpLogParser uniswapLpLogParser;
+    private final BancorPriceParser bancorPriceParser;
     private final VaultActionsParser vaultActionsParser;
     private final RewardParser rewardParser;
     private final HardWorkParser hardWorkParser;
@@ -61,6 +64,7 @@ public class AppStarter {
     public AppStarter(
         Web3Subscriber web3Subscriber,
         UniswapLpLogParser uniswapLpLogParser,
+        BancorPriceParser bancorPriceParser,
         VaultActionsParser vaultActionsParser,
         RewardParser rewardParser, HardWorkParser hardWorkParser,
         ImportantEventsParser importantEventsParser,
@@ -74,6 +78,7 @@ public class AppStarter {
         MockUtils mockUtils) {
         this.web3Subscriber = web3Subscriber;
         this.uniswapLpLogParser = uniswapLpLogParser;
+        this.bancorPriceParser = bancorPriceParser;
         this.vaultActionsParser = vaultActionsParser;
         this.rewardParser = rewardParser;
         this.hardWorkParser = hardWorkParser;
@@ -97,6 +102,7 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
+            startParse(bancorPriceParser, ws, BANCOR_TRANSACTIONS_TOPIC_NAME, true);
             startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
             startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
             startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
@@ -115,6 +121,7 @@ public class AppStarter {
         int count = 0;
         while (run.get()) {
             double currentCount = count * new Random().nextDouble();
+            ws.send(BANCOR_TRANSACTIONS_TOPIC_NAME, mockUtils.createBancorDTO(count));
             ws.send(UNI_TRANSACTIONS_TOPIC_NAME, mockUtils.createUniswapDTO(count));
             ws.send(HARVEST_TRANSACTIONS_TOPIC_NAME, mockUtils.createHarvestDTO(count));
             ws.send(HARDWORK_TOPIC_NAME, mockUtils.createHardWorkDTO(count));
