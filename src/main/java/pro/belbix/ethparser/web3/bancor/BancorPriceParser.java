@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.RATE_BY_PATH;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_USDC_CONVERT_PATH;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D6;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.L18;
 
 import java.math.BigDecimal;
@@ -13,17 +14,22 @@ import java.math.RoundingMode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import pro.belbix.ethparser.dto.v0.BancorDTO;
 import pro.belbix.ethparser.model.tx.BancorPriceTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
 import pro.belbix.ethparser.repositories.v0.BancorRepository;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ErrorDbService;
+import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
 @Log4j2
@@ -34,20 +40,28 @@ public class BancorPriceParser extends Web3Parser<BancorDTO, Log> {
   private final BancorLogDecoder bancorLogDecoder;
   private final BancorRepository bancorRepository;
   private final FunctionsUtils functionsUtils;
-
+  private final Web3Functions web3Functions;
+  private final EthBlockService ethBlockService;
+  private final PriceProvider priceProvider;
   protected BancorPriceParser(ParserInfo parserInfo,
       AppProperties appProperties,
       ErrorDbService errorDbService, Web3Subscriber web3Subscriber,
       NetworkProperties networkProperties,
       BancorLogDecoder bancorLogDecoder,
       BancorRepository bancorRepository,
-      FunctionsUtils functionsUtils) {
+      FunctionsUtils functionsUtils,
+      Web3Functions web3Functions,
+      EthBlockService ethBlockService,
+      PriceProvider priceProvider) {
     super(parserInfo, appProperties, errorDbService);
     this.web3Subscriber = web3Subscriber;
     this.networkProperties = networkProperties;
     this.bancorLogDecoder = bancorLogDecoder;
     this.bancorRepository = bancorRepository;
     this.functionsUtils = functionsUtils;
+    this.web3Functions = web3Functions;
+    this.ethBlockService = ethBlockService;
+    this.priceProvider = priceProvider;
   }
 
   private boolean isValidLog(Log ethLog, String network) {
@@ -71,8 +85,16 @@ public class BancorPriceParser extends Web3Parser<BancorDTO, Log> {
       return null;
     }
     BancorDTO bancorDTO =  createDto(tx);
-    double priceFarm =  bancorDTO.getAmountBnt() * bancorDTO.getPriceBnt() / bancorDTO.getAmountFarm();
-    bancorDTO.setPriceFarm(priceFarm);
+
+    long block = ethLog.getBlockNumber().longValue();
+
+    TransactionReceipt transactionReceipt = web3Functions.fetchTransactionReceipt(tx.getHash(), network);
+    bancorDTO.setBlockDate(ethBlockService.getTimestampSecForBlock(block, network));
+
+    Transaction transaction = web3Functions.findTransaction(tx.getHash(), network);
+    bancorDTO.setLastGas(transaction.getGasPrice().doubleValue() / 1_000_000_000.0);
+    bancorDTO.setOwner(transactionReceipt.getFrom());
+
     return bancorDTO;
   }
 
@@ -85,6 +107,25 @@ public class BancorPriceParser extends Web3Parser<BancorDTO, Log> {
     bancorDTO.setAmountFarm(parseAmount(tx.getAmountFarm()));
     bancorDTO.setPriceBnt(findBntPriceOnBlock(tx.getBlock()));
     bancorDTO.setFarmAsSource(tx.getFarmAsSource());
+    bancorDTO.setType(tx.getType().name());
+    bancorDTO.setCoin(tx.getCoin());
+    bancorDTO.setCoinAddress(tx.getCoinAddress());
+    bancorDTO.setOtherCoin(tx.getOtherCoin());
+    bancorDTO.setOtherCoinAddress(tx.getOtherCoinAddress());
+    bancorDTO.setHash(tx.getHash());
+    double priceFarm =  bancorDTO.getAmountBnt() * bancorDTO.getPriceBnt() / bancorDTO.getAmountFarm();
+    bancorDTO.setPriceFarm(priceFarm);
+    if (tx.getOtherCoinAddress().equalsIgnoreCase(BANCOR_CONVERSION_ADDRESS)) {
+      bancorDTO.setLastPrice(bancorDTO.getPriceBnt());
+      bancorDTO.setAmount(bancorDTO.getAmountFarm());
+      bancorDTO.setOtherAmount(bancorDTO.getAmountBnt());
+    }
+    if (tx.getOtherCoinAddress().equalsIgnoreCase(FARM_TOKEN)) {
+      bancorDTO.setLastPrice(bancorDTO.getPriceFarm());
+      bancorDTO.setAmount(bancorDTO.getAmountBnt());
+      bancorDTO.setOtherAmount(bancorDTO.getAmountFarm());
+    }
+
     return bancorDTO;
   }
 
