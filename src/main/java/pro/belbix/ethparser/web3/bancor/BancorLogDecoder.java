@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.web3.bancor;
 
+import static pro.belbix.ethparser.model.tx.BancorPriceTx.BNT;
+import static pro.belbix.ethparser.model.tx.BancorPriceTx.FARM;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
@@ -47,7 +49,7 @@ public class BancorLogDecoder extends MethodDecoder {
     tx.setHash(ethLog.getTransactionHash());
     tx.setLogId(ethLog.getLogIndex().longValue());
     tx.setBlock(ethLog.getBlockNumber().longValue());
-    tx.setType("CONVERSION");
+    tx.setType(BancorOperationEnum.CONVERSION);
     String sourceToken = (String) types.get(1).getValue();
     String targetToken = (String) types.get(2).getValue();
     BigInteger sourceAmount = (BigInteger) types.get(3).getValue();
@@ -57,9 +59,9 @@ public class BancorLogDecoder extends MethodDecoder {
       tx.setFarmAsSource(true);
       tx.setAmountFarm(sourceAmount);
       tx.setAmountBnt(targetAmount);
-      tx.setCoin("FARM");//FARM->BNT
+      tx.setCoin(FARM);//FARM->BNT
       tx.setCoinAddress(FARM_TOKEN);
-      tx.setOtherCoin("BNT");
+      tx.setOtherCoin(BNT);
       tx.setOtherCoinAddress(BANCOR_CONVERSION_ADDRESS);
       return tx;
     }
@@ -68,9 +70,9 @@ public class BancorLogDecoder extends MethodDecoder {
       tx.setFarmAsSource(false);
       tx.setAmountFarm(targetAmount);
       tx.setAmountBnt(sourceAmount);
-      tx.setCoin("BNT");//BNT->FARM
+      tx.setCoin(BNT);//BNT->FARM
       tx.setCoinAddress(BANCOR_CONVERSION_ADDRESS);
-      tx.setOtherCoin("FARM");
+      tx.setOtherCoin(FARM);
       tx.setOtherCoinAddress(FARM_TOKEN);
       return tx;
     }

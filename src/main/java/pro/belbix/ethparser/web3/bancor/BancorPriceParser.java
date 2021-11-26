@@ -107,7 +107,7 @@ public class BancorPriceParser extends Web3Parser<BancorDTO, Log> {
     bancorDTO.setAmountFarm(parseAmount(tx.getAmountFarm()));
     bancorDTO.setPriceBnt(findBntPriceOnBlock(tx.getBlock()));
     bancorDTO.setFarmAsSource(tx.getFarmAsSource());
-    bancorDTO.setType(tx.getType());
+    bancorDTO.setType(tx.getType().name());
     bancorDTO.setCoin(tx.getCoin());
     bancorDTO.setCoinAddress(tx.getCoinAddress());
     bancorDTO.setOtherCoin(tx.getOtherCoin());

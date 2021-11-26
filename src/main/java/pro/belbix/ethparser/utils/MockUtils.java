@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.utils;
 
+import static pro.belbix.ethparser.model.tx.BancorPriceTx.BNT;
+import static pro.belbix.ethparser.model.tx.BancorPriceTx.FARM;
 import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
@@ -20,6 +22,7 @@ import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.dto.v0.PriceDTO;
 import pro.belbix.ethparser.dto.v0.UniswapDTO;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
+import pro.belbix.ethparser.web3.bancor.BancorOperationEnum;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.decoder.VaultActionsLogDecoder;
@@ -49,10 +52,10 @@ public class MockUtils {
     bancorDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
     bancorDTO.setLastGas(currentCount / 6);
     bancorDTO.setLastPrice(currentCount);
-    bancorDTO.setType("CONVERSION");
-    bancorDTO.setCoin("FARM");
+    bancorDTO.setType(BancorOperationEnum.CONVERSION.name());
+    bancorDTO.setCoin(FARM);
     bancorDTO.setCoinAddress(FARM_TOKEN);
-    bancorDTO.setOtherCoin("BNT");
+    bancorDTO.setOtherCoin(BNT);
     bancorDTO.setOtherCoinAddress(BANCOR_CONVERSION_ADDRESS);
     bancorDTO.setHash(bancorDTO.getId());
     bancorDTO.setAmount(currentCount);
