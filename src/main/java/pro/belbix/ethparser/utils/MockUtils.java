@@ -3,6 +3,7 @@ package pro.belbix.ethparser.utils;
 import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 
 import java.math.BigInteger;
@@ -45,6 +46,18 @@ public class MockUtils {
     bancorDTO.setFarmAsSource(true);
     bancorDTO.setPriceBnt(currentCount);
     bancorDTO.setPriceFarm(currentCount);
+    bancorDTO.setBlockDate(Instant.now().plus(seed, ChronoUnit.MINUTES).getEpochSecond());
+    bancorDTO.setLastGas(currentCount / 6);
+    bancorDTO.setLastPrice(currentCount);
+    bancorDTO.setType("CONVERSION");
+    bancorDTO.setCoin("FARM");
+    bancorDTO.setCoinAddress(FARM_TOKEN);
+    bancorDTO.setOtherCoin("BNT");
+    bancorDTO.setOtherCoinAddress(BANCOR_CONVERSION_ADDRESS);
+    bancorDTO.setHash(bancorDTO.getId());
+    bancorDTO.setAmount(currentCount);
+    bancorDTO.setOtherAmount(currentCount);
+    bancorDTO.setOwner("0x" + (seed * 1000000));
     return bancorDTO;
   }
 

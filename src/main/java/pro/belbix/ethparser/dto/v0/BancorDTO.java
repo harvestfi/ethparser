@@ -26,5 +26,16 @@ public class BancorDTO implements DtoI {
   private Double priceBnt;
   private Double priceFarm;
   private Boolean farmAsSource; // 2 type of operations: FARM (source) -> BNT or BNT->FARM (target)
-
+  private Long blockDate;
+  private String owner;
+  private String type;
+  private String coin;
+  private String coinAddress;
+  private String otherCoin;
+  private String otherCoinAddress;
+  private Double lastPrice;
+  private Double lastGas;
+  private Double amount;
+  private Double otherAmount;
+  private String hash;
 }

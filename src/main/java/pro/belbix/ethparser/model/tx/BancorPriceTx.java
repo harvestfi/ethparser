@@ -12,5 +12,10 @@ public class BancorPriceTx {
   private BigInteger amountFarm = new BigInteger("0");
   private BigInteger amountBnt = new BigInteger("0");
   private Boolean farmAsSource;
-
+  private String type;
+  private String coin;
+  private String coinAddress;
+  private String otherCoin;
+  private String otherCoinAddress;
+  private Double lastPrice;
 }
