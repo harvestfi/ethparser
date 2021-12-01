@@ -25,6 +25,8 @@ import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
+import pro.belbix.ethparser.web3.contracts.ContractType;
+import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.db.VaultActionsDBService;
 
 @SpringBootTest(classes = Application.class)
@@ -43,6 +45,9 @@ public class HarvestControllerTest {
     @Autowired
     private VaultActionsDBService vaultActionsDBService;
 
+    @Autowired
+    private ContractDbService contractDbService;
+
     @Test
     public void transactionsLastHarvest() throws Exception {
         String expectedResult = objectMapper.writeValueAsString(
@@ -56,11 +61,14 @@ public class HarvestControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"V_WBTC", "V_USDC"})
     public void historyHarvest(String vault) throws Exception {
+        String vaultAddress = contractDbService.getAddressByName(vault, ContractType.VAULT,
+                ETH_NETWORK).orElseThrow();
+
         String expectedResult = objectMapper.writeValueAsString(
                 harvestRepository.findAllByVaultOrderByBlockDate(
                         vault, 0, Long.MAX_VALUE, ETH_NETWORK));
 
-        this.mockMvc.perform(get("/api/transactions/history/harvest/" + vault))
+        this.mockMvc.perform(get("/api/transactions/history/harvest/" + vaultAddress))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedResult));
     }

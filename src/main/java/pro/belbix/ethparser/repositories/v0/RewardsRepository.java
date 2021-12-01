@@ -11,11 +11,6 @@ import pro.belbix.ethparser.dto.v0.RewardDTO;
 
 public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
 
-  @Query(nativeQuery = true, value = ""
-      + "select * from rewards where "
-      + "lower(vault_address) = lower(:vaultAddress) "
-      + "and network = :network "
-      + "order by block_date desc limit 1")
   RewardDTO getFirstByVaultAddressAndNetworkOrderByBlockDateDesc(String vaultAddress,
       String network);
 
@@ -30,7 +25,7 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
   );
 
   @Query("select t from RewardDTO t where "
-      + "lower(t.vaultAddress) = lower(:vault) "
+      + "t.vaultAddress = :vault "
       + "and t.blockDate between :startDate and :endDate "
       + "and t.network = :network")
   List<RewardDTO> fetchRewardsByVaultAfterBlockDate(
@@ -47,7 +42,7 @@ public interface RewardsRepository extends JpaRepository<RewardDTO, String> {
   List<RewardDTO> fetchLastRewards(@Param("network") String network);
 
   @Query("select t from RewardDTO t where "
-      + "lower(t.vaultAddress) = lower(:vault) "
+      + "t.vaultAddress = :vault "
       + "and t.blockDate between :startTime and :endTime "
       + "and t.network = :network "
       + "order by t.blockDate")
