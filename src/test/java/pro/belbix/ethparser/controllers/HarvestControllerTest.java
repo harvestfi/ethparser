@@ -66,7 +66,7 @@ public class HarvestControllerTest {
 
         String expectedResult = objectMapper.writeValueAsString(
                 harvestRepository.findAllByVaultOrderByBlockDate(
-                        vault, 0, Long.MAX_VALUE, ETH_NETWORK));
+                    vaultAddress, 0, Long.MAX_VALUE, ETH_NETWORK));
 
         this.mockMvc.perform(get("/api/transactions/history/harvest/" + vaultAddress))
                 .andExpect(status().isOk())
