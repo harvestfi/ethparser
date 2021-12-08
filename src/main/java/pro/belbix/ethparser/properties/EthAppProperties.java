@@ -20,6 +20,7 @@ public class EthAppProperties implements NetworkPropertiesI {
   private boolean parseLog = true;
   private String startLogBlock = "";
   private boolean parseUniswapLog = true;
+  private boolean parseBancorLog = true;
   private boolean parseHarvestLog = true;
   private boolean parseHardWorkLog = true;
   private boolean parseRewardsLog = true;

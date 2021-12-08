@@ -2,17 +2,21 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_18_MARCH_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_BANCOR_TRANSACTIONS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -52,7 +56,8 @@ public class ContractUtils {
 
   public static boolean isFarmAddress(String address) {
     return FARM_TOKEN.equalsIgnoreCase(address)
-        || BSC_FARM_TOKEN.equalsIgnoreCase(address);
+        || BSC_FARM_TOKEN.equalsIgnoreCase(address)
+        || MATIC_FARM_TOKEN.equalsIgnoreCase(address);
   }
 
   public static boolean isStableCoin(String address) {
@@ -70,7 +75,10 @@ public class ContractUtils {
       return ETH_BLOCK_NUMBER_30_AUGUST_2020.getBlockNumber().intValue();
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_BLOCK_NUMBER_18_MARCH_2021.getBlockNumber().intValue();
-    } else {
+    }else if (MATIC_NETWORK.equals(network)) {
+      return MATIC_BLOCK_NUMBER_06_JUL_2021.getBlockNumber().intValue();
+    }
+    else {
       throw new IllegalStateException("Unknown network " + network);
     }
   }
@@ -89,6 +97,8 @@ public class ContractUtils {
       return "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
     } else if (BSC_NETWORK.equals(network)) {
       return "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+    } else if (MATIC_NETWORK.equals(network)) {
+      return "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
     }
     return "";
   }
@@ -98,6 +108,8 @@ public class ContractUtils {
       return "ETH";
     } else if (BSC_NETWORK.equals(network)) {
       return "WBNB";
+    } else if (MATIC_NETWORK.equals(network)) {
+      return "WMATIC";
     }
     return "";
   }
@@ -139,6 +151,8 @@ public class ContractUtils {
       return "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase();
     } else if (BSC_NETWORK.equals(network)) {
       return "0x2170Ed0880ac9A755fd29B2688956BD959F933F8".toLowerCase();
+    } else if (MATIC_NETWORK.equals(network)) {
+      return "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619".toLowerCase();
     }
     return null;
   }
@@ -148,6 +162,8 @@ public class ContractUtils {
       return "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase();
     } else if (BSC_NETWORK.equals(network)) {
       return "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c".toLowerCase();
+    }else if (MATIC_NETWORK.equals(network)) {
+      return "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6".toLowerCase();
     }
     return null;
   }
@@ -185,6 +201,8 @@ public class ContractUtils {
       return FARM_TOKEN;
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_FARM_TOKEN;
+    } else if (MATIC_NETWORK.equals(network)) {
+      return MATIC_FARM_TOKEN;
     }
     return null;
   }
@@ -197,5 +215,11 @@ public class ContractUtils {
       String network) {
     return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase())
         && date > FULL_PARSABLE_UNI_PAIRS.get(network).get(address.toLowerCase());
+  }
+
+  public static boolean isParsableBancorTransaction(String address, int date,
+      String network) {
+    return PARSABLE_BANCOR_TRANSACTIONS.get(network).containsKey(address.toLowerCase())
+        && date > PARSABLE_BANCOR_TRANSACTIONS.get(network).get(address.toLowerCase());
   }
 }

@@ -98,4 +98,5 @@ public class FunctionsNames {
   public static final String UNLOCKS_TOTAL_QUOTATION = "unlocksTotalQuotation";
   public static final String CLAIMED_REWARDS = "claimedRewards";
   public static final String VAULT = "vault";
+  public static final String RATE_BY_PATH = "rateByPath";
 }

@@ -23,9 +23,11 @@ public class AbiProviderService {
   public final static int RATE_TIMEOUT = 1000;
   public final static String ETH_NETWORK = "eth";
   public final static String BSC_NETWORK = "bsc";
+  public final static String MATIC_NETWORK = "matic";
   private final static int RETRY_COUNT = 10;
   private final static String ETHERSCAN_URL = "https://api.etherscan.io/api";
   private final static String BSC_URL = "https://api.bscscan.com/api";
+  private final static String MATIC_URL = "https://api.polygonscan.com/api";
   private final static String PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
   private final RestTemplate restTemplate = new RestTemplate();
   private Instant lastRequest = Instant.now();
@@ -132,6 +134,8 @@ public class AbiProviderService {
       return ETHERSCAN_URL;
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_URL;
+    }else if (MATIC_NETWORK.equals(network)) {
+      return MATIC_URL;
     } else {
       throw new IllegalStateException("Unknown network " + network);
     }

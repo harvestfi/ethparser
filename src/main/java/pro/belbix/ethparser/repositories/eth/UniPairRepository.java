@@ -13,7 +13,7 @@ public interface UniPairRepository extends JpaRepository<UniPairEntity, Integer>
         + "left join fetch t.contract f1 "
         + "left join fetch t.token0 f2 "
         + "left join fetch t.token1 f3 "
-        + "where f1.address = :lpAddress and f1.network = :network")
+        + "where lower(f1.address) = lower(:lpAddress) and f1.network = :network")
     UniPairEntity findFirstByAddress(
         @Param("lpAddress") String lpAddress,
         @Param("network") String network
@@ -41,8 +41,8 @@ public interface UniPairRepository extends JpaRepository<UniPairEntity, Integer>
         + "left join fetch t.token0 f2 "
         + "left join fetch t.token1 f3 "
         + "where f1.network = :network "
-        + "and ((t.token0.address = :token0 and t.token1.address = :token1)"
-        + "     or (t.token1.address = :token0 and t.token0.address = :token1))")
+        + "and ((lower(t.token0.address) = lower(:token0) and lower(t.token1.address) = lower(:token1))"
+        + "     or (lower(t.token1.address) = lower(:token0) and lower(t.token0.address) = lower(:token1)))")
     List<UniPairEntity> findLpsForTokenPair(
         @Param("token0") String token0,
         @Param("token1") String token1,

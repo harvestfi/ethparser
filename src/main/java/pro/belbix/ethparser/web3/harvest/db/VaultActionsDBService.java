@@ -4,6 +4,8 @@ import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,7 +89,7 @@ public class VaultActionsDBService {
 
     Integer allPoolsOwnerCount = harvestRepository.fetchAllPoolsUsersQuantity(
         contractDbService.getAllVaults(dto.getNetwork()).stream()
-            .map(v -> v.getContract().getAddress())
+            .map(v -> v.getContract().getAddress().toLowerCase())
             .filter(v -> !ContractUtils.isPsAddress(v))
             .filter(v -> !v.equalsIgnoreCase(iPS_ADDRESS))
             .collect(Collectors.toList()),
@@ -208,7 +210,10 @@ public class VaultActionsDBService {
         return BigInteger.valueOf(10765094L);
       } else if (BSC_NETWORK.equals(network)) {
         return BigInteger.valueOf(5993570L);
-      } else {
+      } else if (MATIC_NETWORK.equals(network)) {
+        return BigInteger.valueOf(16566542L);
+      }
+       else {
         return new BigInteger("0");
       }
     }

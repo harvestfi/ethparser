@@ -27,7 +27,11 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
     UniswapDTO findFirstByOrderByBlockDesc();
 
     @Query("select t from UniswapDTO t where "
-        + "t.owner = :owner and t.coin = 'FARM' and t.blockDate > :from and t.blockDate <= :to order by t.blockDate asc")
+        + "lower(t.owner) = lower(:owner) "
+        + "and t.coin = 'FARM' "
+        + "and t.blockDate > :from "
+        + "and t.blockDate <= :to "
+        + "order by t.blockDate asc")
     List<UniswapDTO> fetchAllByOwner(@Param("owner") String owner, @Param("from") long from, @Param("to") long to);
 
     List<UniswapDTO> findAllByOrderByBlockDate();
@@ -70,7 +74,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         Pageable pageable);
 
     @Query("select t from UniswapDTO t where "
-        + "t.coinAddress = :coinAddress "
+        + "lower(t.coinAddress) = lower(:coinAddress) "
         + "and t.amount >= :minAmount "
         + "and t.type in :types")
     Page<UniswapDTO> fetchPagesByToken(
@@ -87,7 +91,7 @@ public interface UniswapRepository extends JpaRepository<UniswapDTO, String> {
         "       SUBSTRING_INDEX(MAX(CONCAT(block_date, '_', last_price)), '_', -1) as close,  " +
         "       sum(amount) as volume  " +
         "from uni_tx  " +
-        "where coin_address = :coin and block_date between :startTime and :endTime " +
+        "where lower(coin_address) = lower(:coin) and block_date between :startTime and :endTime " +
         "GROUP BY FLOOR(block_date/:period)  " +
         "order by timestamp;")
     List<OhlcProjection> fetchOHLCTransactions(

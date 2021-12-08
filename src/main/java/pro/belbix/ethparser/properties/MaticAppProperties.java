@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "ethparser.bsc")
+@ConfigurationProperties(prefix = "ethparser.matic")
 @Getter
 @Setter
-public class BscAppProperties implements NetworkPropertiesI {
+public class MaticAppProperties implements NetworkPropertiesI {
 
   private String web3Url = "";
   private String abiProviderKey = "";

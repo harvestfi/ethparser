@@ -11,7 +11,7 @@ public interface StrategyRepository extends JpaRepository<StrategyEntity, Intege
 
   @Query("select t from StrategyEntity t "
       + "left join fetch t.contract f1 "
-      + "where f1.address = :address and f1.network = :network")
+      + "where lower(f1.address) = lower(:address) and f1.network = :network")
   StrategyEntity findFirstByAddress(
       @Param("address") String address,
       @Param("network") String network

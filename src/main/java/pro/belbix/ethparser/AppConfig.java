@@ -10,13 +10,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.BscAppProperties;
 import pro.belbix.ethparser.properties.EthAppProperties;
+import pro.belbix.ethparser.properties.MaticAppProperties;
 import pro.belbix.ethparser.properties.NetworkPropertiesI;
 
 @Configuration
 @EnableConfigurationProperties({
     AppProperties.class,
     EthAppProperties.class,
-    BscAppProperties.class
+    BscAppProperties.class,
+    MaticAppProperties.class
 })
 @EnableScheduling
 public class AppConfig {

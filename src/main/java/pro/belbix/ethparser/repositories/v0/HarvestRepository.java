@@ -21,8 +21,9 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by block_date;")
     List<HarvestDTO> fetchAllWithoutCounts(@Param("network") String network);
 
-    @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault_address = :vault "
+    @Query(nativeQuery = true, value = ""
+        + "select * from harvest_tx "
+        + "where lower(vault_address) = lower(:vault) "
         + "and network = :network "
         + "and block_date <= :block_date "
         + "order by block_date desc limit 1")
@@ -33,7 +34,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     );
 
     @Query(nativeQuery = true, value = "select * from harvest_tx "
-        + "where vault_address = :vault "
+        + "where lower(vault_address) = lower(:vault) "
         + "and last_usd_tvl != 0 "
         + "and network = :network "
         + "and block_date <= :block_date "
@@ -50,7 +51,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "         select distinct on (owner) owner, "
         + "                                    last_value(owner_balance_usd) over w as balance "
         + "         from harvest_tx "
-        + "         where vault_address = :vault "
+        + "         where lower(vault_address) = lower(:vault) "
         + "           and block_date <= :block_date "
         + "           and network = :network "
         + "             window w as (PARTITION BY owner order by block_date desc) "
@@ -85,7 +86,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "      cast(SUBSTRING_INDEX(cast(MAX(CONCAT(block_date, SUBSTRING_INDEX(cast(id as text), cast('_' as text), cast(-1 as integer)), '|', "
         + "                 coalesce(owner_balance_usd, 0))) as text), '|', -1) as DOUBLE PRECISION) b "
         + "          from harvest_tx "
-        + "          where vault_address in :vaults "
+        + "          where lower(vault_address) in :vaults "
         + "          and block_date < :block_date "
         + "          and network = :network "
         + "          group by vault, owner) t "
@@ -102,7 +103,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     HarvestDTO findFirstByNetworkOrderByBlockDesc(String network);
 
     @Query("select max(t.blockDate) - min(t.blockDate) as period from HarvestDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.network = :network "
         + "and t.blockDate <= :to")
     List<Long> fetchPeriodOfWork(@Param("vault") String vaultAddress,
@@ -111,7 +112,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         Pageable pageable);
 
     @Query("select avg(t.lastUsdTvl) as period from HarvestDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate between :from and :to "
         + "and t.network = :network")
     List<Double> fetchAverageTvl(
@@ -147,6 +148,12 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by t.blockDate asc")
     List<HarvestDTO> fetchAllMigration();
 
+    @Query(nativeQuery = true, value = ""
+        + "select * from harvest_tx t where "
+        + "lower(t.vault_address) = lower(:vaultAddress) "
+        + "and t.block_date < :blockDate "
+        + "and t.network = :network "
+        + "order by t.block_date desc limit 1")
     HarvestDTO findFirstByVaultAddressAndBlockDateBeforeAndNetworkOrderByBlockDateDesc(
         String vaultAddress, long blockDate, String network);
 
@@ -161,7 +168,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     );
 
     @Query("select t from HarvestDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.blockDate between :startTime and :endTime "
         + "and t.network = :network "
         + "order by t.blockDate")
@@ -198,7 +205,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                         coalesce((select block_date "
         + "                                   from harvest_tx "
         + "                                   where owner = :owner "
-        + "                                     and vault_address = :vault "
+        + "                                     and lower(vault_address) = lower(:vault) "
         + "                                     and method_name = 'Withdraw' "
         + "                                     and block_date < :blockDate "
         + "                                     and owner_balance = 0 "
@@ -206,7 +213,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "                                   limit 1), 0) last_withdraw_block_date "
         + "                  from harvest_tx "
         + "                  where owner = :owner "
-        + "                    and vault_address = :vault "
+        + "                    and lower(vault_address) = lower(:vault) "
         + "                    and block_date < :blockDate "
         + "                    and network = :network "
         + "                  order by block_date "
@@ -232,7 +239,7 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         Pageable pageable);
 
     @Query("select t from HarvestDTO t where "
-        + "t.vaultAddress = :vault "
+        + "lower(t.vaultAddress) = lower(:vault) "
         + "and t.usdAmount >= :minAmount "
         + "and t.network = :network")
     Page<HarvestDTO> fetchPagesByVault(

@@ -1,0 +1,1 @@
+INSERT INTO public.eth_contracts (address, created, name, network, type, curve_underlying, underlying, updated, created_date, updated_date) VALUES ('0x2f9ec37d6ccfff1cab21733bdadede11c823ccb0', 10285676, 'BANCOR', 'eth', 3, null, null, null, 1594967753, null);

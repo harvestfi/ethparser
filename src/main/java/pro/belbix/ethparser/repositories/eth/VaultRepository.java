@@ -15,7 +15,7 @@ public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
         + "left join fetch t.governance f3 "
         + "left join fetch t.strategy f4 "
         + "left join fetch t.underlying f5 "
-        + "where f1.address = :vaultAdr and f1.network = :network")
+        + "where lower(f1.address) = lower(:vaultAdr) and f1.network = :network")
     VaultEntity findFirstByContract(
         @Param("vaultAdr") String vaultAdr,
         @Param("network") String network

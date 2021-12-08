@@ -23,11 +23,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
@@ -228,6 +230,27 @@ public class FunctionsUtils {
     return callUint256Function(new Function(
         functionName,
         Collections.singletonList(new Address(arg)),
+        Collections.singletonList(new TypeReference<Uint256>() {
+        })), hash, block, network);
+  }
+
+  public Optional<BigInteger> callIntByNameWithAddressesArrayAndBigIntegerArg(
+      String functionName,
+      List<String> addresses,
+      BigInteger arg2,
+      String hash,
+      Long block,
+      String network) {
+
+    List<Address> addressList = addresses.stream()
+        .map(Address::new)
+        .collect(Collectors.toList());
+
+    DynamicArray addressesArray = new DynamicArray<Address>(Address.class, addressList);
+
+    return callUint256Function(new Function(
+        functionName,
+        List.of(addressesArray, new Uint256(arg2)),
         Collections.singletonList(new TypeReference<Uint256>() {
         })), hash, block, network);
   }

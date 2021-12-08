@@ -145,3 +145,10 @@ INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, t
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (145, 18, 1, 12375452, 1059, 1060, 371);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (146, 18, 2, 12505208, 1103, 1104, 1105);
 INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (147, 18, 2, 12505208, 1106, 409, 1104);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10011, 18, 0, 16644936, 10072, 10073, 10066);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10012, 18, 0, 16644936, 10074, 10060, 10073);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10007, 18, 0, 16644965, 10059, 10060, 10061);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10009, 18, 0, 16645038, 10067, 10068, 10066);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10010, 18, 0, 16645038, 10069, 10068, 10063);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10044, 18, 0, 16657148, 10104, 10063, 10060);
+INSERT INTO public.eth_uni_pairs (id, decimals, type, updated_block, contract, token0_id, token1_id) VALUES (10008, 18, 0, 16657148, 10062, 10063, 10060);
