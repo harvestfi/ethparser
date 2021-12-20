@@ -68,7 +68,7 @@ public class ErrorService {
     log.info("Load errors from db: " + listErrors.size());
     for (ErrorEntity errorEntity : listErrors) {
       try {
-        if (errorEntity.getStatus() == 1) {
+        if (errorEntity.getStatus() != null && errorEntity.getStatus() == 1) {
           continue;
         }
         parseObject(errorEntity);
