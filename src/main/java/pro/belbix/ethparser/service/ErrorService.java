@@ -68,6 +68,9 @@ public class ErrorService {
     log.info("Load errors from db: " + listErrors.size());
     for (ErrorEntity errorEntity : listErrors) {
       try {
+        if (errorEntity.getStatus() == 1) {
+          continue;
+        }
         parseObject(errorEntity);
         errorDbService.delete(errorEntity);
       } catch (Exception e) {
@@ -80,7 +83,7 @@ public class ErrorService {
 
   public void parseObject(ErrorEntity errorEntity) {
     if (errorEntity == null || errorEntity.getErrorClass() == null) {
-      throw new IllegalStateException("Detected unknown errorClass: " + errorEntity.toString());
+      throw new IllegalStateException("Detected unknown errorClass: " + errorEntity);
     }
     switch (errorEntity.getErrorClass()) {
       case "DeployerTransactionsParser":
