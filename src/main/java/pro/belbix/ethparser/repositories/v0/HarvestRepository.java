@@ -100,6 +100,32 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         @Param("network") String network
     );
 
+    @Query(nativeQuery = true, value = ""
+        + " select coalesce(sum(t.deposit), 0) as difference "
+        + " from ( "
+        + "         select - sum(harvest_tx.owner_balance) as deposit "
+        + "         from harvest_tx "
+        + "         where harvest_tx.owner = :owner "
+        + "           and harvest_tx.vault = :vault "
+        + "           and harvest_tx.network = :network "
+        + "           and harvest_tx.method_name = 'Deposit' "
+        + "           and harvest_tx.block_date <= :block_date "
+        + "         union all "
+        + "         select sum(harvest_tx.owner_balance) as withdrow "
+        + "         from harvest_tx "
+        + "         where harvest_tx.owner = :owner "
+        + "           and harvest_tx.vault = :vault "
+        + "           and harvest_tx.network = :network "
+        + "           and harvest_tx.method_name = 'Withdraw' "
+        + "           and harvest_tx.block_date <= :block_date "
+        + " ) t ")
+    Double fetchTotalDifferenceDepositAndWithdraw(
+        @Param("vault") String vault,
+        @Param("owner") String owner,
+        @Param("block_date") long blockDate,
+        @Param("network") String network
+    );
+
     HarvestDTO findFirstByNetworkOrderByBlockDesc(String network);
 
     @Query("select max(t.blockDate) - min(t.blockDate) as period from HarvestDTO t where "
@@ -132,6 +158,16 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         @Param("from") long from,
         @Param("to") long to,
         @Param("network") String network
+    );
+
+    @Query("select t from HarvestDTO t where "
+        + "t.owner = :owner "
+        + "and t.blockDate between :from and :to "
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllByOwnerWithoutNetwork(
+        @Param("owner") String owner,
+        @Param("from") long from,
+        @Param("to") long to
     );
 
     @Query("select t from HarvestDTO t where "

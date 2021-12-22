@@ -1,0 +1,33 @@
+package pro.belbix.ethparser.controllers;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.service.ProfitService;
+
+@RestController
+@Log4j2
+public class ProfitController {
+
+  private final ProfitService profitService;
+
+  public ProfitController(ProfitService profitService){
+
+    this.profitService = profitService;
+  }
+
+  @RequestMapping(value = "api/profit/calculation", method = RequestMethod.GET)
+  public Double fetchProfit(
+      @RequestParam("address") @Parameter(description = "Vault address") String address,
+      @RequestParam(value = "start", required = false, defaultValue = "0")
+      @Parameter(description = "Block creation time from") String start,
+      @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "")
+      @Parameter(description = "Block creation time to") String end
+  ) {
+
+    return profitService.calculationProfitForPeriod(address, start, end);
+  }
+}
