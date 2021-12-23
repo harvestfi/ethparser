@@ -33,7 +33,20 @@ public class ProfitControllerTest {
   public void testCalculation(String address, String start, String end) throws Exception {
 
     this.mockMvc.perform(
-            get("/api/profit/calculation?address=" + address + "&start=" + start + "&end=" + end))
+            get("/api/profit/total?address=" + address + "&start=" + start + "&end=" + end))
+        .andExpect(status().isOk());
+  }
+
+  @ParameterizedTest(name = "{index} => address={0}, start={1}, end={2}")
+  @CsvSource({
+      "0xe7c9d242137896741b70cefef701bbb4dcb158ec, matic, 1613588289, 1640168651"
+  })
+  public void testCalculationByVault(String address, String network, String start, String end)
+      throws Exception {
+
+    this.mockMvc.perform(
+            get("/api/profit/vault?address=" + address
+                + "&network=" + network + "&start=" + start + "&end=" + end))
         .andExpect(status().isOk());
   }
 

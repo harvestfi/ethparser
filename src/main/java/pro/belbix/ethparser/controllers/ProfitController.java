@@ -1,5 +1,7 @@
 package pro.belbix.ethparser.controllers;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
+
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,9 +21,9 @@ public class ProfitController {
     this.profitService = profitService;
   }
 
-  @RequestMapping(value = "api/profit/calculation", method = RequestMethod.GET)
+  @RequestMapping(value = "api/profit/total", method = RequestMethod.GET)
   public Double fetchProfit(
-      @RequestParam("address") @Parameter(description = "Vault address") String address,
+      @RequestParam("address") @Parameter(description = "Owner address") String address,
       @RequestParam(value = "start", required = false, defaultValue = "0")
       @Parameter(description = "Block creation time from") String start,
       @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "")
@@ -29,5 +31,18 @@ public class ProfitController {
   ) {
 
     return profitService.calculationProfitForPeriod(address, start, end);
+  }
+
+  @RequestMapping(value = "api/profit/vault", method = RequestMethod.GET)
+  public Double fetchProfitByVault(
+      @RequestParam("address") @Parameter(description = "Vault address") String address,
+      @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network,
+      @RequestParam(value = "start", required = false, defaultValue = "0")
+      @Parameter(description = "Block creation time from") String start,
+      @RequestParam(value = "end", required = false, defaultValue = Long.MAX_VALUE + "")
+      @Parameter(description = "Block creation time to") String end
+  ) {
+
+    return profitService.calculationProfitByVaultForPeriod(address, network, start, end);
   }
 }

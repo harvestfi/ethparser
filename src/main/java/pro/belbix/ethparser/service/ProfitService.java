@@ -127,4 +127,17 @@ public class ProfitService {
             network)
         .orElseThrow(() -> new IllegalStateException("Error get amount from " + address));
   }
+
+  public Double calculationProfitByVaultForPeriod(String address, String network, String start,
+      String end) {
+    List<HarvestDTO> harvestDTOS = harvestRepository.fetchAllByVaultAddressAndNetwork(
+        address.toLowerCase(),
+        parseLong(start, 0),
+        parseLong(end, Long.MAX_VALUE),
+        network);
+
+    return calculationTotalYield(harvestDTOS.stream()
+            .collect(Collectors.groupingBy(HarvestDTO::getVault, Collectors.toList())),
+        parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+  }
 }

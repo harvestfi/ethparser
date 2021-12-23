@@ -171,6 +171,18 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
     );
 
     @Query("select t from HarvestDTO t where "
+        + "lower(t.vaultAddress) = lower(:vault) "
+        + "and t.blockDate between :from and :to "
+        + "and t.network = :network "
+        + "order by t.blockDate asc")
+    List<HarvestDTO> fetchAllByVaultAddressAndNetwork(
+        @Param("vault") String vaultAddress,
+        @Param("from") long from,
+        @Param("to") long to,
+        @Param("network") String network
+    );
+
+    @Query("select t from HarvestDTO t where "
         + "(t.ownerBalance is null "
         + "or t.ownerBalanceUsd is null) "
         + "and t.network = :network "
