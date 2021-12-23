@@ -25,4 +25,5 @@ public class ErrorEntity {
   private String json;
   private String errorClass;
   private String network;
+  private Integer status;
 }
