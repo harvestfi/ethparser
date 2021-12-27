@@ -46,6 +46,10 @@ public class ProfitService {
         parseLong(start, 0),
         parseLong(end, Long.MAX_VALUE));
 
+    if (harvestDTOS == null || harvestDTOS.isEmpty()) {
+      return 0.0;
+    }
+
     return calculationTotalYield(harvestDTOS.stream()
             .collect(Collectors.groupingBy(HarvestDTO::getVault, Collectors.toList())),
         parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
@@ -61,8 +65,7 @@ public class ProfitService {
 
   private Double calcYieldByVault(List<HarvestDTO> v, Long start, Long end) {
     long startBlockNumber = (v.get(0).getBlock() * start) / v.get(0).getBlockDate();
-//    long endBlockNumber = (v.get(v.size() - 1).getBlock() * end) / v.get(v.size() - 1).getBlockDate();// random block number (wip)
-    Long endBlockNumber = ethBlockService.getLastBlock(v.get(0).getNetwork());
+    long endBlockNumber = getEndBlockNumber(v, end);
 
     String vaultAddress = v.get(0).getVaultAddress();
     String network = v.get(0).getNetwork();
@@ -136,8 +139,20 @@ public class ProfitService {
         parseLong(end, Long.MAX_VALUE),
         network);
 
+    if (harvestDTOS == null || harvestDTOS.isEmpty()) {
+      return 0.0;
+    }
+
     return calculationTotalYield(harvestDTOS.stream()
             .collect(Collectors.groupingBy(HarvestDTO::getVault, Collectors.toList())),
         parseLong(start, 0), parseLong(end, Long.MAX_VALUE));
+  }
+
+  private long getEndBlockNumber(List<HarvestDTO> v, Long end) {
+    if (end == Long.MAX_VALUE) {
+      return ethBlockService.getLastBlock(v.get(0).getNetwork());
+    }
+
+    return (v.get(v.size() - 1).getBlock() * end) / v.get(v.size() - 1).getBlockDate();
   }
 }
