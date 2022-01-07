@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -60,6 +61,8 @@ public class FunctionsUtils {
   public final static String TYPE_BOOL = "bool";
 
   private final Map<String, Function> functionsCache = new HashMap<>();
+  private final static String EXCLUDE_ONEINCH = "1inch";
+  private final static String EXCLUDE_KYBER = "Kyber";
 
   private final Web3Functions web3Functions;
   private final ContractDbService contractDbService;
@@ -76,12 +79,12 @@ public class FunctionsUtils {
       Long block,
       String network) {
 
-    String lpName = callStrByName(NAME, lpAddress, block, network).orElse("");
+    String lpName = callStrByName(NAME, lpAddress, block, network).orElse(StringUtils.EMPTY);
 
-    if (lpName.startsWith("1inch")) {
+    if (lpName.startsWith(EXCLUDE_ONEINCH)) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
-      return callUniReserves(lpAddress, block, network);
+      return callUniReserves(lpAddress, block, network, getTypeReferenceForGetReserves(lpName));
     }
   }
 
@@ -110,18 +113,12 @@ public class FunctionsUtils {
     return new Tuple2<>(coin0Balance, coin1Balance);
   }
 
-  private Tuple2<Double, Double> callUniReserves(String lpAddress, Long block, String network) {
+  private Tuple2<Double, Double> callUniReserves(String lpAddress, Long block, String network, List<TypeReference<?>> typeReferences) {
     List<Type> types = web3Functions.callFunction(new Function(
         GET_RESERVES,
         Collections.emptyList(),
-        Arrays.asList(new TypeReference<Uint112>() {
-                      },
-            new TypeReference<Uint112>() {
-            },
-            new TypeReference<Uint32>() {
-            }
-        )), lpAddress, resolveBlock(block), network);
-    if (types == null || types.size() < 3) {
+        typeReferences), lpAddress, resolveBlock(block), network);
+    if (types == null || types.size() < typeReferences.size()) {
       log.error("Wrong values for " + lpAddress);
       return null;
     }
@@ -419,5 +416,18 @@ public class FunctionsUtils {
       return new DefaultBlockParameterNumber(block);
     }
     return LATEST;
+  }
+
+  private List<TypeReference<?>> getTypeReferenceForGetReserves(String lpName) {
+    List<TypeReference<?>> typeReferences = new ArrayList<>(Arrays.asList(
+        new TypeReference<Uint112>() {},
+        new TypeReference<Uint112>() {}
+    ));
+
+    if (!lpName.startsWith(EXCLUDE_KYBER)) {
+      typeReferences.add(new TypeReference<Uint32>() {});
+    }
+
+    return typeReferences;
   }
 }
