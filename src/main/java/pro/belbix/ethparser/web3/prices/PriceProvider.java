@@ -203,7 +203,7 @@ public class PriceProvider {
         }
       } catch (Exception ignore) {
       }
-      log.error("Not found lp for {}", address);
+      log.error("Not found lp for {}, block: {}, network: {}", address, block, network);
       return 0;
     }
 

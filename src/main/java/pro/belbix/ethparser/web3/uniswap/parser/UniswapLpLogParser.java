@@ -117,6 +117,10 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
     //enrich owner
     TransactionReceipt receipt = web3Functions.fetchTransactionReceipt(dto.getHash(), ETH_NETWORK);
+    if (receipt == null) {
+      log.error("TransactionReceipt is null for hash: {}", dto.getHash());
+      throw new IllegalStateException("TransactionReceipt is null");
+    }
     dto.setOwner(receipt.getFrom());
 
     //enrich date
