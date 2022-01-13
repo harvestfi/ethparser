@@ -33,6 +33,8 @@ import pro.belbix.ethparser.web3.uniswap.decoder.UniswapLpLogDecoder;
 @Log4j2
 public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
 
+  private final static String SUCCESS_TX_RESULT = "0x1";
+
   private final UniswapLpLogDecoder uniswapLpLogDecoder = new UniswapLpLogDecoder();
   private final Web3Functions web3Functions;
   private final Web3Subscriber web3Subscriber;
@@ -120,6 +122,10 @@ public class UniswapLpLogParser extends Web3Parser<UniswapDTO, Log> {
     if (receipt == null) {
       log.error("TransactionReceipt is null for hash: {}", dto.getHash());
       throw new IllegalStateException("TransactionReceipt is null");
+    }
+
+    if (!receipt.getStatus().equals(SUCCESS_TX_RESULT)) {
+      log.warn("Tx {} status is not success", dto.getHash());
     }
     dto.setOwner(receipt.getFrom());
 
