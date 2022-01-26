@@ -426,7 +426,10 @@ public class Web3Functions {
       return ethCall;
     }, "callFunction " + function.getName() + " " + contractAddress
         + " " + block.getValue() + " " + network);
-    if (result == null) {
+    if (result == null && block != LATEST) {
+      log.debug("Try to call function on latest block");
+      return callFunction(function, contractAddress, LATEST, network);
+    } else if (result == null) {
       return null;
     }
     try {
