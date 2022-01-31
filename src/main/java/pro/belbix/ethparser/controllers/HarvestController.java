@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.utils.CommonUtils.reduceListElements;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -46,6 +47,7 @@ public class HarvestController {
     private final VaultActionsDBService vaultActionsDBService;
     private final ContractDbService contractDbService;
     private final DtoCache dtoCache;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public HarvestController(HarvestRepository harvestRepository,
         VaultActionsDBService vaultActionsDBService,
@@ -284,6 +286,17 @@ public class HarvestController {
             return RestResponse.error("Not found period for address " + address);
         }
         return RestResponse.ok(periods.get(0).toString());
+    }
+
+    @Operation(summary = "Returns unique owner addresses by network", description = "")
+    @GetMapping("api/transactions/history/harvest/addresses")
+    public RestResponse fetchUniqueAddressByNetwork(@RequestParam String network) {
+        try {
+            var result = harvestRepository.fetchUniqueAddressByNetwork(network);
+            return RestResponse.ok(objectMapper.writeValueAsString(result));
+        } catch (Exception e) {
+            return RestResponse.error("Server error");
+        }
     }
 
 }

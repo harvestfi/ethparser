@@ -307,6 +307,11 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "order by balance desc")
     List<UserBalance> fetchOwnerBalances(@Param("network") String network);
 
+    @Query("select h.owner from HarvestDTO h "
+        + "where h.network = :network "
+        + "group by h.owner")
+    List<String> fetchUniqueAddressByNetwork(@Param("network") String network);
+
     interface UserBalance {
 
         String getOwner();
