@@ -46,4 +46,9 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         @Param("network") String network
     );
 
+    @Query("select c from ContractEntity c "
+        + "where c.network = :network "
+        + "and lower(c.address) in(:addresses)")
+    List<ContractEntity> findAllByNetworkAndInAddress(String network, List<String> addresses);
+
 }
