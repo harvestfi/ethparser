@@ -33,6 +33,7 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class HarvestPoolInfoService {
+  private static final Long INCREASE_BLOCK_WEIGHT = 1000L;
 
   HarvestService harvestService;
   ContractLoader contractLoader;
@@ -43,8 +44,8 @@ public class HarvestPoolInfoService {
   CovalenthqService covalenthqService;
 
 
-  // everyday
-  @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
+  // each hour
+  @Scheduled(fixedRate = 1000 * 60 * 60)
   public void start() {
     try {
       var response = harvestService.getPools();
@@ -75,7 +76,8 @@ public class HarvestPoolInfoService {
 
   private List<PoolEntity> doTaskByAddressAndNetwork(List<HarvestPoolItemInfo> items, String network) {
     log.info("Begin find pool and insert in network: {}", network);
-    var existPools = contractRepository.findAllByNetworkAndInAddress(network, items.stream().map(i -> i.getContractAddress().toLowerCase()).collect(Collectors.toList()));
+    var existPools = contractRepository.findAllByNetworkAndInAddressAndType(network,
+        items.stream().map(i -> i.getContractAddress().toLowerCase()).collect(Collectors.toList()), ContractType.POOL.getId());
 
     var notSavedPools = items.stream()
         .filter(i -> existPools.stream().filter(c -> c.getAddress().equalsIgnoreCase(i.getContractAddress())).findFirst().isEmpty())
@@ -88,16 +90,28 @@ public class HarvestPoolInfoService {
             var pool = new PoolEntity();
             var contract = new ContractEntity();
             var block = covalenthqService.getCreatedBlockByLastTransaction(i.getContractAddress(), network);
-            var createdBlockDate = ethBlockService.getTimestampSecForBlock(block, network);;
+            var createdBlockDate = ethBlockService.getTimestampSecForBlock(block, network);
+
+            // in some cases created block is incorrect
+            var isCorrectBlock = true;
+            var name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getContractAddress(), block, network).orElse("");
+            if (name.isEmpty()) {
+              isCorrectBlock = false;
+              name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getContractAddress(), null, network).orElse("");
+            }
             contract.setAddress(i.getContractAddress());
             contract.setCreated(block);
             contract.setCreatedDate(createdBlockDate);
             contract.setNetwork(network);
-            contract.setName(functionsUtils.callStrByName(FunctionsNames.NAME, i.getContractAddress(), block, network).orElse(""));
+            contract.setName(name);
             contract.setType(ContractType.POOL.getId());
             contract = contractRepository.save(contract);
             pool.setContract(contract);
-            contractLoader.enrichPool(pool, block, network);
+            if (isCorrectBlock) {
+              contractLoader.enrichPool(pool, block, network);
+            } else {
+              contractLoader.enrichPool(pool, block + INCREASE_BLOCK_WEIGHT, network);
+            }
             log.info("Pool: {}", pool);
             return pool;
           } catch (Exception e) {

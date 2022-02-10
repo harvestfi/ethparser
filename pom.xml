@@ -19,6 +19,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <web3j>4.8.4</web3j>
+    <spring.wiremock.version>3.0.0</spring.wiremock.version>
     <argLine>-Duser.language=en -Duser.region=US</argLine>
     <start-class>pro.belbix.ethparser.Application</start-class>
   </properties>
@@ -70,7 +71,14 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-  </dependency>
+   </dependency>
+
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-contract-wiremock</artifactId>
+      <version>${spring.wiremock.version}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!--******************************************-->
 

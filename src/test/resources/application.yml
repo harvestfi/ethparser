@@ -47,3 +47,8 @@ logging:
   level:
     com.yannbriancon.interceptor.HibernateQueryInterceptor: OFF
 #    pro.belbix: debug
+
+# only for m1 Mac users
+wiremock:
+  server:
+    httpsPort: -1

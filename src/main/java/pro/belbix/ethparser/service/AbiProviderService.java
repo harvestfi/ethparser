@@ -134,7 +134,7 @@ public class AbiProviderService {
       return ETHERSCAN_URL;
     } else if (BSC_NETWORK.equals(network)) {
       return BSC_URL;
-    }else if (MATIC_NETWORK.equals(network)) {
+    } else if (MATIC_NETWORK.equals(network)) {
       return MATIC_URL;
     } else {
       throw new IllegalStateException("Unknown network " + network);

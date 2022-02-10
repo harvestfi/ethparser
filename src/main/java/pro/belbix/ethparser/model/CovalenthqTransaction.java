@@ -16,7 +16,18 @@ public class CovalenthqTransaction {
     public static class CovalenthqTransactionItem {
       @JsonProperty("block_height")
       private long blockHeight;
+      @JsonProperty("log_events")
+      private List<CovalenthqTransactionItemLog> logs;
+
+      @Data
+      public static class CovalenthqTransactionItemLog {
+        private CovalenthqTransactionItemLogDecode decoded;
+
+        @Data
+        public static class CovalenthqTransactionItemLogDecode {
+          private String name;
+        }
+      }
     }
   }
-
 }
