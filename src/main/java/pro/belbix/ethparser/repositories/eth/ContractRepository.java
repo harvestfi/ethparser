@@ -17,6 +17,14 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
     );
 
     @Query("select t from ContractEntity t "
+        + "where lower(t.address) = lower(:address) and t.network = :network")
+    List<ContractEntity> findFirstByAddress(
+        @Param("address") String address,
+        @Param("network") String network,
+        Pageable pageable
+    );
+
+    @Query("select t from ContractEntity t "
         + "where lower(t.address) = lower(:address) and t.type = :type and t.network = :network")
     ContractEntity findFirstByAddressAndType(
         @Param("address") String address,
@@ -45,5 +53,11 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         @Param("address") String address,
         @Param("network") String network
     );
+
+    @Query("select c from ContractEntity c "
+        + "where c.network = :network "
+        + "and lower(c.address) in(:addresses) "
+        + "and c.type = :type")
+    List<ContractEntity> findAllByNetworkAndInAddressAndType(String network, List<String> addresses, int type);
 
 }

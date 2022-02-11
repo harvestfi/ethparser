@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
@@ -211,6 +212,15 @@ public class ContractLoader {
   }
 
   public void enrichVault(VaultEntity vaultEntity, long block, String network) {
+    enrichVault(vaultEntity, block, block, network);
+  }
+
+  public void enrichVaultWithLatestBlock(VaultEntity vaultEntity, long block, String network) {
+    enrichVault(vaultEntity, block, null, network);
+  }
+
+
+  public void enrichVault(VaultEntity vaultEntity, Long block, Long blockForProperty, String network) {
     if (appProperties.isOnlyApi()) {
       return;
     }
@@ -256,14 +266,14 @@ public class ContractLoader {
         network
     ));
     vaultEntity.setName(
-        functionsUtils.callStrByName(FunctionsNames.NAME, address, block, network).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.NAME, address, blockForProperty, network).orElse(""));
     vaultEntity.setSymbol(
-        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block, network).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, blockForProperty, network).orElse(""));
     vaultEntity.setDecimals(
-        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
+        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, blockForProperty, network)
             .orElse(BigInteger.ZERO).longValue());
     vaultEntity.setUnderlyingUnit(
-        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, block, network)
+        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, blockForProperty, network)
             .orElse(BigInteger.ZERO).longValue());
   }
 
@@ -492,7 +502,11 @@ public class ContractLoader {
         || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return null;
     }
-    ContractEntity entity = contractRepository.findFirstByAddress(address, network);
+    var result = contractRepository.findFirstByAddress(address, network, PageRequest.of(0, 1));
+    if (result == null || result.isEmpty()) {
+      return null;
+    }
+    ContractEntity entity = result.get(0);
     if (appProperties.isOnlyApi()) {
       return entity;
     }
