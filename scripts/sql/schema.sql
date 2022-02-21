@@ -1105,3 +1105,20 @@ create index idx_uni_tx
 grant select on uni_tx to grafana;
 grant select on uni_tx to backup;
 
+
+create table covalenthq_vault_tx
+(
+    id                 bigserial
+        primary key,
+    network             varchar(255),
+    block              numeric(19, 2),
+    transaction_hash         varchar(255),
+    contract_decimal     numeric(19, 2),
+    contract_address               varchar(255),
+    owner_address                 varchar(255),
+    value        numeric(19, 2),
+    signed_at       timestamp,
+    type         varchar(255)
+);
+
+

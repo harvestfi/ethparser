@@ -13,9 +13,9 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pro.belbix.ethparser.model.CovalenthqTransaction;
-import pro.belbix.ethparser.model.CovalenthqTransaction.CovalenthqTransactionItems.CovalenthqTransactionItem;
-import pro.belbix.ethparser.model.CovalenthqTransaction.CovalenthqTransactionItems.CovalenthqTransactionItem.CovalenthqTransactionItemLog;
+import pro.belbix.ethparser.model.CovalenthqTransactionHistory;
+import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem;
+import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
 import pro.belbix.ethparser.properties.ExternalProperties;
 import pro.belbix.ethparser.utils.UrlUtils.CovalenthqUrl;
 
@@ -24,6 +24,7 @@ import pro.belbix.ethparser.utils.UrlUtils.CovalenthqUrl;
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class CovalenthqService {
+
   private final static int TRANSFER_LIMIT = 3;
   private final static String TRANSFER_LOG_NAME = "Transfer";
   private final static Map<String, String> CHAIN_BY_NETWORK = Map.of(
@@ -50,8 +51,9 @@ public class CovalenthqService {
       while (createdTx == null) {
         Thread.sleep(100);
         page++;
-        result = getTransactionByAddress(address, network, true, false, page, TRANSFER_LIMIT);
-        if (result == null || result.getData() == null || result.getData().getItems() == null || result.getData().getItems().isEmpty()) {
+        result = getTransactionByAddress(address, network, true, true, page, TRANSFER_LIMIT);
+        if (result == null || result.getData() == null || result.getData().getItems() == null
+            || result.getData().getItems().isEmpty()) {
           return 0;
         }
         createdTx = findCovalenthqTransactionItem(result);
@@ -64,11 +66,28 @@ public class CovalenthqService {
     }
   }
 
-  public CovalenthqTransaction getTransactionByAddress(String address, String network, boolean isSortAsc, boolean isFullLogs, int page, int limit) {
-    var url = String.format(CovalenthqUrl.TRANSACTION, externalProperties.getCovalenthq().getUrl(), convertToNetwork(network), address, isSortAsc, isFullLogs,
+
+  public CovalenthqTransactionHistory getTransactionByAddress(String address, String network,
+      boolean isSortAsc, boolean isFullLogs, int page, int limit) {
+    var url = String.format(CovalenthqUrl.TRANSACTION_HISTORY,
+        externalProperties.getCovalenthq().getUrl(), convertToNetwork(network), address, isSortAsc,
+        isFullLogs,
         externalProperties.getCovalenthq().getKey(), page, limit);
     try {
-      return restTemplate.getForObject(url, CovalenthqTransaction.class);
+      return restTemplate.getForObject(url, CovalenthqTransactionHistory.class);
+    } catch (Exception e) {
+      log.error("Error during call {}", url, e);
+      throw new IllegalStateException(e);
+    }
+  }
+
+  public CovalenthqTransactionHistory getTransactionByAddress(String address, String network,
+      int page, int limit, long startingBlock, long endingBlock) {
+    var url = String.format(CovalenthqUrl.TRANSACTION_HISTORY_WITH_BLOCK_RANGE,
+        externalProperties.getCovalenthq().getUrl(), convertToNetwork(network), address,
+        externalProperties.getCovalenthq().getKey(), page, limit, startingBlock, endingBlock);
+    try {
+      return restTemplate.getForObject(url, CovalenthqTransactionHistory.class);
     } catch (Exception e) {
       log.error("Error during call {}", url, e);
       throw new IllegalStateException(e);
@@ -79,15 +98,16 @@ public class CovalenthqService {
     return Optional.ofNullable(CHAIN_BY_NETWORK.get(network)).orElse("1");
   }
 
-  private CovalenthqTransactionItem findCovalenthqTransactionItem(CovalenthqTransaction result) {
+  private CovalenthqTransactionHistoryItem findCovalenthqTransactionItem(
+      CovalenthqTransactionHistory result) {
     return result.getData().getItems().stream()
         .filter(items -> items.getLogs() != null && notHasTransferInLog(items.getLogs()))
         .findFirst()
         .orElse(null);
   }
 
-  private boolean notHasTransferInLog(List<CovalenthqTransactionItemLog> logs) {
-    for (CovalenthqTransactionItemLog log : logs) {
+  private boolean notHasTransferInLog(List<CovalenthqTransactionHistoryItemLog> logs) {
+    for (CovalenthqTransactionHistoryItemLog log : logs) {
       if (log.getDecoded() != null && TRANSFER_LOG_NAME.equals(log.getDecoded().getName())) {
         return false;
       }

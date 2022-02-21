@@ -38,6 +38,20 @@ public class ProfitService {
 
   }
 
+  public Long calculateProfit(String address) {
+    List<HarvestDTO> tx = harvestRepository.findAllByOwner(address);
+    Long totalProfit = 0L;
+
+    for (HarvestDTO i: tx) {
+      if (i.getMethodName().equals("Withdraw")) {
+        totalProfit += i.getUsdAmount();
+      } else {
+        totalProfit -= i.getUsdAmount();
+      }
+    }
+
+    return totalProfit;
+  }
 
   public Double calculationProfitForPeriod(String address, String start, String end) {
 
