@@ -10,7 +10,6 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,7 +66,7 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(20);
 
-    var futures = vaultRepository.findAll().stream()
+    vaultRepository.findAll().stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -89,56 +88,28 @@ public class CovalenthqTransactionTask {
 
      var currentBlock = web3Functions.fetchCurrentBlock(contract.getNetwork());
      var endingBlock = startingBlock + MAX_BLOCK_RANGE;
-     var result = fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock);
 
      while (currentBlock.longValue() >= endingBlock) {
        // TODO Maybe need to add one more block, because can find the same tx
        startingBlock = endingBlock;
        endingBlock += MAX_BLOCK_RANGE;
-       result.addAll(
-           fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock));
+       fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock);
      }
 
-     var transactions = result.stream()
-         .map(CovalenthqTransactionHistoryItem::getLogs)
-         .flatMap(Collection::stream)
-         .filter(this::isDepositOrWithdraw)
-         .map(log -> toCovalenthqVaultTransaction(log, contract.getNetwork(), contract.getAddress()))
-         .filter(Objects::nonNull)
-         .collect(Collectors.toList());
-
-     var transactionWithoutDuplicate = new HashSet<>(transactions);
-     var transactionInDb = covalenthqVaultTransactionRepository.findAllByTransactionHashIn(
-         transactionWithoutDuplicate.stream()
-             .map(CovalenthqVaultTransaction::getTransactionHash)
-             .collect(Collectors.toList()));
-     transactions = transactionWithoutDuplicate.stream()
-             .filter(i1 ->
-                 transactionInDb.stream().noneMatch(i2 ->
-                     i1.getNetwork().equals(i2.getNetwork())
-                         && i1.getTransactionHash().equals(i2.getTransactionHash())
-                         && i1.getContractAddress().equals(i2.getContractAddress())
-                         && i1.getOwnerAddress().equals(i2.getOwnerAddress())
-                 )
-             )
-                 .collect(Collectors.toList());
-
-     log.debug("Save list covalenthq tx: {}", transactionInDb);
-     covalenthqVaultTransactionRepository.saveAll(transactions);
    } catch (Exception e) {
      log.error("Get error getVaultTransaction", e);
    }
   }
 
-  private List<CovalenthqTransactionHistoryItem> fetchTransactions(String address, String network, long startingBlock, long endingBlock) {
-    return fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE, false);
+  private void fetchTransactions(String address, String network, long startingBlock, long endingBlock) {
+    fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE, false);
   }
 
-  private List<CovalenthqTransactionHistoryItem> fetchTransactions(String address, String network, long startingBlock, long endingBlock, int limit, boolean isAfterException) {
+  private void fetchTransactions(String address, String network, long startingBlock, long endingBlock, int limit, boolean isAfterException) {
     try {
       var page = 0;
       var transaction = covalenthqService.getTransactionByAddress(address, network, page, limit, startingBlock, endingBlock);
-      var result = new LinkedList(transaction.getData().getItems());
+      var result = new LinkedList<CovalenthqTransactionHistoryItem>(transaction.getData().getItems());
       var hasMore = transaction.getData().getPagination().isHasMore();
 
       while (hasMore) {
@@ -147,13 +118,40 @@ public class CovalenthqTransactionTask {
         hasMore = transaction.getData().getPagination().isHasMore();
         result.addAll(transaction.getData().getItems());
       }
-      return result;
+
+      var transactions = result.stream()
+          .map(CovalenthqTransactionHistoryItem::getLogs)
+          .flatMap(Collection::stream)
+          .filter(this::isDepositOrWithdraw)
+          .map(log -> toCovalenthqVaultTransaction(log, network, address))
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      var transactionWithoutDuplicate = new HashSet<>(transactions);
+      var transactionInDb = covalenthqVaultTransactionRepository.findAllByTransactionHashIn(
+          transactionWithoutDuplicate.stream()
+              .map(CovalenthqVaultTransaction::getTransactionHash)
+              .collect(Collectors.toList()));
+      transactions = transactionWithoutDuplicate.stream()
+          .filter(i1 ->
+              transactionInDb.stream().noneMatch(i2 ->
+                  i1.getNetwork().equals(i2.getNetwork())
+                      && i1.getTransactionHash().equals(i2.getTransactionHash())
+                      && i1.getContractAddress().equals(i2.getContractAddress())
+                      && i1.getOwnerAddress().equals(i2.getOwnerAddress())
+              )
+          )
+          .collect(Collectors.toList());
+
+      log.info("Save list covalenthq tx: {}", transactions);
+      covalenthqVaultTransactionRepository.saveAll(transactions);
+
     } catch (IllegalStateException e) {
-      log.debug("Get a lot of data {} {} on block {} - {}", address, network, startingBlock, endingBlock);
+      log.error("Get a lot of data {} {} on block {} - {}", address, network, startingBlock, endingBlock);
       if (isAfterException) {
         throw e;
       }
-      return fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE_FOR_A_LOT_OF_DATA, true);
+      fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE_FOR_A_LOT_OF_DATA, true);
     }
   }
 
@@ -200,24 +198,6 @@ public class CovalenthqTransactionTask {
   }
 
   private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param) {
-    return getUniParamValue(item, param);
-
-//    if (item == null || item.getDecoded() == null) {
-//      return StringUtils.EMPTY;
-//    }
-//
-//    if (item.getDecoded().getParams() == null) {
-//      return getUniParamValue(item, param);
-//    }
-//
-//    return item.getDecoded().getParams().stream()
-//        .filter(i -> param.equals(i.getName()) && i.getValue() instanceof String)
-//        .map(i -> (String)i.getValue())
-//        .findFirst()
-//        .orElse(StringUtils.EMPTY);
-  }
-
-  private String getUniParamValue(CovalenthqTransactionHistoryItemLog item, String param) {
     var ethLog = new Log();
     ethLog.setTopics(item.getTopics());
     ethLog.setData(item.getData());

@@ -92,6 +92,7 @@ public abstract class MethodDecoder {
           ? i + 1
           : i;
 
+      // TODO in some case get index out of
       String topic = topics.get(index);
       Type value = decodeIndexedValue(topic, indexedParameters.get(i));
       indexedValues.add(value);
