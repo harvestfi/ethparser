@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory;
@@ -81,6 +83,8 @@ public class CovalenthqService {
     }
   }
 
+  // if 524 response code try to resize page count
+  @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 1000))
   public CovalenthqTransactionHistory getTransactionByAddress(String address, String network,
       int page, int limit, long startingBlock, long endingBlock) {
     var url = String.format(CovalenthqUrl.TRANSACTION_HISTORY_WITH_BLOCK_RANGE,
@@ -107,11 +111,12 @@ public class CovalenthqService {
   }
 
   private boolean notHasTransferInLog(List<CovalenthqTransactionHistoryItemLog> logs) {
-    for (CovalenthqTransactionHistoryItemLog log : logs) {
-      if (log.getDecoded() != null && TRANSFER_LOG_NAME.equals(log.getDecoded().getName())) {
-        return false;
-      }
-    }
+//    for (CovalenthqTransactionHistoryItemLog log : logs) {
+//      if (log.getDecoded() != null && TRANSFER_LOG_NAME.equals(log.getDecoded().getName())) {
+//        return false;
+//      }
+//    }
     return true;
   }
 }
+

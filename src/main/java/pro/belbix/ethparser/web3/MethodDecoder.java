@@ -88,7 +88,11 @@ public abstract class MethodDecoder {
     }
     List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
     for (int i = 0; i < indexedParameters.size(); i++) {
-      String topic = topics.get(i + 1);
+      var index = topics.size() > i + 1
+          ? i + 1
+          : i;
+
+      String topic = topics.get(index);
       Type value = decodeIndexedValue(topic, indexedParameters.get(i));
       indexedValues.add(value);
     }

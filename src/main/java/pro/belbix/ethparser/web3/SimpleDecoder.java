@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.tx.EthTransactionI;
 
+@Component
 public class SimpleDecoder extends MethodDecoder {
 
   public Optional<List<Type>> decodeEthLog(Log ethLog) {

@@ -1,10 +1,9 @@
 package pro.belbix.ethparser.entity.profit;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -28,8 +27,7 @@ public class CovalenthqVaultTransaction {
   int contractDecimal;
   String contractAddress;
   String ownerAddress;
-  long value;
+  BigDecimal value;
   LocalDateTime signedAt;
-  @Enumerated(EnumType.STRING)
-  CovalenthqVaultTransactionType type;
+  String type;
 }

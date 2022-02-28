@@ -1,7 +1,19 @@
 package pro.belbix.ethparser.service.task;
 
+import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT;
+import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
+import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
+import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -14,16 +26,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
-import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog.CovalenthqTransactionHistoryItemLogDecode.CovalenthqTransactionHistoryItemLogDecodeParam;
-import pro.belbix.ethparser.model.LogEventParam;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.service.external.CovalenthqService;
+import pro.belbix.ethparser.web3.SimpleDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 
 @Service
@@ -35,9 +47,15 @@ public class CovalenthqTransactionTask {
   private static final int MAX_BLOCK_RANGE = 1000000;
   private static final int MINUS_BLOCK = 10;
   private static final int PAGINATION_SIZE = 1000000;
-  private static final String DEPOSIT_NAME = "Deposit";
-  private static final String WITHDRAW_NAME = "Withdraw";
+  private static final int PAGINATION_SIZE_FOR_A_LOT_OF_DATA = 1000;
+  private static final Map<String, CovalenthqVaultTransactionType> LOG_EVENTS = Map.of(
+      "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568", WITHDRAW_UNI,
+      "0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364", WITHDRAW,
+      "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15", DEPOSIT_UNI,
+      "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c", DEPOSIT
+  );
 
+  SimpleDecoder simpleDecoder;
   VaultRepository vaultRepository;
   CovalenthqService covalenthqService;
   CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
@@ -47,7 +65,7 @@ public class CovalenthqTransactionTask {
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
   public void start() {
     log.info("Begin parse vault tx");
-    var executor = Executors.newFixedThreadPool(10);
+    var executor = Executors.newFixedThreadPool(20);
 
     var futures = vaultRepository.findAll().stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
@@ -57,90 +75,183 @@ public class CovalenthqTransactionTask {
 
   // TODO add more logs, check on null, catch exceptions
   private void getVaultTransaction(VaultEntity vault) {
-    log.info("Run getVaultTransaction for {}", vault);
-    var contract = vault.getContract();
-    var lastTx = covalenthqVaultTransactionRepository.findAllByNetworkAndContractAddress(contract.getNetwork(), contract.getAddress(),
-        PageRequest.of(0, 1, Sort.by("blockHeight").ascending()));
+   try {
+     log.info("Run getVaultTransaction for {}", vault);
+     var contract = vault.getContract();
+     var lastTx = covalenthqVaultTransactionRepository.findAllByNetworkAndContractAddress(contract.getNetwork(), contract.getAddress(),
+         PageRequest.of(0, 1, Sort.by("block").ascending()));
 
-    var startingBlock = 0L;
+     var startingBlock = 0L;
 
-    if (!lastTx.isEmpty()) {
-      startingBlock = Math.max(lastTx.get(0).getBlock() - MINUS_BLOCK, 0);
-    }
+     if (!lastTx.isEmpty()) {
+       startingBlock = Math.max(lastTx.get(0).getBlock() - MINUS_BLOCK, 0);
+     }
 
-    var currentBlock = web3Functions.fetchCurrentBlock(contract.getNetwork());
-    var endingBlock = startingBlock + MAX_BLOCK_RANGE;
-    var result = fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock);
+     var currentBlock = web3Functions.fetchCurrentBlock(contract.getNetwork());
+     var endingBlock = startingBlock + MAX_BLOCK_RANGE;
+     var result = fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock);
 
-    while (currentBlock.longValue() >= endingBlock) {
-      // TODO Maybe need to add one more block, because can find the same tx
-      startingBlock = endingBlock;
-      endingBlock += MAX_BLOCK_RANGE;
-      result.addAll(
-          fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock));
-    }
+     while (currentBlock.longValue() >= endingBlock) {
+       // TODO Maybe need to add one more block, because can find the same tx
+       startingBlock = endingBlock;
+       endingBlock += MAX_BLOCK_RANGE;
+       result.addAll(
+           fetchTransactions(contract.getAddress(), contract.getNetwork(), startingBlock, endingBlock));
+     }
 
-    var transactions = result.stream()
-        .filter(this::isDepositOrWithdraw)
-        .map(tx -> tx.getLogs().stream()
-            .map(log -> toCovalenthqVaultTransaction(log, contract.getNetwork(), contract.getAddress()))
-            .collect(Collectors.toList())
-        )
-        .flatMap(List::stream)
-        .collect(Collectors.toList());
+     var transactions = result.stream()
+         .map(CovalenthqTransactionHistoryItem::getLogs)
+         .flatMap(Collection::stream)
+         .filter(this::isDepositOrWithdraw)
+         .map(log -> toCovalenthqVaultTransaction(log, contract.getNetwork(), contract.getAddress()))
+         .filter(Objects::nonNull)
+         .collect(Collectors.toList());
 
-    covalenthqVaultTransactionRepository.saveAll(transactions);
+     var transactionWithoutDuplicate = new HashSet<>(transactions);
+     var transactionInDb = covalenthqVaultTransactionRepository.findAllByTransactionHashIn(
+         transactionWithoutDuplicate.stream()
+             .map(CovalenthqVaultTransaction::getTransactionHash)
+             .collect(Collectors.toList()));
+     transactions = transactionWithoutDuplicate.stream()
+             .filter(i1 ->
+                 transactionInDb.stream().noneMatch(i2 ->
+                     i1.getNetwork().equals(i2.getNetwork())
+                         && i1.getTransactionHash().equals(i2.getTransactionHash())
+                         && i1.getContractAddress().equals(i2.getContractAddress())
+                         && i1.getOwnerAddress().equals(i2.getOwnerAddress())
+                 )
+             )
+                 .collect(Collectors.toList());
+
+     log.debug("Save list covalenthq tx: {}", transactionInDb);
+     covalenthqVaultTransactionRepository.saveAll(transactions);
+   } catch (Exception e) {
+     log.error("Get error getVaultTransaction", e);
+   }
   }
 
   private List<CovalenthqTransactionHistoryItem> fetchTransactions(String address, String network, long startingBlock, long endingBlock) {
-    var page = 0;
-    var transaction = covalenthqService.getTransactionByAddress(address, network, page, PAGINATION_SIZE, startingBlock, endingBlock);
-    var result = new LinkedList(transaction.getData().getItems());
-    var hasMore = transaction.getData().getPagination().isHasMore();
-
-    while (hasMore) {
-      page++;
-      transaction = covalenthqService.getTransactionByAddress(address, network, page, PAGINATION_SIZE, startingBlock, endingBlock);
-      hasMore = transaction.getData().getPagination().isHasMore();
-      result.addAll(transaction.getData().getItems());
-    }
-    return result;
+    return fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE, false);
   }
 
-  private boolean isDepositOrWithdraw(CovalenthqTransactionHistoryItem item) {
-    return item.getLogs().stream()
-        .anyMatch(i ->
-            WITHDRAW_NAME.equalsIgnoreCase(i.getDecoded().getName())
-                || DEPOSIT_NAME.equalsIgnoreCase(i.getDecoded().getName()));
+  private List<CovalenthqTransactionHistoryItem> fetchTransactions(String address, String network, long startingBlock, long endingBlock, int limit, boolean isAfterException) {
+    try {
+      var page = 0;
+      var transaction = covalenthqService.getTransactionByAddress(address, network, page, limit, startingBlock, endingBlock);
+      var result = new LinkedList(transaction.getData().getItems());
+      var hasMore = transaction.getData().getPagination().isHasMore();
+
+      while (hasMore) {
+        page++;
+        transaction = covalenthqService.getTransactionByAddress(address, network, page, limit, startingBlock, endingBlock);
+        hasMore = transaction.getData().getPagination().isHasMore();
+        result.addAll(transaction.getData().getItems());
+      }
+      return result;
+    } catch (IllegalStateException e) {
+      log.debug("Get a lot of data {} {} on block {} - {}", address, network, startingBlock, endingBlock);
+      if (isAfterException) {
+        throw e;
+      }
+      return fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE_FOR_A_LOT_OF_DATA, true);
+    }
+  }
+
+  private boolean isDepositOrWithdraw(CovalenthqTransactionHistoryItemLog log) {
+    return log.getTopics() != null && !log.getTopics().isEmpty() && LOG_EVENTS.get(log.getTopics().get(0)) != null;
   }
 
   private CovalenthqVaultTransaction toCovalenthqVaultTransaction(
       CovalenthqTransactionHistoryItemLog item, String network, String contractAddress) {
-    var transaction = new CovalenthqVaultTransaction();
-    var type = toCovalenthqVaultTransactionType(item);
+    try {
+      var transaction = new CovalenthqVaultTransaction();
+      var covalenthqType = Optional.ofNullable(toCovalenthqVaultTransactionType(item))
+          .orElseThrow(() -> {
+            log.error("Can not find log event");
+            throw new IllegalStateException();
+          });
+      var value = getParamValue(item, covalenthqType.value);
 
-    transaction.setNetwork(network);
-    transaction.setBlock(item.getBlockHeight());
-    transaction.setTransactionHash(item.getTransactionHash());
-    transaction.setContractDecimal(item.getContractDecimal());
-    transaction.setContractAddress(contractAddress);
-    transaction.setType(type);
-    transaction.setOwnerAddress(getParamValue(item, type.equals(CovalenthqVaultTransactionType.DEPOSIT) ? LogEventParam.DEPOSIT_FROM : LogEventParam.WITHDRAW_TO));
-    transaction.setValue(Long.parseLong(getParamValue(item, type.equals(CovalenthqVaultTransactionType.DEPOSIT) ? LogEventParam.DEPOSIT_VALUE : LogEventParam.WITHDRAW_VALUE)));
-    transaction.setSignedAt(transaction.getSignedAt());
+      transaction.setNetwork(network);
+      transaction.setBlock(item.getBlockHeight());
+      transaction.setTransactionHash(item.getTransactionHash());
+      transaction.setContractDecimal(item.getContractDecimal());
+      transaction.setContractAddress(contractAddress);
+      transaction.setType(covalenthqType.type);
+      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address));
+      transaction.setValue(
+          StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value)
+      );
+      transaction.setSignedAt(transaction.getSignedAt());
 
-    return transaction;
+      return transaction;
+    } catch (Exception e) {
+      log.error("Can not parse covalenthq log: {}", item, e);
+      return null;
+    }
   }
 
-  private CovalenthqVaultTransactionType toCovalenthqVaultTransactionType(CovalenthqTransactionHistoryItemLog item) {
-    return WITHDRAW_NAME.equalsIgnoreCase(item.getDecoded().getName()) ? CovalenthqVaultTransactionType.WITHDRAW : CovalenthqVaultTransactionType.DEPOSIT;
+  private CovalenthqVaultTransactionType toCovalenthqVaultTransactionType(CovalenthqTransactionHistoryItemLog log) {
+    if (log.getTopics() != null && !log.getTopics().isEmpty()) {
+      return LOG_EVENTS.get(log.getTopics().get(0));
+    }
+
+    return null;
   }
 
-  private String getParamValue(CovalenthqTransactionHistoryItemLog item, LogEventParam param) {
-    return item.getDecoded().getParams().stream()
-        .filter(i -> param.value.equals(i.getName()))
-        .map(CovalenthqTransactionHistoryItemLogDecodeParam::getValue)
-        .findFirst()
-        .orElse(StringUtils.EMPTY);
+  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param) {
+    return getUniParamValue(item, param);
+
+//    if (item == null || item.getDecoded() == null) {
+//      return StringUtils.EMPTY;
+//    }
+//
+//    if (item.getDecoded().getParams() == null) {
+//      return getUniParamValue(item, param);
+//    }
+//
+//    return item.getDecoded().getParams().stream()
+//        .filter(i -> param.equals(i.getName()) && i.getValue() instanceof String)
+//        .map(i -> (String)i.getValue())
+//        .findFirst()
+//        .orElse(StringUtils.EMPTY);
+  }
+
+  private String getUniParamValue(CovalenthqTransactionHistoryItemLog item, String param) {
+    var ethLog = new Log();
+    ethLog.setTopics(item.getTopics());
+    ethLog.setData(item.getData());
+
+    var result = simpleDecoder.decodeEthLog(ethLog)
+        .orElseThrow();
+
+    var indexParam = -1;
+    var castToString = false;
+
+    switch (param) {
+      case "account":
+      case "user":
+      case "dst":
+      case "provider":
+        indexParam = 0;
+        castToString = true;
+        break;
+      case "wad":
+      case "value":
+        indexParam = 1;
+        break;
+      case "amount" :
+      case "writeAmount":
+        indexParam = 2;
+        break;
+    }
+    if (result.isEmpty() || indexParam == -1 || indexParam >= result.size()) {
+      log.error("Unknown param or can not parse data");
+      throw new IllegalStateException();
+    }
+
+    return castToString
+        ? (String) result.get(indexParam).getValue()
+        : ((BigInteger) result.get(indexParam).getValue()).toString();
   }
 }

@@ -1,13 +1,10 @@
 package pro.belbix.ethparser;
 
 import static pro.belbix.ethparser.ws.WsService.BANCOR_TRANSACTIONS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.DEPLOYER_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARDWORK_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.HARVEST_TRANSACTIONS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.IMPORTANT_EVENTS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.PRICES_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.REWARDS_TOPIC_NAME;
-import static pro.belbix.ethparser.ws.WsService.TRANSFERS_TOPIC_NAME;
 import static pro.belbix.ethparser.ws.WsService.UNI_TRANSACTIONS_TOPIC_NAME;
 
 import java.util.Arrays;
@@ -102,17 +99,17 @@ public class AppStarter {
         if (conf.isTestWs()) {
             startFakeDataForWebSocket(ws, conf.getTestWsRate());
         } else {
-            startParse(bancorPriceParser, ws, BANCOR_TRANSACTIONS_TOPIC_NAME, true);
-            startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
-            startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
-            startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
-            startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
-            startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
-            startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
-            startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
-            startParse(deployerTransactionsParser, ws,
-                DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
+//            startParse(bancorPriceParser, ws, BANCOR_TRANSACTIONS_TOPIC_NAME, true);
+//            startParse(uniswapLpLogParser, ws, UNI_TRANSACTIONS_TOPIC_NAME, true);
+//            startParse(vaultActionsParser, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+//            startParse(hardWorkParser, ws, HARDWORK_TOPIC_NAME, true);
+//            startParse(rewardParser, ws, REWARDS_TOPIC_NAME, true);
+//            startParse(importantEventsParser, ws, IMPORTANT_EVENTS_TOPIC_NAME, true);
+//            startParse(uniToHarvestConverter, ws, HARVEST_TRANSACTIONS_TOPIC_NAME, true);
+//            startParse(transferParser, ws, TRANSFERS_TOPIC_NAME, true);
+//            startParse(priceLogParser, ws, PRICES_TOPIC_NAME, true);
+//            startParse(deployerTransactionsParser, ws,
+//                DEPLOYER_TRANSACTIONS_TOPIC_NAME, false);
             startParseBlocks();
         }
     }

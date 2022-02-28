@@ -1111,12 +1111,12 @@ create table covalenthq_vault_tx
     id                 bigserial
         primary key,
     network             varchar(255),
-    block              numeric(19, 2),
+    block              numeric(19, 0),
     transaction_hash         varchar(255),
-    contract_decimal     numeric(19, 2),
+    contract_decimal     numeric(19, 0),
     contract_address               varchar(255),
     owner_address                 varchar(255),
-    value        numeric(19, 2),
+    value        numeric(60, 0),
     signed_at       timestamp,
     type         varchar(255)
 );

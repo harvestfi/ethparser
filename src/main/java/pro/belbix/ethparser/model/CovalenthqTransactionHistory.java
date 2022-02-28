@@ -35,24 +35,12 @@ public class CovalenthqTransactionHistory {
         private long blockHeight;
         @JsonProperty("tx_hash")
         private String transactionHash;
-        private CovalenthqTransactionHistoryItemLogDecode decoded;
         @JsonProperty("sender_contract_decimals")
         private int contractDecimal;
-
-        @Data
-        public static class CovalenthqTransactionHistoryItemLogDecode {
-          private String name;
-          private List<CovalenthqTransactionHistoryItemLogDecodeParam> params;
-
-          @Data
-          public static class CovalenthqTransactionHistoryItemLogDecodeParam {
-            private String name;
-            private String type;
-            private boolean indexed;
-            private boolean decoded;
-            private String value;
-          }
-        }
+        @JsonProperty(value = "raw_log_topics")
+        private List<String> topics;
+        @JsonProperty("raw_log_data")
+        private String data;
       }
     }
 
