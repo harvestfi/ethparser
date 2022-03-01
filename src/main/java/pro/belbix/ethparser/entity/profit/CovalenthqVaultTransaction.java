@@ -2,6 +2,7 @@ package pro.belbix.ethparser.entity.profit;
 
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,6 +29,8 @@ public class CovalenthqVaultTransaction {
   String contractAddress;
   String ownerAddress;
   BigDecimal value;
+  BigInteger sharePrice;
+  Double tokenPrice;
   LocalDateTime signedAt;
   String type;
 }

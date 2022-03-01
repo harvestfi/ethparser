@@ -1116,9 +1116,22 @@ create table covalenthq_vault_tx
     contract_decimal     numeric(19, 0),
     contract_address               varchar(255),
     owner_address                 varchar(255),
+    share_price        numeric(60, 0),
+    token_price        numeric(60, 6),
     value        numeric(60, 0),
     signed_at       timestamp,
     type         varchar(255)
 );
 
+create table share_price
+(
+    id varchar(255) primary key,
+    value numeric(60, 0)
+);
+
+create table token_price
+(
+    id varchar(255) primary key,
+    value numeric(60, 6)
+);
 

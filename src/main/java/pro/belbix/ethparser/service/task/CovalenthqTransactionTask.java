@@ -33,6 +33,8 @@ import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransac
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
+import pro.belbix.ethparser.service.SharePriceService;
+import pro.belbix.ethparser.service.TokenPriceService;
 import pro.belbix.ethparser.service.external.CovalenthqService;
 import pro.belbix.ethparser.web3.SimpleDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -59,6 +61,9 @@ public class CovalenthqTransactionTask {
   CovalenthqService covalenthqService;
   CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
   Web3Functions web3Functions;
+  SharePriceService sharePriceService;
+  TokenPriceService tokenPriceService;
+
 
   // everyday
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
@@ -141,9 +146,10 @@ public class CovalenthqTransactionTask {
                       && i1.getOwnerAddress().equals(i2.getOwnerAddress())
               )
           )
+          .map(this::fillAdditionalParams)
           .collect(Collectors.toList());
 
-      log.info("Save list covalenthq tx: {}", transactions);
+      log.info("Save list covalenthq tx count - {}", transactions.size());
       covalenthqVaultTransactionRepository.saveAll(transactions);
 
     } catch (IllegalStateException e) {
@@ -233,5 +239,20 @@ public class CovalenthqTransactionTask {
     return castToString
         ? (String) result.get(indexParam).getValue()
         : ((BigInteger) result.get(indexParam).getValue()).toString();
+  }
+
+  private CovalenthqVaultTransaction fillAdditionalParams(CovalenthqVaultTransaction covalenthqVaultTransaction) {
+    var vaultAddress = covalenthqVaultTransaction.getContractAddress();
+    var block = covalenthqVaultTransaction.getBlock();
+    var network = covalenthqVaultTransaction.getNetwork();
+    covalenthqVaultTransaction.setSharePrice(
+        sharePriceService.getSharePrice(vaultAddress, block, network)
+    );
+
+    covalenthqVaultTransaction.setTokenPrice(
+        tokenPriceService.getTokenPrice(vaultAddress, block, network)
+    );
+
+    return covalenthqVaultTransaction;
   }
 }
