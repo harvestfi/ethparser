@@ -14,7 +14,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
@@ -46,7 +45,7 @@ public class HarvestVaultInfoTask {
 
 
   // each hour
-  @Scheduled(fixedRate = 1000 * 60 * 60)
+//  @Scheduled(fixedRate = 1000 * 60 * 60)
   public void start() {
     try {
       var response = harvestService.getVaults();

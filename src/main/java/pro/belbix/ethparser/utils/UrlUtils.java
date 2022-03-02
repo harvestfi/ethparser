@@ -23,6 +23,13 @@ public class UrlUtils {
         + "starting-block=%s&"
         + "ending-block=%s&";
 
+    String HISTORICAL_PRICE = "%spricing/historical_by_addresses_v2/%s/USD/%s/?"
+        + "quote-currency=USD&"
+        + "format=JSON&"
+        + "key=%s&"
+        + "from=%s&"
+        + "to=%s";
+
     String TRANSACTION_BY_CONTRACT_ID = "%s%s/address/%s/transfers_v2/?"
         + "contract-address=%s&"
         + "key=%s&"

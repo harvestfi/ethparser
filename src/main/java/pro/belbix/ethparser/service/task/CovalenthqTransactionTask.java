@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,6 +30,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType;
+import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
@@ -69,9 +71,9 @@ public class CovalenthqTransactionTask {
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
   public void start() {
     log.info("Begin parse vault tx");
-    var executor = Executors.newFixedThreadPool(20);
+    var executor = Executors.newFixedThreadPool(2);
 
-    vaultRepository.findAll().stream()
+    vaultRepository.fetchAllByNetwork(ETH_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -152,6 +154,9 @@ public class CovalenthqTransactionTask {
       log.info("Save list covalenthq tx count - {}", transactions.size());
       covalenthqVaultTransactionRepository.saveAll(transactions);
 
+    } catch (CanNotFetchPriceException e) {
+      log.error("Can not fetch price {} {}", address, network);
+      throw e;
     } catch (IllegalStateException e) {
       log.error("Get a lot of data {} {} on block {} - {}", address, network, startingBlock, endingBlock);
       if (isAfterException) {

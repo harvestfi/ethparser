@@ -15,6 +15,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import pro.belbix.ethparser.model.CovalenthqHistoricalPrice;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
@@ -68,7 +69,6 @@ public class CovalenthqService {
     }
   }
 
-
   public CovalenthqTransactionHistory getTransactionByAddress(String address, String network,
       boolean isSortAsc, boolean isFullLogs, int page, int limit) {
     var url = String.format(CovalenthqUrl.TRANSACTION_HISTORY,
@@ -96,6 +96,14 @@ public class CovalenthqService {
       log.error("Error during call {}", url, e);
       throw new IllegalStateException(e);
     }
+  }
+
+  public CovalenthqHistoricalPrice getPriceByContractAddress(String contractAddress, String date, String network) {
+    var url = String.format(CovalenthqUrl.HISTORICAL_PRICE,
+        externalProperties.getCovalenthq().getUrl(), convertToNetwork(network), contractAddress,
+        externalProperties.getCovalenthq().getKey(), date, date);
+
+    return restTemplate.getForObject(url, CovalenthqHistoricalPrice.class);
   }
 
   private String convertToNetwork(String network) {

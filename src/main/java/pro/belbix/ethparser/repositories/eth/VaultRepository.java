@@ -4,7 +4,6 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 
 public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
@@ -29,4 +28,8 @@ public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
         + "left join fetch t.underlying f5 "
         + "where f1.network = :network")
     List<VaultEntity> fetchAllByNetwork(@Param("network") String network);
+
+    @Query("select t from VaultEntity t "
+        + "where t.name not like 'fUni%'")
+    List<VaultEntity> findAllWithoutUni();
 }

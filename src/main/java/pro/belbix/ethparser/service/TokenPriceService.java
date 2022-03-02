@@ -2,6 +2,9 @@ package pro.belbix.ethparser.service;
 
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -9,11 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.profit.TokenPrice;
+import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
 import pro.belbix.ethparser.repositories.TokenPriceRepository;
+import pro.belbix.ethparser.service.external.CovalenthqService;
 import pro.belbix.ethparser.utils.ProfitUtils;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.prices.PriceOracle;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -27,6 +34,9 @@ public class TokenPriceService {
   PriceProvider priceProvider;
   FunctionsUtils functionsUtils;
   FunctionService functionService;
+  CovalenthqService covalenthqService;
+  EthBlockService ethBlockService;
+  PriceOracle priceOracle;
 
 
   @Cacheable("token_price")
@@ -35,6 +45,7 @@ public class TokenPriceService {
 
       var id = ProfitUtils.toId(vaultAddress, String.valueOf(block), network);
       var tokenPrice = tokenPriceRepository.findById(id);
+      var price = DEFAULT_RETURN_VALUE;
 
       if (tokenPrice.isPresent()) {
         return tokenPrice.get().getValue();
@@ -47,23 +58,40 @@ public class TokenPriceService {
       var underlyingAddress = functionsUtils.callAddressByName(UNDERLYING, vaultAddress, block, network)
           .orElseThrow(IllegalStateException::new);
 
-      var price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
+      if (PriceOracle.isAvailable(block, network)) {
+        price = priceOracle.getPriceForCoinOnChain(underlyingAddress, block, network);
 
-//      if (functionService.isLp(underlyingAddress, block, network)) {
-//        log.error("Its LP func - {}", vaultAddress);
-//      } else {
-//        price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
+        tokenPriceRepository.save(new TokenPrice(id, price));
+        return price;
+      }
+
+//      var price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
+
+//      var blockDate = getDateByBlockNumber(block, network);
+//      var historicalPrice = covalenthqService.getPriceByContractAddress(underlyingAddress, blockDate, network);
+//      if (historicalPrice != null && historicalPrice.getData() != null
+//          && historicalPrice.getData().getPrices() != null
+//          && historicalPrice.getData().getPrices().size() > 0
+//          && historicalPrice.getData().getPrices().get(0) != null
+//      ) {
+//        price = historicalPrice.getData().getPrices().get(0).getPrice();
 //      }
 
       tokenPriceRepository.save(new TokenPrice(id, price));
-
       return price;
     } catch (IllegalStateException e) {
       log.error("Can't fetch underlying token for {}", vaultAddress);
       return DEFAULT_RETURN_VALUE;
     } catch (Exception e) {
       log.error("Can not get token price - {}", vaultAddress);
-      return DEFAULT_RETURN_VALUE;
+      throw new CanNotFetchPriceException();
     }
+  }
+
+  private String getDateByBlockNumber(long block, String network) {
+    long ts = ethBlockService.getTimestampSecForBlock(block, network);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    return dateFormat.format(new Date(ts * 1000));
   }
 }
