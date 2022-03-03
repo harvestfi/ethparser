@@ -60,4 +60,9 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         + "and c.type = :type")
     List<ContractEntity> findAllByNetworkAndInAddressAndType(String network, List<String> addresses, int type);
 
+    @Query("select c from ContractEntity c "
+        + "left join UniPairEntity u on u.contract.id = c.id "
+        + "left join TokenToUniPairEntity t on t.uniPair.id = u.id "
+        + "where c.type = 2 and t.id is null")
+    List<ContractEntity> findAllUniPairContractWithoutData();
 }

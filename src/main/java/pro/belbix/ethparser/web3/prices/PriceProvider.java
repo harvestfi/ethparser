@@ -15,6 +15,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -204,7 +205,8 @@ public class PriceProvider {
       } catch (Exception ignore) {
       }
       log.error("Not found lp for {}, block: {}, network: {}", address, block, network);
-      return 0;
+      throw new CanNotFetchPriceException();
+//      return 0;
     }
 
     Tuple2<Double, Double> reserves = functionsUtils

@@ -65,17 +65,7 @@ public class TokenPriceService {
         return price;
       }
 
-//      var price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
-
-//      var blockDate = getDateByBlockNumber(block, network);
-//      var historicalPrice = covalenthqService.getPriceByContractAddress(underlyingAddress, blockDate, network);
-//      if (historicalPrice != null && historicalPrice.getData() != null
-//          && historicalPrice.getData().getPrices() != null
-//          && historicalPrice.getData().getPrices().size() > 0
-//          && historicalPrice.getData().getPrices().get(0) != null
-//      ) {
-//        price = historicalPrice.getData().getPrices().get(0).getPrice();
-//      }
+      price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
 
       tokenPriceRepository.save(new TokenPrice(id, price));
       return price;

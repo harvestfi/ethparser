@@ -83,6 +83,7 @@ public class CovalenthqService {
     }
   }
 
+  // if 507 response code try increase sleep time
   // if 524 response code try to resize page count
   @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 1000))
   public CovalenthqTransactionHistory getTransactionByAddress(String address, String network,

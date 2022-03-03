@@ -109,11 +109,16 @@ public class ContractLoader {
 
   public void loadToken(TokenContract contract, String network, long block) {
     ContractEntity tokenContract = load(contract);
+    loadToken(tokenContract, network, block);
+  }
 
+  public TokenEntity loadToken(ContractEntity tokenContract, String network, long block) {
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
     if (tokenEntity == null) {
       tokenEntity = new TokenEntity();
+      var maxId = tokenRepository.findMaxId() + 1;
+      tokenEntity.setId(maxId);
       tokenEntity.setContract(tokenContract);
       enrichToken(tokenEntity, block, network);
       tokenRepository.save(tokenEntity);
@@ -121,6 +126,8 @@ public class ContractLoader {
       enrichToken(tokenEntity, block, network);
       tokenRepository.save(tokenEntity);
     }
+
+    return tokenEntity;
   }
 
   public void loadVault(SimpleContract vault, String network, long block) {
@@ -432,6 +439,26 @@ public class ContractLoader {
     }
   }
 
+  public TokenToUniPairEntity linkUniPairsToToken(String address, long block, TokenEntity tokenEntity, String network) {
+    UniPairEntity uniPair;
+    if (address.startsWith("0x")) {
+      uniPair = uniPairRepository.findFirstByAddress(address, network);
+    } else {
+      uniPair = uniPairRepository.findFirstByName(address, network);
+    }
+
+    if (uniPair == null) {
+      log.error("Not found lp for {} on {}", address, network);
+      return null;
+    }
+
+    if (tokenEntity == null) {
+      log.error("Token is null for " + address);
+      return null;
+    }
+    return findOrCreateTokenToUniPair(tokenEntity, uniPair, block, network);
+  }
+
   private TokenToUniPairEntity findOrCreateTokenToUniPair(
       TokenEntity token,
       UniPairEntity uniPair,
@@ -456,7 +483,9 @@ public class ContractLoader {
       if (pairByLp != null && !pairByLp.isEmpty()) {
         log.info("We already had linked " + uniPair.getContract().getName());
       }
+      var id = tokenToUniPairRepository.findMaxId() + 1;
       tokenToUniPairEntity = new TokenToUniPairEntity();
+      tokenToUniPairEntity.setId(id);
       tokenToUniPairEntity.setToken(token);
       tokenToUniPairEntity.setUniPair(uniPair);
       tokenToUniPairEntity.setBlockStart(blockStart);

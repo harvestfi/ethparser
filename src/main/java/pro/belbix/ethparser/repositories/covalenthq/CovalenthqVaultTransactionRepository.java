@@ -8,4 +8,5 @@ import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
 public interface CovalenthqVaultTransactionRepository extends JpaRepository<CovalenthqVaultTransaction, Integer> {
   List<CovalenthqVaultTransaction> findAllByNetworkAndContractAddress(String network, String contractAddress, Pageable pageable);
   List<CovalenthqVaultTransaction> findAllByTransactionHashIn(List<String> transactionHashes);
+  List<CovalenthqVaultTransaction> findAllByOwnerAddressAndNetwork(String ownerAddress, String network);
 }

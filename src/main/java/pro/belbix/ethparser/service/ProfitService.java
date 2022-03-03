@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
+import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
@@ -24,29 +27,32 @@ public class ProfitService {
   private final ContractDbService contractDbService;
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
+  private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
 
 
   public ProfitService(HarvestRepository harvestRepository,
       ContractDbService contractDbService,
       EthBlockService ethBlockService,
-      FunctionsUtils functionsUtils
+      FunctionsUtils functionsUtils,
+      CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository
   ) {
     this.harvestRepository = harvestRepository;
     this.contractDbService = contractDbService;
     this.ethBlockService = ethBlockService;
     this.functionsUtils = functionsUtils;
-
+    this.covalenthqVaultTransactionRepository = covalenthqVaultTransactionRepository;
   }
 
-  public Long calculateProfit(String address) {
-    List<HarvestDTO> tx = harvestRepository.findAllByOwner(address);
-    Long totalProfit = 0L;
+  public BigDecimal calculateProfit(String address, String network) {
+    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network);
+    BigDecimal totalProfit = BigDecimal.ZERO;
 
-    for (HarvestDTO i: tx) {
-      if (i.getMethodName().equals("Withdraw")) {
-        totalProfit += i.getUsdAmount();
+    for (CovalenthqVaultTransaction i: transactions) {
+      var value = i.getValue().multiply(new BigDecimal(i.getSharePrice().toString()));
+      if (i.getType().equals("Withdraw")) {
+        totalProfit = totalProfit.add(value);
       } else {
-        totalProfit -= i.getUsdAmount();
+        totalProfit = totalProfit.subtract(value);
       }
     }
 

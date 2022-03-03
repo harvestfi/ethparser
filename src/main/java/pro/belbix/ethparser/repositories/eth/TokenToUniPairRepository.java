@@ -4,9 +4,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pro.belbix.ethparser.entity.contracts.TokenEntity;
 import pro.belbix.ethparser.entity.contracts.TokenToUniPairEntity;
-import pro.belbix.ethparser.entity.contracts.UniPairEntity;
 
 public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEntity, Integer> {
 
@@ -58,4 +56,15 @@ public interface TokenToUniPairRepository extends JpaRepository<TokenToUniPairEn
         @Param("network") String network
     );
 
+    @Query("select t from TokenToUniPairEntity t "
+        + "join fetch t.uniPair f1 "
+        + "join fetch f1.contract c "
+        + "where lower(c.address) = :uniPairAdr and c.network = :network")
+    List<TokenToUniPairEntity> findByUniPairAddress(
+        @Param("uniPairAdr") String uniPairAdr,
+        @Param("network") String network
+    );
+
+    @Query("select max(t.id) from TokenToUniPairEntity t")
+    int findMaxId();
 }
