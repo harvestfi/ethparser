@@ -1,6 +1,11 @@
 package pro.belbix.ethparser.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
@@ -17,6 +22,10 @@ public class CovalenthqTransactionHistory {
     @Data
     public static class CovalenthqTransactionHistoryItem {
       @JsonProperty("block_signed_at")
+      @JsonSerialize(using = LocalDateTimeSerializer.class)
+      @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+      @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+      //                     2021-01-03T16:55:11Z
       private LocalDateTime signedAt;
       @JsonProperty("block_height")
       private long blockHeight;

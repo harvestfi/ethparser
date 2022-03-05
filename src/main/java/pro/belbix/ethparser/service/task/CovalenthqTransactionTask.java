@@ -71,7 +71,7 @@ public class CovalenthqTransactionTask {
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
   public void start() {
     log.info("Begin parse vault tx");
-    var executor = Executors.newFixedThreadPool(15);
+    var executor = Executors.newFixedThreadPool(10);
 
     vaultRepository.fetchAllByNetwork(ETH_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
@@ -255,7 +255,7 @@ public class CovalenthqTransactionTask {
     );
 
     covalenthqVaultTransaction.setTokenPrice(
-        tokenPriceService.getTokenPrice(vaultAddress, block, network)
+        tokenPriceService.getTokenPrice(vaultAddress, covalenthqVaultTransaction.getValue(), block, network)
     );
 
     return covalenthqVaultTransaction;

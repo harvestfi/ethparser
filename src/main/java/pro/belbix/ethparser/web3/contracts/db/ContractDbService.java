@@ -158,7 +158,7 @@ public class ContractDbService {
   public Optional<TokenToUniPairEntity> findPairByToken(String tokenAddress, long block,
       String network) {
     List<TokenToUniPairEntity> pairs = tokenToUniPairRepository
-        .findByUniPairAddress(tokenAddress.toLowerCase(), network);
+        .findByToken(tokenAddress.toLowerCase(), network);
     if (pairs == null || pairs.isEmpty()) {
       return Optional.empty();
     }
