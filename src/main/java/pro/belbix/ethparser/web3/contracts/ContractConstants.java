@@ -219,4 +219,19 @@ public class ContractConstants {
           SUSHI_FACTORY_ADDRESS, 11333218
       )
   );
+
+  public static final Map<String, List<String>> PS_ADDRESSES_BY_NETWORK = Map.of(
+      ETH_NETWORK, List.of(
+          "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
+          FARM_TOKEN, // FARM TOKEN
+          PS_ADDRESS, // PS
+          PS_V0_ADDRESS // PS_V0
+      ),
+      BSC_NETWORK, List.of(
+          BSC_FARM_TOKEN
+      ),
+      MATIC_NETWORK, List.of(
+          MATIC_FARM_TOKEN
+      )
+  );
 }

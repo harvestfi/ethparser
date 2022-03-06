@@ -23,6 +23,8 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @Log4j2
 public class ProfitService {
 
+  private final static String WITHDRAW_NAME = "Withdraw";
+
   private final HarvestRepository harvestRepository;
   private final ContractDbService contractDbService;
   private final EthBlockService ethBlockService;
@@ -48,14 +50,24 @@ public class ProfitService {
     BigDecimal totalProfit = BigDecimal.ZERO;
 
     for (CovalenthqVaultTransaction i: transactions) {
-      var value = i.getValue().multiply(new BigDecimal(i.getSharePrice().toString()));
-      if (i.getType().equals("Withdraw")) {
+      if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
+        log.error("Can not calculate profit, incorrect transaction : {}", i);
+        throw new IllegalStateException();
+      }
+      var decimal = new BigDecimal(new BigInteger("10").pow(i.getContractDecimal()).toString());
+      var value = i.getValue()
+          .divide(decimal)
+          .multiply(
+              new BigDecimal(i.getSharePrice().toString()).divide(decimal)
+          )
+          .multiply(BigDecimal.valueOf(i.getTokenPrice()));
+
+      if (i.getType().equals(WITHDRAW_NAME)) {
         totalProfit = totalProfit.add(value);
       } else {
         totalProfit = totalProfit.subtract(value);
       }
     }
-
     return totalProfit;
   }
 

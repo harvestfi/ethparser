@@ -19,8 +19,4 @@ public class TokenPrice {
   @Id
   String id;
   Double value;
-
-  public static String toId(String vaultAddress, String block, String network) {
-    return String.join("_", vaultAddress, block, network);
-  }
 }

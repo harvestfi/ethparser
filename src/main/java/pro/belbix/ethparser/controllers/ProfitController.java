@@ -3,13 +3,13 @@ package pro.belbix.ethparser.controllers;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import java.math.BigDecimal;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.model.ProfitResult;
 import pro.belbix.ethparser.service.ProfitService;
 
 @RestController
@@ -49,7 +49,7 @@ public class ProfitController {
   }
 
   @GetMapping("api/profit")
-  public BigDecimal calculateProfit(@RequestParam String address, @RequestParam String network) {
-    return profitService.calculateProfit(address, network);
+  public ProfitResult calculateProfit(@RequestParam String address, @RequestParam String network) {
+    return new ProfitResult(profitService.calculateProfit(address, network));
   }
 }

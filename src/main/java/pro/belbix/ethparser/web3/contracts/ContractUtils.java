@@ -18,6 +18,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_BANCOR_TRANSACTIONS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES_BY_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -52,6 +53,13 @@ public class ContractUtils {
       return false;
     }
     return PS_ADDRESSES.contains(address.toLowerCase());
+  }
+
+  public static boolean isPsAddress(String address, String network) {
+    if (address == null) {
+      return false;
+    }
+    return PS_ADDRESSES_BY_NETWORK.get(network).contains(address.toLowerCase());
   }
 
   public static boolean isFarmAddress(String address) {

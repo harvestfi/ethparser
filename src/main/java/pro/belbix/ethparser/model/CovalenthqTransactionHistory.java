@@ -21,12 +21,6 @@ public class CovalenthqTransactionHistory {
 
     @Data
     public static class CovalenthqTransactionHistoryItem {
-      @JsonProperty("block_signed_at")
-      @JsonSerialize(using = LocalDateTimeSerializer.class)
-      @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-      @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
-      //                     2021-01-03T16:55:11Z
-      private LocalDateTime signedAt;
       @JsonProperty("block_height")
       private long blockHeight;
       @JsonProperty("tx_hash")
@@ -40,6 +34,11 @@ public class CovalenthqTransactionHistory {
 
       @Data
       public static class CovalenthqTransactionHistoryItemLog {
+        @JsonProperty("block_signed_at")
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        private LocalDateTime signedAt;
         @JsonProperty("block_height")
         private long blockHeight;
         @JsonProperty("tx_hash")

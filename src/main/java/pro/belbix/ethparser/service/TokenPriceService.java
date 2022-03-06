@@ -41,7 +41,7 @@ public class TokenPriceService {
         return tokenPrice.get().getValue();
       }
 
-      if (ContractUtils.isPsAddress(vaultAddress)) {
+      if (ContractUtils.isPsAddress(vaultAddress, network)) {
         return priceProvider.getPriceForCoin(ContractUtils.getFarmAddress(network), block, network);
       }
 
@@ -54,6 +54,7 @@ public class TokenPriceService {
       if (isToken(underlyingAddress, block, network)) {
         price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
       } else {
+        // TODO divide on decimal
         price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network);
       }
 

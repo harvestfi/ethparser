@@ -35,6 +35,8 @@ public class SharePriceService {
     var sharePriceInt = functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultAddress, block, network)
         .orElse(BigInteger.ZERO);
 
+    // TODO ps share price is zero
+    //0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50
     if (sharePriceInt.compareTo(BigInteger.ZERO) == 0) {
       log.info("Share price is zero {}", id);
     }

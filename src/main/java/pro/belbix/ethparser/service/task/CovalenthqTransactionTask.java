@@ -71,7 +71,7 @@ public class CovalenthqTransactionTask {
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
   public void start() {
     log.info("Begin parse vault tx");
-    var executor = Executors.newFixedThreadPool(10);
+    var executor = Executors.newFixedThreadPool(30);
 
     vaultRepository.fetchAllByNetwork(ETH_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
@@ -191,7 +191,7 @@ public class CovalenthqTransactionTask {
       transaction.setValue(
           StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value)
       );
-      transaction.setSignedAt(transaction.getSignedAt());
+      transaction.setSignedAt(item.getSignedAt());
 
       return transaction;
     } catch (Exception e) {
