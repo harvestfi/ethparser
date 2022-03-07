@@ -222,6 +222,7 @@ public class ContractConstants {
 
   public static final Map<String, List<String>> PS_ADDRESSES_BY_NETWORK = Map.of(
       ETH_NETWORK, List.of(
+          "0xd3093e3efbe00f010e8f5efe3f1cb5d9b7fe0eb1".toLowerCase(), //
           "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
           FARM_TOKEN, // FARM TOKEN
           PS_ADDRESS, // PS

@@ -30,6 +30,7 @@ public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
     List<VaultEntity> fetchAllByNetwork(@Param("network") String network);
 
     @Query("select t from VaultEntity t "
-        + "where t.name not like 'fUni%'")
-    List<VaultEntity> findAllWithoutUni();
+        + "left join fetch t.contract f1 "
+        + "where f1.network = 'eth' AND f1.name like 'V_UNI%' OR f1.name like  'V_SUSHI%'")
+    List<VaultEntity> findAllOnlyUniAndSushi();
 }

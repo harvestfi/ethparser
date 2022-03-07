@@ -20,14 +20,18 @@ public class UpdateUniPairContractTask {
 
   @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
   public void start() {
-    contractRepository.findAllUniPairContractWithoutData().stream()
+    contractRepository.findAllUniPairContractWithoutData()
         .forEach(this::fetchUniPairContact);
   }
 
   public void fetchUniPairContact(ContractEntity contract) {
-    log.info("Begin fetch uniPairsToToken for {} {}", contract.getAddress(), contract.getNetwork());
-    var token = contractLoader.loadToken(contract, contract.getNetwork(), contract.getCreated());
-    var uniPairsToToken = contractLoader.linkUniPairsToToken(contract.getAddress(), contract.getCreated(), token, contract.getNetwork());
-    log.info("Finish fetch uniPairsToToken - {}", uniPairsToToken);
+    try {
+      log.info("Begin fetch uniPairsToToken for {} {}", contract.getAddress(), contract.getNetwork());
+      var token = contractLoader.loadToken(contract, contract.getNetwork(), contract.getCreated());
+      var uniPairsToToken = contractLoader.linkUniPairsToToken(contract.getAddress(), contract.getCreated(), token, contract.getNetwork());
+      log.info("Finish fetch uniPairsToToken - {}", uniPairsToToken);
+    } catch (Exception e) {
+      log.error("Can not fetch uniPair token: {}", contract);
+    }
   }
 }

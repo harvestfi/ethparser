@@ -9,10 +9,12 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
+import pro.belbix.ethparser.error.exceptions.CanNotCalculateProfitException;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -21,8 +23,10 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class ProfitService {
 
+  private final static BigInteger DEFAULT_POW =  new BigInteger("10");
   private final static String WITHDRAW_NAME = "Withdraw";
 
   private final HarvestRepository harvestRepository;
@@ -32,43 +36,37 @@ public class ProfitService {
   private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
 
 
-  public ProfitService(HarvestRepository harvestRepository,
-      ContractDbService contractDbService,
-      EthBlockService ethBlockService,
-      FunctionsUtils functionsUtils,
-      CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository
-  ) {
-    this.harvestRepository = harvestRepository;
-    this.contractDbService = contractDbService;
-    this.ethBlockService = ethBlockService;
-    this.functionsUtils = functionsUtils;
-    this.covalenthqVaultTransactionRepository = covalenthqVaultTransactionRepository;
-  }
-
   public BigDecimal calculateProfit(String address, String network) {
-    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network);
-    BigDecimal totalProfit = BigDecimal.ZERO;
+    try {
+      var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network);
+      BigDecimal totalProfit = BigDecimal.ZERO;
 
-    for (CovalenthqVaultTransaction i: transactions) {
-      if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
-        log.error("Can not calculate profit, incorrect transaction : {}", i);
-        throw new IllegalStateException();
-      }
-      var decimal = new BigDecimal(new BigInteger("10").pow(i.getContractDecimal()).toString());
-      var value = i.getValue()
-          .divide(decimal)
-          .multiply(
-              new BigDecimal(i.getSharePrice().toString()).divide(decimal)
-          )
-          .multiply(BigDecimal.valueOf(i.getTokenPrice()));
+      for (CovalenthqVaultTransaction i: transactions) {
+        if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
+          log.error("Can not calculate profit, incorrect transaction : {}", i);
+          throw new CanNotCalculateProfitException();
+        }
+        var decimal = new BigDecimal(DEFAULT_POW.pow(i.getContractDecimal()).toString());
+        var value = i.getValue()
+            .divide(decimal)
+            .multiply(
+                new BigDecimal(i.getSharePrice().toString()).divide(decimal)
+            )
+            .multiply(BigDecimal.valueOf(i.getTokenPrice()));
 
-      if (i.getType().equals(WITHDRAW_NAME)) {
-        totalProfit = totalProfit.add(value);
-      } else {
-        totalProfit = totalProfit.subtract(value);
+        if (i.getType().equals(WITHDRAW_NAME)) {
+          totalProfit = totalProfit.add(value);
+        } else {
+          totalProfit = totalProfit.subtract(value);
+        }
       }
+      return totalProfit;
+    } catch (CanNotCalculateProfitException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("Error during calculate profit - ", e);
+      throw new CanNotCalculateProfitException();
     }
-    return totalProfit;
   }
 
   public Double calculationProfitForPeriod(String address, String start, String end) {

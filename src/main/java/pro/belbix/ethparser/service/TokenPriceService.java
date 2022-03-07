@@ -54,8 +54,8 @@ public class TokenPriceService {
       if (isToken(underlyingAddress, block, network)) {
         price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
       } else {
-        // TODO divide on decimal
-        price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network);
+        // priceProvider.getLpTokenUsdPrice return price * amount
+        price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network) / amount.doubleValue();
       }
 
       tokenPriceRepository.save(new TokenPrice(id, price));
@@ -66,7 +66,19 @@ public class TokenPriceService {
     }
   }
 
-  private boolean isToken(String underlyingAddress, long block, String network) {
+  public boolean isToken(String vaultAddress, String network) {
+    Long latestBlock = null;
+    var underlyingAddress = functionsUtils.callAddressByName(UNDERLYING, vaultAddress, latestBlock, network)
+        .orElse(null);
+
+    if (underlyingAddress == null) {
+      return false;
+    }
+
+    return isToken(underlyingAddress, latestBlock, network);
+  }
+
+  public boolean isToken(String underlyingAddress, Long block, String network) {
     return functionsUtils.callReserves(underlyingAddress, block, network) == null;
   }
 }
