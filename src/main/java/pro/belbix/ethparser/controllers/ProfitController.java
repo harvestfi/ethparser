@@ -35,7 +35,7 @@ public class ProfitController {
     return profitService.calculationProfitForPeriod(address, start, end);
   }
 
-  @RequestMapping(value = "api/profit/vault", method = RequestMethod.GET)
+  @RequestMapping(value = "api/profit/vaults", method = RequestMethod.GET)
   public Double fetchProfitByVault(
       @RequestParam("address") @Parameter(description = "Vault address") String address,
       @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network,
@@ -51,5 +51,11 @@ public class ProfitController {
   @GetMapping("api/profit")
   public ProfitResult calculateProfit(@RequestParam String address, @RequestParam String network) {
     return new ProfitResult(profitService.calculateProfit(address, network));
+  }
+
+  @GetMapping("api/profit/vault")
+  public ProfitResult calculateVaultProfit(@RequestParam String address, @RequestParam String network,
+      @RequestParam long blockFrom, @RequestParam long blockTo) {
+    return new ProfitResult(profitService.calculateVaultProfit(address, network, blockFrom, blockTo));
   }
 }

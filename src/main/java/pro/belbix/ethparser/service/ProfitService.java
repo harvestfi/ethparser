@@ -39,28 +39,23 @@ public class ProfitService {
   public BigDecimal calculateProfit(String address, String network) {
     try {
       var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network);
-      BigDecimal totalProfit = BigDecimal.ZERO;
 
-      for (CovalenthqVaultTransaction i: transactions) {
-        if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
-          log.error("Can not calculate profit, incorrect transaction : {}", i);
-          throw new CanNotCalculateProfitException();
-        }
-        var decimal = new BigDecimal(DEFAULT_POW.pow(i.getContractDecimal()).toString());
-        var value = i.getValue()
-            .divide(decimal)
-            .multiply(
-                new BigDecimal(i.getSharePrice().toString()).divide(decimal)
-            )
-            .multiply(BigDecimal.valueOf(i.getTokenPrice()));
 
-        if (i.getType().equals(WITHDRAW_NAME)) {
-          totalProfit = totalProfit.add(value);
-        } else {
-          totalProfit = totalProfit.subtract(value);
-        }
-      }
-      return totalProfit;
+      return calculateTxProfit(transactions);
+    } catch (CanNotCalculateProfitException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("Error during calculate profit - ", e);
+      throw new CanNotCalculateProfitException();
+    }
+  }
+
+  public BigDecimal calculateVaultProfit(String address, String network, long blockFrom, long blockTo) {
+    try {
+      var transactions =
+          covalenthqVaultTransactionRepository.findAllByContractAddressAndBlockBetween(address, network, blockFrom, blockTo);
+
+      return calculateTxProfit(transactions);
     } catch (CanNotCalculateProfitException e) {
       throw e;
     } catch (Exception e) {
@@ -184,5 +179,30 @@ public class ProfitService {
     }
 
     return (v.get(v.size() - 1).getBlock() * end) / v.get(v.size() - 1).getBlockDate();
+  }
+
+  private BigDecimal calculateTxProfit(List<CovalenthqVaultTransaction> transactions) {
+    BigDecimal totalProfit = BigDecimal.ZERO;
+
+    for (CovalenthqVaultTransaction i: transactions) {
+      if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
+        log.error("Can not calculate profit, incorrect transaction : {}", i);
+        throw new CanNotCalculateProfitException();
+      }
+      var decimal = new BigDecimal(DEFAULT_POW.pow(i.getContractDecimal()).toString());
+      var value = i.getValue()
+          .divide(decimal)
+          .multiply(
+              new BigDecimal(i.getSharePrice().toString()).divide(decimal)
+          )
+          .multiply(BigDecimal.valueOf(i.getTokenPrice()));
+
+      if (i.getType().equals(WITHDRAW_NAME)) {
+        totalProfit = totalProfit.add(value);
+      } else {
+        totalProfit = totalProfit.subtract(value);
+      }
+    }
+    return totalProfit;
   }
 }

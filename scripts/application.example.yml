@@ -19,6 +19,15 @@ spring:
 server:
   port: 4142
 
+external:
+  covalenthq:
+    url: https://api.covalenthq.com/v1/
+    key: ckey_91bf3242cc5042599af1094b965
+  harvest:
+    url: https://api-ui.harvest.finance/
+    key: 41e90ced-d559-4433-b390-af424fdc76d6
+
+
 task:
   pool:
     fixedRate: 3600000 # Each hour
