@@ -65,4 +65,7 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         + "left join TokenToUniPairEntity t on t.uniPair.id = u.id "
         + "where c.type = 2 and t.id is null")
     List<ContractEntity> findAllUniPairContractWithoutData();
+
+    @Query("select max(t.id) from ContractEntity t")
+    int findMaxId();
 }

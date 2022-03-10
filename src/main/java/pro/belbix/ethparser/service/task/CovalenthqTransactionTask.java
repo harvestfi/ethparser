@@ -78,7 +78,7 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findOnlyEth().stream()
+    vaultRepository.findNotUniV3().stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 

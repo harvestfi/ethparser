@@ -240,7 +240,9 @@ public class ContractConstants {
       ETH_NETWORK, List.of(
           PS_ADDRESS,
           "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase() // POOL
-      )
+      ),
+      BSC_NETWORK, List.of(),
+      MATIC_NETWORK, List.of()
   );
 
 }

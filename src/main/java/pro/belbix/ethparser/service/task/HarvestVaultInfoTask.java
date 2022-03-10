@@ -103,6 +103,8 @@ public class HarvestVaultInfoTask {
               isCorrectBlock = false;
               name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getVaultAddress(), null, network).orElse("");
             }
+            var id = contractRepository.findMaxId() + 1;
+            contract.setId(id);
             contract.setAddress(i.getVaultAddress());
             contract.setCreated(block);
             contract.setCreatedDate(createdBlockDate);
