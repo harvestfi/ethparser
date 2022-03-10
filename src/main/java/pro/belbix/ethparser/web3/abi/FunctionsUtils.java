@@ -4,8 +4,12 @@ import static java.math.BigInteger.ZERO;
 import static org.web3j.abi.TypeReference.makeTypeReference;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_ID;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
@@ -34,6 +38,7 @@ import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -41,12 +46,15 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
+import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.models.BalancerPoolTokenInfo;
+import pro.belbix.ethparser.web3.contracts.models.CurveTokenInfo;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -338,6 +346,95 @@ public class FunctionsUtils {
       types.add(typeReferenceByName(name));
     }
     return types;
+  }
+
+  public Optional<String> getPoolId(String address, Long block, String network) {
+    var result = web3Functions.callFunction(new Function(
+            GET_POOL_ID,
+            Collections.emptyList(),
+            Collections.singletonList(new TypeReference<Bytes32>() {
+            })),
+        address,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (result == null || result.isEmpty()) {
+      return Optional.empty();
+    }
+    var bytes = (Bytes32)result.get(0);
+    return Optional.of(Numeric.toHexString(bytes.getValue()));
+  }
+
+  public Optional<BalancerPoolTokenInfo> getPoolTokens(String address, Long block, String network, String poolId) {
+    var result = web3Functions.callFunction(new Function(
+        GET_POOL_TOKENS,
+        Collections.singletonList(new Bytes32(Numeric.hexStringToByteArray(poolId))),
+        List.of(
+            new TypeReference<DynamicArray<Address>>() {
+            },
+            new TypeReference<DynamicArray<Uint256>>() {
+            },
+            new TypeReference<Uint256>() {
+            }
+        )),
+        address,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (result == null || result.size() < 2) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(
+        BalancerPoolTokenInfo.builder()
+            .address(
+                ((List<Address>)result.get(0).getValue()).stream().map(Address::getValue).collect(Collectors.toList())
+            )
+            .balances(
+                ((List<Uint256>)result.get(1).getValue()).stream()
+                    .map(Uint256::getValue)
+                    .collect(Collectors.toList())
+            )
+            .build()
+    );
+  }
+
+  public Optional<CurveTokenInfo> getCurveTokenInfo(String minter, Long block, String network, long i) {
+    var coin = web3Functions.callFunction(new Function(
+        COINS,
+        Collections.singletonList(new Uint256(i)),
+        Collections.singletonList(new TypeReference<Address>() {})),
+        minter,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (coin == null || coin.isEmpty()) {
+      return Optional.empty();
+    }
+
+    var balance = web3Functions.callFunction(new Function(
+        BALANCES,
+        Collections.singletonList(new Uint256(i)),
+        Collections.singletonList(new TypeReference<Uint256>() {})
+        ),
+        minter,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (balance == null || balance.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(
+        CurveTokenInfo.builder()
+            .address(((Address)coin.get(0)).getValue())
+            .balance(((Uint256)balance.get(0)).getValue())
+            .build()
+    );
   }
 
   // ************ PRIVATE METHODS **************************

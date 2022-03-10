@@ -2,6 +2,8 @@ package pro.belbix.ethparser.entity.contracts;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -19,6 +21,7 @@ import org.hibernate.annotations.FetchMode;
 public class TokenEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "contract", unique = true)

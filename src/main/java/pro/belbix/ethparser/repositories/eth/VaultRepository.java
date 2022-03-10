@@ -31,6 +31,6 @@ public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
 
     @Query("select t from VaultEntity t "
         + "left join fetch t.contract f1 "
-        + "where f1.network = 'eth' AND f1.name like 'V_UNI%' OR f1.name like  'V_SUSHI%'")
-    List<VaultEntity> findAllOnlyUniAndSushi();
+        + "where f1.network = 'eth'")
+    List<VaultEntity> findOnlyEth();
 }

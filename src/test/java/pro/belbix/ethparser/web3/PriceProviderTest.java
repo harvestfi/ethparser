@@ -45,4 +45,18 @@ public class PriceProviderTest {
     double price = priceProvider.getPriceForCoin("WBNB", 6905123, BSC_NETWORK);
     assertEquals(numberFormat("536.67"), String.format("%.2f", price));
   }
+
+  @Test
+  public void priceForBalancer_80_BAL_20_WETH() {
+    // B-80BAL-20WETH
+    double price = priceProvider.getBalancerPrice("0x5c6ee304399dbdb9c8ef030ab642b10820db8f56", 14294907L, ETH_NETWORK);
+    assertEquals(numberFormat("28.25"), String.format("%.2f", price));
+  }
+
+  @Test
+  public void priceForCurve_Curvefi_USD_BTC_ETH() {
+    //Curve.fi USD-BTC-ETH
+    double price = priceProvider.getCurvePrice("0xc4AD29ba4B3c580e6D59105FFf484999997675Ff", 14354885L, ETH_NETWORK);
+    assertEquals(numberFormat("1459.31"), String.format("%.2f", price));
+  }
 }

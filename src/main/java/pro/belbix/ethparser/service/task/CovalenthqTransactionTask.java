@@ -16,11 +16,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,7 +42,6 @@ import pro.belbix.ethparser.web3.Web3Functions;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class CovalenthqTransactionTask {
   // max block range in covalenthq
   private static final int MAX_BLOCK_RANGE = 1000000;
@@ -57,28 +55,35 @@ public class CovalenthqTransactionTask {
       "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c", DEPOSIT
   );
 
-  SimpleDecoder simpleDecoder;
-  VaultRepository vaultRepository;
-  CovalenthqService covalenthqService;
-  CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
-  Web3Functions web3Functions;
-  SharePriceService sharePriceService;
-  TokenPriceService tokenPriceService;
+  @Value("${task.transaction.enable}")
+  private Boolean enable;
+
+  @Value("${task.transaction.max-thread-size}")
+  private Integer maxThreadSize;
+
+  private final SimpleDecoder simpleDecoder;
+  private final VaultRepository vaultRepository;
+  private final CovalenthqService covalenthqService;
+  private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
+  private final Web3Functions web3Functions;
+  private final SharePriceService sharePriceService;
+  private final TokenPriceService tokenPriceService;
 
 
-  // everyday
-  @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
+  @Scheduled(fixedRateString = "${task.transaction.fixedRate}")
   public void start() {
+    if (enable == null || !enable) {
+      log.info("Disable CovalenthqTransactionTask");
+    }
     log.info("Begin parse vault tx");
-    var executor = Executors.newFixedThreadPool(30);
+    var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findAllOnlyUniAndSushi().stream()
+    vaultRepository.findOnlyEth().stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
   }
 
-  // TODO add more logs, check on null, catch exceptions
   private void getVaultTransaction(VaultEntity vault) {
    try {
      log.info("Run getVaultTransaction for {}", vault);

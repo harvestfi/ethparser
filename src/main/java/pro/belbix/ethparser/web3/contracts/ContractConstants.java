@@ -235,4 +235,12 @@ public class ContractConstants {
           MATIC_FARM_TOKEN
       )
   );
+
+  public static final Map<String, List<String>> EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK = Map.of(
+      ETH_NETWORK, List.of(
+          PS_ADDRESS,
+          "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase() // POOL
+      )
+  );
+
 }

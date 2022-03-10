@@ -13,6 +13,7 @@ import pro.belbix.ethparser.entity.profit.SharePrice;
 import pro.belbix.ethparser.repositories.SharePriceRepository;
 import pro.belbix.ethparser.utils.ProfitUtils;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -31,14 +32,17 @@ public class SharePriceService {
       return sharePrice.get().getValue();
     }
 
+    if (ContractConstants.EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK.get(network).contains(vaultAddress.toLowerCase())) {
+      sharePriceRepository.save(new SharePrice(id, BigInteger.ONE));
+      return BigInteger.ONE;
+    }
 
     var sharePriceInt = functionsUtils.callIntByName(GET_PRICE_PER_FULL_SHARE, vaultAddress, block, network)
         .orElse(BigInteger.ZERO);
 
-    // TODO ps share price is zero
-    //0x25550cccbd68533fa04bfd3e3ac4d09f9e00fc50
     if (sharePriceInt.compareTo(BigInteger.ZERO) == 0) {
       log.info("Share price is zero {}", id);
+      sharePriceInt = BigInteger.ONE;
     }
     sharePriceRepository.save(new SharePrice(id, sharePriceInt));
 

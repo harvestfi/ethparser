@@ -1,9 +1,8 @@
 package pro.belbix.ethparser.service.task;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -13,13 +12,18 @@ import pro.belbix.ethparser.web3.contracts.ContractLoader;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class UpdateUniPairContractTask {
-  ContractRepository contractRepository;
-  ContractLoader contractLoader;
+  @Value("${task.uni-pair.enable}")
+  private Boolean enable;
+  private final ContractRepository contractRepository;
+  private final ContractLoader contractLoader;
 
-  @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
+  @Scheduled(fixedRateString = "${task.uni-pair.fixedRate}")
   public void start() {
+    if (enable == null || !enable) {
+      log.info("UpdateUniPairContractTask disabled");
+      return;
+    }
     contractRepository.findAllUniPairContractWithoutData()
         .forEach(this::fetchUniPairContact);
   }

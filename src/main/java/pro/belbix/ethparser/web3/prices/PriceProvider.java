@@ -1,10 +1,13 @@
 package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,8 +18,10 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
+import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
@@ -26,7 +31,10 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @Log4j2
 public class PriceProvider {
 
-  private static final boolean CHECK_BLOCK_CREATED = false;
+  private final static int DEFAULT_CURVE_SIZE = 3;
+  private final static int DEFAULT_DECIMAL = 18;
+  private final static BigInteger DEFAULT_POW =  new BigInteger("10");
+  private final static boolean CHECK_BLOCK_CREATED = false;
   private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
 
   private final FunctionsUtils functionsUtils;
@@ -45,6 +53,109 @@ public class PriceProvider {
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
       return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
+  }
+
+  public double getBalancerPrice(String address, Long block, String network) {
+    var poolId = functionsUtils.getPoolId(address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer poolId for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var vaultAddress = functionsUtils.callAddressByName(GET_VAULT, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer vault for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var poolTokenInfo = functionsUtils.getPoolTokens(vaultAddress, block, network, poolId)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer poolTokenInfo for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var totalSupply = functionsUtils.callIntByName(TOTAL_SUPPLY, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get totalSupply for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).doubleValue();
+
+    var price = 0d;
+
+    for (int i = 0; i < poolTokenInfo.getAddress().size(); i++) {
+      var tokenAddress = poolTokenInfo.getAddress().get(i);
+      var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenAddress, block, network)
+          .orElseThrow(() -> {
+            log.error("Can not get token decimal for {} {}", tokenAddress, network);
+            throw new CanNotFetchPriceException();
+          }).intValue();
+
+      var tokenPrice = getPriceForCoin(tokenAddress, block, network);
+      if (tokenPrice == 0) {
+        log.error("Can not fetch price for balancer {} {}", address, network);
+        return 0;
+      }
+
+      price = price + tokenPrice * normalizePrecision(poolTokenInfo.getBalances().get(i).doubleValue(), tokenDecimal);
+    }
+
+    return price / totalSupply;
+  }
+
+  // TODO 0xc27bfe32e0a934a12681c1b35acf0dba0e7460ba has 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee coin address
+  public double getCurvePrice(String address, Long block, String network) {
+    var size = DEFAULT_CURVE_SIZE;
+    var minter = functionsUtils.callAddressByName(MINTER, address, block, network)
+        .orElse(null);
+
+    if (minter == null) {
+      var checkAddress = functionsUtils.getCurveTokenInfo(address, block, network, 0);
+      if (checkAddress.isEmpty()) {
+        return getPriceForCoin(address, block, network);
+      }
+      size = 2;
+      minter = address;
+    }
+
+    var decimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get decimal for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).intValue();
+
+    var totalSupply = functionsUtils.callIntByName(TOTAL_SUPPLY, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get totalSupply for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).doubleValue();
+
+    var tvl = Double.valueOf(0);
+    for (int i = 0; i < size; i++) {
+      var index = i;
+      var tokenInfo = functionsUtils.getCurveTokenInfo(minter, block, network, i)
+          .orElseThrow(() -> {
+            log.error("Can not get tokeInfo for {} {}, index - {}", address, network, index);
+            throw new CanNotFetchPriceException();
+          });
+
+      var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenInfo.getAddress(), block, network)
+          .orElseThrow(() -> {
+            log.error("Can not get decimal for {} {}", tokenInfo.getAddress(), network);
+            throw new CanNotFetchPriceException();
+          }).intValue();
+
+      var tokenPrice = getPriceForCoin(tokenInfo.getAddress(), block, network);
+
+      if (tokenPrice == 0) {
+        log.error("Can not fetch price for curve {} {}", address, network);
+        return 0;
+      }
+
+      var balance = normalizePrecision(tokenInfo.getBalance().doubleValue(), tokenDecimal);
+      tvl = tvl + tokenPrice * balance / DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue();
+    }
+
+    return tvl * DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue() / normalizePrecision(totalSupply, decimal) ;
   }
 
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block,
@@ -291,4 +402,7 @@ public class PriceProvider {
     }
   }
 
+  private double normalizePrecision(Double amount, int decimal) {
+    return amount * DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue() / DEFAULT_POW.pow(decimal).doubleValue();
+  }
 }

@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.service;
 
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 
 import java.math.BigDecimal;
@@ -7,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.profit.TokenPrice;
@@ -15,6 +17,7 @@ import pro.belbix.ethparser.repositories.TokenPriceRepository;
 import pro.belbix.ethparser.utils.ProfitUtils;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.UniPairType;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -51,12 +54,23 @@ public class TokenPriceService {
             throw new IllegalStateException();
           });
 
-      if (isToken(underlyingAddress, block, network)) {
-        price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
-      } else {
+      var name = functionsUtils.callStrByName(NAME, underlyingAddress, block, network)
+          .orElse(StringUtils.EMPTY);
+
+      if (UniPairType.isLpUniPair(name)) {
         // priceProvider.getLpTokenUsdPrice return price * amount
         price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network) / amount.doubleValue();
+      } else if (UniPairType.isBalancer(name)) {
+        price = priceProvider.getBalancerPrice(underlyingAddress, block, network);
+        log.info("Fetched price balancer: {} {} = {}", underlyingAddress, network, price);
+        // TODO Curve can not calculate price 0x29780c39164ebbd62e9ddde50c151810070140f2
+      } else if (UniPairType.isCurve(name)) {
+        price = priceProvider.getCurvePrice(underlyingAddress, block, network);
+        log.info("Fetched price curve: {} {} = {}", underlyingAddress, network, price);
+      } else {
+        price = priceProvider.getPriceForCoin(underlyingAddress, block, network);
       }
+
 
       tokenPriceRepository.save(new TokenPrice(id, price));
       return price;
@@ -64,21 +78,5 @@ public class TokenPriceService {
       log.error("Can not get token price - {}", vaultAddress, e);
       throw new CanNotFetchPriceException();
     }
-  }
-
-  public boolean isToken(String vaultAddress, String network) {
-    Long latestBlock = null;
-    var underlyingAddress = functionsUtils.callAddressByName(UNDERLYING, vaultAddress, latestBlock, network)
-        .orElse(null);
-
-    if (underlyingAddress == null) {
-      return false;
-    }
-
-    return isToken(underlyingAddress, latestBlock, network);
-  }
-
-  public boolean isToken(String underlyingAddress, Long block, String network) {
-    return functionsUtils.callReserves(underlyingAddress, block, network) == null;
   }
 }

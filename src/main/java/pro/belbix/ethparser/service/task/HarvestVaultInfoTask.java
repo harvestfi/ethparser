@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
@@ -31,23 +31,28 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class HarvestVaultInfoTask {
   private static final Long INCREASE_BLOCK_WEIGHT = 1000L;
 
-  HarvestService harvestService;
-  ContractLoader contractLoader;
-  ContractRepository contractRepository;
-  VaultRepository vaultRepository;
-  EthBlockService ethBlockService;
-  FunctionsUtils functionsUtils;
-  CovalenthqService covalenthqService;
+  @Value("${task.vault.enable}")
+  private Boolean enable;
+  private final HarvestService harvestService;
+  private final ContractLoader contractLoader;
+  private final ContractRepository contractRepository;
+  private final VaultRepository vaultRepository;
+  private final EthBlockService ethBlockService;
+  private final FunctionsUtils functionsUtils;
+  private final CovalenthqService covalenthqService;
 
 
-  // each hour
-//  @Scheduled(fixedRate = 1000 * 60 * 60)
+  @Scheduled(fixedRateString = "${task.vault.fixedRate}")
   public void start() {
     try {
+      if (enable == null || !enable) {
+        log.info("HarvestPoolInfoTask disabled");
+        return;
+      }
+
       var response = harvestService.getVaults();
 
       List<CompletableFuture<List<VaultEntity>>> vaultFutures = List.of(
