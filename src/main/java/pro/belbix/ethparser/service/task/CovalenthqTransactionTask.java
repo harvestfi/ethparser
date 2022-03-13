@@ -4,6 +4,7 @@ import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -78,7 +79,7 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findNotUniV3().stream()
+    vaultRepository.fetchAllByNetwork(BSC_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 

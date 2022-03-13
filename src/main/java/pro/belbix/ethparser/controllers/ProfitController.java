@@ -49,8 +49,13 @@ public class ProfitController {
   }
 
   @GetMapping("api/profit")
-  public ProfitResult calculateProfit(@RequestParam String address, @RequestParam String network) {
-    return new ProfitResult(profitService.calculateProfit(address, network));
+  public ProfitResult calculateProfit(
+      @RequestParam String address,
+      @RequestParam(required = false, defaultValue = "eth") String network,
+      @RequestParam(required = false, defaultValue = "") String vaultAddress,
+      @RequestParam(required = false, defaultValue = "0") Long blockFrom,
+      @RequestParam(required = false, defaultValue = "0") Long blockTo) {
+    return new ProfitResult(profitService.calculateProfit(address, network, vaultAddress, blockFrom, blockTo));
   }
 
   @GetMapping("api/profit/vault")

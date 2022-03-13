@@ -18,6 +18,7 @@ import pro.belbix.ethparser.error.exceptions.CanNotCalculateProfitException;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
@@ -34,12 +35,15 @@ public class ProfitService {
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
   private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
+  private final Web3Functions web3Functions;
 
 
-  public BigDecimal calculateProfit(String address, String network) {
+  public BigDecimal calculateProfit(String address, String network, String vault, Long blockFrom, Long blockTo) {
     try {
-      var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network);
-
+      if (blockTo == 0) {
+        blockTo = web3Functions.fetchCurrentBlock(network).longValue();
+      }
+      var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network, vault, blockFrom, blockTo);
 
       return calculateTxProfit(transactions);
     } catch (CanNotCalculateProfitException e) {

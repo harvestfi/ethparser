@@ -9,7 +9,12 @@ import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
 public interface CovalenthqVaultTransactionRepository extends JpaRepository<CovalenthqVaultTransaction, Integer> {
   List<CovalenthqVaultTransaction> findAllByNetworkAndContractAddress(String network, String contractAddress, Pageable pageable);
   List<CovalenthqVaultTransaction> findAllByTransactionHashIn(List<String> transactionHashes);
-  List<CovalenthqVaultTransaction> findAllByOwnerAddressAndNetwork(String ownerAddress, String network);
+  @Query("select c from CovalenthqVaultTransaction c "
+      + "where c.network = :network AND "
+      + "c.contractAddress like %:address% AND "
+      + "c.block BETWEEN :blockFrom AND :blockTo AND "
+      + "c.ownerAddress = :ownerAddress")
+  List<CovalenthqVaultTransaction> findAllByOwnerAddressAndNetwork(String ownerAddress, String network, String address, Long blockFrom, Long blockTo);
 
   @Query("select c from CovalenthqVaultTransaction c "
       + "where c.network = :network AND c.contractAddress = :address AND c.block BETWEEN :blockFrom AND :blockTo")
