@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.service;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
@@ -13,8 +14,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
 import pro.belbix.ethparser.error.exceptions.CanNotCalculateProfitException;
+import pro.belbix.ethparser.model.ProfitListResult;
+import pro.belbix.ethparser.model.ProfitListResult.ProfitListResultItem;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
@@ -37,6 +41,16 @@ public class ProfitService {
   private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
   private final Web3Functions web3Functions;
 
+
+  public ProfitListResult calculateProfit(String address) {
+    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAndNetwork(address, ETH_NETWORK);
+    var contracts = contractDbService.findAllVaultsByNetwork(ETH_NETWORK);
+
+    return ProfitListResult.builder()
+        .totalProfit(calculateTxProfit(transactions))
+        .items(calculateProfitByVaults(transactions, contracts))
+        .build();
+  }
 
   public BigDecimal calculateProfit(String address, String network, String vault, Long blockFrom, Long blockTo) {
     try {
@@ -208,5 +222,21 @@ public class ProfitService {
       }
     }
     return totalProfit;
+  }
+
+  private List<ProfitListResultItem> calculateProfitByVaults(List<CovalenthqVaultTransaction> transactions, List<ContractEntity> contracts) {
+    return contracts.stream()
+        .map(i -> {
+          var txByContract = transactions.stream()
+              .filter(tx -> tx.getContractAddress().equalsIgnoreCase(i.getAddress()))
+              .collect(Collectors.toList());
+
+          return ProfitListResultItem.builder()
+              .contractAddress(i.getAddress())
+              .name(i.getName())
+              .profit(calculateTxProfit(txByContract))
+              .build();
+        })
+        .collect(Collectors.toList());
   }
 }

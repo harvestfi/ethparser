@@ -5,10 +5,12 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.model.ProfitListResult;
 import pro.belbix.ethparser.model.ProfitResult;
 import pro.belbix.ethparser.service.ProfitService;
 
@@ -56,6 +58,11 @@ public class ProfitController {
       @RequestParam(required = false, defaultValue = "0") Long blockFrom,
       @RequestParam(required = false, defaultValue = "0") Long blockTo) {
     return new ProfitResult(profitService.calculateProfit(address, network, vaultAddress, blockFrom, blockTo));
+  }
+
+  @GetMapping("api/profit/{address}")
+  public ProfitListResult calculateProfit(@PathVariable String address) {
+    return profitService.calculateProfit(address);
   }
 
   @GetMapping("api/profit/vault")

@@ -19,4 +19,8 @@ public interface CovalenthqVaultTransactionRepository extends JpaRepository<Cova
   @Query("select c from CovalenthqVaultTransaction c "
       + "where c.network = :network AND c.contractAddress = :address AND c.block BETWEEN :blockFrom AND :blockTo")
   List<CovalenthqVaultTransaction> findAllByContractAddressAndBlockBetween(String address, String network, long blockFrom, long blockTo);
+
+  @Query("select c from CovalenthqVaultTransaction c "
+      + "where c.ownerAddress = :address and c.network = :network")
+  List<CovalenthqVaultTransaction> findAllByOwnerAndNetwork(String address, String network);
 }

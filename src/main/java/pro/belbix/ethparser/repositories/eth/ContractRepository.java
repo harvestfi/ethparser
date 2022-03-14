@@ -66,6 +66,10 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Intege
         + "where c.type = 2 and t.id is null")
     List<ContractEntity> findAllUniPairContractWithoutData();
 
+    @Query("select c from ContractEntity c "
+        + "where c.type = 0 and c.network = :network")
+    List<ContractEntity> findAllVaultsByNetwork(String network);
+
     @Query("select max(t.id) from ContractEntity t")
     int findMaxId();
 }

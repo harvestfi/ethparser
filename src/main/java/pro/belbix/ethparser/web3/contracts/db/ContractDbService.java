@@ -257,4 +257,7 @@ public class ContractDbService {
         ContractUtils.getBaseNetworkWrappedTokenAddress(network), network);
   }
 
+  public List<ContractEntity> findAllVaultsByNetwork(String network) {
+    return contractRepository.findAllVaultsByNetwork(network);
+  }
 }
