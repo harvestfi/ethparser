@@ -24,6 +24,7 @@ public class UpdateUniPairContractTask {
       log.info("UpdateUniPairContractTask disabled");
       return;
     }
+    log.info("Start UpdateUniPairContractTask");
     contractRepository.findAllUniPairContractWithoutData()
         .forEach(this::fetchUniPairContact);
   }

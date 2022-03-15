@@ -42,8 +42,8 @@ public class ProfitService {
   private final Web3Functions web3Functions;
 
 
-  public ProfitListResult calculateProfit(String address) {
-    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAndNetwork(address, ETH_NETWORK);
+  public ProfitListResult calculateProfit(String address, String network) {
+    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAndNetwork(address, network);
     var contracts = contractDbService.findAllVaultsByNetwork(ETH_NETWORK);
 
     return ProfitListResult.builder()

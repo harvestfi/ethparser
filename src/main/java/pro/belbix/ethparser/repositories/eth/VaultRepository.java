@@ -31,8 +31,8 @@ public interface VaultRepository extends JpaRepository<VaultEntity, Integer> {
 
     @Query("select t from VaultEntity t "
         + "left join fetch t.contract f1 "
-        + "where t.name not like 'fUniV3%'")
-    List<VaultEntity> findNotUniV3();
+        + "where f1.network = :network")
+    List<VaultEntity> findAllByNetwork(String network);
 
     @Query("select max(t.id) from VaultEntity t")
     int findMaxId();

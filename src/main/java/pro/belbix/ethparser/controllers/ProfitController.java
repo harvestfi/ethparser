@@ -61,8 +61,8 @@ public class ProfitController {
   }
 
   @GetMapping("api/profit/{address}")
-  public ProfitListResult calculateProfit(@PathVariable String address) {
-    return profitService.calculateProfit(address);
+  public ProfitListResult calculateProfit(@PathVariable String address, @RequestParam(required = false, defaultValue = "eth") String network) {
+    return profitService.calculateProfit(address, network);
   }
 
   @GetMapping("api/profit/vault")

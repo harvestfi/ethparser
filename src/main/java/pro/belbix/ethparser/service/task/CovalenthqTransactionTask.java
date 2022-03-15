@@ -75,11 +75,12 @@ public class CovalenthqTransactionTask {
   public void start() {
     if (enable == null || !enable) {
       log.info("Disable CovalenthqTransactionTask");
+      return;
     }
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.fetchAllByNetwork(BSC_NETWORK).stream()
+    vaultRepository.findAllByNetwork(BSC_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -201,7 +202,8 @@ public class CovalenthqTransactionTask {
       return transaction;
     } catch (Exception e) {
       log.error("Can not parse covalenthq log: {}", item, e);
-      return null;
+      throw new CanNotFetchPriceException();
+//      return null;
     }
   }
 

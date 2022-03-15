@@ -14,6 +14,10 @@ public enum UniPairType {
   CURVE("Curve.fi"),
   // SushiSwap LP Token
   SUSHISWAP("SushiSwap"),
+  // Pancake ..
+  PANCACKE("Pancake"),
+  // PancakeSwap ..
+  PANCACKE_SWAP("PancakeSwap"),
   // Uniswap V2
   UNISWAP("Uniswap");
 
@@ -24,7 +28,10 @@ public enum UniPairType {
   private final String name;
 
   public static boolean isLpUniPair(String name) {
-    return Stream.of(ONE_INCH, SUSHISWAP, UNISWAP).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
+    if (Stream.of(PANCACKE_SWAP).anyMatch(i -> name.toLowerCase().startsWith(i.getName()))) {
+      return false;
+    }
+    return Stream.of(ONE_INCH, SUSHISWAP, UNISWAP, PANCACKE).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
   }
 
   public static boolean isBalancer(String name) {
