@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
-import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -39,6 +39,7 @@ import pro.belbix.ethparser.service.TokenPriceService;
 import pro.belbix.ethparser.service.external.CovalenthqService;
 import pro.belbix.ethparser.web3.SimpleDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
+import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +70,7 @@ public class CovalenthqTransactionTask {
   private final Web3Functions web3Functions;
   private final SharePriceService sharePriceService;
   private final TokenPriceService tokenPriceService;
+  private final FunctionsUtils functionsUtils;
 
 
   @Scheduled(fixedRateString = "${task.transaction.fixedRate}")
@@ -80,7 +82,7 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findAllByNetwork(BSC_NETWORK).stream()
+    vaultRepository.findAllByNetwork(MATIC_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -186,11 +188,14 @@ public class CovalenthqTransactionTask {
             throw new IllegalStateException();
           });
       var value = getParamValue(item, covalenthqType.value);
+      var decimal = item.getContractDecimal() == 0
+          ? functionsUtils.getDecimal(contractAddress, network)
+          : item.getContractDecimal();
 
       transaction.setNetwork(network);
       transaction.setBlock(item.getBlockHeight());
       transaction.setTransactionHash(item.getTransactionHash());
-      transaction.setContractDecimal(item.getContractDecimal());
+      transaction.setContractDecimal(decimal);
       transaction.setContractAddress(contractAddress);
       transaction.setType(covalenthqType.type);
       transaction.setOwnerAddress(getParamValue(item, covalenthqType.address));

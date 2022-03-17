@@ -18,6 +18,8 @@ public enum UniPairType {
   PANCACKE("Pancake"),
   // PancakeSwap ..
   PANCACKE_SWAP("PancakeSwap"),
+  // Kyber
+  KYBER("Kyber"),
   // Uniswap V2
   UNISWAP("Uniswap");
 
@@ -31,7 +33,7 @@ public enum UniPairType {
     if (Stream.of(PANCACKE_SWAP).anyMatch(i -> name.toLowerCase().startsWith(i.getName()))) {
       return false;
     }
-    return Stream.of(ONE_INCH, SUSHISWAP, UNISWAP, PANCACKE).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
+    return Stream.of(ONE_INCH, SUSHISWAP, UNISWAP, PANCACKE, KYBER).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
   }
 
   public static boolean isBalancer(String name) {

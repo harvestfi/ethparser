@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.EXCLUDE_JARVIS_STABLECOIN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.IS_NOT_AVAILABLE_IN_ORACLE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
@@ -31,6 +33,7 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @Log4j2
 public class PriceProvider {
 
+  private final static Double DEFAULT_RETURN_PRICE = 1D;
   private final static int DEFAULT_CURVE_SIZE = 3;
   private final static int DEFAULT_DECIMAL = 18;
   private final static BigInteger DEFAULT_POW =  new BigInteger("10");
@@ -164,7 +167,7 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (PriceOracle.isAvailable(block, network)) {
+    if (PriceOracle.isAvailable(block, network) && IS_NOT_AVAILABLE_IN_ORACLE.get(network).stream().noneMatch(i -> i.equalsIgnoreCase(lpAddress))) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
     log.info("Oracle not deployed yet, use direct calculation for prices");
@@ -268,6 +271,11 @@ public class PriceProvider {
     if (appProperties.isOnlyApi()) {
       return 0.0;
     }
+
+    if (EXCLUDE_JARVIS_STABLECOIN.get(network).stream().anyMatch(i -> i.equals(address.toLowerCase()))) {
+      return DEFAULT_RETURN_PRICE;
+    }
+
     if (PriceOracle.isAvailable(block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }

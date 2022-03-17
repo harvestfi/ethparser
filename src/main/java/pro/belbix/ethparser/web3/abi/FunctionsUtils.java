@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -71,6 +72,7 @@ public class FunctionsUtils {
   private final Map<String, Function> functionsCache = new HashMap<>();
   private final static String EXCLUDE_ONEINCH = "1inch";
   private final static String EXCLUDE_KYBER = "Kyber";
+  private final static BigInteger DEFAULT_DECIMAL = BigInteger.valueOf(18);
 
   private final Web3Functions web3Functions;
   private final ContractDbService contractDbService;
@@ -94,6 +96,12 @@ public class FunctionsUtils {
     } else {
       return callUniReserves(lpAddress, block, network, getTypeReferenceForGetReserves(lpName));
     }
+  }
+
+  @Cacheable("decimal_latest_block")
+  public int getDecimal(String address, String network) {
+    return callIntByName(FunctionsNames.DECIMALS, address, null, network)
+        .orElse(DEFAULT_DECIMAL).intValue();
   }
 
   private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block, String network) {

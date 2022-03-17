@@ -151,13 +151,15 @@ public class ContractConstants {
       PS_V0_ADDRESS // PS_V0
   );
 
+  // TODO separate by networks
   public static final Set<String> ONE_DOLLAR_TOKENS = Set.of(
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".toLowerCase(), //USDC
       "0xe9e7cea3dedca5984780bafc599bd69add087d56".toLowerCase(), //BUSD
       "0xdAC17F958D2ee523a2206206994597C13D831ec7".toLowerCase(), //USDT
       "0x0000000000085d4780B73119b644AE5ecd22b376".toLowerCase(), //TUSD
       "0x2791bca1f2de4661ed88a30c99a7a9449aa84174".toLowerCase(), //matic USDC
-      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f".toLowerCase() //matic USDT
+      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f".toLowerCase(), //matic USDT
+      "0xE840B73E5287865EEc17d250bFb1536704B43B21".toLowerCase()  //matic mUSD
   );
 
   //Key tokens are used to find liquidity for any given token on Uni, Sushi and Curve.
@@ -245,4 +247,20 @@ public class ContractConstants {
       MATIC_NETWORK, List.of()
   );
 
+  public static final Map<String, List<String>> EXCLUDE_JARVIS_STABLECOIN = Map.of(
+      ETH_NETWORK, List.of(),
+      BSC_NETWORK, List.of(),
+      MATIC_NETWORK, List.of(
+          "0x8ca194A3b22077359b5732DE53373D4afC11DeE3".toLowerCase(),  // jCAD
+          "0x8343091F2499FD4b6174A46D067A920a3b851FF9".toLowerCase()  // jJPY
+      )
+  );
+
+  public static final Map<String, List<String>> IS_NOT_AVAILABLE_IN_ORACLE = Map.of(
+      ETH_NETWORK, List.of(),
+      BSC_NETWORK, List.of(),
+      MATIC_NETWORK, List.of(
+          "0x32d8513eDDa5AEf930080F15270984A043933A95".toLowerCase()  // KyberDMM LP jCAD+CADC-f-QUI-MAR22
+      )
+  );
 }

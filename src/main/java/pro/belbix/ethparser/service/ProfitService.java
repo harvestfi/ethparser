@@ -1,6 +1,5 @@
 package pro.belbix.ethparser.service;
 
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
@@ -44,7 +43,7 @@ public class ProfitService {
 
   public ProfitListResult calculateProfit(String address, String network) {
     var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAndNetwork(address, network);
-    var contracts = contractDbService.findAllVaultsByNetwork(ETH_NETWORK);
+    var contracts = contractDbService.findAllVaultsByNetwork(network);
 
     return ProfitListResult.builder()
         .totalProfit(calculateTxProfit(transactions))

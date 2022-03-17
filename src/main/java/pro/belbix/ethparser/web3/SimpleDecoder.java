@@ -18,7 +18,7 @@ public class SimpleDecoder extends MethodDecoder {
     return parseMethodId(ethLog)
         .flatMap(this::findParameters)
         .map(parameters ->
-            extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters));
+            extractLogIndexedValuesWrapped(ethLog.getTopics(), ethLog.getData(), parameters));
   }
 
   @SuppressWarnings("rawtypes")

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -32,6 +33,7 @@ import pro.belbix.ethparser.model.tx.EthTransactionI;
 import pro.belbix.ethparser.web3.abi.CommonMethods;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
+@Log4j2
 public abstract class MethodDecoder {
 
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();
@@ -88,17 +90,24 @@ public abstract class MethodDecoder {
     }
     List<TypeReference<Type>> indexedParameters = getIndexedParameters(parameters);
     for (int i = 0; i < indexedParameters.size(); i++) {
-      var index = topics.size() > i + 1
-          ? i + 1
-          : i;
-
-      // TODO in some case get index out of
-      String topic = topics.get(index);
+      String topic = topics.get(i + 1);
       Type value = decodeIndexedValue(topic, indexedParameters.get(i));
       indexedValues.add(value);
     }
     indexedValues.addAll(nonIndexedValues);
     return indexedValues;
+  }
+  public static List<Type> extractLogIndexedValuesWrapped(
+      List<String> topics,
+      String data,
+      List<TypeReference<Type>> parameters) {
+    try {
+      return extractLogIndexedValues(topics, data, parameters);
+    } catch (Exception e) {
+      log.error("Get error during parse log: {}", e.getMessage());
+      // in some cases parameters in data
+      return FunctionReturnDecoder.decode(data, parameters);
+    }
   }
 
   public static List<TypeReference<Type>> getNonIndexedParameters(
