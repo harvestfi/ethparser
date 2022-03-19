@@ -103,4 +103,6 @@ public class FunctionsNames {
   public static final String GET_POOL_TOKENS = "getPoolTokens";
   public static final String GET_VAULT = "getVault";
   public static final String BALANCES = "balances";
+  public static final String CHECKING_PRICING_TOKEN = "checkPricingToken";
+  public static final String GET_BALANCES = "get_balances";
 }

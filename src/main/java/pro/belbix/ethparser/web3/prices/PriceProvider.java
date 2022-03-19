@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.EXCLUDE_JARVIS_STABLECOIN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.IS_NOT_AVAILABLE_IN_ORACLE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
@@ -116,7 +115,7 @@ public class PriceProvider {
       if (checkAddress.isEmpty()) {
         return getPriceForCoin(address, block, network);
       }
-      size = 2;
+      size = functionsUtils.getCurveVaultSize(address, network);
       minter = address;
     }
 
@@ -167,7 +166,7 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (PriceOracle.isAvailable(block, network) && IS_NOT_AVAILABLE_IN_ORACLE.get(network).stream().noneMatch(i -> i.equalsIgnoreCase(lpAddress))) {
+    if (PriceOracle.isAvailable(block, network) && functionsUtils.canGetTokenPrice(lpAddress, priceOracle.getOracleAddress(lpAddress, block, network), block, network)) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
     log.info("Oracle not deployed yet, use direct calculation for prices");
@@ -193,8 +192,14 @@ public class PriceProvider {
       long block,
       String network
   ) {
-    Tuple2<String, String> tokensAdr = contractDbService
-        .tokenAddressesByUniPairAddress(lpAddress, network);
+    Tuple2<String, String> tokensAdr = null;
+
+    try {
+      tokensAdr = contractDbService
+          .tokenAddressesByUniPairAddress(lpAddress, network);
+    } catch (IllegalStateException e) {
+      tokensAdr = functionsUtils.callTokensForSwapPlatform(lpAddress, network);
+    }
 
     double positionFraction = amount / lpBalance;
 
@@ -276,7 +281,7 @@ public class PriceProvider {
       return DEFAULT_RETURN_PRICE;
     }
 
-    if (PriceOracle.isAvailable(block, network)) {
+    if (PriceOracle.isAvailable(block, network) && functionsUtils.canGetTokenPrice(address, priceOracle.getOracleAddress(address, block, network), block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
     log.debug("Oracle not deployed yet, use direct calculation for prices");
@@ -320,6 +325,11 @@ public class PriceProvider {
         if (curveUnderlying != null) {
           return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, handled);
         }
+//
+//        var vaultName = functionsUtils.getName(address, network);
+//        if (UniPairType.isCurve(vaultName)) {
+//          return getCurvePrice(address, block, network);
+//        }
       } catch (Exception ignore) {
       }
       log.error("Not found lp for {}, block: {}, network: {}", address, block, network);

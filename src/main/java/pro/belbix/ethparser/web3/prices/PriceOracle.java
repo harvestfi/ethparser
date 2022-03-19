@@ -86,7 +86,7 @@ public class PriceOracle {
         }
     }
 
-    private String getOracleAddress(String tokenAddress, long block, String network) {
+    public String getOracleAddress(String tokenAddress, long block, String network) {
         if (BSC_NETWORK.equals(network)) {
             Optional<String> factory =
                 functionsUtils.callStrByName("factory", tokenAddress, block, network);

@@ -6,6 +6,7 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.CHECKING_PRICING_TOKEN;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_ID;
@@ -94,7 +95,7 @@ public class FunctionsUtils {
     if (lpName.startsWith(EXCLUDE_ONEINCH)) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
-      return callUniReserves(lpAddress, block, network, getTypeReferenceForGetReserves(lpName));
+      return callUniReservesOrElseGetFromBlockchain(lpAddress, block, network, lpName);
     }
   }
 
@@ -102,6 +103,44 @@ public class FunctionsUtils {
   public int getDecimal(String address, String network) {
     return callIntByName(FunctionsNames.DECIMALS, address, null, network)
         .orElse(DEFAULT_DECIMAL).intValue();
+  }
+
+  @Cacheable("uni_tokens_latest_block")
+  public Tuple2<String, String> callTokensForSwapPlatform(String address, String network) {
+    String token0 = callAddressByName(TOKEN0, address, null, network)
+        .orElseThrow(() -> new IllegalStateException("Error get token0 for " + address));
+    String token1 = callAddressByName(TOKEN1, address, null, network)
+        .orElseThrow(() -> new IllegalStateException("Error get token1 for " + address));
+
+    return new Tuple2<>(token0, token1);
+  }
+
+  @Cacheable("uni_reserves")
+  public Tuple2<Double, Double> callUniReservesForSwapPlatform(String address, Long block, String network, List<TypeReference<?>> typeReferences) {
+    var types = web3Functions.callFunction(new Function(
+        GET_RESERVES,
+        Collections.emptyList(),
+        typeReferences), address, resolveBlock(block), network);
+
+    if (types == null || types.size() < typeReferences.size()) {
+      log.error("Wrong values for " + address);
+      return null;
+    }
+
+    var tokens = callTokensForSwapPlatform(address, network);
+    var v1 = (BigInteger) types.get(0).getValue();
+    var v2 = (BigInteger) types.get(1).getValue();
+
+    return new Tuple2<>(
+        parseAmount(v1, tokens.component1(), network),
+        parseAmount(v2, tokens.component2(), network)
+    );
+  }
+
+  @Cacheable("can_get_token_price")
+  public boolean canGetTokenPrice(String tokenAddress, String oracleAddress, Long block, String network) {
+    return callBoolByNameWithAddressArg(CHECKING_PRICING_TOKEN, tokenAddress, oracleAddress, block, network)
+        .orElseThrow(() -> new IllegalStateException("Can not call checkPricingToken for address: " + tokenAddress));
   }
 
   private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block, String network) {
@@ -147,6 +186,15 @@ public class FunctionsUtils {
         parseAmount(v1, tokens.component1(), network),
         parseAmount(v2, tokens.component2(), network)
     );
+  }
+
+  private Tuple2<Double, Double> callUniReservesOrElseGetFromBlockchain(String lpAddress, Long block, String network, String lpName) {
+    var types = getTypeReferenceForGetReserves(lpName);
+    try {
+      return callUniReserves(lpAddress, block, network, types);
+    } catch (IllegalStateException e) {
+      return callUniReservesForSwapPlatform(lpAddress, block, network, types);
+    }
   }
 
   public double fetchUint256Field(
@@ -407,6 +455,38 @@ public class FunctionsUtils {
             )
             .build()
     );
+  }
+
+  @Cacheable("address_name")
+  public String getName(String address, String network) {
+    return callStrByName(NAME, address, null, network)
+        .orElse(StringUtils.EMPTY);
+  }
+
+  @Cacheable("curve_vault_size")
+  public int getCurveVaultSize(String address, String network) {
+    var index = 0;
+    List<Type> result = null;
+    do {
+      result = web3Functions.callFunction(new Function(
+              BALANCES,
+              List.of(new Uint256(index)),
+              List.of(
+                  new TypeReference<Uint256>() {
+                  }
+              )),
+          address,
+          resolveBlock(null),
+          network
+      );
+
+      if (result != null) {
+        index++;
+      }
+
+    } while(result != null);
+
+    return index;
   }
 
   public Optional<CurveTokenInfo> getCurveTokenInfo(String minter, Long block, String network, long i) {
