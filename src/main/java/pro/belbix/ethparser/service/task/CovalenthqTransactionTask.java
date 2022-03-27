@@ -4,13 +4,14 @@ import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
-import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,8 +49,8 @@ public class CovalenthqTransactionTask {
   // max block range in covalenthq
   private static final int MAX_BLOCK_RANGE = 1000000;
   private static final int MINUS_BLOCK = 10;
-  private static final int PAGINATION_SIZE = 1000000;
-  private static final int PAGINATION_SIZE_FOR_A_LOT_OF_DATA = 1000;
+  private static final int PAGINATION_SIZE = 10000;
+  private static final int PAGINATION_SIZE_FOR_A_LOT_OF_DATA = 100;
   private static final Map<String, CovalenthqVaultTransactionType> LOG_EVENTS = Map.of(
       "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568", WITHDRAW_UNI,
       "0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364", WITHDRAW,
@@ -82,7 +83,30 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findAllByNetwork(MATIC_NETWORK).stream()
+    vaultRepository.findAllInContractAddress(List.of(
+            "0x1c4adff419f6b91e51d0ade953c9bbf5d16a583f",
+                "0xcd8fb1302c30fde56bce5b34211e84561bbf0df1",
+                "0xe3f309f151746b3c0953e4c0e455bff3dc2176aa",
+                "0x0a7d74604b39229d444855ef294f287099774ac8",
+                "0x129ccee12a9542ff77e066e6f8d7df49f8cbf89d",
+                "0x75071f2653fbc902ebaff908d4c68712a5d1c960",
+                "0x63671425ef4d25ec2b12c7d05de855c143f16e3b",
+                "0x14cb410659b4a4a7ccea99e6f6c9eac8718160df",
+                "0x5da237ad194b8bbb008ac8916df99a92a8a7c8eb",
+                "0xe64bfe13aa99335487f1f42a56cddbffaec83bbf",
+                "0xc97ddaa8091abaf79a4910b094830cce5cdd78f4",
+                "0x6d386490e2367fc31b4acc99ab7c7d4d998a3121",
+                "0xe1f9a3ee001a2ecc906e8de637dbf20bb2d44633",
+                "0x84646f736795a8bc22ab34e05c8982cd058328c7",
+                "0xe604fd5b1317babd0cf2c72f7f5f2ad8c00adbe1",
+                "0xffbd102fafbd9e15c9122d9c62ab299afd4d3e4f",
+                "0xf7a3a95d0f7e8a5eeae483cdd7b76af287283d34",
+                "0xf553e1f826f42716cdfe02bde5ee76b2a52fc7eb",
+                "0x6a0d7383762962be039c197462bf1df377410853",
+                "0x299b00d031ba65ca3a22a8f7e8059dab0b072247",
+                "0x299b00d031ba65ca3a22a8f7e8059dab0b072247"
+                ),
+            BSC_NETWORK).stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -94,7 +118,7 @@ public class CovalenthqTransactionTask {
      var contract = vault.getContract();
      var lastTx = covalenthqVaultTransactionRepository.findAllByNetworkAndContractAddress(contract.getNetwork(), contract.getAddress(),
          PageRequest.of(0, 1, Sort.by("block").ascending()));
-
+     log.info("Got response: {}", lastTx);
      var startingBlock = 0L;
 
      if (!lastTx.isEmpty()) {
@@ -126,12 +150,13 @@ public class CovalenthqTransactionTask {
       var transaction = covalenthqService.getTransactionByAddress(address, network, page, limit, startingBlock, endingBlock);
       var result = new LinkedList<CovalenthqTransactionHistoryItem>(transaction.getData().getItems());
       var hasMore = transaction.getData().getPagination().isHasMore();
-
+      log.info("Covalnethq result: {}", result.size());
       while (hasMore) {
         page++;
         transaction = covalenthqService.getTransactionByAddress(address, network, page, limit, startingBlock, endingBlock);
         hasMore = transaction.getData().getPagination().isHasMore();
         result.addAll(transaction.getData().getItems());
+        log.info("Covalnethq result: {}", result.size());
       }
 
       var transactions = result.stream()

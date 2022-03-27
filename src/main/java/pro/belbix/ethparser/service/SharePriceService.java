@@ -13,7 +13,7 @@ import pro.belbix.ethparser.entity.profit.SharePrice;
 import pro.belbix.ethparser.repositories.SharePriceRepository;
 import pro.belbix.ethparser.utils.ProfitUtils;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV2;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class SharePriceService {
       return sharePrice.get().getValue();
     }
 
-    if (ContractConstants.EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK.get(network).contains(vaultAddress.toLowerCase())) {
+    if (ContractConstantsV2.EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK.get(network).contains(vaultAddress.toLowerCase())) {
       sharePriceRepository.save(new SharePrice(id, BigInteger.ONE));
       return BigInteger.ONE;
     }

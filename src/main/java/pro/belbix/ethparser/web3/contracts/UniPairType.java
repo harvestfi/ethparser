@@ -20,6 +20,8 @@ public enum UniPairType {
   PANCACKE_SWAP("PancakeSwap"),
   // Kyber
   KYBER("Kyber"),
+  // Ellipsis.finance ..
+  ELLIPSIS_FINANCE("Ellipsis.finance"),
   // Uniswap V2
   UNISWAP("Uniswap");
 
@@ -41,6 +43,6 @@ public enum UniPairType {
   }
 
   public static boolean isCurve(String name) {
-    return Stream.of(CURVE).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
+    return Stream.of(CURVE, ELLIPSIS_FINANCE).anyMatch(i -> name.toLowerCase().startsWith(i.getName()));
   }
 }

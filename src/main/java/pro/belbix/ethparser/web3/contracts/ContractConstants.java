@@ -159,7 +159,8 @@ public class ContractConstants {
       "0x0000000000085d4780B73119b644AE5ecd22b376".toLowerCase(), //TUSD
       "0x2791bca1f2de4661ed88a30c99a7a9449aa84174".toLowerCase(), //matic USDC
       "0xc2132d05d31c914a87c6611c10748aeb04b58e8f".toLowerCase(), //matic USDT
-      "0xE840B73E5287865EEc17d250bFb1536704B43B21".toLowerCase()  //matic mUSD
+      "0xE840B73E5287865EEc17d250bFb1536704B43B21".toLowerCase(), //matic mUSD
+      "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174".toLowerCase() //matic USDC PoS
   );
 
   //Key tokens are used to find liquidity for any given token on Uni, Sushi and Curve.

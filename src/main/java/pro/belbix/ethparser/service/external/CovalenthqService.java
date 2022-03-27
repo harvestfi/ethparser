@@ -43,10 +43,10 @@ public class CovalenthqService {
     try {
       var page = 0;
       var result = getTransactionByAddress(address, network, true, false, page, TRANSFER_LIMIT);
-
       if (result == null || result.getData() == null || result.getData().getItems() == null) {
         return 0;
       }
+      log.info("Got tx from covalenthq: {}", result.getData().getItems().size());
 
       var createdTx = findCovalenthqTransactionItem(result);
 
@@ -58,6 +58,7 @@ public class CovalenthqService {
             || result.getData().getItems().isEmpty()) {
           return 0;
         }
+        log.info("Got tx from covalenthq: {}", result.getData().getItems().size());
         createdTx = findCovalenthqTransactionItem(result);
       }
 

@@ -11,14 +11,9 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_DOLLAR_TOKENS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.ORACLES_BY_FACTORY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_BANCOR_TRANSACTIONS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESSES_BY_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
@@ -52,14 +47,14 @@ public class ContractUtils {
     if (address == null) {
       return false;
     }
-    return PS_ADDRESSES.contains(address.toLowerCase());
+    return ContractConstantsV6.PS_ADDRESSES.contains(address.toLowerCase());
   }
 
   public static boolean isPsAddress(String address, String network) {
     if (address == null) {
       return false;
     }
-    return PS_ADDRESSES_BY_NETWORK.get(network).contains(address.toLowerCase());
+    return ContractConstantsV3.PS_ADDRESSES_BY_NETWORK.get(network).contains(address.toLowerCase());
   }
 
   public static boolean isFarmAddress(String address) {
@@ -69,7 +64,7 @@ public class ContractUtils {
   }
 
   public static boolean isStableCoin(String address) {
-    return ONE_DOLLAR_TOKENS.contains(address.toLowerCase());
+    return ContractConstantsV5.ONE_DOLLAR_TOKENS.contains(address.toLowerCase());
   }
 
   public static String getBaseAddressInsteadOfZero(String address, String network) {
@@ -139,7 +134,7 @@ public class ContractUtils {
   }
 
   public static String getPriceOracle(long block, String network) {
-    Entry<Long, String> entry = new TreeMap<>(ORACLES.get(network)).floorEntry(block);
+    Entry<Long, String> entry = new TreeMap<>(ContractConstantsV3.ORACLES.get(network)).floorEntry(block);
     if (entry == null) {
       return null;
     }
@@ -147,7 +142,7 @@ public class ContractUtils {
   }
 
   public static String getPriceOracleByFactory(String factory, String network) {
-    String oracle = ORACLES_BY_FACTORY.get(network).get(factory);
+    String oracle = ContractConstantsV3.ORACLES_BY_FACTORY.get(network).get(factory);
     if (oracle == null) {
       throw new IllegalStateException("Factory " + factory + " not found");
     }
@@ -216,7 +211,7 @@ public class ContractUtils {
   }
 
   public static boolean isFullParsableLp(String address, String network) {
-    return FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase());
+    return ContractConstantsV2.FULL_PARSABLE_UNI_PAIRS.get(network).containsKey(address.toLowerCase());
   }
 
   public static boolean isFullParsableLpAddressAndDate(String address, int date,

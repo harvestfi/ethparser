@@ -3,8 +3,8 @@ package pro.belbix.ethparser.web3.prices;
 import static java.util.Objects.requireNonNullElse;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.EXCLUDE_JARVIS_STABLECOIN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -24,8 +25,10 @@ import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.PriceRepository;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV4;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.UniPairType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
@@ -106,7 +109,6 @@ public class PriceProvider {
 
   // TODO 0xc27bfe32e0a934a12681c1b35acf0dba0e7460ba has 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee coin address
   public double getCurvePrice(String address, Long block, String network) {
-    var size = DEFAULT_CURVE_SIZE;
     var minter = functionsUtils.callAddressByName(MINTER, address, block, network)
         .orElse(null);
 
@@ -115,10 +117,10 @@ public class PriceProvider {
       if (checkAddress.isEmpty()) {
         return getPriceForCoin(address, block, network);
       }
-      size = functionsUtils.getCurveVaultSize(address, network);
       minter = address;
     }
 
+    var size = functionsUtils.getCurveVaultSize(minter, network);;
     var decimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
         .orElseThrow(() -> {
           log.error("Can not get decimal for {} {}", address, network);
@@ -146,7 +148,7 @@ public class PriceProvider {
             throw new CanNotFetchPriceException();
           }).intValue();
 
-      var tokenPrice = getPriceForCoin(tokenInfo.getAddress(), block, network);
+      var tokenPrice = getPriceForCoinOrCurve(tokenInfo.getAddress(), block, network);
 
       if (tokenPrice == 0) {
         log.error("Can not fetch price for curve {} {}", address, network);
@@ -169,6 +171,7 @@ public class PriceProvider {
     if (PriceOracle.isAvailable(block, network) && functionsUtils.canGetTokenPrice(lpAddress, priceOracle.getOracleAddress(lpAddress, block, network), block, network)) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
+
     log.info("Oracle not deployed yet, use direct calculation for prices");
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         lpAddress, block, network);
@@ -277,11 +280,11 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (EXCLUDE_JARVIS_STABLECOIN.get(network).stream().anyMatch(i -> i.equals(address.toLowerCase()))) {
+    if (ContractConstantsV4.EXCLUDE_JARVIS_STABLECOIN.get(network).stream().anyMatch(i -> i.equals(address.toLowerCase()))) {
       return DEFAULT_RETURN_PRICE;
     }
 
-    if (PriceOracle.isAvailable(block, network) && functionsUtils.canGetTokenPrice(address, priceOracle.getOracleAddress(address, block, network), block, network)) {
+    if (PriceOracle.isAvailable(block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
     log.debug("Oracle not deployed yet, use direct calculation for prices");
@@ -422,5 +425,15 @@ public class PriceProvider {
 
   private double normalizePrecision(Double amount, int decimal) {
     return amount * DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue() / DEFAULT_POW.pow(decimal).doubleValue();
+  }
+
+  private Double getPriceForCoinOrCurve(String address, Long block, String network) {
+    var name = functionsUtils.callStrByName(NAME, address, block, network)
+        .orElse(StringUtils.EMPTY);
+    if (UniPairType.isCurve(name)) {
+      return getCurvePrice(address, block, network);
+    }
+
+    return getPriceForCoin(address, block, network);
   }
 }
