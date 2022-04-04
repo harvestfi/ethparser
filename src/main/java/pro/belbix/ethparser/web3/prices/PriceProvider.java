@@ -15,17 +15,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
+import pro.belbix.ethparser.model.TokenInfo;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.v0.PriceRepository;
+import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractConstantsV4;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.UniPairType;
@@ -33,6 +36,7 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
+@AllArgsConstructor
 public class PriceProvider {
 
   private final static Double DEFAULT_RETURN_PRICE = 1D;
@@ -46,15 +50,8 @@ public class PriceProvider {
   private final AppProperties appProperties;
   private final PriceOracle priceOracle;
   private final ContractDbService contractDbService;
+  private final EthBlockService ethBlockService;
 
-  public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
-      AppProperties appProperties, PriceOracle priceOracle,
-      ContractDbService contractDbService) {
-    this.functionsUtils = functionsUtils;
-    this.appProperties = appProperties;
-    this.priceOracle = priceOracle;
-    this.contractDbService = contractDbService;
-  }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
       return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
@@ -282,6 +279,17 @@ public class PriceProvider {
 
     if (ContractConstantsV4.EXCLUDE_JARVIS_STABLECOIN.get(network).stream().anyMatch(i -> i.equals(address.toLowerCase()))) {
       return DEFAULT_RETURN_PRICE;
+    }
+
+    final TokenInfo tokenInfo = TokenInfo.builder()
+        .address(address)
+        .network(network)
+        .build();
+
+    if (ContractConstantsV7.COIN_PRICE_IN_OTHER_CHAIN.containsKey(tokenInfo)) {
+      var tokenInfoInOtherChain = ContractConstantsV7.COIN_PRICE_IN_OTHER_CHAIN.get(tokenInfo);
+      var otherBlockChain = ethBlockService.getBlockFromOtherChain(block, network, tokenInfoInOtherChain.getNetwork());
+      return priceOracle.getPriceForCoinOnChain(tokenInfoInOtherChain.getAddress(), otherBlockChain, tokenInfoInOtherChain.getNetwork());
     }
 
     if (PriceOracle.isAvailable(block, network)) {

@@ -48,6 +48,16 @@ public class PriceOracle {
                 "Can't fetch price for " + tokenAdr))
             .doubleValue();
 
+        if (price == 0 && BSC_NETWORK.equals(network)) {
+            log.error("Can not get price by oracle address - {}, try use old oracle", oracleAddress);
+            oracleAddress = ContractUtils.getOldPriceOracle(network);
+            price = functionsUtils
+                .callIntByNameWithAddressArg(GET_PRICE, tokenAdr, oracleAddress, block, network)
+                .orElseThrow(() -> new IllegalStateException(
+                    "Can't fetch price for " + tokenAdr))
+                .doubleValue();
+        }
+
         return price / D18;
     }
 

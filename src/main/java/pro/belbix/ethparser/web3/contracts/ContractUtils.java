@@ -141,6 +141,14 @@ public class ContractUtils {
     return entry.getValue();
   }
 
+  public static String getOldPriceOracle(String network) {
+    Entry<Long, String> entry = new TreeMap<>(ContractConstantsV3.ORACLES.get(network)).firstEntry();
+    if (entry == null) {
+      return null;
+    }
+    return entry.getValue();
+  }
+
   public static String getPriceOracleByFactory(String factory, String network) {
     String oracle = ContractConstantsV3.ORACLES_BY_FACTORY.get(network).get(factory);
     if (oracle == null) {
