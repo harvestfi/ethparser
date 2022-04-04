@@ -59,7 +59,10 @@ public class TokenPriceService {
 
       if (UniPairType.isLpUniPair(name)) {
         // priceProvider.getLpTokenUsdPrice return price * amount
-        price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network) / amount.doubleValue();
+        price = priceProvider.getLpTokenUsdPrice(underlyingAddress, amount.doubleValue(), block, network);
+        if (!amount.equals(BigDecimal.ZERO)) {
+          price = price / amount.doubleValue();
+        }
       } else if (UniPairType.isBalancer(name)) {
         price = priceProvider.getBalancerPrice(underlyingAddress, block, network);
         log.info("Fetched price balancer: {} {} = {}", underlyingAddress, network, price);
