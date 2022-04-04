@@ -8,6 +8,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.UniPairType;
+import pro.belbix.ethparser.web3.contracts.UniswapV3Pools;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
@@ -39,6 +41,7 @@ import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 @AllArgsConstructor
 public class PriceProvider {
 
+  private final static BigDecimal UNISWAP_V3_VALUE = BigDecimal.valueOf(2).pow(96).pow(2);
   private final static Double DEFAULT_RETURN_PRICE = 1D;
   private final static int DEFAULT_CURVE_SIZE = 3;
   private final static int DEFAULT_DECIMAL = 18;
@@ -183,6 +186,35 @@ public class PriceProvider {
     log.info("{} USD value fetched {} for {} at block {}",
         lpAddress, amount, usdValue, block);
     return usdValue;
+  }
+
+  public double getUniswapV3Price(String address, Long block, String network) {
+
+    if (UniswapV3Pools.EXCLUDED_STABLE_VAULTS.get(network).contains(address.toLowerCase())) {
+      return 1;
+    }
+
+    var poolAddress = UniswapV3Pools.VAULTS_TO_POOLS.get(network).get(address.toLowerCase());
+    if (poolAddress == null) {
+      log.error("Can not find uniSwapV3 pool address");
+      throw new IllegalStateException();
+    }
+
+    var sqrt = functionsUtils.getSqrtPriceX96(poolAddress, block, network)
+        .orElseThrow(() -> new IllegalStateException("Can not get SqrtPriceX96 for : " + poolAddress));
+
+    var tokens = functionsUtils.callTokensForSwapPlatform(poolAddress, network);
+
+    var decimalOne = functionsUtils.getDecimal(tokens.component1(), network);
+    var decimalTwo = functionsUtils.getDecimal(tokens.component2(), network);
+
+    sqrt = sqrt.pow(2);
+
+    var decimal = BigDecimal.valueOf(10).pow(decimalOne).divide(BigDecimal.valueOf(10).pow(decimalTwo));
+    var price = sqrt.doubleValue() * decimal.doubleValue() / UNISWAP_V3_VALUE.doubleValue();
+
+    var tokenTwoPrice = getPriceForCoin(tokens.component2(), block, network);
+    return price * tokenTwoPrice;
   }
 
   private double calculateLpTokenPrice(String lpAddress,

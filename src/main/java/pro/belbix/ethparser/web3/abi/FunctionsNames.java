@@ -105,4 +105,5 @@ public class FunctionsNames {
   public static final String BALANCES = "balances";
   public static final String CHECKING_PRICING_TOKEN = "checkPricingToken";
   public static final String GET_BALANCES = "get_balances";
+  public static final String SLOT_0 = "slot0";
 }

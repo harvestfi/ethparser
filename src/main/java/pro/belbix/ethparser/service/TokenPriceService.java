@@ -18,6 +18,7 @@ import pro.belbix.ethparser.utils.ProfitUtils;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.UniPairType;
+import pro.belbix.ethparser.web3.contracts.UniswapV3Pools;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
 
 @Service
@@ -46,6 +47,13 @@ public class TokenPriceService {
 
       if (ContractUtils.isPsAddress(vaultAddress, network)) {
         return priceProvider.getPriceForCoin(ContractUtils.getFarmAddress(network), block, network);
+      }
+
+      // UniSwapV3
+      if (UniswapV3Pools.VAULTS_TO_POOLS.get(network).containsKey(vaultAddress.toLowerCase())) {
+        price =  priceProvider.getUniswapV3Price(vaultAddress, block, network);
+        tokenPriceRepository.save(new TokenPrice(id, price));
+        return price;
       }
 
       var underlyingAddress = functionsUtils.callAddressByName(UNDERLYING, vaultAddress, block, network)

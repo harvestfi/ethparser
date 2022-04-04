@@ -13,6 +13,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_ID;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.SLOT_0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -140,7 +141,22 @@ public class FunctionsUtils {
   @Cacheable("can_get_token_price")
   public boolean canGetTokenPrice(String tokenAddress, String oracleAddress, Long block, String network) {
     return callBoolByNameWithAddressArg(CHECKING_PRICING_TOKEN, tokenAddress, oracleAddress, block, network)
-        .orElseThrow(() -> new IllegalStateException("Can not call checkPricingToken for address: " + tokenAddress));
+        .orElse(false);
+  }
+
+  @Cacheable("uniswap_slot0")
+  public Optional<BigInteger> getSqrtPriceX96(String address, Long block, String network) {
+    List<Type> types = web3Functions.callFunction(new Function(
+        SLOT_0,
+        Collections.emptyList(),
+        List.of(
+            new TypeReference<Uint112>() {}
+        )), address, resolveBlock(block), network);
+
+    if (types == null || types.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(((Uint112)types.get(0)).getValue());
   }
 
   private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block, String network) {
