@@ -124,6 +124,4 @@ public interface UniswapV3Pools {
       BSC_NETWORK, Map.of(),
       MATIC_NETWORK, Map.of()
   );
-
-
 }

@@ -97,18 +97,6 @@ public abstract class MethodDecoder {
     indexedValues.addAll(nonIndexedValues);
     return indexedValues;
   }
-  public static List<Type> extractLogIndexedValuesWrapped(
-      List<String> topics,
-      String data,
-      List<TypeReference<Type>> parameters) {
-    try {
-      return extractLogIndexedValues(topics, data, parameters);
-    } catch (Exception e) {
-      log.error("Get error during parse log: {}", e.getMessage());
-      // in some cases parameters in data
-      return FunctionReturnDecoder.decode(data, parameters);
-    }
-  }
 
   public static List<TypeReference<Type>> getNonIndexedParameters(
       List<TypeReference<Type>> parameters) {

@@ -142,6 +142,10 @@ public class PriceProvider {
             throw new CanNotFetchPriceException();
           });
 
+      if (tokenInfo.getAddress().equalsIgnoreCase(ZERO_ADDRESS)) {
+        return 1;
+      }
+
       var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenInfo.getAddress(), block, network)
           .orElseThrow(() -> {
             log.error("Can not get decimal for {} {}", tokenInfo.getAddress(), network);

@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
 import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
-import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
@@ -83,13 +84,8 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findAllInContractAddress(List.of(
-            "0x4A5eb54018462803B9D9a35D1730e45D6EE7033E",
-                "0x8cccdEBF657F072D83B2d94068C4377a3BA91e08",
-                "0xFf127E0dDB5E0a53d29f9eA029F5b41F281F3EFD",
-                "0x102Df50dB22407B64a8A6b11734c8743B6AeF953"
-            ),
-            MATIC_NETWORK).stream()
+    vaultRepository.findAllByNetwork(ETH_NETWORK)
+        .stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
 
@@ -195,7 +191,7 @@ public class CovalenthqTransactionTask {
             log.error("Can not find log event");
             throw new IllegalStateException();
           });
-      var value = getParamValue(item, covalenthqType.value);
+      var value = getParamValue(item, covalenthqType.value, contractAddress, network);
       var decimal = item.getContractDecimal() == 0
           ? functionsUtils.getDecimal(contractAddress, network)
           : item.getContractDecimal();
@@ -206,7 +202,7 @@ public class CovalenthqTransactionTask {
       transaction.setContractDecimal(decimal);
       transaction.setContractAddress(contractAddress);
       transaction.setType(covalenthqType.type);
-      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address));
+      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address, contractAddress, network));
       transaction.setValue(
           StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value)
       );
@@ -228,13 +224,30 @@ public class CovalenthqTransactionTask {
     return null;
   }
 
-  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param) {
+  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param, String address, String network) {
     var ethLog = new Log();
     ethLog.setTopics(item.getTopics());
     ethLog.setData(item.getData());
 
-    var result = simpleDecoder.decodeEthLog(ethLog)
+    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog, address, network)
         .orElseThrow();
+
+
+//    if (DecodeExcludeConstants.DECODE_UNISWAP_V3_EVENT.get(network).contains(address.toLowerCase())) {
+//      result = simpleDecoder.decodeUniswapV3EthLog(ethLog);
+//    } else {
+//      result = simpleDecoder.decodeEthLog(ethLog)
+//          .orElseThrow();
+//
+//      if (result.isEmpty()
+//          && ethLog.getData() == null
+//          && DecodeExcludeConstants.DECODE_ONLY_TOPICS.containsKey(address.toLowerCase())
+//      ) {
+//        log.error("Try to decode only topics - {}", ethLog);
+//        ethLog.setData(StringUtils.EMPTY);
+//        result = simpleDecoder.decodeOnlyTopics(ethLog);
+//      }
+//    }
 
     var indexParam = -1;
     var castToString = false;
