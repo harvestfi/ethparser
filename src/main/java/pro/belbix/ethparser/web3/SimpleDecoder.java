@@ -16,7 +16,6 @@ import org.web3j.protocol.core.methods.response.EthLog.LogResult;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import pro.belbix.ethparser.model.tx.EthTransactionI;
-import pro.belbix.ethparser.web3.contracts.DecodeExcludeConstants;
 
 @Component
 @Slf4j
@@ -29,17 +28,17 @@ public class SimpleDecoder extends MethodDecoder {
             extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters));
   }
 
-  public Optional<List<Type>> decodeEthLogForDepositAndWithdraw(Log ethLog, String address, String network) {
+  public Optional<List<Type>> decodeEthLogForDepositAndWithdraw(Log ethLog) {
     return parseMethodId(ethLog)
         .flatMap(this::findParameters)
         .map(parameters ->
-            extractLogIndexedValuesWrapped(ethLog.getTopics(), ethLog.getData(), parameters, address, network));
+            extractLogIndexedValuesWrapped(ethLog.getTopics(), ethLog.getData(), parameters));
   }
 
   // deposit and withdraw
-  public List<Type> decodeOnlyTopics(List<String> topics, String data) {
+  public List<Type> decodeOnlyTopics(Log ethLog) {
     try {
-      return extractLogIndexedValues(topics, data, List.of(
+      return extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), List.of(
           TypeReference.makeTypeReference("address", true, false),
           TypeReference.makeTypeReference("uint256", true, false)
       ));
@@ -52,15 +51,11 @@ public class SimpleDecoder extends MethodDecoder {
   public List<Type> extractLogIndexedValuesWrapped(
       List<String> topics,
       String data,
-      List<TypeReference<Type>> parameters, String address, String network) {
+      List<TypeReference<Type>> parameters) {
     try {
       return extractLogIndexedValues(topics, data, parameters);
     } catch (Exception e) {
       log.error("Get error during parse log: {}", e.getMessage());
-      if (data == null
-          && DecodeExcludeConstants.DECODE_ONLY_TOPICS.containsKey(address.toLowerCase())) {
-        return decodeOnlyTopics(topics, data);
-      }
       return extractLogIndexValues(topics, data);
     }
   }

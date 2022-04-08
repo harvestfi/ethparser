@@ -48,6 +48,7 @@ public class ContractConstants {
   static final String ONE_INCH_FACTORY_BSC = "0xD41B24bbA51fAc0E4827b6F94C0D6DDeB183cD64"
       .toLowerCase();
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+  public static final String CURVE_ZERO_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
   public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
   public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"

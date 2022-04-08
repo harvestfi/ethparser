@@ -5,6 +5,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CURVE_ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
@@ -144,6 +145,10 @@ public class PriceProvider {
 
       if (tokenInfo.getAddress().equalsIgnoreCase(ZERO_ADDRESS)) {
         return 1;
+      }
+
+      if (tokenInfo.getAddress().equalsIgnoreCase(CURVE_ZERO_ADDRESS)) {
+        tokenInfo.setAddress(ContractUtils.getBaseNetworkWrappedTokenAddress(network));
       }
 
       var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenInfo.getAddress(), block, network)
@@ -372,11 +377,6 @@ public class PriceProvider {
         if (curveUnderlying != null) {
           return getPriceForCoinFromEthLegacy(curveUnderlying, block, network, handled);
         }
-//
-//        var vaultName = functionsUtils.getName(address, network);
-//        if (UniPairType.isCurve(vaultName)) {
-//          return getCurvePrice(address, block, network);
-//        }
       } catch (Exception ignore) {
       }
       log.error("Not found lp for {}, block: {}, network: {}", address, block, network);

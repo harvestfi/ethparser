@@ -42,6 +42,7 @@ import pro.belbix.ethparser.service.external.CovalenthqService;
 import pro.belbix.ethparser.web3.SimpleDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.DecodeExcludeConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -229,25 +230,14 @@ public class CovalenthqTransactionTask {
     ethLog.setTopics(item.getTopics());
     ethLog.setData(item.getData());
 
-    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog, address, network)
+    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog)
         .orElseThrow();
 
+    if (ethLog.getData() == null && DecodeExcludeConstants.DECODE_ONLY_TOPICS.get(ETH_NETWORK).contains(address.toLowerCase())) {
+      ethLog.setData("");
+      result = simpleDecoder.decodeOnlyTopics(ethLog);
+    }
 
-//    if (DecodeExcludeConstants.DECODE_UNISWAP_V3_EVENT.get(network).contains(address.toLowerCase())) {
-//      result = simpleDecoder.decodeUniswapV3EthLog(ethLog);
-//    } else {
-//      result = simpleDecoder.decodeEthLog(ethLog)
-//          .orElseThrow();
-//
-//      if (result.isEmpty()
-//          && ethLog.getData() == null
-//          && DecodeExcludeConstants.DECODE_ONLY_TOPICS.containsKey(address.toLowerCase())
-//      ) {
-//        log.error("Try to decode only topics - {}", ethLog);
-//        ethLog.setData(StringUtils.EMPTY);
-//        result = simpleDecoder.decodeOnlyTopics(ethLog);
-//      }
-//    }
 
     var indexParam = -1;
     var castToString = false;
