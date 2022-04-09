@@ -1,6 +1,8 @@
 package pro.belbix.ethparser.entity.contracts;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
@@ -25,7 +27,7 @@ public class ContractEntity {
 
   @Id
 //  TODO Can not save for HarvestVaultInfoTask, after return GeneratedValue annotation
-//  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
   private String address;
   private String name;
