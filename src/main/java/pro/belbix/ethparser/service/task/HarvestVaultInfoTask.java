@@ -103,24 +103,22 @@ public class HarvestVaultInfoTask {
               isCorrectBlock = false;
               name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getVaultAddress(), null, network).orElse("");
             }
-            synchronized (this) {
-              var id = contractRepository.findMaxId() + 1;
-              log.info("Max contract id is {}", id);
-              contract.setId(id);
-              contract.setAddress(i.getVaultAddress());
-              contract.setCreated(block);
-              contract.setCreatedDate(createdBlockDate);
-              contract.setNetwork(network);
-              contract.setName(name);
-              contract.setType(ContractType.VAULT.getId());
-              contract = contractRepository.save(contract);
-              vault.setContract(contract);
+            var id = contractRepository.findMaxId() + 1;
+            log.info("Max contract id is {}", id);
+            contract.setId(id);
+            contract.setAddress(i.getVaultAddress());
+            contract.setCreated(block);
+            contract.setCreatedDate(createdBlockDate);
+            contract.setNetwork(network);
+            contract.setName(name);
+            contract.setType(ContractType.VAULT.getId());
+            contract = contractRepository.save(contract);
+            vault.setContract(contract);
 
-              if (isCorrectBlock) {
-                contractLoader.enrichVault(vault, block, network);
-              } else {
-                contractLoader.enrichVaultWithLatestBlock(vault, block + INCREASE_BLOCK_WEIGHT, network);
-              }
+            if (isCorrectBlock) {
+              contractLoader.enrichVault(vault, block, network);
+            } else {
+              contractLoader.enrichVaultWithLatestBlock(vault, block + INCREASE_BLOCK_WEIGHT, network);
             }
             log.info("Vault: {}", vault);
             return vault;
