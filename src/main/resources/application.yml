@@ -71,10 +71,10 @@ external:
 task:
   pool:
     fixedRate: 3600000 # Each hour
-    enable: false
+    enable: true
   vault:
     fixedRate: 3600000 # Each hour
-    enable: false
+    enable: true
   uni-pair:
     fixedRate: 86400000 # Everyday
     enable: false

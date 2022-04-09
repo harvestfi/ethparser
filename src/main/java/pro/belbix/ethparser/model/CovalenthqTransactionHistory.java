@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -11,15 +12,18 @@ import java.util.List;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties
 public class CovalenthqTransactionHistory {
   private CovalenthqTransactionHistoryItems data;
 
   @Data
+  @JsonIgnoreProperties
   public static class CovalenthqTransactionHistoryItems {
     private List<CovalenthqTransactionHistoryItem> items;
     private CovalenthqTransactionHistoryPagination pagination;
 
     @Data
+    @JsonIgnoreProperties
     public static class CovalenthqTransactionHistoryItem {
       @JsonProperty("block_height")
       private long blockHeight;
@@ -33,6 +37,7 @@ public class CovalenthqTransactionHistory {
       private List<CovalenthqTransactionHistoryItemLog> logs;
 
       @Data
+      @JsonIgnoreProperties
       public static class CovalenthqTransactionHistoryItemLog {
         @JsonProperty("block_signed_at")
         @JsonSerialize(using = LocalDateTimeSerializer.class)
