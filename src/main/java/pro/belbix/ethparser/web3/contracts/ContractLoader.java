@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.contracts;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.CONTROLLER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.FACTORY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GOVERNANCE;
@@ -14,8 +15,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -250,8 +249,7 @@ public class ContractLoader {
         network
     ));
     //exclude PS vaults
-    if (address.equalsIgnoreCase(PS_ADDRESS)
-        || address.equalsIgnoreCase(PS_V0_ADDRESS)) {
+    if (ContractConstantsV2.EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK.get(ETH_NETWORK).contains(address.toLowerCase())) {
       vaultEntity.setName("PS vault");
       vaultEntity.setDecimals(18L);
       return;
