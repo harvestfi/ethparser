@@ -71,7 +71,7 @@ external:
 task:
   pool:
     fixedRate: 3600000 # Each hour
-    enable: true
+    enable: false
   vault:
     fixedRate: 3600000 # Each hour
     enable: true

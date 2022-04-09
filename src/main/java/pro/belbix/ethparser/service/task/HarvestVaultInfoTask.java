@@ -104,6 +104,7 @@ public class HarvestVaultInfoTask {
               name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getVaultAddress(), null, network).orElse("");
             }
             var id = contractRepository.findMaxId() + 1;
+            log.debug("Max contract id is {}", id);
             contract.setId(id);
             contract.setAddress(i.getVaultAddress());
             contract.setCreated(block);
