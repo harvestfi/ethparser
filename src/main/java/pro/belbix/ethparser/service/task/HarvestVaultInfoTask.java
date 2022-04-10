@@ -83,7 +83,7 @@ public class HarvestVaultInfoTask {
     log.info("Begin find vault and insert in network: {}", network);
     var existVaults = contractRepository.findAllByNetworkAndInAddressAndType(network,
         items.values().stream().map(i -> i.getVaultAddress().toLowerCase()).collect(Collectors.toList()), ContractType.VAULT.getId());
-
+    log.info("Exist vaults {}", existVaults);
     var notSavedVaults = items.values().stream()
         .filter(i -> existVaults.stream().filter(c -> c.getAddress().equalsIgnoreCase(i.getVaultAddress())).findFirst().isEmpty())
         .collect(Collectors.toList());
