@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.web3;
 
 import static org.web3j.abi.FunctionReturnDecoder.decodeIndexedValue;
+import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +29,11 @@ public class SimpleDecoder extends MethodDecoder {
             extractLogIndexedValues(ethLog.getTopics(), ethLog.getData(), parameters));
   }
 
-  public Optional<List<Type>> decodeEthLogForDepositAndWithdraw(Log ethLog) {
+  public Optional<List<Type>> decodeEthLogForDepositAndWithdraw(Log ethLog, String network, int paramSize) {
     return parseMethodId(ethLog)
         .flatMap(this::findParameters)
         .map(parameters ->
-            extractLogIndexedValuesWrapped(ethLog.getTopics(), ethLog.getData(), parameters));
+            extractLogIndexedValuesWrapped(ethLog.getTopics(), ethLog.getData(), parameters, network, paramSize));
   }
 
   // deposit and withdraw
@@ -48,15 +49,33 @@ public class SimpleDecoder extends MethodDecoder {
     }
   }
 
-  public List<Type> extractLogIndexedValuesWrapped(
-      List<String> topics,
-      String data,
-      List<TypeReference<Type>> parameters) {
+  // deposit and withdraw
+  public List<Type> decodeOnlyData(List<String> topics, String data, int paramSize) {
+    try {
+      return paramSize > 2 ?
+          extractLogIndexedValues(topics, data, List.of(
+              TypeReference.makeTypeReference("address", false, false),
+              TypeReference.makeTypeReference("uint256", false, false),
+              TypeReference.makeTypeReference("uint256", false, false)
+          )) :
+          extractLogIndexedValues(topics, data, List.of(
+              TypeReference.makeTypeReference("address", false, false),
+              TypeReference.makeTypeReference("uint256", false, false)
+          ));
+    } catch (Exception e) {
+      log.error("Error during decodeOnlyTopics", e);
+      return List.of();
+    }
+  }
+
+  public List<Type> extractLogIndexedValuesWrapped(List<String> topics, String data, List<TypeReference<Type>> parameters, String network, int paramSize) {
     try {
       return extractLogIndexedValues(topics, data, parameters);
     } catch (Exception e) {
       log.error("Get error during parse log: {}", e.getMessage());
-      return extractLogIndexValues(topics, data);
+      return BSC_NETWORK.equals(network) ?
+          decodeOnlyData(topics, data, paramSize) :
+          extractLogIndexValues(topics, data);
     }
   }
 

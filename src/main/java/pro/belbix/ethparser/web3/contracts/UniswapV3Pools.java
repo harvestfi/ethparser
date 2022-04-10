@@ -20,6 +20,7 @@ public interface UniswapV3Pools {
   );
 
 
+  // if you want to add new value, use contract 0x1f98431c8ad98523631ae4a59f267346ea31f984 getPool
   Map<String, Map<String, String>> VAULTS_TO_POOLS = Map.of(
       ETH_NETWORK, Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
@@ -119,7 +120,10 @@ public interface UniswapV3Pools {
           // exclued BUSD_USDC
           new AbstractMap.SimpleEntry<>(
               "0x7095b06C02B66e4133F7B4b078B2720CB4437408".toLowerCase(),
-              "")
+              ""),
+          new AbstractMap.SimpleEntry<>(
+              "0x2CE57694b635f6Ea0087A341654543E12b082538".toLowerCase(),
+              "0x02DaA5fdd4B474c13A8D6D141471B87FBd2452cd")
       ),
       BSC_NETWORK, Map.of(),
       MATIC_NETWORK, Map.of()

@@ -22,7 +22,7 @@ import org.hibernate.annotations.FetchMode;
 public class VaultEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "contract", unique = true)

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.HarvestVaultInfo.HarvestVaultItemInfo;
@@ -79,7 +80,8 @@ public class HarvestVaultInfoTask {
     }
   }
 
-  private List<VaultEntity> doTaskByAddressAndNetwork(Map<String, HarvestVaultItemInfo> items, String network) {
+  @Transactional
+  public List<VaultEntity> doTaskByAddressAndNetwork(Map<String, HarvestVaultItemInfo> items, String network) {
     log.info("Begin find vault and insert in network: {}", network);
     var existVaults = contractRepository.findAllByNetworkAndInAddressAndType(network,
         items.values().stream().map(i -> i.getVaultAddress().toLowerCase()).collect(Collectors.toList()), ContractType.VAULT.getId());

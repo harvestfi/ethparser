@@ -31,6 +31,7 @@ public class EthBlockService {
       throw new IllegalStateException("Can't fetch block for " + blockNumber);
     }
 
+    // TODO ERROR: duplicate key value violates unique constraint "block_cache_pkey"
     cachedBlock = new BlockCacheEntity();
     cachedBlock.setBlock(blockNumber);
     cachedBlock.setBlockDate(extractDateFromBlock(block));

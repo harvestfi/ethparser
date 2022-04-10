@@ -5,18 +5,20 @@ import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)
 public enum CovalenthqVaultTransactionType {
-  WITHDRAW_UNI("account", "writeAmount", "Withdraw"),
-  WITHDRAW("provider", "value", "Withdraw"),
-  DEPOSIT_UNI("user", "amount", "Deposit"),
-  DEPOSIT("dst", "wad", "Deposit");
+  WITHDRAW_UNI("account", "writeAmount", "Withdraw", 3),
+  WITHDRAW("provider", "value", "Withdraw", 2),
+  DEPOSIT_UNI("user", "amount", "Deposit", 3),
+  DEPOSIT("dst", "wad", "Deposit", 2);
 
-  CovalenthqVaultTransactionType(String address, String value, String type) {
+  CovalenthqVaultTransactionType(String address, String value, String type, int paramSize) {
     this.address = address;
     this.value = value;
     this.type = type;
+    this.paramSize = paramSize;
   }
 
   String address;
   String value;
   String type;
+  int paramSize;
 }

@@ -85,11 +85,10 @@ public class CovalenthqTransactionTask {
     log.info("Begin parse vault tx");
     var executor = Executors.newFixedThreadPool(maxThreadSize);
 
-    vaultRepository.findAllByNetwork(ETH_NETWORK)
+    vaultRepository.findAll()
         .stream()
         .map(i -> CompletableFuture.runAsync(() -> getVaultTransaction(i), executor))
         .collect(Collectors.toList());
-
   }
 
   private void getVaultTransaction(VaultEntity vault) {
@@ -192,7 +191,7 @@ public class CovalenthqTransactionTask {
             log.error("Can not find log event");
             throw new IllegalStateException();
           });
-      var value = getParamValue(item, covalenthqType.value, contractAddress, network);
+      var value = getParamValue(item, covalenthqType.value, contractAddress, network, covalenthqType.paramSize);
       var decimal = item.getContractDecimal() == 0
           ? functionsUtils.getDecimal(contractAddress, network)
           : item.getContractDecimal();
@@ -203,7 +202,7 @@ public class CovalenthqTransactionTask {
       transaction.setContractDecimal(decimal);
       transaction.setContractAddress(contractAddress);
       transaction.setType(covalenthqType.type);
-      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address, contractAddress, network));
+      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address, contractAddress, network, covalenthqType.paramSize));
       transaction.setValue(
           StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value)
       );
@@ -225,12 +224,12 @@ public class CovalenthqTransactionTask {
     return null;
   }
 
-  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param, String address, String network) {
+  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param, String address, String network, int paramSize) {
     var ethLog = new Log();
     ethLog.setTopics(item.getTopics());
     ethLog.setData(item.getData());
 
-    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog)
+    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog, network, paramSize)
         .orElseThrow();
 
     if (ethLog.getData() == null && DecodeExcludeConstants.DECODE_ONLY_TOPICS.get(ETH_NETWORK).contains(address.toLowerCase())) {
