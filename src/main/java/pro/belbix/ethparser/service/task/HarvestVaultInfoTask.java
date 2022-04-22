@@ -122,6 +122,8 @@ public class HarvestVaultInfoTask {
             } else {
               contractLoader.enrichVaultWithLatestBlock(vault, block + INCREASE_BLOCK_WEIGHT, network);
             }
+
+            vault.setId(vaultRepository.findMaxId());
             log.info("Vault: {}", vault);
             return vault;
 

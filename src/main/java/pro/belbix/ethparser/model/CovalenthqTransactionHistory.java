@@ -54,6 +54,8 @@ public class CovalenthqTransactionHistory {
         private List<String> topics;
         @JsonProperty("raw_log_data")
         private String data;
+        @JsonProperty("sender_address")
+        private String senderAddress;
       }
     }
 

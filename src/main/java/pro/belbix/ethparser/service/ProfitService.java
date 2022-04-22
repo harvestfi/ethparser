@@ -6,6 +6,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SH
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -224,18 +225,51 @@ public class ProfitService {
   }
 
   private List<ProfitListResultItem> calculateProfitByVaults(List<CovalenthqVaultTransaction> transactions, List<ContractEntity> contracts) {
-    return contracts.stream()
-        .map(i -> {
-          var txByContract = transactions.stream()
-              .filter(tx -> tx.getContractAddress().equalsIgnoreCase(i.getAddress()))
-              .collect(Collectors.toList());
+    return joinAnyVersionVaults(
+        contracts.stream()
+            .map(i -> {
+              var txByContract = transactions.stream()
+                  .filter(tx -> tx.getContractAddress().equalsIgnoreCase(i.getAddress()))
+                  .collect(Collectors.toList());
 
-          return ProfitListResultItem.builder()
-              .contractAddress(i.getAddress())
-              .name(i.getName())
-              .profit(calculateTxProfit(txByContract))
-              .build();
-        })
+              return ProfitListResultItem.builder()
+                  .contractAddress(i.getAddress())
+                  .name(i.getName())
+                  .profit(calculateTxProfit(txByContract))
+                  .build();
+            })
+            .collect(Collectors.toList())
+    );
+  }
+
+  private List<ProfitListResultItem> joinAnyVersionVaults(List<ProfitListResultItem> result) {
+    result = result.stream()
+        .sorted((i1, i2) -> i1.getName().compareToIgnoreCase(i2.getName()))
         .collect(Collectors.toList());
+
+    var checkedResult = new ArrayList<ProfitListResultItem>();
+    var returnResult = new ArrayList<ProfitListResultItem>();
+    for (ProfitListResultItem item : result) {
+      if (checkedResult.stream().anyMatch(i -> item.equals(i))) {
+        continue;
+      }
+
+      var values = result.stream()
+          .filter(i -> i.getName().startsWith(item.getName()))
+          .collect(Collectors.toList());
+
+      checkedResult.addAll(values);
+      returnResult.add(ProfitListResultItem.builder()
+              .profit(
+                  values.stream()
+                      .map(i -> i.getProfit())
+                      .reduce(BigDecimal.ZERO, BigDecimal::add)
+              )
+              .name(item.getName())
+              .contractAddress(item.getContractAddress())
+          .build());
+    }
+
+    return returnResult;
   }
 }

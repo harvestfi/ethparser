@@ -1,48 +1,30 @@
 package pro.belbix.ethparser.service.task;
 
-import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT;
-import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.DEPOSIT_UNI;
-import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW;
-import static pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType.WITHDRAW_UNI;
-import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
-import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransactionType;
 import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
 import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem;
-import pro.belbix.ethparser.model.CovalenthqTransactionHistory.CovalenthqTransactionHistoryItems.CovalenthqTransactionHistoryItem.CovalenthqTransactionHistoryItemLog;
 import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
 import pro.belbix.ethparser.service.SharePriceService;
 import pro.belbix.ethparser.service.TokenPriceService;
 import pro.belbix.ethparser.service.external.CovalenthqService;
-import pro.belbix.ethparser.web3.SimpleDecoder;
+import pro.belbix.ethparser.utils.profit.ParseLogUtils;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.DecodeExcludeConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -53,28 +35,19 @@ public class CovalenthqTransactionTask {
   private static final int MINUS_BLOCK = 10;
   private static final int PAGINATION_SIZE = 10000;
   private static final int PAGINATION_SIZE_FOR_A_LOT_OF_DATA = 100;
-  private static final Map<String, CovalenthqVaultTransactionType> LOG_EVENTS = Map.of(
-      "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568", WITHDRAW_UNI,
-      "0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364", WITHDRAW,
-      "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15", DEPOSIT_UNI,
-      "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c", DEPOSIT
-  );
-
   @Value("${task.transaction.enable}")
   private Boolean enable;
 
   @Value("${task.transaction.max-thread-size}")
   private Integer maxThreadSize;
 
-  private final SimpleDecoder simpleDecoder;
   private final VaultRepository vaultRepository;
   private final CovalenthqService covalenthqService;
   private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
   private final Web3Functions web3Functions;
   private final SharePriceService sharePriceService;
   private final TokenPriceService tokenPriceService;
-  private final FunctionsUtils functionsUtils;
-
+  private final ParseLogUtils parseLogUtils;
 
   @Scheduled(fixedRateString = "${task.transaction.fixedRate}")
   public void start() {
@@ -141,8 +114,9 @@ public class CovalenthqTransactionTask {
       var transactions = result.stream()
           .map(CovalenthqTransactionHistoryItem::getLogs)
           .flatMap(Collection::stream)
-          .filter(this::isDepositOrWithdraw)
-          .map(log -> toCovalenthqVaultTransaction(log, network, address))
+          .filter(i -> parseLogUtils.isCorrectLog(i, address))
+          .map(log -> parseLogUtils.toCovalenthqVaultTransactionFromTransfer(log, network, address))
+          .flatMap(Collection::stream)
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
 
@@ -176,96 +150,6 @@ public class CovalenthqTransactionTask {
       }
       fetchTransactions(address, network, startingBlock, endingBlock, PAGINATION_SIZE_FOR_A_LOT_OF_DATA, true);
     }
-  }
-
-  private boolean isDepositOrWithdraw(CovalenthqTransactionHistoryItemLog log) {
-    return log.getTopics() != null && !log.getTopics().isEmpty() && LOG_EVENTS.get(log.getTopics().get(0)) != null;
-  }
-
-  private CovalenthqVaultTransaction toCovalenthqVaultTransaction(
-      CovalenthqTransactionHistoryItemLog item, String network, String contractAddress) {
-    try {
-      var transaction = new CovalenthqVaultTransaction();
-      var covalenthqType = Optional.ofNullable(toCovalenthqVaultTransactionType(item))
-          .orElseThrow(() -> {
-            log.error("Can not find log event");
-            throw new IllegalStateException();
-          });
-      var value = getParamValue(item, covalenthqType.value, contractAddress, network, covalenthqType.paramSize);
-      var decimal = item.getContractDecimal() == 0
-          ? functionsUtils.getDecimal(contractAddress, network)
-          : item.getContractDecimal();
-
-      transaction.setNetwork(network);
-      transaction.setBlock(item.getBlockHeight());
-      transaction.setTransactionHash(item.getTransactionHash());
-      transaction.setContractDecimal(decimal);
-      transaction.setContractAddress(contractAddress);
-      transaction.setType(covalenthqType.type);
-      transaction.setOwnerAddress(getParamValue(item, covalenthqType.address, contractAddress, network, covalenthqType.paramSize));
-      transaction.setValue(
-          StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value)
-      );
-      transaction.setSignedAt(item.getSignedAt());
-
-      return transaction;
-    } catch (Exception e) {
-      log.error("Can not parse covalenthq log: {}", item, e);
-      throw new CanNotFetchPriceException();
-//      return null;
-    }
-  }
-
-  private CovalenthqVaultTransactionType toCovalenthqVaultTransactionType(CovalenthqTransactionHistoryItemLog log) {
-    if (log.getTopics() != null && !log.getTopics().isEmpty()) {
-      return LOG_EVENTS.get(log.getTopics().get(0));
-    }
-
-    return null;
-  }
-
-  private String getParamValue(CovalenthqTransactionHistoryItemLog item, String param, String address, String network, int paramSize) {
-    var ethLog = new Log();
-    ethLog.setTopics(item.getTopics());
-    ethLog.setData(item.getData());
-
-    List<Type> result = simpleDecoder.decodeEthLogForDepositAndWithdraw(ethLog, network, paramSize)
-        .orElseThrow();
-
-    if (ethLog.getData() == null && DecodeExcludeConstants.DECODE_ONLY_TOPICS.get(ETH_NETWORK).contains(address.toLowerCase())) {
-      ethLog.setData("");
-      result = simpleDecoder.decodeOnlyTopics(ethLog);
-    }
-
-
-    var indexParam = -1;
-    var castToString = false;
-
-    switch (param) {
-      case "account":
-      case "user":
-      case "dst":
-      case "provider":
-        indexParam = 0;
-        castToString = true;
-        break;
-      case "wad":
-      case "value":
-        indexParam = 1;
-        break;
-      case "amount" :
-      case "writeAmount":
-        indexParam = 2;
-        break;
-    }
-    if (result.isEmpty() || indexParam == -1 || indexParam >= result.size()) {
-      log.error("Unknown param or can not parse data");
-      throw new IllegalStateException();
-    }
-
-    return castToString
-        ? (String) result.get(indexParam).getValue()
-        : ((BigInteger) result.get(indexParam).getValue()).toString();
   }
 
   private CovalenthqVaultTransaction fillAdditionalParams(CovalenthqVaultTransaction covalenthqVaultTransaction) {
