@@ -28,6 +28,8 @@ public class HarvestService {
   public HarvestVaultInfo getVaults() {
     var url = String.format(HarvestUrl.VAULTS, externalProperties.getHarvest().getUrl(), externalProperties.getHarvest().getKey());
     log.info("Starting get vaults from harvest {} ", url);
-    return restTemplate.getForObject(url, HarvestVaultInfo.class);
+    var result =  restTemplate.getForEntity(url, HarvestVaultInfo.class);
+    log.info("Result getting vaults from harvest API : {}", result);
+    return result.getBody();
   }
 }
