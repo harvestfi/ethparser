@@ -58,9 +58,9 @@ public class ContractUtils {
   }
 
   public static boolean isFarmAddress(String address) {
-    return FARM_TOKEN.equalsIgnoreCase(address)
-        || BSC_FARM_TOKEN.equalsIgnoreCase(address)
-        || MATIC_FARM_TOKEN.equalsIgnoreCase(address);
+    return "0xa0246c9032bc3a600820415ae600c6388619a14d".equalsIgnoreCase(address)
+        || "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743".equalsIgnoreCase(address)
+        || "0xab0b2ddb9c7e440fac8e140a89c0dbcbf2d7bbff".equalsIgnoreCase(address);
   }
 
   public static boolean isStableCoin(String address) {
