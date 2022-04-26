@@ -68,46 +68,6 @@ public class ContractConstants {
       .toLowerCase();
   public static final String BANCOR_CONVERSION_ADDRESS = "0x2f9ec37d6ccfff1cab21733bdadede11c823ccb0";
 
-  final static Map<String, Map<Long, String>> CONTROLLERS = Map.of(
-      ETH_NETWORK, Map.of(
-          10770087L, "0x222412af183BCeAdEFd72e4Cb1b71f1889953b1C".toLowerCase(),
-          12652885L, "0x3cc47874dc50d98425ec79e647d83495637c55e3".toLowerCase()),
-      BSC_NETWORK, Map.of(
-          5990839L, "0x222412af183bceadefd72e4cb1b71f1889953b1c".toLowerCase()),
-      MATIC_NETWORK,  Map.of(
-          16612698L, "0x2ce34b1bb247f242f1d2a33811e01138968efbff".toLowerCase()
-      )
-  );
-
-  public final static Map<String, String> NOTIFY_HELPER = Map.of(
-      ETH_NETWORK, "0xe20c31e3d08027f5aface84a3a46b7b3b165053c".toLowerCase(),
-      BSC_NETWORK, "0xf71042c88458ff1702c3870f62f4c764712cc9f0".toLowerCase(),
-      MATIC_NETWORK, "0xe85c8581e60d7cd32bbfd86303d2a4fa6a951dac".toLowerCase()
-  );
-
-  final static Map<String, Map<Long, String>> ORACLES = Map.of(
-      ETH_NETWORK,
-      Map.of(12015724L, "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase(),
-          12820106L, "0x1358c91D5b25D3eDAc2b7B26A619163d78f1717d".toLowerCase()),
-      BSC_NETWORK,
-      Map.of(6442627L, "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(),
-          6952687L, "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase(),
-          9142012L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase()),
-     MATIC_NETWORK,
-      Map.of(16841617L, "0x0E74303d0D18884Ce2CEb3670e72686645c4f38B".toLowerCase())
-      );
-
-  final static Map<String, Map<String, String>> ORACLES_BY_FACTORY = Map.of(
-      ETH_NETWORK,
-      Map.of(UNISWAP_FACTORY_ADDRESS,
-          "0x48DC32eCA58106f06b41dE514F29780FFA59c279".toLowerCase()),
-      BSC_NETWORK,
-      Map.of(PCS_V1_FACTORY_ADDRESS,
-          "0xE0e9F05054Ad3a2b6414AD13D768be91a84b47e8".toLowerCase(), // V1
-          PCS_V2_FACTORY_ADDRESS,
-          "0x643cF46eef91Bd878D9710ceEB6a7E6F929F2608".toLowerCase()) // V2
-  );
-
   static final Map<String, Map<String, Integer>> FULL_PARSABLE_UNI_PAIRS = Map.of(
       ETH_NETWORK, Map.of(
           "0x514906fc121c7878424a5c928cad1852cc545892".toLowerCase(), 10777067,

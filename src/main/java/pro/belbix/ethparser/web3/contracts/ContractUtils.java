@@ -5,7 +5,7 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NUMBER_18_MARCH_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
