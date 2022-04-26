@@ -17,7 +17,7 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV8;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
@@ -64,7 +64,7 @@ public class PriceOracle {
     public String getLargestKeyToken(String tokenAddress, long block, String network) {
         String oracleAddress = getOracleAddress(tokenAddress, block, network);
 
-        List<Address> tokenList = ContractConstants.KEY_TOKENS.get(network).stream()
+        List<Address> tokenList = ContractConstantsV8.KEY_TOKENS.get(network).stream()
             .map(Address::new)
             .collect(Collectors.toList());
         try {

@@ -8,12 +8,12 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOK
 import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
 import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV2.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ONE_INCH_FACTORY_BSC;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PARSABLE_BANCOR_TRANSACTIONS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.PARSABLE_BANCOR_TRANSACTIONS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 

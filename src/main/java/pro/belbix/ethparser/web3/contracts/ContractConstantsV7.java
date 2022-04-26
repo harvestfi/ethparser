@@ -12,6 +12,7 @@ public interface ContractConstantsV7 {
       .toLowerCase();
   String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
       .toLowerCase();
+  String BANCOR_CONVERSION_ADDRESS = "0x2f9ec37d6ccfff1cab21733bdadede11c823ccb0";
 
   Map<TokenInfo, TokenInfo> COIN_PRICE_IN_OTHER_CHAIN = Map.of(
       // Denarius (DEN-0121) to Denarius BSC
@@ -73,5 +74,13 @@ public interface ContractConstantsV7 {
       ETH_NETWORK, "0xe20c31e3d08027f5aface84a3a46b7b3b165053c".toLowerCase(),
       BSC_NETWORK, "0xf71042c88458ff1702c3870f62f4c764712cc9f0".toLowerCase(),
       MATIC_NETWORK, "0xe85c8581e60d7cd32bbfd86303d2a4fa6a951dac".toLowerCase()
+  );
+
+  Map<String, Map<String, Integer>> PARSABLE_BANCOR_TRANSACTIONS = Map.of(
+      ETH_NETWORK, Map.of(
+          BANCOR_CONVERSION_ADDRESS, 10285676
+      ),
+      BSC_NETWORK, Map.of(),
+      MATIC_NETWORK, Map.of()
   );
 }
