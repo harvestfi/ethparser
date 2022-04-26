@@ -238,6 +238,7 @@ public class ProfitService {
                   .profit(calculateTxProfit(txByContract))
                   .build();
             })
+            .filter(i -> i.getProfit().compareTo(BigDecimal.ZERO) != 0)
             .collect(Collectors.toList())
     );
   }
