@@ -239,30 +239,4 @@ public class ContractConstants {
           MATIC_FARM_TOKEN
       )
   );
-
-  public static final Map<String, List<String>> EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK = Map.of(
-      ETH_NETWORK, List.of(
-          PS_ADDRESS,
-          "0x59258f4e15a5fc74a7284055a8094f58108dbd4f".toLowerCase() // POOL
-      ),
-      BSC_NETWORK, List.of(),
-      MATIC_NETWORK, List.of()
-  );
-
-  public static final Map<String, List<String>> EXCLUDE_JARVIS_STABLECOIN = Map.of(
-      ETH_NETWORK, List.of(),
-      BSC_NETWORK, List.of(),
-      MATIC_NETWORK, List.of(
-          "0x8ca194A3b22077359b5732DE53373D4afC11DeE3".toLowerCase(),  // jCAD
-          "0x8343091F2499FD4b6174A46D067A920a3b851FF9".toLowerCase()  // jJPY
-      )
-  );
-
-  public static final Map<String, List<String>> IS_NOT_AVAILABLE_IN_ORACLE = Map.of(
-      ETH_NETWORK, List.of(),
-      BSC_NETWORK, List.of(),
-      MATIC_NETWORK, List.of(
-          "0x32d8513eDDa5AEf930080F15270984A043933A95".toLowerCase()  // KyberDMM LP jCAD+CADC-f-QUI-MAR22
-      )
-  );
 }
