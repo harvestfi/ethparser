@@ -6,7 +6,7 @@ import static pro.belbix.ethparser.model.tx.UniswapTx.ADD_LIQ;
 import static pro.belbix.ethparser.model.tx.UniswapTx.REMOVE_LIQ;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.time.Instant;

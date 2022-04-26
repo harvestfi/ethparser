@@ -49,8 +49,6 @@ public class ContractConstants {
       .toLowerCase();
   public static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   public static final String CURVE_ZERO_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-  public static final String FARM_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d"
-      .toLowerCase();
   public static final String BSC_FARM_TOKEN = "0x4B5C23cac08a567ecf0c1fFcA8372A45a5D33743"
       .toLowerCase();
   public static final String MATIC_FARM_TOKEN = "0xab0b2ddb9c7e440fac8e140a89c0dbcbf2d7bbff"
@@ -61,8 +59,6 @@ public class ContractConstants {
       .toLowerCase();
   public static final String PS_V0_ADDRESS = "0x59258F4e15A5fC74A7284055A8094F58108dbD4f"
       .toLowerCase();
-  public static final String iPS_ADDRESS = "0x1571eD0bed4D987fe2b498DdBaE7DFA19519F651"
-      .toLowerCase();
   public static final String ST_PS_ADDRESS = "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C"
       .toLowerCase();
 
@@ -71,12 +67,6 @@ public class ContractConstants {
   public static final String SUSHI_FACTORY_ADDRESS = "0xc35dadb65012ec5796536bd9864ed8773abc74c4"
       .toLowerCase();
   public static final String BANCOR_CONVERSION_ADDRESS = "0x2f9ec37d6ccfff1cab21733bdadede11c823ccb0";
-
-  public final static Map<String, String> DEPLOYERS = Map.of(
-      ETH_NETWORK, "0xf00dD244228F51547f0563e60bCa65a30FBF5f7f".toLowerCase(),
-      BSC_NETWORK, "0xf00dd244228f51547f0563e60bca65a30fbf5f7f".toLowerCase(),
-      MATIC_NETWORK, "0xf00dd244228f51547f0563e60bca65a30fbf5f7f".toLowerCase()
-  );
 
   final static Map<String, Map<Long, String>> CONTROLLERS = Map.of(
       ETH_NETWORK, Map.of(
@@ -143,13 +133,6 @@ public class ContractConstants {
       ),
       BSC_NETWORK, Map.of(),
       MATIC_NETWORK, Map.of()
-  );
-
-  public static final Set<String> PS_ADDRESSES = Set.of(
-      "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
-      FARM_TOKEN, // FARM TOKEN
-      PS_ADDRESS, // PS
-      PS_V0_ADDRESS // PS_V0
   );
 
   // TODO separate by networks
@@ -221,22 +204,6 @@ public class ContractConstants {
       ), MATIC_NETWORK, Map.of(
           QUICK_FACTORY_ADDRESS, 4931780,
           SUSHI_FACTORY_ADDRESS, 11333218
-      )
-  );
-
-  public static final Map<String, List<String>> PS_ADDRESSES_BY_NETWORK = Map.of(
-      ETH_NETWORK, List.of(
-          "0xd3093e3efbe00f010e8f5efe3f1cb5d9b7fe0eb1".toLowerCase(), //
-          "0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C".toLowerCase(), // ST_PS
-          FARM_TOKEN, // FARM TOKEN
-          PS_ADDRESS, // PS
-          PS_V0_ADDRESS // PS_V0
-      ),
-      BSC_NETWORK, List.of(
-          BSC_FARM_TOKEN
-      ),
-      MATIC_NETWORK, List.of(
-          MATIC_FARM_TOKEN
       )
   );
 }

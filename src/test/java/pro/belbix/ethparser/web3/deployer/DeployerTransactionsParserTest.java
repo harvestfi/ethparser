@@ -1,12 +1,9 @@
 package pro.belbix.ethparser.web3.deployer;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static pro.belbix.ethparser.TestUtils.assertModel;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.DEPLOYERS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -5,7 +5,6 @@ import static java.time.Instant.now;
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.MATIC_NETWORK;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -23,6 +22,7 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestTvlRepository;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.prices.PriceProvider;
@@ -91,7 +91,7 @@ public class VaultActionsDBService {
         contractDbService.getAllVaults(dto.getNetwork()).stream()
             .map(v -> v.getContract().getAddress().toLowerCase())
             .filter(v -> !ContractUtils.isPsAddress(v))
-            .filter(v -> !v.equalsIgnoreCase(iPS_ADDRESS))
+            .filter(v -> !v.equalsIgnoreCase(ContractConstantsV7.iPS_ADDRESS))
             .collect(Collectors.toList()),
         dto.getBlockDate(),
         dto.getNetwork()

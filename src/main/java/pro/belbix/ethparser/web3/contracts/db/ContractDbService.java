@@ -26,7 +26,7 @@ import pro.belbix.ethparser.repositories.eth.TokenRepository;
 import pro.belbix.ethparser.repositories.eth.TokenToUniPairRepository;
 import pro.belbix.ethparser.repositories.eth.UniPairRepository;
 import pro.belbix.ethparser.repositories.eth.VaultRepository;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
@@ -241,7 +241,7 @@ public class ContractDbService {
 
   public List<String> getSubscriptions() {
     Set<String> contracts = new HashSet<>(Set.of(
-        ContractConstants.FARM_TOKEN
+        ContractConstantsV7.FARM_TOKEN
     ));
     contracts.addAll(Objects.requireNonNull(getControllerAddressByNetwork(ETH_NETWORK)));
     contracts.addAll(

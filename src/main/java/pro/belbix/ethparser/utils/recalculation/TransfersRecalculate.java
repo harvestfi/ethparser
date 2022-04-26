@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.utils.recalculation;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -7,7 +7,7 @@ import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_BLOCK_NU
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BSC_FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.CONTROLLERS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ETH_BLOCK_NUMBER_30_AUGUST_2020;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.FULL_PARSABLE_UNI_PAIRS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_BLOCK_NUMBER_06_JUL_2021;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.MATIC_FARM_TOKEN;
