@@ -57,8 +57,10 @@ public class ContractDbService {
   }
 
   public Optional<ContractEntity> getContractByAddress(String address, String network) {
-    return Optional.ofNullable(contractRepository
-        .findFirstByAddress(address.toLowerCase(), network));
+    return contractRepository
+        .findFirstByAddress(address.toLowerCase(), network, PageRequest.of(0, 1))
+        .stream()
+        .findFirst();
   }
 
   public Optional<ContractEntity> getContractByAddressAndType(
