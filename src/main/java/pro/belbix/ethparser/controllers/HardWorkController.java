@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -28,13 +27,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.dto.v0.HardWorkDTO;
-import pro.belbix.ethparser.dto.v0.HardWorkHarvestDTO;
-import pro.belbix.ethparser.entity.HarvestVaultData;
 import pro.belbix.ethparser.model.PaginatedResponse;
 import pro.belbix.ethparser.model.RestResponse;
 import pro.belbix.ethparser.repositories.v0.HardWorkRepository;
 import pro.belbix.ethparser.service.DtoCache;
-import pro.belbix.ethparser.service.HarvestVaultDataService;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.harvest.HardWorkCalculator;
@@ -49,18 +45,15 @@ public class HardWorkController {
     private final HardWorkCalculator hardWorkCalculator;
     private final ContractDbService contractDbService;
     private final DtoCache dtoCache;
-    private final HarvestVaultDataService harvestVaultDataService;
 
     public HardWorkController(HardWorkRepository hardWorkRepository,
         HardWorkCalculator hardWorkCalculator,
-        ContractDbService contractDbService, DtoCache dtoCache,
-        HarvestVaultDataService harvestVaultDataService
+        ContractDbService contractDbService, DtoCache dtoCache
         ) {
         this.hardWorkRepository = hardWorkRepository;
         this.hardWorkCalculator = hardWorkCalculator;
         this.contractDbService = contractDbService;
         this.dtoCache = dtoCache;
-        this.harvestVaultDataService = harvestVaultDataService;
     }
 
     @Operation(summary = "Returns the latest data for HardWorks")
@@ -280,11 +273,6 @@ public class HardWorkController {
             if (!pages.hasContent()) {
                 return RestResponse.error("Data not found");
             }
-            var vaultInfo = harvestVaultDataService.getAllVaultInfo();
-            var content = pages.getContent().stream()
-                .map(i -> toHardWorkHarvestDTO(i, vaultInfo))
-                .collect(Collectors.toList());
-
             return RestResponse.ok(
                 ObjectMapperFactory.getObjectMapper().writeValueAsString(
                     PaginatedResponse.builder()
@@ -292,7 +280,7 @@ public class HardWorkController {
                         .previousPage(pages.hasPrevious() ? start - 1 : -1)
                         .nextPage(pages.hasNext() ? start + 1 : -1)
                         .totalPages(pages.getTotalPages())
-                        .data(content)
+                        .data(pages.getContent())
                         .build()
                 )
             );
@@ -302,20 +290,6 @@ public class HardWorkController {
             log.warn(msg, e);
             return RestResponse.error(msg);
         }
-    }
-
-
-    private HardWorkHarvestDTO toHardWorkHarvestDTO(HardWorkDTO dto, List<HarvestVaultData> items) {
-        var value = new HardWorkHarvestDTO(dto);
-        var item = items.stream()
-            .filter(i -> i.getVaultAddress().equalsIgnoreCase(dto.getVaultAddress()) && i.getNetwork().equalsIgnoreCase(dto.getNetwork()))
-            .findFirst();
-        if (item.isPresent()) {
-            value.setApy(item.get().getApy());
-            value.setTvl(item.get().getTvl());
-        }
-
-        return value;
     }
 
 }
