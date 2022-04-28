@@ -73,14 +73,15 @@ public class Web3TransactionFlowable implements Runnable {
         AtomicInteger counter = new AtomicInteger(0);
         web3Functions.findBlocksByBlockBatch(from, to, network)
             .sorted(Comparator.comparing(Block::getNumber))
-            .forEach(block ->
-                transactionConsumers.forEach(queue ->
-                    block.getTransactions().forEach(t -> {
-                      counter.incrementAndGet();
-                      writeInQueue(queue, (Transaction) t.get(), transactionConsumers.size());
-                    })
-                )
-            );
+            .forEach(block -> {
+              log.info("Block info: {}, transactionConsumers: {}", block, transactionConsumers);
+              transactionConsumers.forEach(queue ->
+                  block.getTransactions().forEach(t -> {
+                    counter.incrementAndGet();
+                    writeInQueue(queue, (Transaction) t.get(), transactionConsumers.size());
+                  })
+              );
+            });
         lastParsedBlock = to;
         saveLast(to);
         log.info("Parse {} transactions from {} to {} on block: {} - {}",
