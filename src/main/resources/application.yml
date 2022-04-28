@@ -74,13 +74,16 @@ task:
     enable: false
   vault:
     fixedRate: 3600000 # Each hour
-    enable: true
+    enable: false
   uni-pair:
     fixedRate: 86400000 # Everyday
     enable: false
   transaction:
     max-thread-size: 30
     fixedRate: 86400000 # Everyday
+    enable: false
+  info:
+    fixedRate: 3600000 # Each hour
     enable: false
   
 

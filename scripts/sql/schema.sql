@@ -1135,3 +1135,17 @@ create table token_price
     value numeric(60, 6)
 );
 
+create table harvest_vault_data
+(
+    id            varchar(255)  not null
+        constraint harvest_vault_data_pk
+            primary key,
+    vault_address varchar(255) not null,
+    reward_pool   varchar(255),
+    display_name  varchar(255),
+    network       varchar(99),
+    apy           double precision  not null,
+    tvl           double precision  not null,
+    total_supply  double precision  not null
+);
+

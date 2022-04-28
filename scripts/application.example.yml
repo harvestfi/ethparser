@@ -42,3 +42,6 @@ task:
     max-thread-size: 30
     fixedRate: 86400000 # Everyday
     enable: false
+  info:
+    fixedRate: 3600000 # Each hour
+    enable: false
