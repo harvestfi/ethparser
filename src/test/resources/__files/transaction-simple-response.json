@@ -1,0 +1,52 @@
+{
+  "data": {
+    "address": "0x2fee56e039acccefa3cb1f3051ad00fe550a472c",
+    "updated_at": "2022-02-09T13:31:25.293424937Z",
+    "next_update_at": "2022-02-09T13:36:25.293425537Z",
+    "quote_currency": "USD",
+    "chain_id": 137,
+    "items": [
+      {
+        "block_signed_at": "2021-08-16T22:31:56Z",
+        "block_height": 111111,
+        "tx_hash": "0x4c60c231cdac354061b9c78b587f67b037636655ffcf1fb527422c2db531d818",
+        "tx_offset": 173,
+        "successful": true,
+        "from_address": "0x36ec37f30459eaa6347a8d5b052c559d131f4c41",
+        "from_address_label": null,
+        "to_address": "0x8ae127d224094cb1b27e1b28a472e588cbcc7620",
+        "to_address_label": null,
+        "value": "0",
+        "value_quote": 0.0,
+        "gas_offered": 51675,
+        "gas_spent": 51675,
+        "gas_price": 1000000001,
+        "gas_quote": 7.534433406675268E-5,
+        "gas_quote_rate": 1.4580422639846802,
+        "log_events": [
+          {
+            "block_signed_at": "2021-08-16T22:31:56Z",
+            "block_height": 111111,
+            "tx_offset": 173,
+            "log_offset": 380,
+            "tx_hash": "0x4c60c231cdac354061b9c78b587f67b037636655ffcf1fb527422c2db531d818",
+            "raw_log_topics": [
+              "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+              "0x0000000000000000000000000000000000000000000000000000000000001010",
+              "0x00000000000000000000000036ec37f30459eaa6347a8d5b052c559d131f4c41",
+              "0x000000000000000000000000e7e2cb8c81c10ff191a73fe266788c9ce62ec754"
+            ],
+            "sender_contract_decimals": 18,
+            "sender_name": "Matic Token",
+            "sender_contract_ticker_symbol": "MATIC",
+            "sender_address": "0x0000000000000000000000000000000000001010",
+            "sender_address_label": null,
+            "sender_logo_url": "https://logos.covalenthq.com/tokens/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0.png",
+            "raw_log_data": "0x00000000000000000000000000000000000000000000000000002eff860597db00000000000000000000000000000000000000000000000198ecc30b0c3841ea000000000000000000000000000000000000000000000ac6dd8b15f654a4b5c400000000000000000000000000000000000000000000000198ec940b8632aa0f000000000000000000000000000000000000000000000ac6dd8b44f5daaa4d9f",
+            "decoded": null
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -99,4 +99,11 @@ public class FunctionsNames {
   public static final String CLAIMED_REWARDS = "claimedRewards";
   public static final String VAULT = "vault";
   public static final String RATE_BY_PATH = "rateByPath";
+  public static final String GET_POOL_ID = "getPoolId";
+  public static final String GET_POOL_TOKENS = "getPoolTokens";
+  public static final String GET_VAULT = "getVault";
+  public static final String BALANCES = "balances";
+  public static final String CHECKING_PRICING_TOKEN = "checkPricingToken";
+  public static final String GET_BALANCES = "get_balances";
+  public static final String SLOT_0 = "slot0";
 }

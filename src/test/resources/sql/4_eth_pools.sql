@@ -191,3 +191,4 @@ INSERT INTO public.eth_pools (id, updated_block, contract, controller, governanc
 INSERT INTO public.eth_pools (id, updated_block, contract, controller, governance, lp_token, owner, reward_token) VALUES (10006, 16644936, 10076, 10071, 10058, 10070, 10058, 10066);
 INSERT INTO public.eth_pools (id, updated_block, contract, controller, governance, lp_token, owner, reward_token) VALUES (10007, 16644965, 10079, 10071, 10058, 10077, 10058, 10066);
 INSERT INTO public.eth_pools (id, updated_block, contract, controller, governance, lp_token, owner, reward_token) VALUES (10039, 16645038, 10108, 10071, 10058, 10105, 10058, 10066);
+INSERT INTO public.eth_pools (id, updated_block, contract, controller, governance, lp_token, owner, reward_token) VALUES (10077, 21985528, 10445, 10452, 10058, 10443, 10058, 10066);

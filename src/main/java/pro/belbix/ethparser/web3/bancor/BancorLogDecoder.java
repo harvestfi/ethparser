@@ -3,7 +3,7 @@ package pro.belbix.ethparser.web3.bancor;
 import static pro.belbix.ethparser.model.tx.BancorPriceTx.BNT;
 import static pro.belbix.ethparser.model.tx.BancorPriceTx.FARM;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 
 import java.math.BigInteger;
 import java.util.List;

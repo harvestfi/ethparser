@@ -17,7 +17,7 @@ import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV8;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 
 @Service
@@ -48,13 +48,23 @@ public class PriceOracle {
                 "Can't fetch price for " + tokenAdr))
             .doubleValue();
 
+        if (price == 0 && BSC_NETWORK.equals(network)) {
+            log.error("Can not get price by oracle address - {}, try use old oracle", oracleAddress);
+            oracleAddress = ContractUtils.getOldPriceOracle(network);
+            price = functionsUtils
+                .callIntByNameWithAddressArg(GET_PRICE, tokenAdr, oracleAddress, block, network)
+                .orElseThrow(() -> new IllegalStateException(
+                    "Can't fetch price for " + tokenAdr))
+                .doubleValue();
+        }
+
         return price / D18;
     }
 
     public String getLargestKeyToken(String tokenAddress, long block, String network) {
         String oracleAddress = getOracleAddress(tokenAddress, block, network);
 
-        List<Address> tokenList = ContractConstants.KEY_TOKENS.get(network).stream()
+        List<Address> tokenList = ContractConstantsV8.KEY_TOKENS.get(network).stream()
             .map(Address::new)
             .collect(Collectors.toList());
         try {
@@ -86,7 +96,7 @@ public class PriceOracle {
         }
     }
 
-    private String getOracleAddress(String tokenAddress, long block, String network) {
+    public String getOracleAddress(String tokenAddress, long block, String network) {
         if (BSC_NETWORK.equals(network)) {
             Optional<String> factory =
                 functionsUtils.callStrByName("factory", tokenAddress, block, network);

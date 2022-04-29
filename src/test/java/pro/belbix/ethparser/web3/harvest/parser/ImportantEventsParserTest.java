@@ -19,7 +19,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import pro.belbix.ethparser.Application;
 import pro.belbix.ethparser.dto.v0.ImportantEventsDTO;
 import pro.belbix.ethparser.web3.Web3Functions;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 
 @SpringBootTest(classes = Application.class)
 @ContextConfiguration
@@ -59,7 +59,7 @@ public class ImportantEventsParserTest {
     @Test
     public void shouldParseMint() {
         parserTest(
-            ContractConstants.FARM_TOKEN,
+            ContractConstantsV7.FARM_TOKEN,
             10776715, 
             0, 
             "null",

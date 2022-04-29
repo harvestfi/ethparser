@@ -1,5 +1,6 @@
 package pro.belbix.ethparser.web3.contracts;
 
+import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.CONTROLLER;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.FACTORY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GOVERNANCE;
@@ -14,10 +15,8 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_ONEINCHE;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_SUSHI;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PAIR_TYPE_UNISWAP;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.SUSHISWAP_FACTORY_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNISWAP_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV8.SUSHISWAP_FACTORY_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV8.UNISWAP_FACTORY_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.INFRASTRUCTURE;
 
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.PoolEntity;
@@ -108,11 +108,16 @@ public class ContractLoader {
 
   public void loadToken(TokenContract contract, String network, long block) {
     ContractEntity tokenContract = load(contract);
+    loadToken(tokenContract, network, block);
+  }
 
+  public TokenEntity loadToken(ContractEntity tokenContract, String network, long block) {
     TokenEntity tokenEntity = tokenRepository
         .findFirstByAddress(tokenContract.getAddress(), network);
     if (tokenEntity == null) {
       tokenEntity = new TokenEntity();
+      var maxId = tokenRepository.findMaxId() + 1;
+      tokenEntity.setId(maxId);
       tokenEntity.setContract(tokenContract);
       enrichToken(tokenEntity, block, network);
       tokenRepository.save(tokenEntity);
@@ -120,6 +125,8 @@ public class ContractLoader {
       enrichToken(tokenEntity, block, network);
       tokenRepository.save(tokenEntity);
     }
+
+    return tokenEntity;
   }
 
   public void loadVault(SimpleContract vault, String network, long block) {
@@ -211,6 +218,15 @@ public class ContractLoader {
   }
 
   public void enrichVault(VaultEntity vaultEntity, long block, String network) {
+    enrichVault(vaultEntity, block, block, network);
+  }
+
+  public void enrichVaultWithLatestBlock(VaultEntity vaultEntity, long block, String network) {
+    enrichVault(vaultEntity, block, null, network);
+  }
+
+
+  public void enrichVault(VaultEntity vaultEntity, Long block, Long blockForProperty, String network) {
     if (appProperties.isOnlyApi()) {
       return;
     }
@@ -233,8 +249,7 @@ public class ContractLoader {
         network
     ));
     //exclude PS vaults
-    if (address.equalsIgnoreCase(PS_ADDRESS)
-        || address.equalsIgnoreCase(PS_V0_ADDRESS)) {
+    if (ContractConstantsV2.EXCLUDE_ADDRESSES_FOR_PRICE_SHARE_BY_NETWORK.get(ETH_NETWORK).contains(address.toLowerCase())) {
       vaultEntity.setName("PS vault");
       vaultEntity.setDecimals(18L);
       return;
@@ -256,14 +271,14 @@ public class ContractLoader {
         network
     ));
     vaultEntity.setName(
-        functionsUtils.callStrByName(FunctionsNames.NAME, address, block, network).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.NAME, address, blockForProperty, network).orElse(""));
     vaultEntity.setSymbol(
-        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, block, network).orElse(""));
+        functionsUtils.callStrByName(FunctionsNames.SYMBOL, address, blockForProperty, network).orElse(""));
     vaultEntity.setDecimals(
-        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
+        functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, blockForProperty, network)
             .orElse(BigInteger.ZERO).longValue());
     vaultEntity.setUnderlyingUnit(
-        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, block, network)
+        functionsUtils.callIntByName(FunctionsNames.UNDERLYING_UNIT, address, blockForProperty, network)
             .orElse(BigInteger.ZERO).longValue());
   }
 
@@ -422,6 +437,26 @@ public class ContractLoader {
     }
   }
 
+  public TokenToUniPairEntity linkUniPairsToToken(String address, long block, TokenEntity tokenEntity, String network) {
+    UniPairEntity uniPair;
+    if (address.startsWith("0x")) {
+      uniPair = uniPairRepository.findFirstByAddress(address, network);
+    } else {
+      uniPair = uniPairRepository.findFirstByName(address, network);
+    }
+
+    if (uniPair == null) {
+      log.error("Not found lp for {} on {}", address, network);
+      return null;
+    }
+
+    if (tokenEntity == null) {
+      log.error("Token is null for " + address);
+      return null;
+    }
+    return findOrCreateTokenToUniPair(tokenEntity, uniPair, block, network);
+  }
+
   private TokenToUniPairEntity findOrCreateTokenToUniPair(
       TokenEntity token,
       UniPairEntity uniPair,
@@ -446,7 +481,9 @@ public class ContractLoader {
       if (pairByLp != null && !pairByLp.isEmpty()) {
         log.info("We already had linked " + uniPair.getContract().getName());
       }
+      var id = tokenToUniPairRepository.findMaxId() + 1;
       tokenToUniPairEntity = new TokenToUniPairEntity();
+      tokenToUniPairEntity.setId(id);
       tokenToUniPairEntity.setToken(token);
       tokenToUniPairEntity.setUniPair(uniPair);
       tokenToUniPairEntity.setBlockStart(blockStart);
@@ -492,7 +529,11 @@ public class ContractLoader {
         || ZERO_ADDRESS.equalsIgnoreCase(address)) {
       return null;
     }
-    ContractEntity entity = contractRepository.findFirstByAddress(address, network);
+    var result = contractRepository.findFirstByAddress(address, network, PageRequest.of(0, 1));
+    if (result == null || result.isEmpty()) {
+      return null;
+    }
+    ContractEntity entity = result.get(0);
     if (appProperties.isOnlyApi()) {
       return entity;
     }

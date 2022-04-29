@@ -47,3 +47,23 @@ logging:
   level:
     com.yannbriancon.interceptor.HibernateQueryInterceptor: OFF
 #    pro.belbix: debug
+
+# only for m1 Mac users
+wiremock:
+  server:
+    httpsPort: -1
+
+task:
+  pool:
+    fixedRate: 3600000 # Each hour
+    enable: false
+  vault:
+    fixedRate: 3600000 # Each hour
+    enable: false
+  uni-pair:
+    fixedRate: 86400000 # Everyday
+    enable: false
+  transaction:
+    max-thread-size: 30
+    fixedRate: 86400000 # Everyday
+    enable: false
