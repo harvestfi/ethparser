@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.service;
+package pro.belbix.ethparser.service.task;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.entity.contracts.VaultEntity;
 import pro.belbix.ethparser.model.HarvestVaultInfo.HarvestVaultItemInfo;
@@ -32,23 +32,28 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class HarvestVaultInfoService {
+public class HarvestVaultInfoTask {
   private static final Long INCREASE_BLOCK_WEIGHT = 1000L;
 
-  HarvestService harvestService;
-  ContractLoader contractLoader;
-  ContractRepository contractRepository;
-  VaultRepository vaultRepository;
-  EthBlockService ethBlockService;
-  FunctionsUtils functionsUtils;
-  CovalenthqService covalenthqService;
+  @Value("${task.vault.enable}")
+  private Boolean enable;
+  private final HarvestService harvestService;
+  private final ContractLoader contractLoader;
+  private final ContractRepository contractRepository;
+  private final VaultRepository vaultRepository;
+  private final EthBlockService ethBlockService;
+  private final FunctionsUtils functionsUtils;
+  private final CovalenthqService covalenthqService;
 
 
-  // each hour
-  @Scheduled(fixedRate = 1000 * 60 * 60)
+  @Scheduled(fixedRateString = "${task.vault.fixedRate}")
   public void start() {
     try {
+      if (enable == null || !enable) {
+        log.info("HarvestPoolInfoTask disabled");
+        return;
+      }
+
       var response = harvestService.getVaults();
 
       List<CompletableFuture<List<VaultEntity>>> vaultFutures = List.of(
@@ -75,11 +80,12 @@ public class HarvestVaultInfoService {
     }
   }
 
-  private List<VaultEntity> doTaskByAddressAndNetwork(Map<String, HarvestVaultItemInfo> items, String network) {
+  @Transactional
+  public List<VaultEntity> doTaskByAddressAndNetwork(Map<String, HarvestVaultItemInfo> items, String network) {
     log.info("Begin find vault and insert in network: {}", network);
     var existVaults = contractRepository.findAllByNetworkAndInAddressAndType(network,
         items.values().stream().map(i -> i.getVaultAddress().toLowerCase()).collect(Collectors.toList()), ContractType.VAULT.getId());
-
+    log.info("Exist vaults {}", existVaults);
     var notSavedVaults = items.values().stream()
         .filter(i -> existVaults.stream().filter(c -> c.getAddress().equalsIgnoreCase(i.getVaultAddress())).findFirst().isEmpty())
         .collect(Collectors.toList());
@@ -99,6 +105,9 @@ public class HarvestVaultInfoService {
               isCorrectBlock = false;
               name = functionsUtils.callStrByName(FunctionsNames.NAME, i.getVaultAddress(), null, network).orElse("");
             }
+            var id = contractRepository.findMaxId() + 1;
+            log.info("Max contract id is {}", id);
+            contract.setId(id);
             contract.setAddress(i.getVaultAddress());
             contract.setCreated(block);
             contract.setCreatedDate(createdBlockDate);
@@ -113,6 +122,8 @@ public class HarvestVaultInfoService {
             } else {
               contractLoader.enrichVaultWithLatestBlock(vault, block + INCREASE_BLOCK_WEIGHT, network);
             }
+
+            vault.setId(vaultRepository.findMaxId());
             log.info("Vault: {}", vault);
             return vault;
 

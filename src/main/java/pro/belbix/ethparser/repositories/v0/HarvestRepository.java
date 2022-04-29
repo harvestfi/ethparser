@@ -312,6 +312,8 @@ public interface HarvestRepository extends JpaRepository<HarvestDTO, String> {
         + "group by h.owner")
     List<String> fetchUniqueAddressByNetwork(@Param("network") String network);
 
+    List<HarvestDTO> findAllByOwner(String owner);
+
     interface UserBalance {
 
         String getOwner();

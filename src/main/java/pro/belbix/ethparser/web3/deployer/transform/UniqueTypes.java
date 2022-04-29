@@ -2,7 +2,7 @@ package pro.belbix.ethparser.web3.deployer.transform;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.iPS_ADDRESS;
 
 import java.util.Map;
 import pro.belbix.ethparser.web3.contracts.ContractType;

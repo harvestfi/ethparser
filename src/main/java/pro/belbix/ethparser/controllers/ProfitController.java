@@ -4,10 +4,14 @@ import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pro.belbix.ethparser.model.ProfitListResult;
+import pro.belbix.ethparser.model.ProfitResult;
 import pro.belbix.ethparser.service.ProfitService;
 
 @RestController
@@ -33,7 +37,7 @@ public class ProfitController {
     return profitService.calculationProfitForPeriod(address, start, end);
   }
 
-  @RequestMapping(value = "api/profit/vault", method = RequestMethod.GET)
+  @RequestMapping(value = "api/profit/vaults", method = RequestMethod.GET)
   public Double fetchProfitByVault(
       @RequestParam("address") @Parameter(description = "Vault address") String address,
       @RequestParam(value = "network", required = false, defaultValue = ETH_NETWORK) String network,
@@ -44,5 +48,26 @@ public class ProfitController {
   ) {
 
     return profitService.calculationProfitByVaultForPeriod(address, network, start, end);
+  }
+
+  @GetMapping("api/profit")
+  public ProfitResult calculateProfit(
+      @RequestParam String address,
+      @RequestParam(required = false, defaultValue = "eth") String network,
+      @RequestParam(required = false, defaultValue = "") String vaultAddress,
+      @RequestParam(required = false, defaultValue = "0") Long blockFrom,
+      @RequestParam(required = false, defaultValue = "0") Long blockTo) {
+    return new ProfitResult(profitService.calculateProfit(address, network, vaultAddress, blockFrom, blockTo));
+  }
+
+  @GetMapping("api/profit/{address}")
+  public ProfitListResult calculateProfit(@PathVariable String address, @RequestParam(required = false, defaultValue = "eth") String network) {
+    return profitService.calculateProfit(address, network);
+  }
+
+  @GetMapping("api/profit/vault")
+  public ProfitResult calculateVaultProfit(@RequestParam String address, @RequestParam String network,
+      @RequestParam long blockFrom, @RequestParam long blockTo) {
+    return new ProfitResult(profitService.calculateVaultProfit(address, network, blockFrom, blockTo));
   }
 }

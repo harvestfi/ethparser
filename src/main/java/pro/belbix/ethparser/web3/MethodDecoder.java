@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -32,6 +33,7 @@ import pro.belbix.ethparser.model.tx.EthTransactionI;
 import pro.belbix.ethparser.web3.abi.CommonMethods;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
+@Log4j2
 public abstract class MethodDecoder {
 
   protected Map<String, List<TypeReference<Type>>> parametersByMethodId = new HashMap<>();

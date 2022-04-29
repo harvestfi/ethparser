@@ -11,13 +11,17 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import pro.belbix.ethparser.model.AbiProviderResponse;
 
 @Log4j2
+@Service
 public class AbiProviderService {
 
   public final static int RATE_TIMEOUT = 1000;
@@ -29,6 +33,7 @@ public class AbiProviderService {
   private final static String BSC_URL = "https://api.bscscan.com/api";
   private final static String MATIC_URL = "https://api.polygonscan.com/api";
   private final static String PARAMS = "?module={module}&action={action}&address={address}&apikey={apikey}";
+  private final static String PARAMS_FOR_BLOCK = "?module={module}&action={action}&apikey={apikey}&closest={closest}&timestamp={timestamp}";
   private final RestTemplate restTemplate = new RestTemplate();
   private Instant lastRequest = Instant.now();
 
@@ -90,6 +95,27 @@ public class AbiProviderService {
     }
 
     return result;
+  }
+
+  public long getBlockByTimestamp(String timestamp, String network, String apiKey) {
+    var params = Map.of(
+        "module", "block",
+        "action", "getblocknobytime",
+        "apikey", apiKey,
+        "closest", "after",
+        "timestamp", timestamp
+    );
+
+    var result = restTemplate.getForObject(
+        getUrl(network) + PARAMS_FOR_BLOCK,
+        AbiProviderResponse.class,
+        params
+    );
+
+    return Optional.ofNullable(result)
+        .orElse(new AbiProviderResponse())
+        .getResult();
+
   }
 
   private ResponseEntity<ResponseSourceCode> sendRequest(Map<String, ?> vars, String network) {

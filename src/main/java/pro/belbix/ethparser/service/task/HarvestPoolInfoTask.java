@@ -1,4 +1,4 @@
-package pro.belbix.ethparser.service;
+package pro.belbix.ethparser.service.task;
 
 import static pro.belbix.ethparser.service.AbiProviderService.BSC_NETWORK;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
@@ -9,10 +9,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
@@ -31,23 +30,27 @@ import pro.belbix.ethparser.web3.contracts.ContractType;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class HarvestPoolInfoService {
+public class HarvestPoolInfoTask {
   private static final Long INCREASE_BLOCK_WEIGHT = 1000L;
 
-  HarvestService harvestService;
-  ContractLoader contractLoader;
-  ContractRepository contractRepository;
-  PoolRepository poolRepository;
-  EthBlockService ethBlockService;
-  FunctionsUtils functionsUtils;
-  CovalenthqService covalenthqService;
+  @Value("${task.pool.enable}")
+  private Boolean enable;
+  private final HarvestService harvestService;
+  private final ContractLoader contractLoader;
+  private final ContractRepository contractRepository;
+  private final PoolRepository poolRepository;
+  private final EthBlockService ethBlockService;
+  private final FunctionsUtils functionsUtils;
+  private final CovalenthqService covalenthqService;
 
 
-  // each hour
-  @Scheduled(fixedRate = 1000 * 60 * 60)
+  @Scheduled(fixedRateString = "${task.pool.fixedRate}")
   public void start() {
     try {
+      if (enable == null || !enable) {
+        log.info("HarvestPoolInfoTask disabled");
+        return;
+      }
       var response = harvestService.getPools();
 
       List<CompletableFuture<List<PoolEntity>>> poolFutures = List.of(

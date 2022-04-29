@@ -4,10 +4,16 @@ import static java.math.BigInteger.ZERO;
 import static org.web3j.abi.TypeReference.makeTypeReference;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static pro.belbix.ethparser.utils.Caller.silentCall;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.CHECKING_PRICING_TOKEN;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.COINS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_ID;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_POOL_TOKENS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.SLOT_0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN1;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
@@ -26,6 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -34,6 +41,7 @@ import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.Uint112;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -41,12 +49,15 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.tuples.generated.Tuple2;
+import org.web3j.utils.Numeric;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
 import pro.belbix.ethparser.web3.MethodDecoder;
 import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
+import pro.belbix.ethparser.web3.contracts.models.BalancerPoolTokenInfo;
+import pro.belbix.ethparser.web3.contracts.models.CurveTokenInfo;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -63,6 +74,7 @@ public class FunctionsUtils {
   private final Map<String, Function> functionsCache = new HashMap<>();
   private final static String EXCLUDE_ONEINCH = "1inch";
   private final static String EXCLUDE_KYBER = "Kyber";
+  private final static BigInteger DEFAULT_DECIMAL = BigInteger.valueOf(18);
 
   private final Web3Functions web3Functions;
   private final ContractDbService contractDbService;
@@ -84,8 +96,67 @@ public class FunctionsUtils {
     if (lpName.startsWith(EXCLUDE_ONEINCH)) {
       return callOneInchReserves(lpAddress, block, network);
     } else {
-      return callUniReserves(lpAddress, block, network, getTypeReferenceForGetReserves(lpName));
+      return callUniReservesOrElseGetFromBlockchain(lpAddress, block, network, lpName);
     }
+  }
+
+  @Cacheable("decimal_latest_block")
+  public int getDecimal(String address, String network) {
+    return callIntByName(FunctionsNames.DECIMALS, address, null, network)
+        .orElse(DEFAULT_DECIMAL).intValue();
+  }
+
+  @Cacheable("uni_tokens_latest_block")
+  public Tuple2<String, String> callTokensForSwapPlatform(String address, String network) {
+    String token0 = callAddressByName(TOKEN0, address, null, network)
+        .orElseThrow(() -> new IllegalStateException("Error get token0 for " + address));
+    String token1 = callAddressByName(TOKEN1, address, null, network)
+        .orElseThrow(() -> new IllegalStateException("Error get token1 for " + address));
+
+    return new Tuple2<>(token0, token1);
+  }
+
+  @Cacheable("uni_reserves")
+  public Tuple2<Double, Double> callUniReservesForSwapPlatform(String address, Long block, String network, List<TypeReference<?>> typeReferences) {
+    var types = web3Functions.callFunction(new Function(
+        GET_RESERVES,
+        Collections.emptyList(),
+        typeReferences), address, resolveBlock(block), network);
+
+    if (types == null || types.size() < typeReferences.size()) {
+      log.error("Wrong values for " + address);
+      return null;
+    }
+
+    var tokens = callTokensForSwapPlatform(address, network);
+    var v1 = (BigInteger) types.get(0).getValue();
+    var v2 = (BigInteger) types.get(1).getValue();
+
+    return new Tuple2<>(
+        parseAmount(v1, tokens.component1(), network),
+        parseAmount(v2, tokens.component2(), network)
+    );
+  }
+
+  @Cacheable("can_get_token_price")
+  public boolean canGetTokenPrice(String tokenAddress, String oracleAddress, Long block, String network) {
+    return callBoolByNameWithAddressArg(CHECKING_PRICING_TOKEN, tokenAddress, oracleAddress, block, network)
+        .orElse(false);
+  }
+
+  @Cacheable("uniswap_slot0")
+  public Optional<BigInteger> getSqrtPriceX96(String address, Long block, String network) {
+    List<Type> types = web3Functions.callFunction(new Function(
+        SLOT_0,
+        Collections.emptyList(),
+        List.of(
+            new TypeReference<Uint112>() {}
+        )), address, resolveBlock(block), network);
+
+    if (types == null || types.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(((Uint112)types.get(0)).getValue());
   }
 
   private Tuple2<Double, Double> callOneInchReserves(String lpAddress, Long block, String network) {
@@ -131,6 +202,15 @@ public class FunctionsUtils {
         parseAmount(v1, tokens.component1(), network),
         parseAmount(v2, tokens.component2(), network)
     );
+  }
+
+  private Tuple2<Double, Double> callUniReservesOrElseGetFromBlockchain(String lpAddress, Long block, String network, String lpName) {
+    var types = getTypeReferenceForGetReserves(lpName);
+    try {
+      return callUniReserves(lpAddress, block, network, types);
+    } catch (IllegalStateException e) {
+      return callUniReservesForSwapPlatform(lpAddress, block, network, types);
+    }
   }
 
   public double fetchUint256Field(
@@ -338,6 +418,127 @@ public class FunctionsUtils {
       types.add(typeReferenceByName(name));
     }
     return types;
+  }
+
+  public Optional<String> getPoolId(String address, Long block, String network) {
+    var result = web3Functions.callFunction(new Function(
+            GET_POOL_ID,
+            Collections.emptyList(),
+            Collections.singletonList(new TypeReference<Bytes32>() {
+            })),
+        address,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (result == null || result.isEmpty()) {
+      return Optional.empty();
+    }
+    var bytes = (Bytes32)result.get(0);
+    return Optional.of(Numeric.toHexString(bytes.getValue()));
+  }
+
+  public Optional<BalancerPoolTokenInfo> getPoolTokens(String address, Long block, String network, String poolId) {
+    var result = web3Functions.callFunction(new Function(
+        GET_POOL_TOKENS,
+        Collections.singletonList(new Bytes32(Numeric.hexStringToByteArray(poolId))),
+        List.of(
+            new TypeReference<DynamicArray<Address>>() {
+            },
+            new TypeReference<DynamicArray<Uint256>>() {
+            },
+            new TypeReference<Uint256>() {
+            }
+        )),
+        address,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (result == null || result.size() < 2) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(
+        BalancerPoolTokenInfo.builder()
+            .address(
+                ((List<Address>)result.get(0).getValue()).stream().map(Address::getValue).collect(Collectors.toList())
+            )
+            .balances(
+                ((List<Uint256>)result.get(1).getValue()).stream()
+                    .map(Uint256::getValue)
+                    .collect(Collectors.toList())
+            )
+            .build()
+    );
+  }
+
+  @Cacheable("address_name")
+  public String getName(String address, String network) {
+    return callStrByName(NAME, address, null, network)
+        .orElse(StringUtils.EMPTY);
+  }
+
+  @Cacheable("curve_vault_size")
+  public int getCurveVaultSize(String address, String network) {
+    var index = 0;
+    List<Type> result = null;
+    do {
+      result = web3Functions.callFunction(new Function(
+              BALANCES,
+              List.of(new Uint256(index)),
+              List.of(
+                  new TypeReference<Uint256>() {
+                  }
+              )),
+          address,
+          resolveBlock(null),
+          network
+      );
+
+      if (result != null) {
+        index++;
+      }
+
+    } while(result != null);
+
+    return index;
+  }
+
+  public Optional<CurveTokenInfo> getCurveTokenInfo(String minter, Long block, String network, long i) {
+    var coin = web3Functions.callFunction(new Function(
+        COINS,
+        Collections.singletonList(new Uint256(i)),
+        Collections.singletonList(new TypeReference<Address>() {})),
+        minter,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (coin == null || coin.isEmpty()) {
+      return Optional.empty();
+    }
+
+    var balance = web3Functions.callFunction(new Function(
+        BALANCES,
+        Collections.singletonList(new Uint256(i)),
+        Collections.singletonList(new TypeReference<Uint256>() {})
+        ),
+        minter,
+        new DefaultBlockParameterNumber(block),
+        network
+    );
+
+    if (balance == null || balance.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(
+        CurveTokenInfo.builder()
+            .address(((Address)coin.get(0)).getValue())
+            .balance(((Uint256)balance.get(0)).getValue())
+            .build()
+    );
   }
 
   // ************ PRIVATE METHODS **************************

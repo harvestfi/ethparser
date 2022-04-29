@@ -4,7 +4,7 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.DECIMALS;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PAIR;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_RESERVES;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOKEN0;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.UNI_FACTORIES;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV8.UNI_FACTORIES;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 
 import java.math.BigDecimal;
@@ -20,7 +20,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.ObjectMapperFactory;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
-import pro.belbix.ethparser.web3.contracts.ContractConstants;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV8;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 import pro.belbix.ethparser.web3.contracts.models.PureEthContractInfo;
@@ -70,7 +70,7 @@ public class LPSeeker {
       String network,
       List<PureEthContractInfo> contracts
   ) {
-    Set<String> tokenList = ContractConstants.KEY_TOKENS.get(network);
+    Set<String> tokenList = ContractConstantsV8.KEY_TOKENS.get(network);
     TreeMap<BigInteger, String> pairsLiquidity = new TreeMap<>();
     for (String keyToken : tokenList) {
       for (String factory : UNI_FACTORIES.get(network).keySet()) {
@@ -103,7 +103,7 @@ public class LPSeeker {
       return false;
     }
     boolean tokenIsKeyToken =
-        ContractConstants.KEY_TOKENS.get(network).contains(tokenAddress.toLowerCase());
+        ContractConstantsV8.KEY_TOKENS.get(network).contains(tokenAddress.toLowerCase());
     boolean keyTokenIsStablecoin = ContractUtils.isStableCoin(keyToken);
     // for avoid recursion we should have keyToken -> Stablecoin pairs only
     return !tokenIsKeyToken || keyTokenIsStablecoin;

@@ -48,7 +48,8 @@ public class HardWorkController {
 
     public HardWorkController(HardWorkRepository hardWorkRepository,
         HardWorkCalculator hardWorkCalculator,
-        ContractDbService contractDbService, DtoCache dtoCache) {
+        ContractDbService contractDbService, DtoCache dtoCache
+        ) {
         this.hardWorkRepository = hardWorkRepository;
         this.hardWorkCalculator = hardWorkCalculator;
         this.contractDbService = contractDbService;
@@ -290,6 +291,5 @@ public class HardWorkController {
             return RestResponse.error(msg);
         }
     }
-
 
 }

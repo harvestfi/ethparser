@@ -3,9 +3,9 @@ package pro.belbix.ethparser.web3.bancor;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.RATE_BY_PATH;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_CONVERSION_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.BANCOR_USDC_CONVERT_PATH;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV8.BANCOR_USDC_CONVERT_PATH;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.D6;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.FARM_TOKEN;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.FARM_TOKEN;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.L18;
 
 import java.math.BigDecimal;

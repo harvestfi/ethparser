@@ -4,40 +4,83 @@ import static pro.belbix.ethparser.utils.CommonUtils.parseLong;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.BALANCE_OF;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SHARE;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import pro.belbix.ethparser.dto.v0.HarvestDTO;
+import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.entity.profit.CovalenthqVaultTransaction;
+import pro.belbix.ethparser.error.exceptions.CanNotCalculateProfitException;
+import pro.belbix.ethparser.model.ProfitListResult;
+import pro.belbix.ethparser.model.ProfitListResult.ProfitListResultItem;
+import pro.belbix.ethparser.repositories.covalenthq.CovalenthqVaultTransactionRepository;
 import pro.belbix.ethparser.repositories.v0.HarvestRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.Web3Functions;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class ProfitService {
+
+  private final static BigInteger DEFAULT_POW =  new BigInteger("10");
+  private final static String WITHDRAW_NAME = "Withdraw";
 
   private final HarvestRepository harvestRepository;
   private final ContractDbService contractDbService;
   private final EthBlockService ethBlockService;
   private final FunctionsUtils functionsUtils;
+  private final CovalenthqVaultTransactionRepository covalenthqVaultTransactionRepository;
+  private final Web3Functions web3Functions;
 
 
-  public ProfitService(HarvestRepository harvestRepository,
-      ContractDbService contractDbService,
-      EthBlockService ethBlockService,
-      FunctionsUtils functionsUtils
-  ) {
-    this.harvestRepository = harvestRepository;
-    this.contractDbService = contractDbService;
-    this.ethBlockService = ethBlockService;
-    this.functionsUtils = functionsUtils;
+  public ProfitListResult calculateProfit(String address, String network) {
+    var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAndNetwork(address, network);
+    var contracts = contractDbService.findAllVaultsByNetwork(network);
 
+    return ProfitListResult.builder()
+        .totalProfit(calculateTxProfit(transactions))
+        .items(calculateProfitByVaults(transactions, contracts))
+        .build();
   }
 
+  public BigDecimal calculateProfit(String address, String network, String vault, Long blockFrom, Long blockTo) {
+    try {
+      if (blockTo == 0) {
+        blockTo = web3Functions.fetchCurrentBlock(network).longValue();
+      }
+      var transactions = covalenthqVaultTransactionRepository.findAllByOwnerAddressAndNetwork(address, network, vault, blockFrom, blockTo);
+
+      return calculateTxProfit(transactions);
+    } catch (CanNotCalculateProfitException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("Error during calculate profit - ", e);
+      throw new CanNotCalculateProfitException();
+    }
+  }
+
+  public BigDecimal calculateVaultProfit(String address, String network, long blockFrom, long blockTo) {
+    try {
+      var transactions =
+          covalenthqVaultTransactionRepository.findAllByContractAddressAndBlockBetween(address, network, blockFrom, blockTo);
+
+      return calculateTxProfit(transactions);
+    } catch (CanNotCalculateProfitException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("Error during calculate profit - ", e);
+      throw new CanNotCalculateProfitException();
+    }
+  }
 
   public Double calculationProfitForPeriod(String address, String start, String end) {
 
@@ -154,5 +197,80 @@ public class ProfitService {
     }
 
     return (v.get(v.size() - 1).getBlock() * end) / v.get(v.size() - 1).getBlockDate();
+  }
+
+  private BigDecimal calculateTxProfit(List<CovalenthqVaultTransaction> transactions) {
+    BigDecimal totalProfit = BigDecimal.ZERO;
+
+    for (CovalenthqVaultTransaction i: transactions) {
+      if (i.getContractDecimal() == 0 || i.getSharePrice().equals(BigInteger.ZERO) || i.getTokenPrice() == 0) {
+        log.error("Can not calculate profit, incorrect transaction : {}", i);
+        throw new CanNotCalculateProfitException();
+      }
+      var decimal = new BigDecimal(DEFAULT_POW.pow(i.getContractDecimal()).toString());
+      var value = i.getValue()
+          .divide(decimal)
+          .multiply(
+              new BigDecimal(i.getSharePrice().toString()).divide(decimal)
+          )
+          .multiply(BigDecimal.valueOf(i.getTokenPrice()));
+
+      if (i.getType().equals(WITHDRAW_NAME)) {
+        totalProfit = totalProfit.add(value);
+      } else {
+        totalProfit = totalProfit.subtract(value);
+      }
+    }
+    return totalProfit;
+  }
+
+  private List<ProfitListResultItem> calculateProfitByVaults(List<CovalenthqVaultTransaction> transactions, List<ContractEntity> contracts) {
+    return joinAnyVersionVaults(
+        contracts.stream()
+            .map(i -> {
+              var txByContract = transactions.stream()
+                  .filter(tx -> tx.getContractAddress().equalsIgnoreCase(i.getAddress()))
+                  .collect(Collectors.toList());
+
+              return ProfitListResultItem.builder()
+                  .contractAddress(i.getAddress())
+                  .name(i.getName())
+                  .profit(calculateTxProfit(txByContract))
+                  .build();
+            })
+            .filter(i -> i.getProfit().compareTo(BigDecimal.ZERO) != 0)
+            .collect(Collectors.toList())
+    );
+  }
+
+  private List<ProfitListResultItem> joinAnyVersionVaults(List<ProfitListResultItem> result) {
+    result = result.stream()
+        .sorted((i1, i2) -> i1.getName().compareToIgnoreCase(i2.getName()))
+        .collect(Collectors.toList());
+
+    var checkedResult = new ArrayList<ProfitListResultItem>();
+    var returnResult = new ArrayList<ProfitListResultItem>();
+    for (ProfitListResultItem item : result) {
+      if (checkedResult.stream().anyMatch(i -> item.equals(i))) {
+        continue;
+      }
+
+      var values = result.stream()
+          .filter(i -> i.getName().startsWith(item.getName()))
+          .collect(Collectors.toList());
+
+      checkedResult.addAll(values);
+      returnResult.add(ProfitListResultItem.builder()
+              .profit(
+                  values.stream()
+                      .map(i -> i.getProfit())
+                      .reduce(BigDecimal.ZERO, BigDecimal::add)
+              )
+              .name(item.getName())
+              .contractAddress(item.getContractAddress())
+          .build());
+    }
+
+    return returnResult;
   }
 }

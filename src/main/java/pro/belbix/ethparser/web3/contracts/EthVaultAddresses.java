@@ -2,7 +2,6 @@ package pro.belbix.ethparser.web3.contracts;
 
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.models.SimpleContract.createContracts;
 
 import java.util.List;
@@ -80,7 +79,7 @@ class EthVaultAddresses {
       new SimpleContract(11745394, "CRV_GUSD", "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E"),
       new SimpleContract(11830928, "CRV_AAVE", "0xc3EF8C4043D7cf1D15B6bb4cd307C844E0BA9d42"),
       new SimpleContract(11777480, "SUSHI_SUSHI_ETH", "0x5aDe382F38A09A1F8759D06fFE2067992ab5c78e"),
-      new SimpleContract(11775913, "iPS", iPS_ADDRESS),
+      new SimpleContract(11775913, "iPS", ContractConstantsV7.iPS_ADDRESS),
       new SimpleContract(11905238, "ONEINCH_ETH_ONEINCH", "0xFCA949E34ecd9dE519542CF02054DE707Cf361cE"),
       new SimpleContract(11924821, "UNI_WBTC_KLON", "0xB4E3fC276532f27Bd0F738928Ce083A3b064ba61"),
       new SimpleContract(11924877, "UNI_WBTC_KBTC", "0x5cd9Db40639013A08d797A839C9BECD6EC5DCD4D"),

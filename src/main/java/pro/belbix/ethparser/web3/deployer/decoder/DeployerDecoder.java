@@ -1,6 +1,6 @@
 package pro.belbix.ethparser.web3.deployer.decoder;
 
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.DEPLOYERS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.DEPLOYERS;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;

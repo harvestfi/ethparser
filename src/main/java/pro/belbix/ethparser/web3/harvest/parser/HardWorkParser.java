@@ -205,6 +205,8 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
 //      // skip old strategies
 //      return null;
 //    }
+
+    log.info("OldSharePrice: {}, NewSharePrice: {}", tx.getOldSharePrice(), tx.getNewSharePrice());
     HardWorkDTO dto = new HardWorkDTO();
     dto.setNetwork(network);
     dto.setId(tx.getHash() + "_" + tx.getLogId());
@@ -356,7 +358,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
         return;
       }
       double reward = tx.getReward().doubleValue() / D18;
-
+      log.info("parseRewardAddedEventsEth: {} {} reward is {}", dto.getVaultAddress(), dto.getNetwork(), reward);
       // AutoStake strategies have two RewardAdded events - first for PS and second for stake contract
       if (autoStake && dto.getFarmBuyback() != 0) {
         // in this case it is second reward for strategy
@@ -364,6 +366,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
             / (1 - requireNonNullElse(dto.getProfitSharingRate(),
             defaultPsDenominator(network))); // full reward
         dto.setFullRewardUsd(fullReward);
+        log.info("fullReward: {}", fullReward);
       } else {
         double farmBuybackMultiplier =
             (1 - requireNonNullElse(dto.getProfitSharingRate(), defaultPsDenominator(network)))
@@ -373,6 +376,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
         // PS pool reward
         dto.setFarmBuyback(reward + (reward * farmBuybackMultiplier));
 
+        log.info("It's autoStake - {}", autoStake);
         // for non AutoStake strategy we will not have accurate data for strategy reward
         // just calculate aprox value based on PS reward
         if (!autoStake) {
@@ -380,6 +384,7 @@ public class HardWorkParser extends Web3Parser<HardWorkDTO, Log> {
               / requireNonNullElse(dto.getProfitSharingRate(),
               defaultPsDenominator(network))); // full reward
           dto.setFullRewardUsd(fullReward);
+          log.info("fullReward: {}", fullReward);
         }
       }
 

@@ -1,6 +1,7 @@
 package pro.belbix.ethparser.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
 import java.util.Map;
 import lombok.Data;
 
@@ -16,9 +17,13 @@ public class HarvestVaultInfo {
 
   @Data
   public static class HarvestVaultItemInfo {
+    private int chain;
     private String vaultAddress;
     private String id;
     private String rewardPool;
     private String displayName;
+    private BigDecimal estimatedApy;
+    private BigDecimal totalValueLocked;
+    private BigDecimal totalSupply;
   }
 }

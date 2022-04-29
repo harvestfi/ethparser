@@ -1,50 +1,174 @@
 package pro.belbix.ethparser.web3.prices;
 
 import static java.util.Objects.requireNonNullElse;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_VAULT;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.MINTER;
+import static pro.belbix.ethparser.web3.abi.FunctionsNames.NAME;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
+import static pro.belbix.ethparser.web3.contracts.ContractConstants.CURVE_ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractUtils.getBaseNetworkWrappedTokenAddress;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.tuples.generated.Tuple2;
 import pro.belbix.ethparser.entity.contracts.ContractEntity;
+import pro.belbix.ethparser.error.exceptions.CanNotFetchPriceException;
+import pro.belbix.ethparser.model.TokenInfo;
 import pro.belbix.ethparser.properties.AppProperties;
-import pro.belbix.ethparser.repositories.v0.PriceRepository;
+import pro.belbix.ethparser.web3.EthBlockService;
+import pro.belbix.ethparser.web3.abi.FunctionsNames;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV4;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
+import pro.belbix.ethparser.web3.contracts.UniPairType;
+import pro.belbix.ethparser.web3.contracts.UniswapV3Pools;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
 
 @Service
 @Log4j2
+@AllArgsConstructor
 public class PriceProvider {
 
-  private static final boolean CHECK_BLOCK_CREATED = false;
+  private final static BigDecimal UNISWAP_V3_VALUE = BigDecimal.valueOf(2).pow(96).pow(2);
+  private final static Double DEFAULT_RETURN_PRICE = 1D;
+  private final static int DEFAULT_CURVE_SIZE = 3;
+  private final static int DEFAULT_DECIMAL = 18;
+  private final static BigInteger DEFAULT_POW =  new BigInteger("10");
+  private final static boolean CHECK_BLOCK_CREATED = false;
   private final Map<String, TreeMap<Long, Double>> lastPrices = new HashMap<>();
 
   private final FunctionsUtils functionsUtils;
   private final AppProperties appProperties;
   private final PriceOracle priceOracle;
   private final ContractDbService contractDbService;
+  private final EthBlockService ethBlockService;
 
-  public PriceProvider(FunctionsUtils functionsUtils, PriceRepository priceRepository,
-      AppProperties appProperties, PriceOracle priceOracle,
-      ContractDbService contractDbService) {
-    this.functionsUtils = functionsUtils;
-    this.appProperties = appProperties;
-    this.priceOracle = priceOracle;
-    this.contractDbService = contractDbService;
-  }
 
   public double getLpTokenUsdPrice(String lpAddress, double amount, long block, String network) {
       return getLpTokenUsdPriceFromEth(lpAddress, amount, block, network);
+  }
+
+  public double getBalancerPrice(String address, Long block, String network) {
+    var poolId = functionsUtils.getPoolId(address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer poolId for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var vaultAddress = functionsUtils.callAddressByName(GET_VAULT, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer vault for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var poolTokenInfo = functionsUtils.getPoolTokens(vaultAddress, block, network, poolId)
+        .orElseThrow(() -> {
+          log.error("Can not get balancer poolTokenInfo for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        });
+
+    var totalSupply = functionsUtils.callIntByName(TOTAL_SUPPLY, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get totalSupply for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).doubleValue();
+
+    var price = 0d;
+
+    for (int i = 0; i < poolTokenInfo.getAddress().size(); i++) {
+      var tokenAddress = poolTokenInfo.getAddress().get(i);
+      var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenAddress, block, network)
+          .orElseThrow(() -> {
+            log.error("Can not get token decimal for {} {}", tokenAddress, network);
+            throw new CanNotFetchPriceException();
+          }).intValue();
+
+      var tokenPrice = getPriceForCoin(tokenAddress, block, network);
+      if (tokenPrice == 0) {
+        log.error("Can not fetch price for balancer {} {}", address, network);
+        return 0;
+      }
+
+      price = price + tokenPrice * normalizePrecision(poolTokenInfo.getBalances().get(i).doubleValue(), tokenDecimal);
+    }
+
+    return price / totalSupply;
+  }
+
+  // TODO 0xc27bfe32e0a934a12681c1b35acf0dba0e7460ba has 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee coin address
+  public double getCurvePrice(String address, Long block, String network) {
+    var minter = functionsUtils.callAddressByName(MINTER, address, block, network)
+        .orElse(null);
+
+    if (minter == null) {
+      var checkAddress = functionsUtils.getCurveTokenInfo(address, block, network, 0);
+      if (checkAddress.isEmpty()) {
+        return getPriceForCoin(address, block, network);
+      }
+      minter = address;
+    }
+
+    var size = functionsUtils.getCurveVaultSize(minter, network);;
+    var decimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get decimal for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).intValue();
+
+    var totalSupply = functionsUtils.callIntByName(TOTAL_SUPPLY, address, block, network)
+        .orElseThrow(() -> {
+          log.error("Can not get totalSupply for {} {}", address, network);
+          throw new CanNotFetchPriceException();
+        }).doubleValue();
+
+    var tvl = Double.valueOf(0);
+    for (int i = 0; i < size; i++) {
+      var index = i;
+      var tokenInfo = functionsUtils.getCurveTokenInfo(minter, block, network, i)
+          .orElseThrow(() -> {
+            log.error("Can not get tokeInfo for {} {}, index - {}", address, network, index);
+            throw new CanNotFetchPriceException();
+          });
+
+      if (tokenInfo.getAddress().equalsIgnoreCase(ZERO_ADDRESS)) {
+        return 1;
+      }
+
+      if (tokenInfo.getAddress().equalsIgnoreCase(CURVE_ZERO_ADDRESS)) {
+        tokenInfo.setAddress(ContractUtils.getBaseNetworkWrappedTokenAddress(network));
+      }
+
+      var tokenDecimal = functionsUtils.callIntByName(FunctionsNames.DECIMALS, tokenInfo.getAddress(), block, network)
+          .orElseThrow(() -> {
+            log.error("Can not get decimal for {} {}", tokenInfo.getAddress(), network);
+            throw new CanNotFetchPriceException();
+          }).intValue();
+
+      var tokenPrice = getPriceForCoinOrCurve(tokenInfo.getAddress(), block, network);
+
+      if (tokenPrice == 0) {
+        log.error("Can not fetch price for curve {} {}", address, network);
+        return 0;
+      }
+
+      var balance = normalizePrecision(tokenInfo.getBalance().doubleValue(), tokenDecimal);
+      tvl = tvl + tokenPrice * balance / DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue();
+    }
+
+    return tvl * DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue() / normalizePrecision(totalSupply, decimal) ;
   }
 
   public double getLpTokenUsdPriceFromEth(String lpAddress, double amount, long block,
@@ -53,9 +177,10 @@ public class PriceProvider {
       return 0.0;
     }
 
-    if (PriceOracle.isAvailable(block, network)) {
+    if (PriceOracle.isAvailable(block, network) && functionsUtils.canGetTokenPrice(lpAddress, priceOracle.getOracleAddress(lpAddress, block, network), block, network)) {
       return amount * priceOracle.getPriceForCoinOnChain(lpAddress, block, network);
     }
+
     log.info("Oracle not deployed yet, use direct calculation for prices");
     Tuple2<Double, Double> lpPooled = functionsUtils.callReserves(
         lpAddress, block, network);
@@ -72,6 +197,35 @@ public class PriceProvider {
     return usdValue;
   }
 
+  public double getUniswapV3Price(String address, Long block, String network) {
+
+    if (UniswapV3Pools.EXCLUDED_STABLE_VAULTS.get(network).contains(address.toLowerCase())) {
+      return 1;
+    }
+
+    var poolAddress = UniswapV3Pools.VAULTS_TO_POOLS.get(network).get(address.toLowerCase());
+    if (poolAddress == null) {
+      log.error("Can not find uniSwapV3 pool address");
+      throw new IllegalStateException();
+    }
+
+    var sqrt = functionsUtils.getSqrtPriceX96(poolAddress, block, network)
+        .orElseThrow(() -> new IllegalStateException("Can not get SqrtPriceX96 for : " + poolAddress));
+
+    var tokens = functionsUtils.callTokensForSwapPlatform(poolAddress, network);
+
+    var decimalOne = functionsUtils.getDecimal(tokens.component1(), network);
+    var decimalTwo = functionsUtils.getDecimal(tokens.component2(), network);
+
+    sqrt = sqrt.pow(2);
+
+    var decimal = BigDecimal.valueOf(10).pow(decimalOne).divide(BigDecimal.valueOf(10).pow(decimalTwo));
+    var price = sqrt.doubleValue() * decimal.doubleValue() / UNISWAP_V3_VALUE.doubleValue();
+
+    var tokenTwoPrice = getPriceForCoin(tokens.component2(), block, network);
+    return price * tokenTwoPrice;
+  }
+
   private double calculateLpTokenPrice(String lpAddress,
       Tuple2<Double, Double> lpPooled,
       double lpBalance,
@@ -79,8 +233,14 @@ public class PriceProvider {
       long block,
       String network
   ) {
-    Tuple2<String, String> tokensAdr = contractDbService
-        .tokenAddressesByUniPairAddress(lpAddress, network);
+    Tuple2<String, String> tokensAdr = null;
+
+    try {
+      tokensAdr = contractDbService
+          .tokenAddressesByUniPairAddress(lpAddress, network);
+    } catch (IllegalStateException e) {
+      tokensAdr = functionsUtils.callTokensForSwapPlatform(lpAddress, network);
+    }
 
     double positionFraction = amount / lpBalance;
 
@@ -157,6 +317,22 @@ public class PriceProvider {
     if (appProperties.isOnlyApi()) {
       return 0.0;
     }
+
+    if (ContractConstantsV4.EXCLUDE_JARVIS_STABLECOIN.get(network).stream().anyMatch(i -> i.equals(address.toLowerCase()))) {
+      return DEFAULT_RETURN_PRICE;
+    }
+
+    final TokenInfo tokenInfo = TokenInfo.builder()
+        .address(address)
+        .network(network)
+        .build();
+
+    if (ContractConstantsV7.COIN_PRICE_IN_OTHER_CHAIN.containsKey(tokenInfo)) {
+      var tokenInfoInOtherChain = ContractConstantsV7.COIN_PRICE_IN_OTHER_CHAIN.get(tokenInfo);
+      var otherBlockChain = ethBlockService.getBlockFromOtherChain(block, network, tokenInfoInOtherChain.getNetwork());
+      return priceOracle.getPriceForCoinOnChain(tokenInfoInOtherChain.getAddress(), otherBlockChain, tokenInfoInOtherChain.getNetwork());
+    }
+
     if (PriceOracle.isAvailable(block, network)) {
       return priceOracle.getPriceForCoinOnChain(address, block, network);
     }
@@ -291,4 +467,17 @@ public class PriceProvider {
     }
   }
 
+  private double normalizePrecision(Double amount, int decimal) {
+    return amount * DEFAULT_POW.pow(DEFAULT_DECIMAL).doubleValue() / DEFAULT_POW.pow(decimal).doubleValue();
+  }
+
+  private Double getPriceForCoinOrCurve(String address, Long block, String network) {
+    var name = functionsUtils.callStrByName(NAME, address, block, network)
+        .orElse(StringUtils.EMPTY);
+    if (UniPairType.isCurve(name)) {
+      return getCurvePrice(address, block, network);
+    }
+
+    return getPriceForCoin(address, block, network);
+  }
 }

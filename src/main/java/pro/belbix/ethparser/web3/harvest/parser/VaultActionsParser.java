@@ -5,7 +5,6 @@ import static pro.belbix.ethparser.web3.abi.FunctionsNames.GET_PRICE_PER_FULL_SH
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.TOTAL_SUPPLY;
 import static pro.belbix.ethparser.web3.abi.FunctionsNames.UNDERLYING;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.ZERO_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractType.POOL;
 import static pro.belbix.ethparser.web3.contracts.ContractType.VAULT;
 
@@ -27,7 +26,6 @@ import pro.belbix.ethparser.model.LpStat;
 import pro.belbix.ethparser.model.tx.HarvestTx;
 import pro.belbix.ethparser.properties.AppProperties;
 import pro.belbix.ethparser.properties.NetworkProperties;
-import pro.belbix.ethparser.repositories.ErrorsRepository;
 import pro.belbix.ethparser.web3.EthBlockService;
 import pro.belbix.ethparser.web3.ParserInfo;
 import pro.belbix.ethparser.web3.Web3Functions;
@@ -35,6 +33,7 @@ import pro.belbix.ethparser.web3.Web3Parser;
 import pro.belbix.ethparser.web3.Web3Subscriber;
 import pro.belbix.ethparser.web3.abi.FunctionService;
 import pro.belbix.ethparser.web3.abi.FunctionsUtils;
+import pro.belbix.ethparser.web3.contracts.ContractConstantsV7;
 import pro.belbix.ethparser.web3.contracts.ContractType;
 import pro.belbix.ethparser.web3.contracts.ContractUtils;
 import pro.belbix.ethparser.web3.contracts.db.ContractDbService;
@@ -202,7 +201,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
       TransactionReceipt receipt = web3Functions
           .fetchTransactionReceipt(harvestTx.getHash(), network);
       String vault = receipt.getTo();
-      if (vault.equalsIgnoreCase(iPS_ADDRESS)) {
+      if (vault.equalsIgnoreCase(ContractConstantsV7.iPS_ADDRESS)) {
         return false; //not count deposit from iPS
       }
       harvestTx.setMethodName("Deposit");
@@ -378,7 +377,7 @@ public class VaultActionsParser extends Web3Parser<HarvestDTO, Log> {
     dto.setLastTvl(vault);
     dto.setLastUsdTvl((double) Math.round(vault * priceUnderlying));
     dto.setUsdAmount((long) (priceUnderlying * dto.getAmount() * dto.getSharePrice()));
-    if (iPS_ADDRESS.equalsIgnoreCase(dto.getVaultAddress())) {
+    if (ContractConstantsV7.iPS_ADDRESS.equalsIgnoreCase(dto.getVaultAddress())) {
       dto.setTotalAmount(farmTotalAmount(dto.getBlock(), network));
     }
   }

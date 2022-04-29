@@ -10,7 +10,7 @@ import static pro.belbix.ethparser.TestUtils.numberFormat;
 import static pro.belbix.ethparser.service.AbiProviderService.ETH_NETWORK;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_ADDRESS;
 import static pro.belbix.ethparser.web3.contracts.ContractConstants.PS_V0_ADDRESS;
-import static pro.belbix.ethparser.web3.contracts.ContractConstants.iPS_ADDRESS;
+import static pro.belbix.ethparser.web3.contracts.ContractConstantsV7.iPS_ADDRESS;
 
 import java.util.List;
 import org.junit.jupiter.api.Disabled;

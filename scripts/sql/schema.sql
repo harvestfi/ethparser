@@ -1105,3 +1105,47 @@ create index idx_uni_tx
 grant select on uni_tx to grafana;
 grant select on uni_tx to backup;
 
+
+create table covalenthq_vault_tx
+(
+    id                 bigserial
+        primary key,
+    network             varchar(255),
+    block              numeric(19, 0),
+    transaction_hash         varchar(255),
+    contract_decimal     numeric(19, 0),
+    contract_address               varchar(255),
+    owner_address                 varchar(255),
+    share_price        numeric(60, 0),
+    token_price        numeric(60, 6),
+    value        numeric(60, 0),
+    signed_at       timestamp,
+    type         varchar(255)
+);
+
+create table share_price
+(
+    id varchar(255) primary key,
+    value numeric(60, 0)
+);
+
+create table token_price
+(
+    id varchar(255) primary key,
+    value numeric(60, 6)
+);
+
+create table harvest_vault_data
+(
+    id            varchar(255)  not null
+        constraint harvest_vault_data_pk
+            primary key,
+    vault_address varchar(255) not null,
+    reward_pool   varchar(255),
+    display_name  varchar(255),
+    network       varchar(99),
+    apy           double precision  not null,
+    tvl           double precision  not null,
+    total_supply  double precision  not null
+);
+
